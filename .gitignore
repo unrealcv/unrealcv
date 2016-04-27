@@ -1,0 +1,12 @@
+*.dll
+*.exe
+*.pch
+
+*.sln
+*.sdf
+
+Intermediate/
+Binaries/
+Content/InfinityBladeWarriors/
+Saved/
+DerivedDataCache/
