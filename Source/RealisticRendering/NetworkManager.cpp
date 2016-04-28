@@ -7,6 +7,10 @@
 
 UNetworkManager::UNetworkManager()
 {
+	ConnectionSocket = NULL;
+	Listener = NULL;
+	World = NULL;
+	WorldTimerManager = NULL;
 	bIsConnected = false;
 	// TODO: Check unexpected client disconnection
 }

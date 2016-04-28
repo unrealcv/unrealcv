@@ -2,6 +2,8 @@
 *.exe
 *.pch
 
+*.suo
+*.opendb
 *.sln
 *.sdf
 *.pro
