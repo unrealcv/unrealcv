@@ -8,6 +8,7 @@
 *.kdev4
 *.workspace
 *.pri
+*.txt
 
 core
 
