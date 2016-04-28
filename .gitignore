@@ -4,9 +4,20 @@
 
 *.sln
 *.sdf
+*.pro
+*.kdev4
+*.workspace
+*.pri
+
+core
+
+Makefile
+CMakeLists.txt
 
 Intermediate/
 Binaries/
 Content/InfinityBladeWarriors/
 Saved/
 DerivedDataCache/
+
+*.uproject
