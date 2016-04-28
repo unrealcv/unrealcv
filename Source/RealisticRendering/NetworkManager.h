@@ -6,22 +6,22 @@
 #include "NetworkManager.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class REALISTICRENDERING_API UNetworkManager : public UObject
 {
 	GENERATED_BODY()
-	
+
 private:
-	FSocket* Listener; // TODO: Replace with intelligent pointer here.
-	FSocket* ConnectionSocket;
-	FTimerManager* WorldTimerManager;
+	TSharedPtr<FSocket> Listener; // TODO: Replace with intelligent pointer here.
+	TSharedPtr<FSocket> ConnectionSocket;
+	TSharedPrt<FTimerManager> WorldTimerManager;
 	bool bIsConnected;
 	uint32 PortNum = 9000;
 
 public:
-	UWorld* World;
+	TSharedPrt<UWorld> World;
 	UNetworkManager();
 	void SendMessage(FString Message);
 	void ListenSocket();
@@ -29,5 +29,5 @@ public:
 	void WaitData();
 	FString StringFromBinaryArray(const TArray<uint8>& BinaryArray);
 	~UNetworkManager();
-	
+
 };

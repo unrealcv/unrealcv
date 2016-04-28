@@ -31,7 +31,7 @@ void AMyHUD::DrawHUD()
 				FVector ActorLocation = Actor->GetActorLocation();
 
 				FVector ActorLocation2 = Canvas->Project(ActorLocation);
-				Canvas->DrawText(Font, Actor->GetActorLabel(), ActorLocation2.X, ActorLocation2.Y, 1, 1, FontRenderInfo);
+				// Canvas->DrawText(Font, Actor->GetActorLabel(), ActorLocation2.X, ActorLocation2.Y, 1, 1, FontRenderInfo);
 			}
 		}
 	}

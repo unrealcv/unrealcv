@@ -13,7 +13,7 @@ class FViewMode
 {
 public:
 	/* Define console commands */
-	static void Depth(UWorld *World) 
+	static void Depth(UWorld *World)
 	{
 		check(World);
 
@@ -77,7 +77,7 @@ public:
 		ApplyViewMode(VMI_Lit, true, Viewport->EngineShowFlags);
 		// Need to toggle this view mode
 		// Viewport->EngineShowFlags.SetMaterials(true);
-		
+
 		Viewport->EngineShowFlags.SetMaterials(false);
 		Viewport->EngineShowFlags.SetLighting(false);
 		Viewport->EngineShowFlags.SetBSPTriangles(true);
@@ -146,6 +146,7 @@ void AMyCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	DefineConsoleCommands();
+	NetworkManager->ListenSocket();
 }
 
 void AMyCharacter::NotifyClient(FString Message)
@@ -158,7 +159,7 @@ void AMyCharacter::TakeScreenShot(FString Filename)
 {
 	static uint32 NumCaptured = 0;
 	NumCaptured++;
-	Filename = FString::Printf(TEXT("D:\\ScreenCapture\\%04d.png"), NumCaptured);
+	Filename = FString::Printf(TEXT("%04d.png"), NumCaptured);
 	TArray<FColor> Bitmap;
 
 	bool bScreenshotSuccessful = false;
@@ -232,9 +233,7 @@ void AMyCharacter::MoveRight(float Value)
 
 void AMyCharacter::OnFire()
 {
-	NetworkManager->ListenSocket();
 	PaintAllObjects();
-	// NotifyClient(TEXT("Fire"));
 	TakeScreenShot(TEXT(""));
 
 	UE_LOG(LogTemp, Warning, TEXT("Fire"));
@@ -251,7 +250,7 @@ void AMyCharacter::OnFire()
 	{
 		AActor* HitActor = HitResult.GetActor();
 
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *HitActor->GetActorLabel());
+		// UE_LOG(LogTemp, Warning, TEXT("%s"), *HitActor->GetActorLabel());
 		// Draw a bounding box of the hitted object and also output the name of it.
 	}
 }
@@ -280,7 +279,7 @@ void AMyCharacter::PaintObject(AActor* Actor)
 	// TInlineComponentArray<UMeshComponent*> MeshComponents;
 	// Actor->GetComponents<UMeshComponent>(MeshComponents);
 	Actor->GetComponents<UMeshComponent>(PaintableComponents);
-	
+
 
 	for (auto MeshComponent : PaintableComponents)
 	{
@@ -305,7 +304,7 @@ void AMyCharacter::PaintObject(AActor* Actor)
 					InstanceMeshLODInfo->OverrideVertexColors->InitFromSingleColor(FColor::White, LODModel.GetNumVertices());
 				}
 
-				uint32 NumVertices = LODModel.GetNumVertices(); 
+				uint32 NumVertices = LODModel.GetNumVertices();
 				check(InstanceMeshLODInfo->OverrideVertexColors);
 				check(NumVertices <= InstanceMeshLODInfo->OverrideVertexColors->GetNumVertices());
 				StaticMeshComponent->CachePaintedDataIfNecessary();
@@ -398,4 +397,3 @@ void AMyCharacter::DefineConsoleCommands()
 		ECVF_Default
 		);
 }
-
