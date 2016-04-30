@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Object.h"
+#include "Networking.h"
 #include "NetworkManager.generated.h"
 
 /**
@@ -16,12 +17,13 @@ class REALISTICRENDERING_API UNetworkManager : public UObject
 private:
 	FSocket* Listener; // TODO: Replace with intelligent pointer here.
 	FSocket* ConnectionSocket;
+
 	FTimerManager* WorldTimerManager;
 	bool bIsConnected;
 	uint32 PortNum = 9000;
-
 public:
 	UWorld* World;
+
 	UNetworkManager();
 	void SendMessage(FString Message);
 	void ListenSocket();

@@ -31,8 +31,11 @@ void UNetworkManager::ListenSocket()
 		.AsReusable().BoundToEndpoint(Endpoint)
 		.Listening(1); // Only accept one connection
 
+	// When will happen if the endpoint is taken?
+
 	int32 BufferSize = 2 * 1024 * 1024, RealSize;
 	Listener->SetReceiveBufferSize(BufferSize, RealSize); // RealSize might be different from what we want
+	check(RealSize == BufferSize);
 
 	check(Listener); // TODO: Better exception handling
 
@@ -59,6 +62,7 @@ void UNetworkManager::WaitConnection()
 	{
 		check(ConnectionSocket == NULL); // Assume only one connection
 		ConnectionSocket = Listener->Accept(*RemoteAddress, TEXT("Remote socket to send message back"));
+
 		bIsConnected = true;
 		UE_LOG(LogTemp, Warning, TEXT("Client socket connected."));
 

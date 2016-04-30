@@ -23,6 +23,7 @@ public:
 	static void ToggleLabel();
 
 private:
+	UPROPERTY()
 	class UTexture2D* CrosshairTex;
 	
 	static bool bDrawCursor;
