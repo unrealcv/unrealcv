@@ -48,6 +48,7 @@ public:
 
 	void TakeScreenShot(FString Filename);
 private:
+	UPROPERTY() // This is super important to prevent the NetworkManager from GC.
 	UNetworkManager* NetworkManager;
 };
 
