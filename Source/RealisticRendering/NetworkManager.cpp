@@ -17,33 +17,83 @@ UNetworkManager::UNetworkManager()
 
 UNetworkManager::~UNetworkManager()
 {
+	// Disconnect current connection and release resource.
+	bool Status;
+	if (ConnectionSocket)
+	{
+		Status = ConnectionSocket->Close();
+		if (Status)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Successfully close connection socket"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Fail to close connection socket"));
+		}
+	}
+
+	if (Listener)
+	{
+		Status = Listener->Close();
+		if (Status)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Successfully close listening socket"));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Fail to close listening socket"));
+		}
+	}
 }
 
 void UNetworkManager::ListenSocket()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Start Listening a Socket"));
+	UE_LOG(LogTemp, Warning, TEXT("Try to start a listening socket"));
 	// FString IPAddress = "127.0.0.1";
 	// FIPv4Address IPAddress = FIPv4Address(127, 0, 0, 1);
 	FIPv4Address IPAddress = FIPv4Address(0, 0, 0, 0);
-	FIPv4Endpoint Endpoint(IPAddress, PortNum);
-	// FSocket*
-	Listener = FTcpSocketBuilder(TEXT("UnrealCV Controller"))
-		.AsReusable().BoundToEndpoint(Endpoint)
-		.Listening(1); // Only accept one connection
+	uint32 NumPortToTry = 10;
+	for (uint32 PortOffset = 0; PortOffset < NumPortToTry; PortOffset++)
+	{
+		// The configured port might be in use, try a few of them
+		uint32 TryPortNum = PortNum + PortOffset;
+		FIPv4Endpoint Endpoint(IPAddress, TryPortNum); // TODO: I need to check whether this step is successful.
+		// FSocket*
+		Listener = FTcpSocketBuilder(TEXT("UnrealCV Controller"))
+			.AsReusable().BoundToEndpoint(Endpoint)
+			.Listening(1); // Only accept one connection
+			// How can I know whether the binding is successful?
+			// TODO: Check whether there is any exception thrown in the source code, when the port is in use.
+		if (Listener)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Start listening on port %d"), TryPortNum);
+			break; // The creation is successful.
+		}
+	}
 
-	// When will happen if the endpoint is taken?
+	if (Listener)
+	{
+		// When will happen if the endpoint is taken?
 
-	int32 BufferSize = 2 * 1024 * 1024, RealSize;
-	Listener->SetReceiveBufferSize(BufferSize, RealSize); // RealSize might be different from what we want
-	check(RealSize == BufferSize);
+		int32 BufferSize = 2 * 1024 * 1024, RealSize;
+		Listener->SetReceiveBufferSize(BufferSize, RealSize); // RealSize might be different from what we want
 
-	check(Listener); // TODO: Better exception handling
+		if (RealSize != BufferSize)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("The real buffer size %d and expected buffer size %d are different"), RealSize, BufferSize);
+		}
 
-	check(World);
+		check(Listener); // TODO: Better exception handling
+		check(World);
 
-	FTimerHandle TimerHandle;
-	World->GetTimerManager().SetTimer(TimerHandle, this,
-		&UNetworkManager::WaitConnection, 1, true);
+		FTimerHandle TimerHandle;
+		World->GetTimerManager().SetTimer(TimerHandle, this,
+			&UNetworkManager::WaitConnection, 1, true);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Can not start the listening socket. Unknown error"));
+	}
 }
 
 void UNetworkManager::WaitConnection()
@@ -52,25 +102,32 @@ void UNetworkManager::WaitConnection()
 	if (!Listener) return; // In case of Socket initialization failed
 	// check(Listener);
 	NumAttempt += 1;
-	UE_LOG(LogTemp, Warning, TEXT("Check connection %d"), NumAttempt);
-
-
-	TSharedRef<FInternetAddr> RemoteAddress = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr(); // Why use TSharedRef? For thread safety?
-	bool Pending;
-
-	if (Listener->HasPendingConnection(Pending) && Pending)
+	if (ConnectionSocket == NULL || ConnectionSocket->GetConnectionState() != ESocketConnectionState::SCS_Connected)
+	// I need to check whether current socket is disconnected, if disconnected, start a new connection
 	{
-		check(ConnectionSocket == NULL); // Assume only one connection
-		ConnectionSocket = Listener->Accept(*RemoteAddress, TEXT("Remote socket to send message back"));
+		bIsConnected = false;
+		UE_LOG(LogTemp, Warning, TEXT("Check connection %d"), NumAttempt);
+		TSharedRef<FInternetAddr> RemoteAddress = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr(); // Why use TSharedRef? For thread safety?
 
-		bIsConnected = true;
-		UE_LOG(LogTemp, Warning, TEXT("Client socket connected."));
-
-		if (ConnectionSocket != NULL)
+		bool Pending;
+		if (Listener->HasPendingConnection(Pending) && Pending)
 		{
-			FTimerHandle TimerHandle;
-			World->GetTimerManager().SetTimer(TimerHandle, this, &UNetworkManager::WaitData, 1, true);
+			check(ConnectionSocket == NULL); // Assume only one connection
+			ConnectionSocket = Listener->Accept(*RemoteAddress, TEXT("Remote socket to send message back"));
+
+			UE_LOG(LogTemp, Warning, TEXT("Client socket connected."));
+
+			if (ConnectionSocket != NULL)
+			{
+				FTimerHandle TimerHandle;
+				World->GetTimerManager().SetTimer(TimerHandle, this, &UNetworkManager::WaitData, 1, true);
+				bIsConnected = true;
+			}
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Connected"));
 	}
 }
 
@@ -110,12 +167,16 @@ FString UNetworkManager::StringFromBinaryArray(const TArray<uint8>& BinaryArray)
 
 void UNetworkManager::SendMessage(FString Message)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Message to client: %s"), *Message);
-	if (bIsConnected && ConnectionSocket)
+	// The status check is incorrect. TODO:`
+	if (ConnectionSocket == NULL || !bIsConnected)
 	{
-		TCHAR* SerializedChar = Message.GetCharArray().GetData();
-		int32 Size = FCString::Strlen(SerializedChar);
-		int32 Sent = 0;
-		ConnectionSocket->Send((uint8*)TCHAR_TO_UTF8(SerializedChar), Size, Sent);
+		UE_LOG(LogTemp, Warning, TEXT("Socket is not connected"));
+		return;
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Message to client: %s"), *Message);
+	TCHAR* SerializedChar = Message.GetCharArray().GetData();
+	int32 Size = FCString::Strlen(SerializedChar);
+	int32 Sent = 0;
+	ConnectionSocket->Send((uint8*)TCHAR_TO_UTF8(SerializedChar), Size, Sent);
 }

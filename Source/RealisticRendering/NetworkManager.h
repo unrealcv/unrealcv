@@ -19,9 +19,11 @@ private:
 	FSocket* ConnectionSocket;
 
 	FTimerManager* WorldTimerManager;
-	bool bIsConnected;
-	uint32 PortNum = 9000;
 public:
+	UPROPERTY()
+	uint32 PortNum = 9000;
+	UPROPERTY()
+	bool bIsConnected;
 	UWorld* World;
 
 	UNetworkManager();
