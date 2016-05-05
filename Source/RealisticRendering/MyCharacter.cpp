@@ -9,7 +9,6 @@
 #include "ImageUtils.h"
 #include "ViewMode.h"
 
-
 // Sets default values
 AMyCharacter::AMyCharacter()
 {
@@ -40,6 +39,7 @@ void AMyCharacter::TakeScreenShot(FString Filename)
 	NumCaptured++;
 	Filename = FString::Printf(TEXT("%04d.png"), NumCaptured);
 	TArray<FColor> Bitmap;
+	UE_LOG(LogTemp, Warning, TEXT("Make a screenshot to %s"), *Filename); // TODO: Show full filename
 
 	bool bScreenshotSuccessful = false;
 	UGameViewportClient* ViewportClient = GetWorld()->GetGameViewport();
@@ -54,7 +54,6 @@ void AMyCharacter::TakeScreenShot(FString Filename)
 
 	if (bScreenshotSuccessful)
 	{
-		NotifyClient(FString::Printf(TEXT("%s"), *Filename));
 		FString ScreenShotName = Filename;
 		FIntVector Size(InViewport->GetSizeXY().X, InViewport->GetSizeXY().Y, 0);
 		// TODO: Need to blend alpha, a bit weird from screen.
@@ -63,6 +62,7 @@ void AMyCharacter::TakeScreenShot(FString Filename)
 		TArray<uint8> CompressedBitmap;
 		FImageUtils::CompressImageArray(Size.X, Size.Y, Bitmap, CompressedBitmap);
 		FFileHelper::SaveArrayToFile(CompressedBitmap, *ScreenShotName);
+		NotifyClient(FString::Printf(TEXT("%s"), *Filename)); // Send a message after file is saved.
 	}
 	else
 	{

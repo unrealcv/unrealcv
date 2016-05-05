@@ -11,6 +11,11 @@
 *.workspace
 *.pri
 *.txt
+.cproject
+# For CDT
+.project
+# Eclipse
+*.pro.user
 
 core
 
