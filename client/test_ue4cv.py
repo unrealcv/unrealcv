@@ -10,12 +10,12 @@ def on_received(data):
 def on_connected():
     client.send('vget /object') # TODO: How to end a message??
     # Wait data response
-    time.sleep(0.1)
     client.send('vget /camera/0/image')
-    time.sleep(0.1)
     client.send('vget /camera/0/position')
-    time.sleep(0.1)
-    client.send('vset /mode/depth')
+    client.send('vset /mode/depth') # set an alias for this
+    client.send('')
+    client.send('garbage')
+    client.send('vget undefined command')
 
     # A list of location and rotation
     # Only valid location and rotation are acceptable

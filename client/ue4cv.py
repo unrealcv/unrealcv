@@ -63,11 +63,11 @@ class client:
                     return True
                 elif (reply.startswith(error_reply)):
                     logging.error(error_reply)
-                    on_received(reply)
+                    self.on_received(reply)
                 else:
                     return reply
             else:
-                on_received(reply)
+                self.on_received(reply)
 
             self.message_id += 1
 
@@ -90,7 +90,6 @@ class client:
             if not data:
                 break # Disconnect
 
-            # message = repr(data)
             self.on_received(data)
 
         self.client_socket.close() # Disconnect from the server

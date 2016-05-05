@@ -6,6 +6,9 @@ import socket as S
 import thread as T
 import threading as TS
 import argparse
+import logging as L
+
+L.basicConfig(level=L.DEBUG)
 
 buffer_size = 1024
 # host = '127.0.0.1'
@@ -28,19 +31,28 @@ class DummyServer:
     def recv_handler(self, client_socket, client_address):
         print 'Client is connected'
         import re
-        message_re = re.compile('\d{1:8}:.*')
+        message_re = re.compile('(\d{1,8}):(.*)')
         while 1:
-            data = client_socket.recv(buffer_size)
-            message = repr(data)
+            message = client_socket.recv(buffer_size)
             match = message_re.match(message) # Use regular expression to match
+            L.info(message)
             if match:
                 message_id = match.group(1)
-                reply = '%s:ok' % message_id
-                client_socket.sendall(reply)
+                message_body = match.group(2)
+                args = message_body.split(' ')
+                if len(args) > 0:
+                    pass
+                    reply = '%s:ok' % message_id
+                    L.info(reply)
+                    client_socket.sendall(reply)
+                else:
+                    L.debug('Got an empty command')
+                    reply = '%s:error' % message_id
 
-            print 'data:' + repr(data)
+            else:
+                L.debug('Not a match message')
 
-            if not data:
+            if not message:
                 break
 
         client_socket.close()
