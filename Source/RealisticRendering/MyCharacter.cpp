@@ -6,129 +6,8 @@
 #include "StaticMeshResources.h"
 #include "Networking.h"
 #include <string>
-#include "BufferVisualizationData.h"
 #include "ImageUtils.h"
-
-class FViewMode
-{
-public:
-	/* Define console commands */
-	static void Depth(UWorld *World)
-	{
-		check(World);
-
-		UGameViewportClient* Viewport = World->GetGameViewport();
-		// Viewport->CurrentBufferVisualization
-		Viewport->EngineShowFlags.SetVisualizeBuffer(true);
-		SetCurrentBufferVisualizationMode(TEXT("SceneDepth"));
-		// TODO: Enable post process or not will show interesting result.
-		// Viewport->EngineShowFlags.SetPostProcessing(false);
-	}
-
-	static void SetCurrentBufferVisualizationMode(FString ViewMode)
-	{
-		// A complete list can be found from Engine/Config/BaseEngine.ini, Engine.BufferVisualizationMaterials
-		// TODO: BaseColor is weird, check BUG.
-		static IConsoleVariable* ICVar = IConsoleManager::Get().FindConsoleVariable(FBufferVisualizationData::GetVisualizationTargetConsoleCommandName());
-		ICVar->Set(*ViewMode, ECVF_SetByCode);
-	}
-
-	static void Normal(UWorld *World)
-	{
-		check(World);
-
-		UGameViewportClient* Viewport = World->GetGameViewport();
-		Viewport->EngineShowFlags.SetVisualizeBuffer(true);
-		SetCurrentBufferVisualizationMode(TEXT("WorldNormal"));
-	}
-
-
-	static void Lit(UWorld* World)
-	{
-		check(World);
-
-		auto Viewport = World->GetGameViewport();
-		ApplyViewMode(VMI_Lit, true, Viewport->EngineShowFlags);
-
-		Viewport->EngineShowFlags.SetMaterials(true);
-	}
-
-	static void Unlit(UWorld* World)
-	{
-		check(World);
-
-		auto Viewport = World->GetGameViewport();
-		ApplyViewMode(VMI_Unlit, true, Viewport->EngineShowFlags);
-		Viewport->EngineShowFlags.SetMaterials(false);
-	}
-
-	static void Object(UWorld* World)
-	{
-		check(World);
-
-		auto Viewport = World->GetGameViewport();
-		/* This is from ShowFlags.cpp and not working, give it up.
-		Viewport->EngineShowFlags.SetLighting(false);
-		Viewport->EngineShowFlags.LightFunctions = 0;
-		Viewport->EngineShowFlags.SetPostProcessing(false);
-		Viewport->EngineShowFlags.AtmosphericFog = 0;
-		Viewport->EngineShowFlags.DynamicShadows = 0;
-		*/
-		ApplyViewMode(VMI_Lit, true, Viewport->EngineShowFlags);
-		// Need to toggle this view mode
-		// Viewport->EngineShowFlags.SetMaterials(true);
-
-		Viewport->EngineShowFlags.SetMaterials(false);
-		Viewport->EngineShowFlags.SetLighting(false);
-		Viewport->EngineShowFlags.SetBSPTriangles(true);
-		Viewport->EngineShowFlags.SetVertexColors(true);
-		Viewport->EngineShowFlags.SetPostProcessing(false);
-		Viewport->EngineShowFlags.SetHMDDistortion(false);
-
-		GVertexColorViewMode = EVertexColorViewMode::Color;
-	}
-
-#define REG_VIEW(COMMAND, DESC, DELEGATE) \
-		IConsoleManager::Get().RegisterConsoleCommand(TEXT(COMMAND), TEXT(DESC), \
-			FConsoleCommandWithWorldDelegate::CreateStatic(DELEGATE), ECVF_Default);
-		/*
-	static void RegisterViewModeCommand(FString Command, FString Description, FConsoleCommandWithWorldDelegate Delegate)
-	{
-		// ViewMode
-		IConsoleObject* VisionDepthCMd = IConsoleManager::Get().RegisterConsoleCommand(
-			TEXT("VisionDepth"),
-			TEXT("Change the viewport to depth mode"),
-			FConsoleCommandWithWorldDelegate::CreateStatic(FViewMode::Depth),
-			ECVF_Default
-			);
-	}
-	*/
-
-	static void RegisterCommands()
-	{
-		REG_VIEW("VisionDepth", "Change the Viewport to Depth Mode", Depth);
-		REG_VIEW("VisionNormal", "Show Normal", Normal);
-		REG_VIEW("VisionObject", "Show object instance map", Object);
-		REG_VIEW("VisionLit", "Show Lit Rendering", Lit);
-		REG_VIEW("VisionUnlit", "Show Unlit Rendering", Unlit);
-
-		/*
-		IConsoleObject* VisionLitCmd = IConsoleManager::Get().RegisterConsoleCommand(
-			TEXT("VisionLit"),
-			TEXT("Show Lit rendering"),
-			FConsoleCommandWithWorldDelegate::CreateStatic(VisionLit),
-			ECVF_Default
-			);
-
-		IConsoleObject* VisionUnlitCmd = IConsoleManager::Get().RegisterConsoleCommand(
-			TEXT("VisionUnlit"),
-			TEXT("Show Unlit rendering"),
-			FConsoleCommandWithWorldDelegate::CreateStatic(VisionUnlit),
-			ECVF_Default
-			);
-		*/
-	}
-};
+#include "ViewMode.h"
 
 
 // Sets default values
@@ -233,6 +112,7 @@ void AMyCharacter::MoveRight(float Value)
 
 void AMyCharacter::OnFire()
 {
+	DispatchCommands();
 	PaintAllObjects();
 	TakeScreenShot(TEXT(""));
 
@@ -356,7 +236,26 @@ void AMyCharacter::ActionWrapper(const TArray<FString>& Args)
 
 void AMyCharacter::DispatchCommands()
 {
-	// CommandDispatcher.BindCommand('vset /mode/[ViewMode]', FViewMode::SetMode);
+	auto SetViewMode = FConsoleCommandWithArgsDelegate::CreateStatic(FViewMode::SetMode);
+	// CommandDispatcher.BindCommand("vset /mode/(?<ViewMode>.*)", SetViewMode); // Better to check the correctness at compile time
+	CommandDispatcher.BindCommand("vset /mode/(.*)", SetViewMode); // Better to check the correctness at compile time
+	auto GetViewMode = FConsoleCommandWithArgsDelegate::CreateStatic(FViewMode::GetMode);
+	CommandDispatcher.BindCommand("vget /mode", GetViewMode);
+	CommandDispatcher.Exec("vset /mode/depth");
+	CommandDispatcher.Exec("vget /mode");
+
+	/*
+	CommandDispatcher.BindCommand("vget /camera/[id]/location", Command);
+	CommandDispatcher.BindCommand("vget /camera/[id]/rotation", Command);
+	CommandDispatcher.BindCommand("vget /camera/[id]/name", Command);
+	CommandDispatcher.BindCommand("vget /camera/[id]/image", Command); // Take a screenshot and return filename
+
+	CommandDispatcher.BindCommand("vset /camera/[id]/location [x] [y] [z]", Command);
+	// CommandDispatcher.BindCommand("vset /camera/[id]/rotation [x] [y] [z]", Command);
+	*/
+	CommandDispatcher.Alias("VisionDepth", "vset /mode/depth"); // Alias for human interaction
+	CommandDispatcher.Alias("VisionCamInfo", "vget /camera/0/name");
+
 }
 
 void AMyCharacter::DefineConsoleCommands()
