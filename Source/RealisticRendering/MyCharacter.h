@@ -4,6 +4,7 @@
 
 #include "GameFramework/Character.h"
 #include "NetworkManager.h"
+#include "CommandDispatcher.h"
 #include "MyCharacter.generated.h"
 
 UCLASS()
@@ -47,8 +48,11 @@ public:
 	void ActionWrapper(const TArray<FString>& Args);
 
 	void TakeScreenShot(FString Filename);
+
+	void DispatchCommands();
 private:
 	UPROPERTY() // This is super important to prevent the NetworkManager from GC.
 	UNetworkManager* NetworkManager;
+	FCommandDispatcher CommandDispatcher;
 };
 

@@ -3,20 +3,20 @@
 #include "RealisticRendering.h"
 #include "CommandDispatcher.h"
 
-CommandDispatcher::CommandDispatcher()
+FCommandDispatcher::FCommandDispatcher()
 {
 }
 
-CommandDispatcher::~CommandDispatcher()
+FCommandDispatcher::~FCommandDispatcher()
 {
 }
 
-bool CommandDispatcher::BindCommand(const FString UriTemplate, const FConsoleCommandWithArgsDelegate& Command) // Parse URI
+bool FCommandDispatcher::BindCommand(const FString UriTemplate, const FConsoleCommandWithArgsDelegate& Command) // Parse URI
 {
 	return true;
 }
 	
-bool CommandDispatcher::Exec(const FString Uri)
+bool FCommandDispatcher::Exec(const FString Uri)
 {
 	return true;
 }

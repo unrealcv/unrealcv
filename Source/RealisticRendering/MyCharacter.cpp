@@ -354,6 +354,10 @@ void AMyCharacter::ActionWrapper(const TArray<FString>& Args)
 	UE_LOG(LogTemp, Warning, TEXT("The arg of action is %s"), *Args[0]);
 }
 
+void AMyCharacter::DispatchCommands()
+{
+	// CommandDispatcher.BindCommand('vset /mode/[ViewMode]', FViewMode::SetMode);
+}
 
 void AMyCharacter::DefineConsoleCommands()
 {
