@@ -28,6 +28,7 @@ public:
 	// bool BindCommand(const FString Uri, const FConsoleCommandDelegate& Command); // Parse URI
 	FExecStatus Exec(const FString Uri);
 	bool Alias(const FString Alias, const FString Command);
+	bool Alias(const FString Alias, const TArray<FString>& Commands);
 
 private:
 	bool Match(const FString Uri);

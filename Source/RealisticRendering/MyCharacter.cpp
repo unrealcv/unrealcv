@@ -16,6 +16,7 @@ AMyCharacter::AMyCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	NetworkManager = NewObject<UNetworkManager>();
 	NetworkManager->World = this->GetWorld();
+	// NetworkManager->OnReceived().AddRaw(); // TODO: Need to do the command id control
 	FViewMode::World = this->GetWorld();
 	// NetworkManager->SetRecvCommandHandler();
 }

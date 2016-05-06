@@ -9,6 +9,7 @@
 /**
  *
  */
+DECLARE_EVENT_OneParam(UNetworkManager, FReceivedEvent, FString) // TODO: Consider add a pointer to NetworkManager itself
 UCLASS()
 class REALISTICRENDERING_API UNetworkManager : public UObject
 {
@@ -19,7 +20,14 @@ private:
 	FSocket* ConnectionSocket;
 
 	FTimerManager* WorldTimerManager;
+	FReceivedEvent ReceivedEvent;
+	void BroadcastReceived(const FString& Message)
+	{
+		ReceivedEvent.Broadcast(Message); // TODO: A call to return message is required by design.
+	}
 public:
+	FReceivedEvent& OnReceived() { return ReceivedEvent; }
+
 	UPROPERTY()
 	uint32 PortNum = 9000;
 	UPROPERTY()

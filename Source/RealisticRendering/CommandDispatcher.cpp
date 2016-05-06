@@ -85,6 +85,12 @@ bool FCommandDispatcher::BindCommand(const FString UriTemplate, const FDispatche
 	return true;
 }
 
+bool FCommandDispatcher::Alias(const FString Alias, const TArray<FString>& Commands)
+{
+	// Alias can not support arguments
+	return true;
+}
+
 bool FCommandDispatcher::Alias(const FString Alias, const FString Command)
 {
 	// Alias can not support arguments

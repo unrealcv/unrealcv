@@ -148,7 +148,9 @@ void UNetworkManager::OnConnected()
 {
 
 }
+*/
 
+/*
 void UNetworkManager::OnRecvCommand(FString Message)
 // Invoke when data arrived
 {
@@ -179,7 +181,7 @@ void UNetworkManager::WaitData()
 		return;
 	}
 	const FString ReceivedString = StringFromBinaryArray(ReceivedData);
-
+	BroadcastReceived(ReceivedString); // Is this blocking or non-blocking?
 	UE_LOG(LogTemp, Warning, TEXT("%s"), *ReceivedString);
 }
 
