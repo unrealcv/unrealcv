@@ -23,14 +23,14 @@ class client:
         self.received_handler = received_handler
 
     def on_received(self, data):
-        if self.received_handler:
+        if self.__dict__.get('received_handler'):
             self.received_handler(data)
         else:
             L.warning('Received handler not set')
 
     def on_connected(self):
         # TODO: Make sure user input is valid
-        if self.connected_handler:
+        if self.__dict__.get('connected_handler'):
             self.connected_handler()
         else:
             L.warning('Connected handler not set')
