@@ -37,9 +37,10 @@ def render_frame(c):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', type=int, default=8000)
+    parser.add_argument('--ip', default='127.0.0.1')
     args = parser.parse_args()
 
-    client = U.client('127.0.0.1', args.port) # Client implementation should be very stable, it is hard to diagnosis
+    client = U.client(args.ip, args.port) # Client implementation should be very stable, it is hard to diagnosis
     client.set_connectd_handler(on_connected)
     client.set_received_handler(on_received)
     client.connect()
