@@ -50,6 +50,12 @@ public:
 	void TakeScreenShot(FString Filename);
 
 	void DispatchCommands();
+	void TestDispatchCommands();
+	FExecStatus GetCameraLocation(const TArray<FString>& Args);
+	FExecStatus	SetCameraLocation(const TArray<FString>& Args);
+	FExecStatus GetCameraRotation(const TArray<FString>& Args);
+	FExecStatus	SetCameraRotation(const TArray<FString>& Args);
+	FExecStatus GetCameraImage(const TArray<FString>& Args);
 private:
 	UPROPERTY() // This is super important to prevent the NetworkManager from GC.
 	UNetworkManager* NetworkManager;

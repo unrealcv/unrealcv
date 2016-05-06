@@ -27,6 +27,7 @@ public:
 	UWorld* World;
 
 	UNetworkManager();
+	bool IsConnected();
 	void SendMessage(FString Message);
 	void ListenSocket();
 	void WaitConnection();

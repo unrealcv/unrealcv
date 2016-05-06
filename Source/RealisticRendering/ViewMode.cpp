@@ -3,6 +3,7 @@
 #include "RealisticRendering.h"
 #include "ViewMode.h"
 #include "BufferVisualizationData.h"
+#include "CommandDispatcher.h"
 
 #define REG_VIEW(COMMAND, DESC, DELEGATE) \
 		IConsoleManager::Get().RegisterConsoleCommand(TEXT(COMMAND), TEXT(DESC), \
@@ -19,6 +20,9 @@
 			);
 	}
 	*/
+
+UWorld* FViewMode::World = NULL;
+FString FViewMode::CurrentViewMode = "lit"; // "lit" the default mode when the game starts
 
 FViewMode::FViewMode()
 {
@@ -131,15 +135,58 @@ void FViewMode::RegisterCommands()
 	*/
 }
 
-void FViewMode::SetMode(const TArray<FString>& Args) // Check input arguments
+FExecStatus FViewMode::SetMode(const TArray<FString>& Args) // Check input arguments
 {
 	UE_LOG(LogTemp, Warning, TEXT("Run SetMode %s"), *Args[0]);
+
+	// Check args
+	if (Args.Num() == 1)
+	{
+		FString ViewMode = Args[0].ToLower();
+		bool bSuccess = true;
+		if (ViewMode == "depth")
+		{
+			FViewMode::Depth(FViewMode::World);
+		}
+		else if (ViewMode == "normal")
+		{
+			FViewMode::Normal(FViewMode::World);
+		}
+		else if (ViewMode == "object")
+		{
+			FViewMode::Object(FViewMode::World);
+		}
+		else if (ViewMode == "lit")
+		{
+			FViewMode::Lit(FViewMode::World);
+		}
+		else if (ViewMode == "unlit")
+		{
+			FViewMode::Unlit(FViewMode::World);
+		}
+		else 
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Unrecognized ViewMode %s"), *ViewMode);
+			bSuccess = false;
+			return FExecStatus::Error(FString::Printf(TEXT("Can not set ViewMode to %s"), *ViewMode));
+		}
+		if (bSuccess)
+		{
+			FViewMode::CurrentViewMode = ViewMode;
+			return FExecStatus::OK;
+		}
+	}
 	// Send successful message back
+	// The network manager should be blocked and wait for response. So the client needs to be universally accessible?
+	return FExecStatus::Error(TEXT("Arguments to SetMode are incorrect"));
 }
 
 
-void FViewMode::GetMode(const TArray<FString>& Args) // Check input arguments
+FExecStatus FViewMode::GetMode(const TArray<FString>& Args) // Check input arguments
 {
-	UE_LOG(LogTemp, Warning, TEXT("Run GetMode"));
+	UE_LOG(LogTemp, Warning, TEXT("Run GetMode, The mode is %s"), *FViewMode::CurrentViewMode);
+	// How to send message back. Need the conversation id.
 	// Send message back
+	// Complex information will be saved to file
+	return FExecStatus(*FViewMode::CurrentViewMode);
 }

@@ -2,6 +2,7 @@
 
 #pragma once
 #include "RealisticRendering.h"
+#include "CommandDispatcher.h"
 /**
  * 
  */
@@ -17,6 +18,8 @@ public:
 	static void Unlit(UWorld* World);
 	static void Object(UWorld* World);
 	static void RegisterCommands();
-	static void SetMode(const TArray<FString>& Args); // Check input arguments
-	static void GetMode(const TArray<FString>& Args);
+	static FExecStatus SetMode(const TArray<FString>& Args); // Check input arguments
+	static FExecStatus GetMode(const TArray<FString>& Args);
+	static UWorld* World;
+	static FString CurrentViewMode;
 };

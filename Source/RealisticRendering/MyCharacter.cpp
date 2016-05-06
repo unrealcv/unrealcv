@@ -16,7 +16,18 @@ AMyCharacter::AMyCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	NetworkManager = NewObject<UNetworkManager>();
 	NetworkManager->World = this->GetWorld();
+	FViewMode::World = this->GetWorld();
+	// NetworkManager->SetRecvCommandHandler();
 }
+
+/*
+void AMyCharacter::RecvCommand(CommandId, Command)
+{
+	CommandDispatch.Exec(Command);
+	NetworkManager->Reply(CommandId, Message);
+	NetworkManager->Reply(CommandId, Status);
+}
+*/
 
 // Called when the game starts or when spawned
 void AMyCharacter::BeginPlay()
@@ -25,6 +36,7 @@ void AMyCharacter::BeginPlay()
 
 	DefineConsoleCommands();
 	NetworkManager->ListenSocket();
+	DispatchCommands();
 }
 
 void AMyCharacter::NotifyClient(FString Message)
@@ -112,7 +124,7 @@ void AMyCharacter::MoveRight(float Value)
 
 void AMyCharacter::OnFire()
 {
-	DispatchCommands();
+	// TestDispatchCommands();
 	PaintAllObjects();
 	TakeScreenShot(TEXT(""));
 
@@ -234,29 +246,147 @@ void AMyCharacter::ActionWrapper(const TArray<FString>& Args)
 	UE_LOG(LogTemp, Warning, TEXT("The arg of action is %s"), *Args[0]);
 }
 
+
+FExecStatus AMyCharacter::SetCameraLocation(const TArray<FString>& Args)
+{
+	if (Args.Num() == 4) // ID, X, Y, Z
+	{
+		int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
+		float X = FCString::Atof(*Args[1]), Y = FCString::Atof(*Args[2]), Z = FCString::Atof(*Args[3]);
+		FVector Location = FVector(X, Y, Z);
+		SetActorLocation(Location);
+
+		return FExecStatus::OK;
+	}
+	return FExecStatus::InvalidArgument;
+}
+
+FExecStatus AMyCharacter::SetCameraRotation(const TArray<FString>& Args)
+{
+	if (Args.Num() == 4) // ID, Pitch, Roll, Yaw 
+	{
+		int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
+		float Pitch = FCString::Atof(*Args[1]), Yaw = FCString::Atof(*Args[2]), Roll = FCString::Atof(*Args[3]);
+		FRotator Rotator = FRotator(Pitch, Yaw, Roll);
+		AController* Controller = GetController();
+		Controller->ClientSetRotation(Rotator); // Teleport action
+		// SetActorRotation(Rotator);  // This is not working
+
+		return FExecStatus::OK;
+	}
+	return FExecStatus::InvalidArgument;
+}
+
+FExecStatus AMyCharacter::GetCameraRotation(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
+		// FRotator CameraRotation = GetActorRotation();  // We need the rotation of the controller
+		FRotator CameraRotation = GetControlRotation();
+		FString Message = FString::Printf(TEXT("%.3f %.3f %.3f"), CameraRotation.Pitch, CameraRotation.Yaw, CameraRotation.Roll);
+
+		return FExecStatus(Message);
+	}
+	return FExecStatus::Error("Number of arguments incorrect");
+}
+
+
+FExecStatus AMyCharacter::GetCameraLocation(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
+		FVector CameraLocation = GetActorLocation(); 
+		FString Message = FString::Printf(TEXT("%.3f %.3f %.3f"), CameraLocation.X, CameraLocation.Y, CameraLocation.Z);
+
+		return FExecStatus(Message);
+	}
+	return FExecStatus::Error("Number of arguments incorrect");
+}
+
+FExecStatus AMyCharacter::GetCameraImage(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		int32 CameraId = FCString::Atoi(*Args[0]);
+
+		static uint32 NumCaptured = 0;
+		NumCaptured++;
+		FString Filename = FString::Printf(TEXT("%04d.png"), NumCaptured);
+		TArray<FColor> Bitmap;
+		bool bScreenshotSuccessful = false;
+		UGameViewportClient* ViewportClient = GetWorld()->GetGameViewport();
+		FViewport* InViewport = ViewportClient->Viewport;
+		bScreenshotSuccessful = GetViewportScreenShot(InViewport, Bitmap);
+		// ViewportClient->GetHighResScreenshotConfig().MergeMaskIntoAlpha(Bitmap);
+		// Ensure that all pixels' alpha is set to 255
+		for (auto& Color : Bitmap)
+		{
+			Color.A = 255;
+		}
+
+		if (bScreenshotSuccessful)
+		{
+			FIntVector Size(InViewport->GetSizeXY().X, InViewport->GetSizeXY().Y, 0);
+			// TODO: Need to blend alpha, a bit weird from screen.
+
+			TArray<uint8> CompressedBitmap;
+			FImageUtils::CompressImageArray(Size.X, Size.Y, Bitmap, CompressedBitmap);
+			FFileHelper::SaveArrayToFile(CompressedBitmap, *Filename);
+			return FExecStatus(Filename);
+		}
+		else
+		{
+			return FExecStatus::Error("Fail to capture image");
+		}
+	}
+	return FExecStatus::InvalidArgument;
+}
+
 void AMyCharacter::DispatchCommands()
 {
-	auto SetViewMode = FConsoleCommandWithArgsDelegate::CreateStatic(FViewMode::SetMode);
+	// First version
 	// CommandDispatcher.BindCommand("vset /mode/(?<ViewMode>.*)", SetViewMode); // Better to check the correctness at compile time
-	CommandDispatcher.BindCommand("vset /mode/(.*)", SetViewMode); // Better to check the correctness at compile time
-	auto GetViewMode = FConsoleCommandWithArgsDelegate::CreateStatic(FViewMode::GetMode);
-	CommandDispatcher.BindCommand("vget /mode", GetViewMode);
+	FDispatcherDelegate Cmd;
+	FString URI, Any = "(.*)", UInt = "(\\d*)", Float = "([-+]?\\d*[.]?\\d+)"; // Each type will be considered as a group
+	// The regular expression for float number is from here, http://stackoverflow.com/questions/12643009/regular-expression-for-floating-point-numbers
+
+	Cmd = FDispatcherDelegate::CreateStatic(FViewMode::SetMode);
+	// Use ICU regexp to define URI, See http://userguide.icu-project.org/strings/regexp
+	URI = FString::Printf(TEXT("vset /mode/%s"), *Any);
+	CommandDispatcher.BindCommand(URI, Cmd); // Better to check the correctness at compile time
+
+	Cmd = FDispatcherDelegate::CreateStatic(FViewMode::GetMode);
+	CommandDispatcher.BindCommand("vget /mode", Cmd);
+
+	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::GetCameraLocation);
+	CommandDispatcher.BindCommand("vget /camera/(\\d*)/location", Cmd);
+	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::GetCameraImage);
+	CommandDispatcher.BindCommand("vget /camera/(\\d*)/image", Cmd); // Take a screenshot and return filename
+	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::GetCameraRotation);
+	CommandDispatcher.BindCommand("vget /camera/(\\d*)/rotation", Cmd);
+	// CommandDispatcher.BindCommand("vget /camera/[id]/name", Command);
+
+	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::SetCameraLocation);
+	URI = FString::Printf(TEXT("vset /camera/%s/location %s %s %s"), *UInt, *Float, *Float, *Float); 
+	// TODO: Would be better if the format string can support named key
+	CommandDispatcher.BindCommand(URI, Cmd);
+	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::SetCameraRotation);
+	URI = FString::Printf(TEXT("vset /camera/%s/rotation %s %s %s"), *UInt, *Float, *Float, *Float); // Pitch, Yaw, Roll
+	CommandDispatcher.BindCommand(URI, Cmd);
+	// CommandDispatcher.BindCommand("vset /camera/[id]/rotation [x] [y] [z]", Command);
+}
+
+void AMyCharacter::TestDispatchCommands()
+{
 	CommandDispatcher.Exec("vset /mode/depth");
 	CommandDispatcher.Exec("vget /mode");
 
-	/*
-	CommandDispatcher.BindCommand("vget /camera/[id]/location", Command);
-	CommandDispatcher.BindCommand("vget /camera/[id]/rotation", Command);
-	CommandDispatcher.BindCommand("vget /camera/[id]/name", Command);
-	CommandDispatcher.BindCommand("vget /camera/[id]/image", Command); // Take a screenshot and return filename
-
-	CommandDispatcher.BindCommand("vset /camera/[id]/location [x] [y] [z]", Command);
-	// CommandDispatcher.BindCommand("vset /camera/[id]/rotation [x] [y] [z]", Command);
-	*/
 	CommandDispatcher.Alias("VisionDepth", "vset /mode/depth"); // Alias for human interaction
 	CommandDispatcher.Alias("VisionCamInfo", "vget /camera/0/name");
-
 }
+
 
 void AMyCharacter::DefineConsoleCommands()
 {

@@ -102,8 +102,7 @@ void UNetworkManager::WaitConnection()
 	if (!Listener) return; // In case of Socket initialization failed
 	// check(Listener);
 	NumAttempt += 1;
-	if (ConnectionSocket == NULL || ConnectionSocket->GetConnectionState() != ESocketConnectionState::SCS_Connected)
-	// I need to check whether current socket is disconnected, if disconnected, start a new connection
+	if (!IsConnected())  // I need to check whether current socket is disconnected, if disconnected, start a new connection
 	{
 		bIsConnected = false;
 		UE_LOG(LogTemp, Warning, TEXT("Check connection %d"), NumAttempt);
@@ -131,8 +130,34 @@ void UNetworkManager::WaitConnection()
 	}
 }
 
+bool UNetworkManager::IsConnected()
+{
+	// The connection status check can be complex. TODO: Do it right.
+	if (ConnectionSocket != NULL && bIsConnected && ConnectionSocket->GetConnectionState() == ESocketConnectionState::SCS_Connected)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+/*
+void UNetworkManager::OnConnected()
+{
+
+}
+
+void UNetworkManager::OnRecvCommand(FString Message)
+// Invoke when data arrived
+{
+	// Block until we have a reply.
+}
+*/
 
 void UNetworkManager::WaitData()
+// Wait command from the client.
 {
 	if (!ConnectionSocket) return;
 
