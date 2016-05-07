@@ -2,7 +2,7 @@ import socket as S
 import threading as TD
 import logging as L
 
-class client:
+class Client:
     '''
     Start a tcp client to communicate with the Unreal demo server
     '''
@@ -35,10 +35,11 @@ class client:
         else:
             L.warning('Connected handler not set')
 
-    def connect(self):
+    def start_connection(self):
         '''
         Connect with Unreal Server, make sure the message from the server is as expected.
         Handle exception
+        This is an async function
         '''
         self._check_server()
 
