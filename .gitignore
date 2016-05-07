@@ -29,3 +29,6 @@ Saved/
 DerivedDataCache/
 
 *.uproject
+
+# Temp files
+*.log

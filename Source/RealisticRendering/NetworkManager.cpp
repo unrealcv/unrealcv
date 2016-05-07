@@ -58,12 +58,17 @@ void UNetworkManager::ListenSocket()
 		// The configured port might be in use, try a few of them
 		uint32 TryPortNum = PortNum + PortOffset;
 		FIPv4Endpoint Endpoint(IPAddress, TryPortNum); // TODO: I need to check whether this step is successful.
-		// FSocket*
+		/*
 		Listener = FTcpSocketBuilder(TEXT("UnrealCV Controller"))
 			.AsReusable().BoundToEndpoint(Endpoint)
 			.Listening(1); // Only accept one connection
 			// How can I know whether the binding is successful?
 			// TODO: Check whether there is any exception thrown in the source code, when the port is in use.
+			*/
+		Listener = FTcpSocketBuilder(TEXT("UnrealCV Server"))
+			.BoundToEndpoint(Endpoint)
+			.Listening(1)
+			.AsBlocking();
 		if (Listener)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Start listening on port %d"), TryPortNum);
@@ -119,14 +124,15 @@ void UNetworkManager::WaitConnection()
 			if (ConnectionSocket != NULL)
 			{
 				FTimerHandle TimerHandle;
-				World->GetTimerManager().SetTimer(TimerHandle, this, &UNetworkManager::WaitData, 1, true);
+				World->GetTimerManager().SetTimer(TimerHandle, this, &UNetworkManager::WaitData, 0.01, true);
 				bIsConnected = true;
 			}
 		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Connected"));
+		// UE_LOG(LogTemp, Warning, TEXT("Connected"));
+		// TODO: Maybe stop the timer or slow down the timer?
 	}
 }
 
@@ -158,7 +164,7 @@ void UNetworkManager::OnRecvCommand(FString Message)
 }
 */
 
-void UNetworkManager::WaitData()
+void UNetworkManager::WaitData() // Regularly check data, the interval might be a bottle neck
 // Wait command from the client.
 {
 	if (!ConnectionSocket) return;
@@ -173,7 +179,6 @@ void UNetworkManager::WaitData()
 
 		int32 Read = 0;
 		ConnectionSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), Read); // TODO: Check Robustness.
-		// TODO: Define data exchange format? Maybe protobuf?
 	}
 
 	if (ReceivedData.Num() <= 0)
@@ -181,7 +186,9 @@ void UNetworkManager::WaitData()
 		return;
 	}
 	const FString ReceivedString = StringFromBinaryArray(ReceivedData);
-	BroadcastReceived(ReceivedString); // Is this blocking or non-blocking?
+	BroadcastReceived(ReceivedString); // Is this blocking or non-blocking? Event firing
+	// TODO: Parse the communication format
+	// NetworkManager should only be reponsible for communication and the message parsing should be done in a different layer.
 	UE_LOG(LogTemp, Warning, TEXT("%s"), *ReceivedString);
 }
 
@@ -200,7 +207,7 @@ void UNetworkManager::SendMessage(FString Message)
 		UE_LOG(LogTemp, Warning, TEXT("Socket is not connected"));
 		return;
 	}
-
+	Message += "\n"; // TODO: End message with \n, check cross platform issue
 	UE_LOG(LogTemp, Warning, TEXT("Message to client: %s"), *Message);
 	TCHAR* SerializedChar = Message.GetCharArray().GetData();
 	int32 Size = FCString::Strlen(SerializedChar);

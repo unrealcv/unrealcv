@@ -129,5 +129,5 @@ FExecStatus FCommandDispatcher::Exec(const FString Uri)
 		// FRegexMatcher()
 		
 	}
-	return FExecStatus::Error(FString::Printf(TEXT("Can not find a handler for URI %s"), *Uri));
+	return FExecStatus::Error(FString::Printf(TEXT("Can not find a handler for URI '%s'"), *Uri));
 }

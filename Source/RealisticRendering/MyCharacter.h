@@ -3,8 +3,8 @@
 #pragma once
 
 #include "GameFramework/Character.h"
-#include "NetworkManager.h"
 #include "CommandDispatcher.h"
+#include "UE4CVServer.h"
 #include "MyCharacter.generated.h"
 
 UCLASS()
@@ -57,8 +57,9 @@ public:
 	FExecStatus	SetCameraRotation(const TArray<FString>& Args);
 	FExecStatus GetCameraImage(const TArray<FString>& Args);
 private:
-	UPROPERTY() // This is super important to prevent the NetworkManager from GC.
-	UNetworkManager* NetworkManager;
+	// UPROPERTY() // This is super important to prevent the NetworkManager from GC.
+	// UNetworkManager* NetworkManager;
 	FCommandDispatcher CommandDispatcher;
+	FUE4CVServer* Server;
 };
 

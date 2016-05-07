@@ -9,9 +9,12 @@
 /**
  *
  */
-DECLARE_EVENT_OneParam(UNetworkManager, FReceivedEvent, FString) // TODO: Consider add a pointer to NetworkManager itself
+DECLARE_EVENT_OneParam(UNetworkManager, FReceivedEvent, FString)
+// TODO: Consider add a pointer to NetworkManager itself
+// TODO: Add connected event
 UCLASS()
-class REALISTICRENDERING_API UNetworkManager : public UObject
+class REALISTICRENDERING_API UNetworkManager : public UObject 
+// NetworkManager needs to be an UObject, because TimerManager can only support method of an UObject
 {
 	GENERATED_BODY()
 

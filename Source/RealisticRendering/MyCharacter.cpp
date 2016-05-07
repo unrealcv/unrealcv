@@ -14,11 +14,12 @@ AMyCharacter::AMyCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	NetworkManager = NewObject<UNetworkManager>();
-	NetworkManager->World = this->GetWorld();
+	// NetworkManager = NewObject<UNetworkManager>();
+	// NetworkManager->World = this->GetWorld();
 	// NetworkManager->OnReceived().AddRaw(); // TODO: Need to do the command id control
 	FViewMode::World = this->GetWorld();
 	// NetworkManager->SetRecvCommandHandler();
+	Server = new FUE4CVServer(&CommandDispatcher, this->GetWorld());
 }
 
 /*
@@ -36,14 +37,16 @@ void AMyCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	DefineConsoleCommands();
-	NetworkManager->ListenSocket();
+	// NetworkManager->ListenSocket();
 	DispatchCommands();
+	Server->Start();
 }
 
 void AMyCharacter::NotifyClient(FString Message)
 {
 	// Send a message to client to say a new frame is rendered.
-	NetworkManager->SendMessage(Message);
+	// NetworkManager->SendMessage(Message);
+	Server->SendClientMessage(Message);
 }
 
 void AMyCharacter::TakeScreenShot(FString Filename)
@@ -76,6 +79,11 @@ void AMyCharacter::TakeScreenShot(FString Filename)
 		FImageUtils::CompressImageArray(Size.X, Size.Y, Bitmap, CompressedBitmap);
 		FFileHelper::SaveArrayToFile(CompressedBitmap, *ScreenShotName);
 		NotifyClient(FString::Printf(TEXT("%s"), *Filename)); // Send a message after file is saved.
+
+		FExecStatus ExecStatus = CommandDispatcher.Exec("vget /camera/0/location");
+		NotifyClient(ExecStatus.Message);
+		ExecStatus = CommandDispatcher.Exec("vget /camera/0/rotation");
+		NotifyClient(ExecStatus.Message);
 	}
 	else
 	{
@@ -264,7 +272,7 @@ FExecStatus AMyCharacter::SetCameraLocation(const TArray<FString>& Args)
 
 FExecStatus AMyCharacter::SetCameraRotation(const TArray<FString>& Args)
 {
-	if (Args.Num() == 4) // ID, Pitch, Roll, Yaw 
+	if (Args.Num() == 4) // ID, Pitch, Roll, Yaw
 	{
 		int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
 		float Pitch = FCString::Atof(*Args[1]), Yaw = FCString::Atof(*Args[2]), Roll = FCString::Atof(*Args[3]);
@@ -298,7 +306,7 @@ FExecStatus AMyCharacter::GetCameraLocation(const TArray<FString>& Args)
 	if (Args.Num() == 1)
 	{
 		int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
-		FVector CameraLocation = GetActorLocation(); 
+		FVector CameraLocation = GetActorLocation();
 		FString Message = FString::Printf(TEXT("%.3f %.3f %.3f"), CameraLocation.X, CameraLocation.Y, CameraLocation.Z);
 
 		return FExecStatus(Message);
@@ -370,7 +378,7 @@ void AMyCharacter::DispatchCommands()
 	// CommandDispatcher.BindCommand("vget /camera/[id]/name", Command);
 
 	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::SetCameraLocation);
-	URI = FString::Printf(TEXT("vset /camera/%s/location %s %s %s"), *UInt, *Float, *Float, *Float); 
+	URI = FString::Printf(TEXT("vset /camera/%s/location %s %s %s"), *UInt, *Float, *Float, *Float);
 	// TODO: Would be better if the format string can support named key
 	CommandDispatcher.BindCommand(URI, Cmd);
 	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::SetCameraRotation);
