@@ -5,6 +5,7 @@
 #include "GameFramework/Character.h"
 #include "CommandDispatcher.h"
 #include "UE4CVServer.h"
+#include "ConsoleHelper.h"
 #include "MyCharacter.generated.h"
 
 UCLASS()
@@ -61,5 +62,6 @@ private:
 	// UNetworkManager* NetworkManager;
 	FCommandDispatcher CommandDispatcher;
 	FUE4CVServer* Server;
+	FConsoleHelper* ConsoleHelper;
 };
 

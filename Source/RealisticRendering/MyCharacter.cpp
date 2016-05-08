@@ -8,6 +8,7 @@
 #include <string>
 #include "ImageUtils.h"
 #include "ViewMode.h"
+// #include "Console.h"
 
 // Sets default values
 AMyCharacter::AMyCharacter()
@@ -17,9 +18,6 @@ AMyCharacter::AMyCharacter()
 	// NetworkManager = NewObject<UNetworkManager>();
 	// NetworkManager->World = this->GetWorld();
 	// NetworkManager->OnReceived().AddRaw(); // TODO: Need to do the command id control
-	FViewMode::World = this->GetWorld();
-	// NetworkManager->SetRecvCommandHandler();
-	Server = new FUE4CVServer(&CommandDispatcher, this->GetWorld());
 }
 
 /*
@@ -35,6 +33,13 @@ void AMyCharacter::RecvCommand(CommandId, Command)
 void AMyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	FViewMode::World = this->GetWorld();
+	// NetworkManager->SetRecvCommandHandler();
+	Server = new FUE4CVServer(&CommandDispatcher, this->GetWorld());
+
+	FConsoleOutputDevice* ConsoleOutputDevice = new FConsoleOutputDevice(GetWorld()->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
+	ConsoleHelper = new FConsoleHelper(&CommandDispatcher, ConsoleOutputDevice);
 
 	DefineConsoleCommands();
 	// NetworkManager->ListenSocket();
@@ -133,6 +138,8 @@ void AMyCharacter::MoveRight(float Value)
 
 void AMyCharacter::OnFire()
 {
+	
+
 	// TestDispatchCommands();
 	PaintAllObjects();
 	TakeScreenShot(TEXT(""));
