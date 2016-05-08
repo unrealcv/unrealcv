@@ -15,19 +15,7 @@ AMyCharacter::AMyCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	// NetworkManager = NewObject<UNetworkManager>();
-	// NetworkManager->World = this->GetWorld();
-	// NetworkManager->OnReceived().AddRaw(); // TODO: Need to do the command id control
 }
-
-/*
-void AMyCharacter::RecvCommand(CommandId, Command)
-{
-	CommandDispatch.Exec(Command);
-	NetworkManager->Reply(CommandId, Message);
-	NetworkManager->Reply(CommandId, Status);
-}
-*/
 
 // Called when the game starts or when spawned
 void AMyCharacter::BeginPlay()
@@ -35,14 +23,12 @@ void AMyCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	FViewMode::World = this->GetWorld();
-	// NetworkManager->SetRecvCommandHandler();
 	Server = new FUE4CVServer(&CommandDispatcher, this->GetWorld());
 
 	FConsoleOutputDevice* ConsoleOutputDevice = new FConsoleOutputDevice(GetWorld()->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
 	ConsoleHelper = new FConsoleHelper(&CommandDispatcher, ConsoleOutputDevice);
 
 	DefineConsoleCommands();
-	// NetworkManager->ListenSocket();
 	DispatchCommands();
 	Server->Start();
 }
@@ -50,7 +36,6 @@ void AMyCharacter::BeginPlay()
 void AMyCharacter::NotifyClient(FString Message)
 {
 	// Send a message to client to say a new frame is rendered.
-	// NetworkManager->SendMessage(Message);
 	Server->SendClientMessage(Message);
 }
 
@@ -138,9 +123,6 @@ void AMyCharacter::MoveRight(float Value)
 
 void AMyCharacter::OnFire()
 {
-	
-
-	// TestDispatchCommands();
 	PaintAllObjects();
 	TakeScreenShot(TEXT(""));
 
@@ -250,18 +232,6 @@ void AMyCharacter::PaintObject(AActor* Actor)
 		}
 	}
 }
-
-void Hello()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Hello World."));
-}
-
-
-void AMyCharacter::ActionWrapper(const TArray<FString>& Args)
-{
-	UE_LOG(LogTemp, Warning, TEXT("The arg of action is %s"), *Args[0]);
-}
-
 
 FExecStatus AMyCharacter::SetCameraLocation(const TArray<FString>& Args)
 {
@@ -392,28 +362,13 @@ void AMyCharacter::DispatchCommands()
 	URI = FString::Printf(TEXT("vset /camera/%s/rotation %s %s %s"), *UInt, *Float, *Float, *Float); // Pitch, Yaw, Roll
 	CommandDispatcher.BindCommand(URI, Cmd);
 	// CommandDispatcher.BindCommand("vset /camera/[id]/rotation [x] [y] [z]", Command);
-}
-
-void AMyCharacter::TestDispatchCommands()
-{
-	CommandDispatcher.Exec("vset /mode/depth");
-	CommandDispatcher.Exec("vget /mode");
 
 	CommandDispatcher.Alias("VisionDepth", "vset /mode/depth"); // Alias for human interaction
 	CommandDispatcher.Alias("VisionCamInfo", "vget /camera/0/name");
 }
 
-
 void AMyCharacter::DefineConsoleCommands()
 {
-	// Example Command, Hello
-	IConsoleObject* HelloCmd = IConsoleManager::Get().RegisterConsoleCommand(
-		TEXT("Hello"),
-		TEXT("Print a hello message to Log"),
-		FConsoleCommandDelegate::CreateStatic(Hello),
-		ECVF_Default
-		);
-
 	// Select An Object, this is done through OnFire event
 	// ViewMode
 	FViewMode::RegisterCommands();
@@ -434,15 +389,4 @@ void AMyCharacter::DefineConsoleCommands()
 		ECVF_Default
 		);
 
-	// Make Screen Shot
-
-
-	// Add Action Command
-	IConsoleManager::Get().RegisterConsoleCommand(
-		TEXT("VisionForward"),
-		TEXT("Move Camera Forward"),
-		FConsoleCommandWithArgsDelegate::CreateUObject(this, &AMyCharacter::ActionWrapper),
-		// it also provides CreateRAW
-		ECVF_Default
-		);
 }

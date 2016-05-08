@@ -46,8 +46,6 @@ public:
 
 	void NotifyClient(FString Filename);
 
-	void ActionWrapper(const TArray<FString>& Args);
-
 	void TakeScreenShot(FString Filename);
 
 	void DispatchCommands();
