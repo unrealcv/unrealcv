@@ -38,8 +38,10 @@ void AMyCharacter::BeginPlay()
 	ConsoleHelper = new FConsoleHelper(&CommandDispatcher, ConsoleOutputDevice);
 
 	DefineConsoleCommands();
-	DispatchCommands();
+	RegisterCommands();
 	Server->Start();
+
+	PaintRandomColors(TArray<FString>());
 }
 
 void AMyCharacter::NotifyClient(FString Message)
@@ -146,11 +148,11 @@ void AMyCharacter::TestMaterialLoading()
 
 void AMyCharacter::OnFire()
 {
-	PaintAllObjects(TArray<FString>());
+	// PaintAllObjects(TArray<FString>());
 	// TakeScreenShot();
 
-	ParseMaterialConfiguration();
-	TestMaterialLoading();
+	// ParseMaterialConfiguration();
+	// TestMaterialLoading();
 
 	/*
 	UE_LOG(LogTemp, Warning, TEXT("Fire"));
@@ -173,17 +175,23 @@ void AMyCharacter::OnFire()
 	*/
 }
 
-FExecStatus AMyCharacter::PaintAllObjects(const TArray<FString>& Args)
+FExecStatus AMyCharacter::PaintRandomColors(const TArray<FString>& Args)
 {
 	// Iterate over all actors
 	ULevel* Level = GetLevel();
+
+	// Get a random color
 	for (auto Actor : Level->Actors)
 	{
 		if (Actor && Actor->IsA(AStaticMeshActor::StaticClass())) // Only StaticMeshActor is interesting
 		{
+			// FString ActorLabel = Actor->GetActorLabel();
+			FString ActorLabel = Actor->GetHumanReadableName();
+			FColor NewColor = FColor(FMath::RandRange(0, 255), FMath::RandRange(0, 255), FMath::RandRange(0, 255), 255);
+			ObjectsColorMapping.Emplace(ActorLabel, NewColor);
 			// if (Actor->GetActorLabel() == FString("SM_Door43"))
 			{
-				PaintObject(Actor);
+				PaintObject(Actor, NewColor);
 			}
 		}
 	}
@@ -192,8 +200,10 @@ FExecStatus AMyCharacter::PaintAllObjects(const TArray<FString>& Args)
 	return FExecStatus::OK;
 }
 
-void AMyCharacter::PaintObject(AActor* Actor)
+bool AMyCharacter::PaintObject(AActor* Actor, const FColor& NewColor)
 {
+	if (!Actor) return false;
+
 	TArray<UMeshComponent*> PaintableComponents;
 	// TInlineComponentArray<UMeshComponent*> MeshComponents;
 	// Actor->GetComponents<UMeshComponent>(MeshComponents);
@@ -229,7 +239,6 @@ void AMyCharacter::PaintObject(AActor* Actor)
 				check(NumVertices <= InstanceMeshLODInfo->OverrideVertexColors->GetNumVertices());
 				// StaticMeshComponent->CachePaintedDataIfNecessary();
 
-				FColor NewColor = FColor(FMath::RandRange(0, 255), FMath::RandRange(0, 255), FMath::RandRange(0, 255), 255);
 				for (uint32 ColorIndex = 0; ColorIndex < NumVertices; ++ColorIndex)
 				{
 					// FColor NewColor = FColor(FMath::RandRange(0, 255), FMath::RandRange(0, 255), FMath::RandRange(0, 255), 255);
@@ -261,6 +270,7 @@ void AMyCharacter::PaintObject(AActor* Actor)
 			}
 		}
 	}
+	return true;
 }
 
 FExecStatus AMyCharacter::SetCameraLocation(const TArray<FString>& Args)
@@ -360,7 +370,7 @@ FExecStatus AMyCharacter::GetCameraImage(const TArray<FString>& Args)
 	return FExecStatus::InvalidArgument;
 }
 
-void AMyCharacter::DispatchCommands()
+void AMyCharacter::RegisterCommands()
 {
 	// First version
 	// CommandDispatcher.BindCommand("vset /mode/(?<ViewMode>.*)", SetViewMode); // Better to check the correctness at compile time
@@ -393,11 +403,163 @@ void AMyCharacter::DispatchCommands()
 	CommandDispatcher.BindCommand(URI, Cmd);
 	// CommandDispatcher.BindCommand("vset /camera/[id]/rotation [x] [y] [z]", Command);
 
-	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::PaintAllObjects);
+	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::GetObjects);
+	CommandDispatcher.BindCommand(TEXT("vget /objects"), Cmd);
+
+	// The order matters
+	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::CurrentObjectHandler); // Redirect to current 
+	CommandDispatcher.BindCommand(TEXT("(.*) /object/_/(.*)"), Cmd);
+
+	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::GetObjectColor);
+	CommandDispatcher.BindCommand(TEXT("vget /object/(.*)/color"), Cmd);
+
+	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::SetObjectColor);
+	CommandDispatcher.BindCommand(TEXT("vset /object/(.*)/color"), Cmd);
+
+	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::GetObjectName);
+	CommandDispatcher.BindCommand(TEXT("vget /object/(.*)/name"), Cmd);
+
+	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::PaintRandomColors);
 	CommandDispatcher.BindCommand(TEXT("vset /util/paint_object"), Cmd);
 
 	CommandDispatcher.Alias("VisionDepth", "vset /mode/depth"); // Alias for human interaction
 	CommandDispatcher.Alias("VisionCamInfo", "vget /camera/0/name");
+}
+
+FExecStatus AMyCharacter::GetObjects(const TArray<FString>& Args)
+{
+	TArray<FString> Keys;
+	ObjectsColorMapping.GetKeys(Keys);
+	FString Message = "";
+	for (auto ObjectName : Keys)
+	{
+		Message += ObjectName + " ";
+	}
+	return FExecStatus(Message);
+}
+
+FExecStatus AMyCharacter::SetObjectColor(const TArray<FString>& Args)
+{
+	// ObjectName, R, G, B, A
+	// The color format is RGBA
+	if (Args.Num() == 5)
+	{ 
+		FString ObjectName = Args[0];
+		uint32 R = FCString::Atoi(*Args[1]), G = FCString::Atoi(*Args[2]), B = FCString::Atoi(*Args[3]), A = FCString::Atoi(*Args[4]);
+		FColor NewColor(R, G, B, A);
+		if (ObjectsMapping.Contains(ObjectName))
+		{
+			AActor* Actor = ObjectsMapping[ObjectName];
+			if (PaintObject(Actor, NewColor))
+			{
+				ObjectsColorMapping.Emplace(ObjectName, NewColor);
+				return FExecStatus::OK;
+			}
+			else
+			{
+				return FExecStatus::Error(FString::Printf(TEXT("Failed to paint object %s"), *ObjectName));
+			}
+		}
+		else
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Object %s not exist"), *ObjectName));
+		}
+	}
+
+	return FExecStatus::InvalidArgument;
+}
+
+
+FExecStatus AMyCharacter::GetObjectColor(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{ 
+		FString ObjectName = Args[0];
+
+		if (ObjectsColorMapping.Contains(ObjectName))
+		{
+			FColor ObjectColor = ObjectsColorMapping[ObjectName]; // Make sure the object exist
+			FString Message = ObjectColor.ToString();
+			// FString Message = "%.3f %.3f %.3f %.3f";
+			return FExecStatus(Message);
+		}
+		else
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Object %s not exist"), *ObjectName));
+		}
+	}
+
+	return FExecStatus::InvalidArgument;
+}
+
+FExecStatus AMyCharacter::GetObjectName(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		return FExecStatus(Args[0]);
+	}
+	return FExecStatus::InvalidArgument;
+}
+
+FExecStatus AMyCharacter::CurrentObjectHandler(const TArray<FString>& Args)
+{
+	// At least one parameter
+	if (Args.Num() >= 2)
+	{
+		FString Uri = "";
+		// Get the name of current object
+		FHitResult HitResult;
+		// The original version for the shooting game use CameraComponent
+		FVector StartLocation = GetActorLocation();
+		// FRotator Direction = GetActorRotation();
+		FRotator Direction = GetControlRotation();
+
+		FVector EndLocation = StartLocation + Direction.Vector() * 10000;
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(this);
+
+		APlayerController* PlayerController = Cast<APlayerController>(GetController());
+		if (PlayerController != nullptr)
+		{
+			FHitResult TraceResult(ForceInit);
+			PlayerController->GetHitResultUnderCursor(ECollisionChannel::ECC_WorldDynamic, false, TraceResult);
+			FString TraceString;
+			if (TraceResult.GetActor() != nullptr)
+			{
+				TraceString += FString::Printf(TEXT("Trace Actor %s."), *TraceResult.GetActor()->GetName());
+			}
+			if (TraceResult.GetComponent() != nullptr)
+			{
+				TraceString += FString::Printf(TEXT("Trace Comp %s."), *TraceResult.GetComponent()->GetName());
+			}
+			// TheHud->TraceResultText = TraceString;
+			ConsoleOutputDevice->Log(TraceString);
+		}
+		// TODO: This is not working well.
+
+		if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility, QueryParams))
+		{
+			AActor* HitActor = HitResult.GetActor();
+
+			// UE_LOG(LogTemp, Warning, TEXT("%s"), *HitActor->GetActorLabel());
+			// Draw a bounding box of the hitted object and also output the name of it.
+			FString ActorName = HitActor->GetHumanReadableName();
+			FString Method = Args[0], Property = Args[1];
+			Uri = FString::Printf(TEXT("%s /object/%s/%s"), *Method, *ActorName, *Property); // Method name
+
+			for (int32 ArgIndex = 2; ArgIndex < Args.Num(); ArgIndex++) // Vargs
+			{
+				Uri += " " + Args[ArgIndex];
+			}
+			FExecStatus ExecStatus = CommandDispatcher.Exec(Uri);
+			return ExecStatus;
+		}
+		else
+		{
+			return FExecStatus::Error("Can not find current object");
+		}
+	}
+	return FExecStatus::InvalidArgument;
 }
 
 void AMyCharacter::DefineConsoleCommands()

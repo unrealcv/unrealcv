@@ -38,17 +38,12 @@ public:
 	// Fire
 	void OnFire();
 
-	// Paint all objects
-	FExecStatus PaintAllObjects(const TArray<FString>& Args);
 
-	// Vertex One Object with Flood-Fill
-	void PaintObject(AActor* Actor);
 
 	void NotifyClient(FString Message);
 
 	void TakeScreenShot();
 
-	void DispatchCommands();
 private:
 	// UPROPERTY() // This is super important to prevent the NetworkManager from GC.
 	// UNetworkManager* NetworkManager;
@@ -56,6 +51,10 @@ private:
 	FUE4CVServer* Server;
 	FConsoleHelper* ConsoleHelper;
 	FConsoleOutputDevice* ConsoleOutputDevice;
+	TMap<FString, FColor> ObjectsColorMapping;
+	TMap<FString, AActor*> ObjectsMapping;
+
+	void RegisterCommands();
 
 	FExecStatus BindAxisWrapper(const TArray<FString>& Args);
 	FExecStatus GetCameraLocation(const TArray<FString>& Args);
@@ -64,6 +63,17 @@ private:
 	FExecStatus	SetCameraRotation(const TArray<FString>& Args);
 	FExecStatus GetCameraImage(const TArray<FString>& Args);
 
+	FExecStatus GetObjects(const TArray<FString>& Args);
+	FExecStatus GetObjectColor(const TArray<FString>& Args);
+	FExecStatus SetObjectColor(const TArray<FString>& Args);
+	FExecStatus GetObjectName(const TArray<FString>& Args);
+
+	FExecStatus CurrentObjectHandler(const TArray<FString>& Args);
+
+	// Vertex One Object with Flood-Fill
+	bool PaintObject(AActor* Actor, const FColor& NewColor);
+	// Paint all objects
+	FExecStatus PaintRandomColors(const TArray<FString>& Args);
 
 	// Test functions for learning and development
 	void TestMaterialLoading();
