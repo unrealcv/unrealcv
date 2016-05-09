@@ -13,6 +13,15 @@
 // Sets default values
 AMyCharacter::AMyCharacter()
 {
+	/*
+	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/TestMaterial.TestMaterial")); // The content needs to be cooked.
+	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshairTexObj(TEXT("/Game/FirstPersonCrosshair"));
+	static ConstructorHelpers::FObjectFinder<UMaterial> TestMaterial(TEXT("/Game/TestMaterial.TestMaterial"));
+	static ConstructorHelpers::FObjectFinder<UMaterial> TestMaterial1(TEXT("/Game/TestMaterial"));
+	UTexture2D* CrosshairTex = CrosshairTexObj.Object;
+	UTexture2D* CrosshairTex1 = LoadObject<UTexture2D>(NULL, TEXT("/Game/FirstPersonCrosshair"));
+	*/
+
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -25,7 +34,7 @@ void AMyCharacter::BeginPlay()
 	FViewMode::World = this->GetWorld();
 	Server = new FUE4CVServer(&CommandDispatcher, this->GetWorld());
 
-	FConsoleOutputDevice* ConsoleOutputDevice = new FConsoleOutputDevice(GetWorld()->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
+	ConsoleOutputDevice = new FConsoleOutputDevice(GetWorld()->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
 	ConsoleHelper = new FConsoleHelper(&CommandDispatcher, ConsoleOutputDevice);
 
 	DefineConsoleCommands();
@@ -37,48 +46,18 @@ void AMyCharacter::NotifyClient(FString Message)
 {
 	// Send a message to client to say a new frame is rendered.
 	Server->SendClientMessage(Message);
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *Message);
 }
 
-void AMyCharacter::TakeScreenShot(FString Filename)
+void AMyCharacter::TakeScreenShot()
 {
-	static uint32 NumCaptured = 0;
-	NumCaptured++;
-	Filename = FString::Printf(TEXT("%04d.png"), NumCaptured);
-	TArray<FColor> Bitmap;
-	UE_LOG(LogTemp, Warning, TEXT("Make a screenshot to %s"), *Filename); // TODO: Show full filename
-
-	bool bScreenshotSuccessful = false;
-	UGameViewportClient* ViewportClient = GetWorld()->GetGameViewport();
-	FViewport* InViewport = ViewportClient->Viewport;
-	bScreenshotSuccessful = GetViewportScreenShot(InViewport, Bitmap);
-	// ViewportClient->GetHighResScreenshotConfig().MergeMaskIntoAlpha(Bitmap);
-	// Ensure that all pixels' alpha is set to 255
-	for (auto& Color : Bitmap)
-	{
-		Color.A = 255;
-	}
-
-	if (bScreenshotSuccessful)
-	{
-		FString ScreenShotName = Filename;
-		FIntVector Size(InViewport->GetSizeXY().X, InViewport->GetSizeXY().Y, 0);
-		// TODO: Need to blend alpha, a bit weird from screen.
-
-
-		TArray<uint8> CompressedBitmap;
-		FImageUtils::CompressImageArray(Size.X, Size.Y, Bitmap, CompressedBitmap);
-		FFileHelper::SaveArrayToFile(CompressedBitmap, *ScreenShotName);
-		NotifyClient(FString::Printf(TEXT("%s"), *Filename)); // Send a message after file is saved.
-
-		FExecStatus ExecStatus = CommandDispatcher.Exec("vget /camera/0/location");
-		NotifyClient(ExecStatus.Message);
-		ExecStatus = CommandDispatcher.Exec("vget /camera/0/rotation");
-		NotifyClient(ExecStatus.Message);
-	}
-	else
-	{
-		NotifyClient(TEXT("Screen capture failed"));
-	}
+	FExecStatus ExecStatus = FExecStatus::OK;
+	ExecStatus = CommandDispatcher.Exec("vget /camera/0/image");
+	NotifyClient(ExecStatus.Message);
+	ExecStatus = CommandDispatcher.Exec("vget /camera/0/location");
+	NotifyClient(ExecStatus.Message);
+	ExecStatus = CommandDispatcher.Exec("vget /camera/0/rotation");
+	NotifyClient(ExecStatus.Message);
 }
 
 // Called every frame
@@ -105,6 +84,12 @@ void AMyCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 	InputComponent->BindAction("Fire", IE_Pressed, this, &AMyCharacter::OnFire);
 }
 
+FExecStatus AMyCharacter::BindAxisWrapper(const TArray<FString>& Args)
+{
+	// FInputAxisHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr
+	return FExecStatus::OK;
+}
+
 void AMyCharacter::MoveForward(float Value)
 {
 	if (Value != 0.0f)
@@ -121,11 +106,53 @@ void AMyCharacter::MoveRight(float Value)
 	}
 }
 
+void AMyCharacter::ParseMaterialConfiguration()
+{
+	// This testing function is from BufferVisualizationData
+	FConfigSection* MaterialSection = GConfig->GetSectionPrivate(TEXT("Engine.BufferVisualizationMaterials"), false, true, GEngineIni);
+
+	if (MaterialSection != NULL)
+	{
+		for (FConfigSection::TIterator It(*MaterialSection); It; ++It)
+		{
+			FString MaterialName;
+			if (FParse::Value(*It.Value(), TEXT("Material="), MaterialName, true))
+			{
+				ConsoleOutputDevice->Log(MaterialName);
+				UMaterial* Material = LoadObject<UMaterial>(NULL, *MaterialName);
+
+				if (Material)
+				{
+					Material->AddToRoot(); // Prevent GC
+					/*
+					Record& Rec = MaterialMap.Add(It.Key(), Record());
+					Rec.Name = It.Key().GetPlainNameString();
+					Rec.Material = Material;
+					FText DisplayName;
+					FParse::Value(*It.Value(), TEXT("Name="), DisplayName, TEXT("Engine.BufferVisualizationMaterials"));
+					Rec.DisplayName = DisplayName;
+					*/
+				}
+			}
+		}
+	}
+
+}
+
+void AMyCharacter::TestMaterialLoading()
+{
+	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/TestMaterial.TestMaterial")); // The content needs to be cooked.
+}
+
 void AMyCharacter::OnFire()
 {
-	PaintAllObjects();
-	TakeScreenShot(TEXT(""));
+	PaintAllObjects(TArray<FString>());
+	// TakeScreenShot();
 
+	ParseMaterialConfiguration();
+	TestMaterialLoading();
+
+	/*
 	UE_LOG(LogTemp, Warning, TEXT("Fire"));
 	FHitResult HitResult;
 	// The original version for the shooting game use CameraComponent
@@ -143,9 +170,10 @@ void AMyCharacter::OnFire()
 		// UE_LOG(LogTemp, Warning, TEXT("%s"), *HitActor->GetActorLabel());
 		// Draw a bounding box of the hitted object and also output the name of it.
 	}
+	*/
 }
 
-void AMyCharacter::PaintAllObjects()
+FExecStatus AMyCharacter::PaintAllObjects(const TArray<FString>& Args)
 {
 	// Iterate over all actors
 	ULevel* Level = GetLevel();
@@ -161,6 +189,7 @@ void AMyCharacter::PaintAllObjects()
 	}
 
 	// Paint actor using floodfill.
+	return FExecStatus::OK;
 }
 
 void AMyCharacter::PaintObject(AActor* Actor)
@@ -187,6 +216,7 @@ void AMyCharacter::PaintObject(AActor* Actor)
 				StaticMeshComponent->SetLODDataCount(PaintingMeshLODIndex + 1, StaticMeshComponent->LODData.Num());
 				InstanceMeshLODInfo = &StaticMeshComponent->LODData[PaintingMeshLODIndex];
 
+				// Setup OverrideVertexColors
 				if (!InstanceMeshLODInfo->OverrideVertexColors) {
 					InstanceMeshLODInfo->OverrideVertexColors = new FColorVertexBuffer;
 
@@ -197,7 +227,7 @@ void AMyCharacter::PaintObject(AActor* Actor)
 				uint32 NumVertices = LODModel.GetNumVertices();
 				check(InstanceMeshLODInfo->OverrideVertexColors);
 				check(NumVertices <= InstanceMeshLODInfo->OverrideVertexColors->GetNumVertices());
-				StaticMeshComponent->CachePaintedDataIfNecessary();
+				// StaticMeshComponent->CachePaintedDataIfNecessary();
 
 				FColor NewColor = FColor(FMath::RandRange(0, 255), FMath::RandRange(0, 255), FMath::RandRange(0, 255), 255);
 				for (uint32 ColorIndex = 0; ColorIndex < NumVertices; ++ColorIndex)
@@ -205,11 +235,11 @@ void AMyCharacter::PaintObject(AActor* Actor)
 					// FColor NewColor = FColor(FMath::RandRange(0, 255), FMath::RandRange(0, 255), FMath::RandRange(0, 255), 255);
 					// LODModel.ColorVertexBuffer.VertexColor(ColorIndex) = NewColor;  // This is vertex level
 					// Need to initialize the vertex buffer first
-					uint32 NumOverrideVertexColors = InstanceMeshLODInfo->OverrideVertexColors->GetNumVertices(),
-						NumPaintedVertices = InstanceMeshLODInfo->PaintedVertices.Num();
-					check(NumOverrideVertexColors == NumPaintedVertices);
+					uint32 NumOverrideVertexColors = InstanceMeshLODInfo->OverrideVertexColors->GetNumVertices();
+					uint32 NumPaintedVertices = InstanceMeshLODInfo->PaintedVertices.Num();
+					// check(NumOverrideVertexColors == NumPaintedVertices);
 					InstanceMeshLODInfo->OverrideVertexColors->VertexColor(ColorIndex) = NewColor;
-					InstanceMeshLODInfo->PaintedVertices[ColorIndex].Color = NewColor;
+					// InstanceMeshLODInfo->PaintedVertices[ColorIndex].Color = NewColor;
 				}
 				BeginInitResource(InstanceMeshLODInfo->OverrideVertexColors);
 				StaticMeshComponent->MarkRenderStateDirty();
@@ -362,6 +392,9 @@ void AMyCharacter::DispatchCommands()
 	URI = FString::Printf(TEXT("vset /camera/%s/rotation %s %s %s"), *UInt, *Float, *Float, *Float); // Pitch, Yaw, Roll
 	CommandDispatcher.BindCommand(URI, Cmd);
 	// CommandDispatcher.BindCommand("vset /camera/[id]/rotation [x] [y] [z]", Command);
+
+	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::PaintAllObjects);
+	CommandDispatcher.BindCommand(TEXT("vset /util/paint_object"), Cmd);
 
 	CommandDispatcher.Alias("VisionDepth", "vset /mode/depth"); // Alias for human interaction
 	CommandDispatcher.Alias("VisionCamInfo", "vget /camera/0/name");

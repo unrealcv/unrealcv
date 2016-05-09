@@ -39,27 +39,35 @@ public:
 	void OnFire();
 
 	// Paint all objects
-	void PaintAllObjects();
+	FExecStatus PaintAllObjects(const TArray<FString>& Args);
 
 	// Vertex One Object with Flood-Fill
 	void PaintObject(AActor* Actor);
 
-	void NotifyClient(FString Filename);
+	void NotifyClient(FString Message);
 
-	void TakeScreenShot(FString Filename);
+	void TakeScreenShot();
 
 	void DispatchCommands();
-	void TestDispatchCommands();
-	FExecStatus GetCameraLocation(const TArray<FString>& Args);
-	FExecStatus	SetCameraLocation(const TArray<FString>& Args);
-	FExecStatus GetCameraRotation(const TArray<FString>& Args);
-	FExecStatus	SetCameraRotation(const TArray<FString>& Args);
-	FExecStatus GetCameraImage(const TArray<FString>& Args);
 private:
 	// UPROPERTY() // This is super important to prevent the NetworkManager from GC.
 	// UNetworkManager* NetworkManager;
 	FCommandDispatcher CommandDispatcher;
 	FUE4CVServer* Server;
 	FConsoleHelper* ConsoleHelper;
+	FConsoleOutputDevice* ConsoleOutputDevice;
+
+	FExecStatus BindAxisWrapper(const TArray<FString>& Args);
+	FExecStatus GetCameraLocation(const TArray<FString>& Args);
+	FExecStatus	SetCameraLocation(const TArray<FString>& Args);
+	FExecStatus GetCameraRotation(const TArray<FString>& Args);
+	FExecStatus	SetCameraRotation(const TArray<FString>& Args);
+	FExecStatus GetCameraImage(const TArray<FString>& Args);
+
+
+	// Test functions for learning and development
+	void TestMaterialLoading();
+	void TestDispatchCommands();
+	void ParseMaterialConfiguration();
 };
 

@@ -8,18 +8,6 @@
 #define REG_VIEW(COMMAND, DESC, DELEGATE) \
 		IConsoleManager::Get().RegisterConsoleCommand(TEXT(COMMAND), TEXT(DESC), \
 			FConsoleCommandWithWorldDelegate::CreateStatic(DELEGATE), ECVF_Default);
-		/*
-	static void RegisterViewModeCommand(FString Command, FString Description, FConsoleCommandWithWorldDelegate Delegate)
-	{
-		// ViewMode
-		IConsoleObject* VisionDepthCMd = IConsoleManager::Get().RegisterConsoleCommand(
-			TEXT("VisionDepth"),
-			TEXT("Change the viewport to depth mode"),
-			FConsoleCommandWithWorldDelegate::CreateStatic(FViewMode::Depth),
-			ECVF_Default
-			);
-	}
-	*/
 
 UWorld* FViewMode::World = NULL;
 FString FViewMode::CurrentViewMode = "lit"; // "lit" the default mode when the game starts
