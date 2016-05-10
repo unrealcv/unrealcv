@@ -24,15 +24,18 @@ class REALISTICRENDERING_API FCommandDispatcher
 public:
 	FCommandDispatcher();
 	~FCommandDispatcher();
-	bool BindCommand(const FString UriTemplate, const FDispatcherDelegate& Command); // Parse URI
+	bool BindCommand(const FString& UriTemplate, const FDispatcherDelegate& Command, const FString& Description); // Parse URI
+	bool Alias(const FString& Alias, const FString& Command, const FString& Description);
+	bool Alias(const FString& Alias, const TArray<FString>& Commands, const FString& Description);
 	// bool BindCommand(const FString Uri, const FConsoleCommandDelegate& Command); // Parse URI
 	FExecStatus Exec(const FString Uri);
-	bool Alias(const FString Alias, const FString Command);
-	bool Alias(const FString Alias, const TArray<FString>& Commands);
+	FExecStatus AliasHelper(const TArray<FString>& Args);
+	const TMap<FString, FString>& GetUriDescription();
 
 private:
-	bool Match(const FString Uri);
 	TMap<FString, FDispatcherDelegate> UriMapping;
+	TMap<FString, FString> UriDescription; // This is not writable from outside
+	TMap<FString, TArray<FString> > AliasMapping;
 	uint32 NumArgsLimit = 32;
 
 	void UEConsoleGetHelper(const TArray<FString>& Args);

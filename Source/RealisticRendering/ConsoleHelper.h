@@ -17,4 +17,5 @@ private:
 	FCommandDispatcher* CommandDispatcher;
 	void VGet(const TArray<FString>& Args);
 	void VSet(const TArray<FString>& Args);
+	void VRun(const TArray<FString>& Args);
 };

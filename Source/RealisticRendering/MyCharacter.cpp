@@ -33,6 +33,7 @@ void AMyCharacter::BeginPlay()
 
 	FViewMode::World = this->GetWorld();
 	Server = new FUE4CVServer(&CommandDispatcher, this->GetWorld());
+	NetworkManager = Server->NetworkManager; // I need this to show information on screen.
 
 	ConsoleOutputDevice = new FConsoleOutputDevice(GetWorld()->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
 	ConsoleHelper = new FConsoleHelper(&CommandDispatcher, ConsoleOutputDevice);
@@ -154,7 +155,6 @@ void AMyCharacter::OnFire()
 	// ParseMaterialConfiguration();
 	// TestMaterialLoading();
 
-	/*
 	UE_LOG(LogTemp, Warning, TEXT("Fire"));
 	FHitResult HitResult;
 	// The original version for the shooting game use CameraComponent
@@ -172,7 +172,6 @@ void AMyCharacter::OnFire()
 		// UE_LOG(LogTemp, Warning, TEXT("%s"), *HitActor->GetActorLabel());
 		// Draw a bounding box of the hitted object and also output the name of it.
 	}
-	*/
 }
 
 FExecStatus AMyCharacter::PaintRandomColors(const TArray<FString>& Args)
@@ -331,11 +330,18 @@ FExecStatus AMyCharacter::GetCameraLocation(const TArray<FString>& Args)
 	return FExecStatus::Error("Number of arguments incorrect");
 }
 
+class FImageCapture
+{
+
+};
+
 FExecStatus AMyCharacter::GetCameraImage(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
 	{
 		int32 CameraId = FCString::Atoi(*Args[0]);
+
+		
 
 		static uint32 NumCaptured = 0;
 		NumCaptured++;
@@ -344,6 +350,11 @@ FExecStatus AMyCharacter::GetCameraImage(const TArray<FString>& Args)
 		bool bScreenshotSuccessful = false;
 		UGameViewportClient* ViewportClient = GetWorld()->GetGameViewport();
 		FViewport* InViewport = ViewportClient->Viewport;
+		ViewportClient->GetEngineShowFlags()->SetMotionBlur(false);
+
+		// ImageCaptureDevice->Filename = Filename;
+		// ViewportClient->OnEndDraw().AddRaw(ImageCaptureDevice, CaptureImage);
+
 		bScreenshotSuccessful = GetViewportScreenShot(InViewport, Bitmap);
 		// ViewportClient->GetHighResScreenshotConfig().MergeMaskIntoAlpha(Bitmap);
 		// Ensure that all pixels' alpha is set to 255
@@ -381,49 +392,70 @@ void AMyCharacter::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateStatic(FViewMode::SetMode);
 	// Use ICU regexp to define URI, See http://userguide.icu-project.org/strings/regexp
 	URI = FString::Printf(TEXT("vset /mode/%s"), *Any);
-	CommandDispatcher.BindCommand(URI, Cmd); // Better to check the correctness at compile time
+	CommandDispatcher.BindCommand(URI, Cmd, "Set mode"); // Better to check the correctness at compile time
 
 	Cmd = FDispatcherDelegate::CreateStatic(FViewMode::GetMode);
-	CommandDispatcher.BindCommand("vget /mode", Cmd);
+	CommandDispatcher.BindCommand("vget /mode", Cmd, "Get mode");
 
 	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::GetCameraLocation);
-	CommandDispatcher.BindCommand("vget /camera/(\\d*)/location", Cmd);
+	CommandDispatcher.BindCommand("vget /camera/(\\d*)/location", Cmd, "Get camera location");
 	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::GetCameraImage);
-	CommandDispatcher.BindCommand("vget /camera/(\\d*)/image", Cmd); // Take a screenshot and return filename
+	CommandDispatcher.BindCommand("vget /camera/(\\d*)/image", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::GetCameraRotation);
-	CommandDispatcher.BindCommand("vget /camera/(\\d*)/rotation", Cmd);
+	CommandDispatcher.BindCommand("vget /camera/(\\d*)/rotation", Cmd, "Get camera rotation");
 	// CommandDispatcher.BindCommand("vget /camera/[id]/name", Command);
 
 	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::SetCameraLocation);
 	URI = FString::Printf(TEXT("vset /camera/%s/location %s %s %s"), *UInt, *Float, *Float, *Float);
 	// TODO: Would be better if the format string can support named key
-	CommandDispatcher.BindCommand(URI, Cmd);
+	CommandDispatcher.BindCommand(URI, Cmd, "Set camera location");
 	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::SetCameraRotation);
 	URI = FString::Printf(TEXT("vset /camera/%s/rotation %s %s %s"), *UInt, *Float, *Float, *Float); // Pitch, Yaw, Roll
-	CommandDispatcher.BindCommand(URI, Cmd);
+	CommandDispatcher.BindCommand(URI, Cmd, "Set camera rotation");
 	// CommandDispatcher.BindCommand("vset /camera/[id]/rotation [x] [y] [z]", Command);
 
 	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::GetObjects);
-	CommandDispatcher.BindCommand(TEXT("vget /objects"), Cmd);
+	CommandDispatcher.BindCommand(TEXT("vget /objects"), Cmd, "Get all objects in the scene");
 
 	// The order matters
 	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::CurrentObjectHandler); // Redirect to current 
-	CommandDispatcher.BindCommand(TEXT("(.*) /object/_/(.*)"), Cmd);
+	CommandDispatcher.BindCommand(TEXT("(.*) /object/_/(.*)"), Cmd, "Get current object");
 
 	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::GetObjectColor);
-	CommandDispatcher.BindCommand(TEXT("vget /object/(.*)/color"), Cmd);
+	CommandDispatcher.BindCommand(TEXT("vget /object/(.*)/color"), Cmd, "Get object color");
 
 	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::SetObjectColor);
-	CommandDispatcher.BindCommand(TEXT("vset /object/(.*)/color"), Cmd);
+	CommandDispatcher.BindCommand(TEXT("vset /object/(.*)/color"), Cmd, "Set object color");
 
 	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::GetObjectName);
-	CommandDispatcher.BindCommand(TEXT("vget /object/(.*)/name"), Cmd);
+	CommandDispatcher.BindCommand(TEXT("vget /object/(.*)/name"), Cmd, "Get object name");
 
 	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::PaintRandomColors);
-	CommandDispatcher.BindCommand(TEXT("vset /util/paint_object"), Cmd);
+	CommandDispatcher.BindCommand(TEXT("vget /util/random_paint"), Cmd, "Paint objects with random color");
 
-	CommandDispatcher.Alias("VisionDepth", "vset /mode/depth"); // Alias for human interaction
-	CommandDispatcher.Alias("VisionCamInfo", "vget /camera/0/name");
+	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::GetCommands);
+	CommandDispatcher.BindCommand(TEXT("vget /util/get_commands"), Cmd, "Get all available commands");
+
+	CommandDispatcher.Alias("SetDepth", "vset /mode/depth", "Set mode to depth"); // Alias for human interaction
+	CommandDispatcher.Alias("VisionCamInfo", "vget /camera/0/name", "Get camera info");
+	CommandDispatcher.Alias("ls", "vget /util/get_commands", "List all commands");
+}
+
+FExecStatus AMyCharacter::GetCommands(const TArray<FString>& Args)
+{
+	FString Message;
+
+	TArray<FString> UriList;
+	TMap<FString, FString> UriDescription = CommandDispatcher.GetUriDescription();
+	UriDescription.GetKeys(UriList);
+
+	for (auto Value : UriDescription)
+	{
+		Message += Value.Key + "\n";
+		Message += Value.Value + "\n";
+	}
+
+	return FExecStatus(Message);
 }
 
 FExecStatus AMyCharacter::GetObjects(const TArray<FString>& Args)
