@@ -8,6 +8,7 @@
 #include <string>
 #include "ImageUtils.h"
 #include "ViewMode.h"
+#include "MyGameViewportClient.h"
 // #include "Console.h"
 
 // Sets default values
@@ -332,8 +333,13 @@ FExecStatus AMyCharacter::GetCameraLocation(const TArray<FString>& Args)
 
 class FImageCapture
 {
+	FString Filename;
+	void CaptureImage()
+	{
 
+	}
 };
+
 
 FExecStatus AMyCharacter::GetCameraImage(const TArray<FString>& Args)
 {
@@ -341,42 +347,16 @@ FExecStatus AMyCharacter::GetCameraImage(const TArray<FString>& Args)
 	{
 		int32 CameraId = FCString::Atoi(*Args[0]);
 
-		
+		UMyGameViewportClient* ViewportClient = (UMyGameViewportClient*)GetWorld()->GetGameViewport();
 
 		static uint32 NumCaptured = 0;
 		NumCaptured++;
+
 		FString Filename = FString::Printf(TEXT("%04d.png"), NumCaptured);
-		TArray<FColor> Bitmap;
-		bool bScreenshotSuccessful = false;
-		UGameViewportClient* ViewportClient = GetWorld()->GetGameViewport();
-		FViewport* InViewport = ViewportClient->Viewport;
-		ViewportClient->GetEngineShowFlags()->SetMotionBlur(false);
+		ViewportClient->CaptureScreen(Filename);
+		// ViewportClient->CaptureFinished.Get()->Wait(); // TODO: Need to wait the event to finish
 
-		// ImageCaptureDevice->Filename = Filename;
-		// ViewportClient->OnEndDraw().AddRaw(ImageCaptureDevice, CaptureImage);
-
-		bScreenshotSuccessful = GetViewportScreenShot(InViewport, Bitmap);
-		// ViewportClient->GetHighResScreenshotConfig().MergeMaskIntoAlpha(Bitmap);
-		// Ensure that all pixels' alpha is set to 255
-		for (auto& Color : Bitmap)
-		{
-			Color.A = 255;
-		}
-
-		if (bScreenshotSuccessful)
-		{
-			FIntVector Size(InViewport->GetSizeXY().X, InViewport->GetSizeXY().Y, 0);
-			// TODO: Need to blend alpha, a bit weird from screen.
-
-			TArray<uint8> CompressedBitmap;
-			FImageUtils::CompressImageArray(Size.X, Size.Y, Bitmap, CompressedBitmap);
-			FFileHelper::SaveArrayToFile(CompressedBitmap, *Filename);
-			return FExecStatus(Filename);
-		}
-		else
-		{
-			return FExecStatus::Error("Fail to capture image");
-		}
+		return FExecStatus(Filename);
 	}
 	return FExecStatus::InvalidArgument;
 }
@@ -439,6 +419,7 @@ void AMyCharacter::RegisterCommands()
 	CommandDispatcher.Alias("SetDepth", "vset /mode/depth", "Set mode to depth"); // Alias for human interaction
 	CommandDispatcher.Alias("VisionCamInfo", "vget /camera/0/name", "Get camera info");
 	CommandDispatcher.Alias("ls", "vget /util/get_commands", "List all commands");
+	CommandDispatcher.Alias("shot", "vget /camera/0/image", "Save image to disk");
 }
 
 FExecStatus AMyCharacter::GetCommands(const TArray<FString>& Args)
