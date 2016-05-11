@@ -6,7 +6,7 @@
 
 UMyGameViewportClient::UMyGameViewportClient()
 {
-	CaptureFinished.Get()->Create();
+	// CaptureFinished.Get()->Create();
 }
 
 // Reimplement a GameViewportClient is required according to the discussion from here
@@ -52,9 +52,9 @@ void UMyGameViewportClient::Draw(FViewport * Viewport, FCanvas * SceneCanvas)
 			// return FExecStatus::Error("Fail to capture image"); // TODO: Handle error
 		}
 		IsPendingSaveRequest = false;
-		
+
 		// Signal an event the capture finished
-		CaptureFinished.Get()->Trigger();
+		// CaptureFinished.Get()->Trigger();
 	}
 }
 
