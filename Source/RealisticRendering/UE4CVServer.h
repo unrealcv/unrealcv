@@ -15,8 +15,9 @@ public:
 	bool Start();
 	void SendClientMessage(FString Message);
 
-private:
+	// Expose this for UI interaction
 	UNetworkManager* NetworkManager;
+private:
 	FCommandDispatcher* CommandDispatcher;
 	UWorld* World;
 

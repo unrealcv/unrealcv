@@ -19,14 +19,37 @@ FConsoleHelper::FConsoleHelper(FCommandDispatcher* CommandDispatcher, FConsoleOu
 		TEXT("Set resource in Unreal Engine"),
 		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FConsoleHelper::VSet)
 		);
+
+	IConsoleObject* VRunCmd = IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("vrun"),
+		TEXT("Exec alias"),
+		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FConsoleHelper::VRun)
+		);
 }
 
 FConsoleHelper::~FConsoleHelper()
 {
 }
 
+void FConsoleHelper::VRun(const TArray<FString>& Args)
+{
+	// Provide support to alias
+	if (Args.Num() == 1)
+	{
+		FString Alias = Args[0];
+		FString Cmd = FString::Printf(TEXT("vrun %s"), *Alias);
+		FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
+		ConsoleOutputDevice->Log(ExecStatus.Message);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Alias can not support extra parameters"));
+	}
+}
+
 void FConsoleHelper::VGet(const TArray<FString>& Args)
 {
+	// TODO: Is there any way to know which command trigger this handler?
 	// Join string
 	FString Cmd = "vget ";
 	uint32 NumArgs = Args.Num();
@@ -34,7 +57,7 @@ void FConsoleHelper::VGet(const TArray<FString>& Args)
 	{
 		Cmd += Args[ArgIndex] + " ";
 	}
-	Cmd += Args[NumArgs-1]; // Maybe a more elegant implementation
+	Cmd += Args[NumArgs-1]; // Maybe a more elegant implementation for joining string
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
 	UE_LOG(LogTemp, Warning, TEXT("vget helper function, the real command is %s"), *Cmd);
 	// In the console mode, output should be writen to the output log.

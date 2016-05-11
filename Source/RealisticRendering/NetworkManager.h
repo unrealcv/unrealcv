@@ -31,10 +31,13 @@ private:
 public:
 	FReceivedEvent& OnReceived() { return ReceivedEvent; }
 
-	UPROPERTY()
-	uint32 PortNum = 9000;
-	UPROPERTY()
-	bool bIsConnected;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 PortNum = 9000;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bIsConnected = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FString ListenIP = "0.0.0.0"; // TODO: this is hard coded right now
+
 	UWorld* World;
 
 	UNetworkManager();

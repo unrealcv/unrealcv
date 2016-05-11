@@ -9,6 +9,7 @@
 #include "MyCharacter.generated.h"
 
 UCLASS()
+// TODO: Make this programmable with blueprint
 class REALISTICRENDERING_API AMyCharacter : public ACharacter
 {
 	GENERATED_BODY()
@@ -44,6 +45,13 @@ public:
 
 	void TakeScreenShot();
 
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UNetworkManager* NetworkManager;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 Health;
 private:
 	// UPROPERTY() // This is super important to prevent the NetworkManager from GC.
 	// UNetworkManager* NetworkManager;
@@ -69,6 +77,7 @@ private:
 	FExecStatus GetObjectName(const TArray<FString>& Args);
 
 	FExecStatus CurrentObjectHandler(const TArray<FString>& Args);
+	FExecStatus GetCommands(const TArray<FString>& Args);
 
 	// Vertex One Object with Flood-Fill
 	bool PaintObject(AActor* Actor, const FColor& NewColor);

@@ -16,7 +16,14 @@ FExecStatus FExecStatus::Error(FString ErrorMessage)
 
 FExecStatus::FExecStatus(FString Message)
 {
-	this->Message = Message;
+	if (Message != "")
+	{ 
+		this->Message = Message;
+	}
+	else
+	{
+		this->Message = "error Message can not be empty";
+	}
 }
 
 FExecStatus::~FExecStatus()
@@ -25,42 +32,79 @@ FExecStatus::~FExecStatus()
 
 FCommandDispatcher::FCommandDispatcher()
 {
+	FDispatcherDelegate Cmd = FDispatcherDelegate::CreateRaw(this, &FCommandDispatcher::AliasHelper);
+	FString Uri = FString::Printf(TEXT("vrun (.*)"));
+	BindCommand(Uri, Cmd, "Run an alias for Unreal CV plugin");
 }
 
 FCommandDispatcher::~FCommandDispatcher()
 {
 }
 
-bool FCommandDispatcher::BindCommand(const FString UriTemplate, const FDispatcherDelegate& Command) // Parse URI
+bool FCommandDispatcher::BindCommand(const FString& UriTemplate, const FDispatcherDelegate& Command, const FString& Description) // Parse URI
 {
 	// TODO: Add Unreal Console support
 	// TODO: Build a tree structure to boost performance
+	// TODO: The order should matter
 	if (UriMapping.Contains(UriTemplate))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("The UriTemplate %s already exist, overwrited."), *UriTemplate);
 	}
 	UriMapping.Emplace(UriTemplate, Command);
+	UriDescription.Emplace(UriTemplate, Description);
 	return true;
 }
 
-bool FCommandDispatcher::Alias(const FString Alias, const TArray<FString>& Commands)
+bool FCommandDispatcher::Alias(const FString& InAlias, const TArray<FString>& Commands, const FString& Description)
 {
+	if (AliasMapping.Contains(InAlias))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Alias %s already exist, overwrite."), *InAlias);
+	}
+	AliasMapping.Emplace(InAlias, Commands);
 	// Alias can not support arguments
 	return true;
 }
 
-bool FCommandDispatcher::Alias(const FString Alias, const FString Command)
+bool FCommandDispatcher::Alias(const FString& InAlias, const FString& Command, const FString& Description)
 {
+	TArray<FString> Commands;
+	Commands.Add(Command);
+	Alias(InAlias, Commands, Description);
 	// Alias can not support arguments
 	return true;
 }
+
+FExecStatus FCommandDispatcher::AliasHelper(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		FString AliasName = Args[0];
+		if (AliasMapping.Contains(AliasName))
+		{
+			TArray<FString>& Commands = AliasMapping[AliasName];
+			FString Message = "";
+			for (FString Command : Commands)
+			{
+				FExecStatus ExecStatus = Exec(Command);
+				Message += ExecStatus.Message; // TODO: Ovewrite the + operator of ExecStatus
+			}
+			return FExecStatus(Message); // TODO: Check whether one of them failed and set ExecStatus based on that.
+		}
+		else
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Unrecognized alias %s"), *AliasName));
+		}
+	}
+	return FExecStatus::Error("Alias can not support extra parameters");
+}
+
+const TMap<FString, FString>& FCommandDispatcher::GetUriDescription()
+{
+	return this->UriDescription;
+}
+
 	
-bool FCommandDispatcher::Match(const FString Uri)
-{
-	return true;
-}
-
-
 FExecStatus FCommandDispatcher::Exec(const FString Uri)
 {
 	TArray<FString> Args; // Get args from URI
