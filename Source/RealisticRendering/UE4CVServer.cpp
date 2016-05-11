@@ -36,7 +36,7 @@ void FUE4CVServer::LogClientMessage(FString RawMessage)
 void FUE4CVServer::HandleClientMessage(FString RawMessage)
 {
 	// Parse Raw Message
-	FString MessageFormat = "(\\d{1,8}):(.*)"; 
+	FString MessageFormat = "(\\d{1,8}):(.*)";
 	FRegexPattern RegexPattern(MessageFormat);
 	FRegexMatcher Matcher(RegexPattern, RawMessage);
 
@@ -61,11 +61,11 @@ void FUE4CVServer::HandleClientMessage(FString RawMessage)
 
 void FUE4CVServer::SendClientMessage(FString Message)
 {
-	NetworkManager->SendMessageW(Message); // Where is the W from??
+	NetworkManager->SendMessage(Message); // Where is the W from??
 }
 
 void FUE4CVServer::ReplyClient(uint32 RequestId, FExecStatus ExecStatus)
 {
 	FString Message = FString::Printf(TEXT("%d:%s"), RequestId, *ExecStatus.Message);
-	NetworkManager->SendMessageW(ExecStatus.Message);
+	NetworkManager->SendMessage(ExecStatus.Message);
 }

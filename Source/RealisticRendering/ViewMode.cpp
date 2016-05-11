@@ -39,7 +39,14 @@ void FViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 	// A complete list can be found from Engine/Config/BaseEngine.ini, Engine.BufferVisualizationMaterials
 	// TODO: BaseColor is weird, check BUG.
 	static IConsoleVariable* ICVar = IConsoleManager::Get().FindConsoleVariable(FBufferVisualizationData::GetVisualizationTargetConsoleCommandName());
-	ICVar->Set(*ViewMode, ECVF_SetByCode);
+	if (ICVar)
+	{
+		ICVar->Set(*ViewMode, ECVF_SetByCode);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("The BufferVisualization is not correctly configured."));
+	}
 }
 
 void FViewMode::Normal(UWorld *World)
@@ -152,7 +159,7 @@ FExecStatus FViewMode::SetMode(const TArray<FString>& Args) // Check input argum
 		{
 			FViewMode::Unlit(FViewMode::World);
 		}
-		else 
+		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Unrecognized ViewMode %s"), *ViewMode);
 			bSuccess = false;
