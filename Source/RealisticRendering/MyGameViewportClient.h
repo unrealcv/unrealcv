@@ -15,7 +15,7 @@ class REALISTICRENDERING_API UMyGameViewportClient : public UGameViewportClient
 
 public:
 	void CaptureScreen(const FString& Filename);
-	FScopedEvent CaptureFinished; // TODO: Not sure FScopedEvent is the right thing to use
+	// FScopedEvent CaptureFinished; // TODO: Not sure FScopedEvent is the right thing to use
 	UMyGameViewportClient();
 	
 protected:
