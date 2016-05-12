@@ -41,7 +41,28 @@ class Client:
         Handle exception
         This is an async function
         '''
-        self._check_server()
+        # self._send_heartbeat()
+        self._check_server() # This will block execution
+
+    def send_raw(self, raw_message):
+        if self.client_socket:
+            self.client_socket.sendall(raw_message)
+            # L.debug("Send raw message %s" % raw_message)
+            # data = self.client_socket.recv(1024)
+            # reply = str(data)
+            # L.debug(reply)
+            # self.on_received(reply)
+
+    def recv_basic(self):
+        total_data = []
+        while True:
+            data = self.client_socket.recv(8192)
+            print data
+            if not data: break
+            total_data.append(data)
+
+        L.debug('Done receiving')
+        return ''.join(total_data)
 
     def send(self, message):
         '''
@@ -53,9 +74,9 @@ class Client:
         if self.client_socket:
             raw_message = '%d:%s' % (self.message_id, message)
             self.client_socket.sendall(raw_message)
-            data = self.client_socket.recv(1024)
+            # data = self.client_socket.recv(5 * 1024 * 1024) # How to read all message?
+            data = self.recv_basic()
             reply = str(data)
-            L.debug(reply)
             success_reply = '%d:ok' % self.message_id
             error_reply = '%d:error' % self.message_id
 
@@ -71,6 +92,12 @@ class Client:
                 self.on_received(reply)
 
             self.message_id += 1
+
+    def _send_heartbeat(self):
+        # L.debug('Sending heartbeat')
+        self.send_raw('echo')
+        t2 = TD.Timer(self.interval, self._send_heartbeat) # Check again
+        t2.start()
 
     def _connect_server(self):
         '''
@@ -106,8 +133,8 @@ class Client:
             print e
 
         self.num_attempt += 1
-        t = TD.Timer(self.interval, self._check_server) # Check again
-        t.start()
+        t1 = TD.Timer(self.interval, self._check_server) # Check again
+        t1.start()
 
 
 
