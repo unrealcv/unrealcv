@@ -5,14 +5,14 @@
 #include "Networking.h"
 #include <string>
 
-UNetworkManager::UNetworkManager()
+UNetworkManager::UNetworkManager() : PortNum(9000)
 {
 	ConnectionSocket = NULL;
 	Listener = NULL;
 	World = NULL;
-	WorldTimerManager = NULL;
 	bIsConnected = false;
 	// TODO: Check unexpected client disconnection
+	PortNum = 9000;
 }
 
 UNetworkManager::~UNetworkManager()
@@ -46,8 +46,27 @@ UNetworkManager::~UNetworkManager()
 	}
 }
 
+void UNetworkManager::Expired()
+{
+	if (this->ConnectionSocket)
+	{
+		ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(ConnectionSocket);
+		ConnectionSocket = nullptr;
+	}
+	bIsConnected = false;
+	UE_LOG(LogTemp, Warning, TEXT("Can not get a heartbeat from the client, timeout"));
+}
+
+void UNetworkManager::ResetTimeoutTimer()
+{
+	World->GetTimerManager().ClearTimer(CheckConnectionTimerHandle);
+	World->GetTimerManager().SetTimer(CheckConnectionTimerHandle, this,
+		&UNetworkManager::Expired, ConnectionTimeout, true);
+}
+
 void UNetworkManager::ListenSocket()
 {
+
 	UE_LOG(LogTemp, Warning, TEXT("Try to start a listening socket"));
 	// FString IPAddress = "127.0.0.1";
 	// FIPv4Address IPAddress = FIPv4Address(127, 0, 0, 1);
@@ -72,6 +91,7 @@ void UNetworkManager::ListenSocket()
 		if (Listener)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Start listening on port %d"), TryPortNum);
+			this->PortNum = TryPortNum;
 			break; // The creation is successful.
 		}
 	}
@@ -125,13 +145,14 @@ void UNetworkManager::WaitConnection()
 			{
 				FTimerHandle TimerHandle;
 				World->GetTimerManager().SetTimer(TimerHandle, this, &UNetworkManager::WaitData, 0.01, true);
+				this->ResetTimeoutTimer();
 				bIsConnected = true;
 			}
 		}
 	}
 	else
 	{
-		// UE_LOG(LogTemp, Warning, TEXT("Connected"));
+		UE_LOG(LogTemp, Warning, TEXT("Connected"));
 		// TODO: Maybe stop the timer or slow down the timer?
 	}
 }
@@ -171,25 +192,45 @@ void UNetworkManager::WaitData() // Regularly check data, the interval might be 
 
 	TArray<uint8> ReceivedData;
 
-	uint32 Size, MaxSize = 65507u;
+	uint32 Size = 0, MaxSize = 65507u;
+	/*
 	while (ConnectionSocket->HasPendingData(Size))
 	{
 		// ReceivedData.Init(FMath::Min(Size, MaxSize)); // TODO: Check this magic number
 		ReceivedData.SetNumUninitialized(FMath::Min(Size, MaxSize));
 
 		int32 Read = 0;
-		ConnectionSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), Read); // TODO: Check Robustness.
+		bool RecvStatus = ConnectionSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), Read); // TODO: Check Robustness.
 	}
+	*/
+	int32 Read = 0;
+	bool RecvStatus = ConnectionSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), Read); // TODO: Check Robustness.
 
 	if (ReceivedData.Num() <= 0)
 	{
 		return;
 	}
 	const FString ReceivedString = StringFromBinaryArray(ReceivedData);
-	BroadcastReceived(ReceivedString); // Is this blocking or non-blocking? Event firing
+	HandleRawMessage(ReceivedString);
+
 	// TODO: Parse the communication format
 	// NetworkManager should only be reponsible for communication and the message parsing should be done in a different layer.
 	UE_LOG(LogTemp, Warning, TEXT("%s"), *ReceivedString);
+}
+
+void UNetworkManager::HandleRawMessage(FString RawMessage)
+{
+	if (RawMessage == HeartBeatMessage) // TODO: Write in a more elegant way.
+	{
+		float Elapsed = World->GetTimerManager().GetTimerElapsed(CheckConnectionTimerHandle);
+		UE_LOG(LogTemp, Warning, TEXT("%.2f"), Elapsed);
+		this->ResetTimeoutTimer();
+		// this->SendMessage(HeartBeatMessage);
+	}
+	else
+	{
+		BroadcastReceived(RawMessage); // Is this blocking or non-blocking? Event firing
+	}
 }
 
 FString UNetworkManager::StringFromBinaryArray(const TArray<uint8>& BinaryArray)

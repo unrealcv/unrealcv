@@ -22,12 +22,16 @@ private:
 	FSocket* Listener; // TODO: Replace with intelligent pointer here.
 	FSocket* ConnectionSocket;
 
-	FTimerManager* WorldTimerManager;
 	FReceivedEvent ReceivedEvent;
+	
+	void Expired();
+	void HandleRawMessage(FString RawMessage);
+
 	void BroadcastReceived(const FString& Message)
 	{
 		ReceivedEvent.Broadcast(Message); // TODO: A call to return message is required by design.
 	}
+	void ResetTimeoutTimer();
 public:
 	FReceivedEvent& OnReceived() { return ReceivedEvent; }
 
@@ -37,8 +41,12 @@ public:
 	bool bIsConnected = false;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FString ListenIP = "0.0.0.0"; // TODO: this is hard coded right now
+	FString HeartBeatMessage = "echo";
 
 	UWorld* World;
+
+	FTimerHandle CheckConnectionTimerHandle;
+	uint32 ConnectionTimeout = 3;
 
 	UNetworkManager();
 	bool IsConnected();
