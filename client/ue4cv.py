@@ -2,6 +2,8 @@ import socket as S
 import threading as TD
 import logging as L
 
+L.basicConfig(level=L.DEBUG)
+
 class client:
     '''
     Start a tcp client to communicate with the Unreal demo server
@@ -51,6 +53,7 @@ class client:
         '''
         if self.client_socket:
             raw_message = '%d:%s' % (self.message_id, message)
+            L.info('Send raw message %s' % raw_message)
             self.client_socket.sendall(raw_message)
             data = self.client_socket.recv(1024)
             reply = str(data)

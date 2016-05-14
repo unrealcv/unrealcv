@@ -11,7 +11,8 @@ def on_connected():
     client.send('vget /object') # TODO: How to end a message??
     # Wait data response
     client.send('vget /camera/0/image')
-    client.send('vget /camera/0/position')
+    client.send('vget /camera/0/location')
+    client.send('vget /camera/0/rotation')
     client.send('vset /mode/depth') # set an alias for this
     client.send('')
     client.send('garbage')
