@@ -115,12 +115,18 @@ class BaseClient:
             return None
 
 class Client:
+    '''
+    - request (sync)
+    - receive request
+    '''
     def raw_message_handler(self, raw_message):
-        print raw_message
+        # print 'Waiting for message id %d' % self.message_id
         if raw_message.find(':') != -1:
             [message_id, message_body] = raw_message.split(':')
+            # print 'Received message id %s' % message_id
             if int(message_id) == self.message_id:
                 self.wait_response.set()
+                self.wait_response.clear() # This is important
                 self.response = message_body
             else:
                 assert(False)
@@ -132,12 +138,16 @@ class Client:
         self.message_handler = message_handler
         self.message_id = 0
         self.wait_response = threading.Event()
-        self.reply = ''
+        self.response = ''
 
     def request(self, message):
-        raw_message = '%8d:%s' % (self.message_id, message)
-        self.message_client.send(raw_message)
+        raw_message = '%d:%s' % (self.message_id, message)
+        if not self.message_client.send(raw_message):
+            return None
         # Timeout is required
         # see: https://bugs.python.org/issue8844
         self.wait_response.wait(60 * 60)
-        return self.reply
+
+        # print 'Got response +1 id'
+        self.message_id += 1 # Increment it only after the request/response cycle finished
+        return self.response
