@@ -10,7 +10,7 @@
 class REALISTICRENDERING_API FUE4CVServer
 {
 public:
-	FUE4CVServer(FCommandDispatcher* CommandDispatcher, UWorld* World);
+	FUE4CVServer(FCommandDispatcher* CommandDispatcher);
 	~FUE4CVServer();
 	bool Start();
 	void SendClientMessage(FString Message);
@@ -19,9 +19,9 @@ public:
 	UNetworkManager* NetworkManager;
 private:
 	FCommandDispatcher* CommandDispatcher;
-	UWorld* World;
 
 	void ReplyClient(uint32 RequestId, FExecStatus ExecStatus); // This is too low level, consider working on a higher level.
-	void HandleClientMessage(FString RawMessage);
-	void LogClientMessage(FString RawMessage);
+
+	void HandleRequest(const FString& RawMessage);
+	void LogClientMessage(const FString& RawMessage);
 };

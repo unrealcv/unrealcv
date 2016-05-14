@@ -4,6 +4,7 @@
 #include "ImageUtils.h"
 #include "MyGameViewportClient.h"
 
+// TODO: Add lock to wait for screen capture finish
 UMyGameViewportClient::UMyGameViewportClient()
 {
 	// CaptureFinished.Get()->Create();

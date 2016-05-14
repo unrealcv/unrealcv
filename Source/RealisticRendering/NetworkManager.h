@@ -31,7 +31,7 @@ public:
 /**
  *
  */
-DECLARE_EVENT_OneParam(UNetworkManager, FReceivedEvent, FString)
+DECLARE_EVENT_OneParam(UNetworkManager, FReceivedEvent, const FString&)
 // TODO: Consider add a pointer to NetworkManager itself
 // TODO: Add connected event
 UCLASS()
@@ -41,6 +41,7 @@ class REALISTICRENDERING_API UNetworkManager : public UObject
 	GENERATED_BODY()
 
 public:
+	// TODO: Make these property effective
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 PortNum = 9000;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -50,6 +51,9 @@ public:
 
 	void Start();
 	bool SendMessage(const FString& Message);
+
+	FReceivedEvent& OnReceived() { return ReceivedEvent;  } // The reference can not be changed
+
 private:
 	bool Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
 	FSocket* ConnectionSocket = NULL; // FSimpleAbstractSocket's receive is hard to use for non-blocking mode
@@ -58,4 +62,11 @@ private:
 
 	bool StartEchoService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
 	bool StartMessageService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
+
+	/* Event handler */
+	FReceivedEvent ReceivedEvent;
+	void BroadcastReceived(const FString& Message)
+	{
+		ReceivedEvent.Broadcast(Message);
+	}
 };

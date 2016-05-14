@@ -4,6 +4,7 @@
 #include "ViewMode.h"
 #include "BufferVisualizationData.h"
 #include "CommandDispatcher.h"
+#include "Async.h"
 
 #define REG_VIEW(COMMAND, DESC, DELEGATE) \
 		IConsoleManager::Get().RegisterConsoleCommand(TEXT(COMMAND), TEXT(DESC), \
@@ -38,15 +39,22 @@ void FViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 {
 	// A complete list can be found from Engine/Config/BaseEngine.ini, Engine.BufferVisualizationMaterials
 	// TODO: BaseColor is weird, check BUG.
+	// No matter in which thread, ICVar needs to be set in the GameThread
+
+	// AsyncTask is from https://answers.unrealengine.com/questions/317218/execute-code-on-gamethread.html
+	// lambda is from http://stackoverflow.com/questions/26903602/an-enclosing-function-local-variable-cannot-be-referenced-in-a-lambda-body-unles
+	// Make this async is risky, TODO:
 	static IConsoleVariable* ICVar = IConsoleManager::Get().FindConsoleVariable(FBufferVisualizationData::GetVisualizationTargetConsoleCommandName());
-	if (ICVar)
-	{
-		ICVar->Set(*ViewMode, ECVF_SetByCode);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("The BufferVisualization is not correctly configured."));
-	}
+	AsyncTask(ENamedThreads::GameThread, [ViewMode]() { // & means capture by reference
+		if (ICVar)
+		{
+			ICVar->Set(*ViewMode, ECVF_SetByCode);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("The BufferVisualization is not correctly configured."));
+		}
+	});
 }
 
 void FViewMode::Normal(UWorld *World)

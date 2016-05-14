@@ -18,7 +18,7 @@ bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, FSoc
 
 	int32 AmountSent;
 	Socket->Send(Ar.GetData(), Ar.Num(), AmountSent);
-	if (!AmountSent != Ar.Num())
+	if (AmountSent != Ar.Num())
 	{
 		UE_LOG(LogTemp, Error, TEXT("Unable to send."));
 		return false;
@@ -165,6 +165,7 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 			}
 
 			FString Message = StringFromBinaryArray(ArrayReader);
+			BroadcastReceived(Message);
 			// Fire raw message received event, use message id to connect request and response
 			UE_LOG(LogTemp, Warning, TEXT("Receive message %s"), *Message);
 

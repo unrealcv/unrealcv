@@ -9,6 +9,7 @@
 #include "ImageUtils.h"
 #include "ViewMode.h"
 #include "MyGameViewportClient.h"
+#include "Tester.h"
 // #include "Console.h"
 
 // Sets default values
@@ -30,10 +31,13 @@ AMyCharacter::AMyCharacter()
 // Called when the game starts or when spawned
 void AMyCharacter::BeginPlay()
 {
+	// Tester = new NetworkManagerTester();
+	Tester = new UE4CVServerTester(&CommandDispatcher);
+	Tester->Init();
 	Super::BeginPlay();
 
 	FViewMode::World = this->GetWorld();
-	Server = new FUE4CVServer(&CommandDispatcher, this->GetWorld());
+	Server = new FUE4CVServer(&CommandDispatcher);
 	NetworkManager = Server->NetworkManager; // I need this to show information on screen.
 
 	ConsoleOutputDevice = new FConsoleOutputDevice(GetWorld()->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
@@ -41,7 +45,7 @@ void AMyCharacter::BeginPlay()
 
 	DefineConsoleCommands();
 	RegisterCommands();
-	Server->Start();
+	// Server->Start();
 
 	PaintRandomColors(TArray<FString>());
 }
@@ -150,7 +154,7 @@ void AMyCharacter::TestMaterialLoading()
 
 void AMyCharacter::OnFire()
 {
-	NetworkManager->SendMessage("Fire");
+	Tester->Run();
 	// PaintAllObjects(TArray<FString>());
 	// TakeScreenShot();
 
@@ -318,6 +322,25 @@ FExecStatus AMyCharacter::GetCameraRotation(const TArray<FString>& Args)
 	return FExecStatus::Error("Number of arguments incorrect");
 }
 
+FExecStatus AMyCharacter::GetCameraDepth(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		FExecStatus ExecStatus = CommandDispatcher.Exec("vset /mode/depth"); // TODO: Overwrite the + operator of FExecStatus
+		return GetCameraView(Args);
+	}
+	return FExecStatus::InvalidArgument;
+}
+
+FExecStatus AMyCharacter::GetCameraImage(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		FExecStatus ExecStatus = CommandDispatcher.Exec("vset /mode/lit");
+		return GetCameraView(Args);
+	}
+	return FExecStatus::InvalidArgument;
+}
 
 FExecStatus AMyCharacter::GetCameraLocation(const TArray<FString>& Args)
 {
@@ -332,6 +355,7 @@ FExecStatus AMyCharacter::GetCameraLocation(const TArray<FString>& Args)
 	return FExecStatus::Error("Number of arguments incorrect");
 }
 
+/* A legacy implementation */
 class FImageCapture
 {
 	FString Filename;
@@ -342,7 +366,7 @@ class FImageCapture
 };
 
 
-FExecStatus AMyCharacter::GetCameraImage(const TArray<FString>& Args)
+FExecStatus AMyCharacter::GetCameraView(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
 	{
@@ -384,6 +408,8 @@ void AMyCharacter::RegisterCommands()
 	CommandDispatcher.BindCommand("vget /camera/(\\d*)/image", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::GetCameraRotation);
 	CommandDispatcher.BindCommand("vget /camera/(\\d*)/rotation", Cmd, "Get camera rotation");
+	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::GetCameraDepth);
+	CommandDispatcher.BindCommand("vget /camera/(\\d*)/depth", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 	// CommandDispatcher.BindCommand("vget /camera/[id]/name", Command);
 
 	Cmd = FDispatcherDelegate::CreateUObject(this, &AMyCharacter::SetCameraLocation);
