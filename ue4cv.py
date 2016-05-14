@@ -18,6 +18,8 @@ class SocketMessage:
         rbufsize = -1 # From SocketServer.py
         rfile = socket.makefile('rb', rbufsize)
         raw_magic = rfile.read(4)
+        if not raw_magic:
+            return None
         # print 'Receive raw magic: %d, %s' % (len(raw_magic), raw_magic)
         magic = struct.unpack('I', raw_magic)[0]
         # print 'Receive magic:', magic

@@ -7,4 +7,4 @@ from ue4cv import *
 
 
 HOST, PORT = "localhost", 9999
-HOST, PORT = "xd", 9000
+# HOST, PORT = "xd", 9000

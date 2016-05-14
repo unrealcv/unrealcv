@@ -1,4 +1,4 @@
-''' Run a development server for testing '''
+''' Run an echo server which reply everything it got '''
 from test_common import *
 import SocketServer
 

@@ -31,10 +31,11 @@ if __name__ == '__main__':
             # Most of the time  broken pipe means remote connection is closed
 
             # print 'Wait for a payload'
-            # reply_payload = SocketMessage.ReceivePayload(s)
-            # # Make sure the reciving thread not taking the message before here.
+            reply_payload = SocketMessage.ReceivePayload(s)
+            # Make sure the reciving thread not taking the message before here.
 
-            # print reply_payload[0:10]
+            print reply_payload
+            time.sleep(1)
         s.close()
 
 
