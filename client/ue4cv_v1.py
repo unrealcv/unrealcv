@@ -2,9 +2,7 @@ import socket as S
 import threading as TD
 import logging as L
 
-L.basicConfig(level=L.DEBUG)
-
-class client:
+class Client:
     '''
     Start a tcp client to communicate with the Unreal demo server
     '''
@@ -44,8 +42,16 @@ class client:
         This is an async function
         '''
         # self._send_heartbeat()
-        self.endpoint = (self.server_ip, self.server_port)
         self._check_server() # This will block execution
+
+    def send_raw(self, raw_message):
+        if self.client_socket:
+            self.client_socket.sendall(raw_message)
+            # L.debug("Send raw message %s" % raw_message)
+            # data = self.client_socket.recv(1024)
+            # reply = str(data)
+            # L.debug(reply)
+            # self.on_received(reply)
 
     def recv_basic(self):
         total_data = []
@@ -61,17 +67,15 @@ class client:
     def send(self, message):
         '''
         Send message to the unreal server
+        Should I wait for the remote operation to be completed?
+        What should be returned from this function
+        How do I make correspondence between my request and reply?
         '''
-        print "Start a new socket to send message"
-        client_socket = S.socket(S.AF_INET, S.SOCK_STREAM)
-        client_socket.connect(self.endpoint)
-        if client_socket:
+        if self.client_socket:
             raw_message = '%d:%s' % (self.message_id, message)
-            L.info('Send raw message %s' % raw_message)
-            client_socket.sendall(raw_message)
-            print 'Sent'
+            self.client_socket.sendall(raw_message)
+            # data = self.client_socket.recv(5 * 1024 * 1024) # How to read all message?
             data = self.recv_basic()
-
             reply = str(data)
             success_reply = '%d:ok' % self.message_id
             error_reply = '%d:error' % self.message_id
@@ -89,14 +93,20 @@ class client:
 
             self.message_id += 1
 
+    def _send_heartbeat(self):
+        # L.debug('Sending heartbeat')
+        self.send_raw('echo')
+        t2 = TD.Timer(self.interval, self._send_heartbeat) # Check again
+        t2.start()
+
     def _connect_server(self):
         '''
         Connect to server
         '''
-        # print 'Try to connect,', endpoint
-        # # TODO: Only maintain one socket and  one connection
-        endpoint = (self.server_ip, self.server_port + 1)
-        self.client_socket = S.socket(S.AF_INET, S.SOCK_STREAM) # This is used to receiving data
+        endpoint = (self.server_ip, self.server_port)
+        print 'Try to connect,', endpoint
+        # TODO: Only maintain one socket and  one connection
+        self.client_socket = S.socket(S.AF_INET, S.SOCK_STREAM)
         self.client_socket.connect(endpoint)
         print 'Connected'
         print 'Waiting data from server'
