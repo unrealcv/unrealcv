@@ -71,7 +71,7 @@ class SocketMessage:
         wfile.close() # Close file object, not close the socket
         return True
 
-class MessageClient:
+class BaseClient:
     '''
     Add message framing on top of TCP
     '''
@@ -118,26 +118,26 @@ class Client:
     def raw_message_handler(self, raw_message):
         print raw_message
         if raw_message.find(':') != -1:
-            [message_id, message] = raw_message.split(':')
+            [message_id, message_body] = raw_message.split(':')
             if int(message_id) == self.message_id:
-                self.reply_event.set()
-                self.reply = message
+                self.wait_response.set()
+                self.response = message_body
             else:
                 assert(False)
         else:
             self.message_handler(raw_message)
 
     def __init__(self, endpoint, message_handler):
-        self.message_client = MessageClient(endpoint, self.raw_message_handler)
+        self.message_client = BaseClient(endpoint, self.raw_message_handler)
         self.message_handler = message_handler
         self.message_id = 0
-        self.reply_event = threading.Event()
+        self.wait_response = threading.Event()
         self.reply = ''
 
-    def send(self, message):
+    def request(self, message):
         raw_message = '%8d:%s' % (self.message_id, message)
         self.message_client.send(raw_message)
         # Timeout is required
         # see: https://bugs.python.org/issue8844
-        self.reply_event.wait(60 * 60)
+        self.wait_response.wait(60 * 60)
         return self.reply

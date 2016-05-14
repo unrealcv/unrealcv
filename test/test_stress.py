@@ -1,5 +1,5 @@
 from test_common import *
-import time, threading
+import time
 
 
 def MessageHandler(message):
