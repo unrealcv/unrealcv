@@ -1,4 +1,4 @@
-import ctypes, struct
+import ctypes, struct, threading, socket
 
 fmt = 'I'
 
@@ -71,39 +71,73 @@ class SocketMessage:
         wfile.close() # Close file object, not close the socket
         return True
 
-class Client:
+class MessageClient:
     '''
-    Add message framing and CRC check on top of TCP
+    Add message framing on top of TCP
     '''
-    def __init__(self, host, port):
-        self.socket = None # Todo create a socket
-        pass
+    def __init__(self, endpoint, message_handler):
+        self.endpoint = endpoint
+        self.message_handler = message_handler
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.is_connected = False
+        self.connect()
 
-    def is_connected(self):
-        return False # Add connection check
+    def connect(self):
+        if not self.is_connected:
+            try:
+                self.socket.connect(self.endpoint)
+                self.is_connected = True
+                # Start a thread to get data from the socket
+                receiving_thread = threading.Thread(target = self.receiving)
+                receiving_thread.setDaemon(1)
+                receiving_thread.start()
+            except:
+                print 'Can not connect to %s' % str(self.endpoint)
+                self.is_connected = False
 
-    def on_received(self, socket_message):
-        # Receive one socket message a time, should I use the first few bits?
+        return self.is_connected
 
-        pass
-
-    # Start a thread to wait for data
-
-    def _sendraw(self, raw_message):
-        pass
-
-    def read(self):
-        pass
-
-    def request(self, message):
-        '''
-        Make a request and return response
-        '''
-        self.send(message)
-        reply_message = self.read() # Maybe this is not the reply?
-        return reply_message.content
+    def receiving(self):
+        while (1):
+            # Only this thread is allowed to read from socket, otherwise need lock to avoid competing
+            message = SocketMessage.ReceivePayload(self.socket)
+            if not message:
+                self.is_connected = False
+                break
+            self.message_handler(message)
 
     def send(self, message):
-        if self.is_connected():
-            socket_message = SocketMessage(message)
-            self._sendraw(str(socket_message))
+        if self.connect():
+            SocketMessage.WrapAndSendPayload(self.socket, message)
+            reply = 'reply'
+            return reply
+        else:
+            return None
+
+class Client:
+    def raw_message_handler(self, raw_message):
+        print raw_message
+        if raw_message.find(':') != -1:
+            [message_id, message] = raw_message.split(':')
+            if int(message_id) == self.message_id:
+                self.reply_event.set()
+                self.reply = message
+            else:
+                assert(False)
+        else:
+            self.message_handler(raw_message)
+
+    def __init__(self, endpoint, message_handler):
+        self.message_client = MessageClient(endpoint, self.raw_message_handler)
+        self.message_handler = message_handler
+        self.message_id = 0
+        self.reply_event = threading.Event()
+        self.reply = ''
+
+    def send(self, message):
+        raw_message = '%8d:%s' % (self.message_id, message)
+        self.message_client.send(raw_message)
+        # Timeout is required
+        # see: https://bugs.python.org/issue8844
+        self.reply_event.wait(60 * 60)
+        return self.reply

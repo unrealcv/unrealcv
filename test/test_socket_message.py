@@ -18,7 +18,6 @@ class Timer(object):
         print 'Elapsed: %s' % (time.time() - self.tstart)
 
 if __name__ == '__main__':
-    client = Client(HOST, PORT)
     print 'Try to connect (%s, %s)' % (HOST, PORT)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((HOST, PORT))
