@@ -11,10 +11,12 @@ FUE4CVServer::FUE4CVServer(FCommandDispatcher* CommandDispatcher, UWorld* World)
 
 	this->NetworkManager = NewObject<UNetworkManager>();
 	this->NetworkManager->AddToRoot(); // Avoid GC
+	/*
 	this->NetworkManager->World = World;
 
 	this->NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::HandleClientMessage);
 	this->NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::LogClientMessage);
+	*/
 }
 
 FUE4CVServer::~FUE4CVServer()
@@ -24,7 +26,7 @@ FUE4CVServer::~FUE4CVServer()
 
 bool FUE4CVServer::Start()
 {
-	NetworkManager->ListenSocket();
+	NetworkManager->Start();
 	return true;
 }
 
@@ -61,11 +63,13 @@ void FUE4CVServer::HandleClientMessage(FString RawMessage)
 
 void FUE4CVServer::SendClientMessage(FString Message)
 {
-	NetworkManager->SendMessage(Message); // Where is the W from??
+	// NetworkManager->SendMessage(Message); // Where is the W from??
 }
 
 void FUE4CVServer::ReplyClient(uint32 RequestId, FExecStatus ExecStatus)
 {
+	/*
 	FString Message = FString::Printf(TEXT("%d:%s"), RequestId, *ExecStatus.Message);
 	NetworkManager->SendMessage(ExecStatus.Message);
+	*/
 }

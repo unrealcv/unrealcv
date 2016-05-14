@@ -150,6 +150,7 @@ void AMyCharacter::TestMaterialLoading()
 
 void AMyCharacter::OnFire()
 {
+	NetworkManager->SendMessage("Fire");
 	// PaintAllObjects(TArray<FString>());
 	// TakeScreenShot();
 
