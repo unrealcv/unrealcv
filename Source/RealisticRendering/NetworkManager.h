@@ -16,15 +16,16 @@ class FSocketMessageHeader
 	/* Payload Size */
 	uint32 PayloadSize = 0;
 
+	static uint32 DefaultMagic;
 public:
-	FSocketMessageHeader(const FSimpleAbstractSocket& InSocket, const TArray<uint8>& Payload)
+	FSocketMessageHeader(const TArray<uint8>& Payload)
 	{
 		PayloadSize = Payload.Num();  // What if PayloadSize is 0
-		Magic = InSocket.GetMagic();
+		Magic = FSocketMessageHeader::DefaultMagic;
 	}
 
-	static bool WrapAndSendPayload(const TArray<uint8>& Payload, const FSimpleAbstractSocket& Socket);
-	static bool ReceivePayload(FArrayReader& OutPayload, const FSimpleAbstractSocket& Socket);
+	static bool WrapAndSendPayload(const TArray<uint8>& Payload, FSocket* Socket);
+	static bool ReceivePayload(FArrayReader& OutPayload, FSocket* Socket);
 };
 
 /**
@@ -51,8 +52,7 @@ public:
 	bool SendMessage(const FString& Message);
 private:
 	bool Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
-	FSimpleAbstractSocket* ConnectionSocket = NULL; // FSimpleAbstractSocket's receive is hard to use for non-blocking mode
-	// FSocket* ConnectionSocket;
+	FSocket* ConnectionSocket = NULL; // FSimpleAbstractSocket's receive is hard to use for non-blocking mode
 	FTcpListener* TcpListener;
 	~UNetworkManager();
 

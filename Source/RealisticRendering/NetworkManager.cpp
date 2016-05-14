@@ -5,19 +5,20 @@
 #include "Networking.h"
 #include <string>
 
+uint32 FSocketMessageHeader::DefaultMagic = 0x9E2B83C1; 
 
-
-bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, const FSimpleAbstractSocket& Socket)
+bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, FSocket* Socket)
 {
-	FSocketMessageHeader Header(Socket, Payload);
+	FSocketMessageHeader Header(Payload);
 
 	FBufferArchive Ar;
 	Ar << Header.Magic;
 	Ar << Header.PayloadSize;
 	Ar.Append(Payload);
 
-	if (!Socket.Send(Ar.GetData(), Ar.Num()))
-
+	int32 AmountSent;
+	Socket->Send(Ar.GetData(), Ar.Num(), AmountSent);
+	if (!AmountSent != Ar.Num())
 	{
 		UE_LOG(LogTemp, Error, TEXT("Unable to send."));
 		return false;
@@ -25,18 +26,36 @@ bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, cons
 	return true;
 }
 
+/* Waiting for data, return false only when disconnected */
+bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
+{
+	int32 Offset = 0;
+	while (ExpectedSize > 0)
+	{
+		int32 NumRead = 0;
+		Socket->Recv(Result + Offset, ExpectedSize, NumRead);
+		check(NumRead <= ExpectedSize);
 
-bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, const FSimpleAbstractSocket& Socket)
+		if (NumRead == 0)
+		{
+			return false; // Socket is disconnected. if -1, keep waiting for data
+		}
+		Offset += NumRead;
+		ExpectedSize -= NumRead;
+	}
+	return true;
+}
+
+
+bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Socket)
 {
 	TArray<uint8> HeaderBytes;
 	int32 Size = sizeof(FSocketMessageHeader);
 	HeaderBytes.AddZeroed(Size);
 	
-	if (!Socket.Receive(HeaderBytes.GetData(), Size)) 
-		// This is not compatible with a non-blocking socket
-		// in non-blocking mode, recv will return -1 if no data available.
+	if (!SocketReceiveAll(Socket, HeaderBytes.GetData(), Size)) 
 	{
-		// false here can mean -1 or 0.
+		// false here can means 0.
 		UE_LOG(LogTemp, Error, TEXT("Unable to read header, Socket disconnected."));
 		return false;
 	}
@@ -45,14 +64,14 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, const FSimpl
 	uint32 Magic;
 	Reader << Magic;
 
-	if (Magic != Socket.GetMagic())
+	if (Magic != FSocketMessageHeader::DefaultMagic)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Bad network header magic"));
 		return false;
 	}
 
 	uint32 PayloadSize;
-	Reader << PayloadSize; // Accept zero size payload
+	Reader << PayloadSize; 
 	if (!PayloadSize)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Empty payload"));
@@ -61,7 +80,7 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, const FSimpl
 
 	int32 PayloadOffset = OutPayload.AddUninitialized(PayloadSize);
 	OutPayload.Seek(PayloadOffset);
-	if (!Socket.Receive(OutPayload.GetData() + PayloadOffset, PayloadSize))
+	if (SocketReceiveAll(Socket, OutPayload.GetData() + PayloadOffset, PayloadSize))
 	{
 		UE_LOG(LogTemp, Error, TEXT("Unable to read full payload"));
 		return false;
@@ -92,7 +111,7 @@ bool UNetworkManager::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoin
 	{
 		UE_LOG(LogTemp, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
 		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
-		ConnectionSocket = new FSimpleAbstractSocket_FSocket(ClientSocket);
+		ConnectionSocket = ClientSocket;
 		
 		// Listening data here or start a new thread for data?
 		// Reuse the TCP Listener thread for getting data, only support one connection
@@ -127,13 +146,13 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 	if (!this->ConnectionSocket)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
-		ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
-		// ConnectionSocket = ClientSocket;
+		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
+		ConnectionSocket = ClientSocket;
 
 		while (1)
 		{
 			FArrayReader ArrayReader;
-			if (!FSocketMessageHeader::ReceivePayload(ArrayReader, *ConnectionSocket)) 
+			if (!FSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket)) 
 				// Wait forever until got a message, or return false when error happened
 			{
 				this->ConnectionSocket = NULL;
@@ -186,7 +205,7 @@ bool UNetworkManager::SendMessage(const FString& Message)
 		TArray<uint8> Payload;
 		BinaryArrayFromString(Message, Payload);
 
-		FSocketMessageHeader::WrapAndSendPayload(Payload, *ConnectionSocket);
+		FSocketMessageHeader::WrapAndSendPayload(Payload, ConnectionSocket);
 		return true;
 	}
 	return false;
