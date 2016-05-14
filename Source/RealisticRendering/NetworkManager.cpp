@@ -40,6 +40,11 @@ bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
 		{
 			return false; // Socket is disconnected. if -1, keep waiting for data
 		}
+
+		if (NumRead == -1)
+		{
+			continue;
+		}
 		Offset += NumRead;
 		ExpectedSize -= NumRead;
 	}
@@ -55,7 +60,7 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 	
 	if (!SocketReceiveAll(Socket, HeaderBytes.GetData(), Size)) 
 	{
-		// false here can means 0.
+		// false here means socket disconnected.
 		UE_LOG(LogTemp, Error, TEXT("Unable to read header, Socket disconnected."));
 		return false;
 	}
@@ -80,16 +85,16 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 
 	int32 PayloadOffset = OutPayload.AddUninitialized(PayloadSize);
 	OutPayload.Seek(PayloadOffset);
-	if (SocketReceiveAll(Socket, OutPayload.GetData() + PayloadOffset, PayloadSize))
+	if (!SocketReceiveAll(Socket, OutPayload.GetData() + PayloadOffset, PayloadSize))
 	{
-		UE_LOG(LogTemp, Error, TEXT("Unable to read full payload"));
+		// UE_LOG(LogTemp, Error, TEXT("Unable to read full payload"));
+		UE_LOG(LogTemp, Error, TEXT("Unable to read full payload, Socket disconnected."));
 		return false;
 	}
 
 	// Skip CRC checking in FNFSMessageHeader
 	return true;
 }
-
 
 // TODO: Wrap these two functions into a class
 FString StringFromBinaryArray(const TArray<uint8>& BinaryArray)
@@ -149,7 +154,7 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
 		ConnectionSocket = ClientSocket;
 
-		while (1)
+		while (1) // Listening thread
 		{
 			FArrayReader ArrayReader;
 			if (!FSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket)) 
@@ -160,7 +165,9 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 			}
 
 			FString Message = StringFromBinaryArray(ArrayReader);
+			// Fire raw message received event, use message id to connect request and response
 			UE_LOG(LogTemp, Warning, TEXT("Receive message %s"), *Message);
+
 		}
 	}
 	return false; // Already have a connection
@@ -192,14 +199,10 @@ void UNetworkManager::Start()
 	{
 		UE_LOG(LogTemp, Error, TEXT("Can not start listening on port %d"), PortNum);
 	}
-
-
-	// Start a timer to check data regularly
 }
 
 bool UNetworkManager::SendMessage(const FString& Message)
 {
-	// TCHAR* SerializedChar = Message.GetCharArray().GetData();
 	if (ConnectionSocket)
 	{
 		TArray<uint8> Payload;
