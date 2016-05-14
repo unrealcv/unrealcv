@@ -1,16 +1,78 @@
+import ctypes, struct
 
+fmt = 'I'
 
 class SocketMessage:
-    def __init__(self, content):
-        pass
+    # This magic number is from Unreal implementation
+    # See https://github.com/EpicGames/UnrealEngine/blob/dff3c48be101bb9f84633a733ef79c91c38d9542/Engine/Source/Runtime/Sockets/Public/NetworkMessage.h
+    magic = ctypes.c_uint32(0x9E2B83C1).value
+    def __init__(self, payload):
+        self.magic = SocketMessage.magic
+        self.payload_size = ctypes.c_uint32(len(payload)).value
 
+    @classmethod
+    def ReceivePayload(cls, socket):
+        '''
+        Return only payload, not the raw message, None if failed
+        '''
+        rbufsize = -1 # From SocketServer.py
+        rfile = socket.makefile('rb', rbufsize)
+        raw_magic = rfile.read(4)
+        # print 'Receive raw magic: %d, %s' % (len(raw_magic), raw_magic)
+        magic = struct.unpack('I', raw_magic)[0]
+        # print 'Receive magic:', magic
 
-    def __str__(self):
+        if magic != cls.magic:
+            L.error('Error: receive a malformat message, the message should start from a four bytes uint32 magic number')
+            return None
+            # The next time it will read four bytes again
+
+        raw_payload_size = rfile.read(4)
+        # print 'Receive raw payload size: %d, %s' % (len(raw_payload_size), raw_payload_size)
+        payload_size = struct.unpack('I', raw_payload_size)[0]
+        # print 'Receive', payload_size
+
+        # if the message is incomplete, should wait until all the data received
+        payload = ""
+        size = payload_size
+        while size > 0:
+            data = rfile.read(payload_size)
+            payload += data
+            size -= len(data)
+
+        rfile.close()
+
+        return payload
+
+    @classmethod
+    def WrapAndSendPayload(cls, socket, payload):
+        '''
+        Send payload, true if success, false if failed
+        '''
+        # From SocketServer.py
+        # wbufsize = 0, flush immediately
+        wbufsize = -1
         # Convert
-        len_content = len(self.content) # Convert this to four byte uint32
-        return len(self.content) + self.content
+        socket_message = SocketMessage(payload)
+        wfile = socket.makefile('wb', wbufsize)
+        # Write the message
+        wfile.write(struct.pack(fmt, socket_message.magic))
+        # Need to send the packed version
+        # print 'Sent ', socket_message.magic
+
+        wfile.write(struct.pack(fmt, socket_message.payload_size))
+        # print 'Sent ', socket_message.payload_size
+
+        wfile.write(payload)
+        # print 'Sent ', payload
+        wfile.flush()
+        wfile.close() # Close file object, not close the socket
+        return True
 
 class Client:
+    '''
+    Add message framing and CRC check on top of TCP
+    '''
     def __init__(self, host, port):
         self.socket = None # Todo create a socket
         pass
