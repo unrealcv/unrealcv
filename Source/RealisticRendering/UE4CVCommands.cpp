@@ -40,6 +40,8 @@ void UE4CVCommands::RegisterCommands()
 	CommandDispatcher->BindCommand("vget /camera/(\\d*)/rotation", Cmd, "Get camera rotation");
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraDepth);
 	CommandDispatcher->BindCommand("vget /camera/(\\d*)/depth", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
+	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraObjectMask);
+	CommandDispatcher->BindCommand("vget /camera/(\\d*)/object_mask", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 	// CommandDispatcher->BindCommand("vget /camera/[id]/name", Command);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::SetCameraLocation);
@@ -134,6 +136,16 @@ FExecStatus UE4CVCommands::GetCameraDepth(const TArray<FString>& Args)
 	return FExecStatus::InvalidArgument;
 }
 
+FExecStatus UE4CVCommands::GetCameraObjectMask(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		FExecStatus ExecStatus = CommandDispatcher->Exec("vset /mode/object"); // TODO: Overwrite the + operator of FExecStatus
+		return GetCameraView(Args);
+	}
+	return FExecStatus::InvalidArgument;
+}
+
 FExecStatus UE4CVCommands::GetCameraImage(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
@@ -171,8 +183,10 @@ FExecStatus UE4CVCommands::GetCameraView(const TArray<FString>& Args)
 		FString Filename = FString::Printf(TEXT("%04d.png"), NumCaptured);
 		ViewportClient->CaptureScreen(Filename);
 		// ViewportClient->CaptureFinished.Get()->Wait(); // TODO: Need to wait the event to finish
+		const FString Dir = FString(FPlatformProcess::BaseDir());
+		FString FullFilename = FPaths::Combine(*Dir, *Filename);
 
-		return FExecStatus(Filename);
+		return FExecStatus(FullFilename);
 	}
 	return FExecStatus::InvalidArgument;
 }

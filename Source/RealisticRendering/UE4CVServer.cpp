@@ -12,7 +12,6 @@ FUE4CVServer::FUE4CVServer(FCommandDispatcher* CommandDispatcher)
 	this->NetworkManager->AddToRoot(); // Avoid GC
 
 	this->NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::HandleRequest);
-	this->NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::LogClientMessage);
 }
 
 FUE4CVServer::~FUE4CVServer()
@@ -26,13 +25,9 @@ bool FUE4CVServer::Start()
 	return true;
 }
 
-void FUE4CVServer::LogClientMessage(const FString& RawMessage)
-{
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *RawMessage);
-}
-
 void FUE4CVServer::HandleRequest(const FString& RawMessage)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Request: %s"), *RawMessage);
 	// Parse Raw Message
 	FString MessageFormat = "(\\d{1,8}):(.*)";
 	FRegexPattern RegexPattern(MessageFormat);
@@ -47,7 +42,9 @@ void FUE4CVServer::HandleRequest(const FString& RawMessage)
 		FExecStatus ExecStatus = CommandDispatcher->Exec(Message);
 		uint32 RequestId = FCString::Atoi(*StrRequestId);
 
-		ReplyClient(RequestId, ExecStatus);
+		UE_LOG(LogTemp, Warning, TEXT("Response: %s"), *ExecStatus.Message);
+		FString RawMessage = FString::Printf(TEXT("%d:%s"), RequestId, *ExecStatus.Message);
+		SendClientMessage(RawMessage);
 	}
 	else
 	{
@@ -60,8 +57,3 @@ void FUE4CVServer::SendClientMessage(FString Message)
 	NetworkManager->SendMessage(Message);
 }
 
-void FUE4CVServer::ReplyClient(uint32 RequestId, FExecStatus ExecStatus)
-{
-	FString Message = FString::Printf(TEXT("%d:%s"), RequestId, *ExecStatus.Message);
-	NetworkManager->SendMessage(Message);
-}

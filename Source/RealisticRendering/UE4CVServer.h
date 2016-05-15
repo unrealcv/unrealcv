@@ -19,9 +19,5 @@ public:
 	UNetworkManager* NetworkManager;
 private:
 	FCommandDispatcher* CommandDispatcher;
-
-	void ReplyClient(uint32 RequestId, FExecStatus ExecStatus); // This is too low level, consider working on a higher level.
-
 	void HandleRequest(const FString& RawMessage);
-	void LogClientMessage(const FString& RawMessage);
 };
