@@ -4,7 +4,7 @@
 #include "RealisticRendering.h"
 #include "CommandDispatcher.h"
 /**
- * 
+ *
  */
 class FViewMode
 {
@@ -17,7 +17,6 @@ public:
 	static void Lit(UWorld* World);
 	static void Unlit(UWorld* World);
 	static void Object(UWorld* World);
-	static void RegisterCommands();
 	static FExecStatus SetMode(const TArray<FString>& Args); // Check input arguments
 	static FExecStatus GetMode(const TArray<FString>& Args);
 	static UWorld* World;

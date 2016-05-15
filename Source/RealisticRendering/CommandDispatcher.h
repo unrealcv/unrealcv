@@ -34,10 +34,10 @@ public:
 
 private:
 	TMap<FString, FDispatcherDelegate> UriMapping;
-	TMap<FString, FString> UriDescription; // This is not writable from outside
+	TMap<FString, FString> UriDescription; // Contains help message 
 	TMap<FString, TArray<FString> > AliasMapping;
+	TMap<FString, FString> TypeRegexp; // Define regular expression for type
 	uint32 NumArgsLimit = 32;
 
-	void UEConsoleGetHelper(const TArray<FString>& Args);
-	void UEConsoleSetHelper(const TArray<FString>& Args);
+	bool FormatUri(const FString& RawUri, FString& UriRexexp);
 };

@@ -5,212 +5,217 @@
 #include "Networking.h"
 #include <string>
 
-UNetworkManager::UNetworkManager()
+uint32 FSocketMessageHeader::DefaultMagic = 0x9E2B83C1; 
+
+bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, FSocket* Socket)
 {
-	ConnectionSocket = NULL;
-	Listener = NULL;
-	World = NULL;
-	WorldTimerManager = NULL;
-	bIsConnected = false;
-	// TODO: Check unexpected client disconnection
-}
+	FSocketMessageHeader Header(Payload);
 
-UNetworkManager::~UNetworkManager()
-{
-	// Disconnect current connection and release resource.
-	bool Status;
-	if (ConnectionSocket)
+	FBufferArchive Ar;
+	Ar << Header.Magic;
+	Ar << Header.PayloadSize;
+	Ar.Append(Payload);
+
+	int32 AmountSent;
+	Socket->Send(Ar.GetData(), Ar.Num(), AmountSent);
+	if (AmountSent != Ar.Num())
 	{
-		Status = ConnectionSocket->Close();
-		if (Status)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Successfully close connection socket"));
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("Fail to close connection socket"));
-		}
-	}
-
-	if (Listener)
-	{
-		Status = Listener->Close();
-		if (Status)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Successfully close listening socket"));
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("Fail to close listening socket"));
-		}
-	}
-}
-
-void UNetworkManager::ListenSocket()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Try to start a listening socket"));
-	// FString IPAddress = "127.0.0.1";
-	// FIPv4Address IPAddress = FIPv4Address(127, 0, 0, 1);
-	FIPv4Address IPAddress = FIPv4Address(0, 0, 0, 0);
-	uint32 NumPortToTry = 10;
-	for (uint32 PortOffset = 0; PortOffset < NumPortToTry; PortOffset++)
-	{
-		// The configured port might be in use, try a few of them
-		uint32 TryPortNum = PortNum + PortOffset;
-		FIPv4Endpoint Endpoint(IPAddress, TryPortNum); // TODO: I need to check whether this step is successful.
-		/*
-		Listener = FTcpSocketBuilder(TEXT("UnrealCV Controller"))
-			.AsReusable().BoundToEndpoint(Endpoint)
-			.Listening(1); // Only accept one connection
-			// How can I know whether the binding is successful?
-			// TODO: Check whether there is any exception thrown in the source code, when the port is in use.
-			*/
-		Listener = FTcpSocketBuilder(TEXT("UnrealCV Server"))
-			.BoundToEndpoint(Endpoint)
-			.Listening(1)
-			.AsBlocking();
-		if (Listener)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Start listening on port %d"), TryPortNum);
-			break; // The creation is successful.
-		}
-	}
-
-	if (Listener)
-	{
-		// When will happen if the endpoint is taken?
-
-		int32 BufferSize = 2 * 1024 * 1024, RealSize;
-		Listener->SetReceiveBufferSize(BufferSize, RealSize); // RealSize might be different from what we want
-
-		if (RealSize != BufferSize)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("The real buffer size %d and expected buffer size %d are different"), RealSize, BufferSize);
-		}
-
-		check(Listener); // TODO: Better exception handling
-		check(World);
-
-		FTimerHandle TimerHandle;
-		World->GetTimerManager().SetTimer(TimerHandle, this,
-			&UNetworkManager::WaitConnection, 1, true);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Can not start the listening socket. Unknown error"));
-	}
-}
-
-void UNetworkManager::WaitConnection()
-{
-	static int NumAttempt = 0;
-	if (!Listener) return; // In case of Socket initialization failed
-	// check(Listener);
-	NumAttempt += 1;
-	if (!IsConnected())  // I need to check whether current socket is disconnected, if disconnected, start a new connection
-	{
-		bIsConnected = false;
-		UE_LOG(LogTemp, Warning, TEXT("Check connection %d"), NumAttempt);
-		TSharedRef<FInternetAddr> RemoteAddress = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr(); // Why use TSharedRef? For thread safety?
-
-		bool Pending;
-		if (Listener->HasPendingConnection(Pending) && Pending)
-		{
-			check(ConnectionSocket == NULL); // Assume only one connection
-			ConnectionSocket = Listener->Accept(*RemoteAddress, TEXT("Remote socket to send message back"));
-
-			UE_LOG(LogTemp, Warning, TEXT("Client socket connected."));
-
-			if (ConnectionSocket != NULL)
-			{
-				FTimerHandle TimerHandle;
-				World->GetTimerManager().SetTimer(TimerHandle, this, &UNetworkManager::WaitData, 0.01, true);
-				bIsConnected = true;
-			}
-		}
-	}
-	else
-	{
-		// UE_LOG(LogTemp, Warning, TEXT("Connected"));
-		// TODO: Maybe stop the timer or slow down the timer?
-	}
-}
-
-bool UNetworkManager::IsConnected()
-{
-	// The connection status check can be complex. TODO: Do it right.
-	if (ConnectionSocket != NULL && bIsConnected && ConnectionSocket->GetConnectionState() == ESocketConnectionState::SCS_Connected)
-	{
-		return true;
-	}
-	else
-	{
+		UE_LOG(LogTemp, Error, TEXT("Unable to send."));
 		return false;
 	}
+	return true;
 }
 
-/*
-void UNetworkManager::OnConnected()
+/* Waiting for data, return false only when disconnected */
+bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
 {
-
-}
-*/
-
-/*
-void UNetworkManager::OnRecvCommand(FString Message)
-// Invoke when data arrived
-{
-	// Block until we have a reply.
-}
-*/
-
-void UNetworkManager::WaitData() // Regularly check data, the interval might be a bottle neck
-// Wait command from the client.
-{
-	if (!ConnectionSocket) return;
-
-	TArray<uint8> ReceivedData;
-
-	uint32 Size, MaxSize = 65507u;
-	while (ConnectionSocket->HasPendingData(Size))
+	int32 Offset = 0;
+	while (ExpectedSize > 0)
 	{
-		// ReceivedData.Init(FMath::Min(Size, MaxSize)); // TODO: Check this magic number
-		ReceivedData.SetNumUninitialized(FMath::Min(Size, MaxSize));
+		int32 NumRead = 0;
+		Socket->Recv(Result + Offset, ExpectedSize, NumRead);
+		check(NumRead <= ExpectedSize);
 
-		int32 Read = 0;
-		ConnectionSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), Read); // TODO: Check Robustness.
+		if (NumRead == 0)
+		{
+			return false; // Socket is disconnected. if -1, keep waiting for data
+		}
+
+		if (NumRead == -1)
+		{
+			continue;
+		}
+		Offset += NumRead;
+		ExpectedSize -= NumRead;
+	}
+	return true;
+}
+
+
+bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Socket)
+{
+	TArray<uint8> HeaderBytes;
+	int32 Size = sizeof(FSocketMessageHeader);
+	HeaderBytes.AddZeroed(Size);
+	
+	if (!SocketReceiveAll(Socket, HeaderBytes.GetData(), Size)) 
+	{
+		// false here means socket disconnected.
+		UE_LOG(LogTemp, Error, TEXT("Unable to read header, Socket disconnected."));
+		return false;
 	}
 
-	if (ReceivedData.Num() <= 0)
+	FMemoryReader Reader(HeaderBytes);
+	uint32 Magic;
+	Reader << Magic;
+
+	if (Magic != FSocketMessageHeader::DefaultMagic)
 	{
-		return;
+		UE_LOG(LogTemp, Error, TEXT("Bad network header magic"));
+		return false;
 	}
-	const FString ReceivedString = StringFromBinaryArray(ReceivedData);
-	BroadcastReceived(ReceivedString); // Is this blocking or non-blocking? Event firing
-	// TODO: Parse the communication format
-	// NetworkManager should only be reponsible for communication and the message parsing should be done in a different layer.
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *ReceivedString);
+
+	uint32 PayloadSize;
+	Reader << PayloadSize; 
+	if (!PayloadSize)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Empty payload"));
+		return false;
+	}
+
+	int32 PayloadOffset = OutPayload.AddUninitialized(PayloadSize);
+	OutPayload.Seek(PayloadOffset);
+	if (!SocketReceiveAll(Socket, OutPayload.GetData() + PayloadOffset, PayloadSize))
+	{
+		// UE_LOG(LogTemp, Error, TEXT("Unable to read full payload"));
+		UE_LOG(LogTemp, Error, TEXT("Unable to read full payload, Socket disconnected."));
+		return false;
+	}
+
+	// Skip CRC checking in FNFSMessageHeader
+	return true;
 }
 
-FString UNetworkManager::StringFromBinaryArray(const TArray<uint8>& BinaryArray)
+// TODO: Wrap these two functions into a class
+FString StringFromBinaryArray(const TArray<uint8>& BinaryArray)
 {
-	//Create a string from a byte array!
 	std::string cstr(reinterpret_cast<const char*>(BinaryArray.GetData()), BinaryArray.Num());
 	return FString(cstr.c_str());
 }
 
-void UNetworkManager::SendMessage(FString Message)
+void BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray)
 {
-	// The status check is incorrect. TODO:`
-	if (ConnectionSocket == NULL || !bIsConnected)
+	const TArray<TCHAR>& CharArray = Message.GetCharArray();
+	OutBinaryArray.Append(CharArray); // TODO: Need to convert TCHAR to uint8. Fix this later
+}
+
+/* Provide a dummy echo service to echo received data back for development purpose */
+bool UNetworkManager::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
+{
+	if (!this->ConnectionSocket) // Only maintain one active connection, So just reuse the TCPListener thread.
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Socket is not connected"));
-		return;
+		UE_LOG(LogTemp, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
+		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
+		ConnectionSocket = ClientSocket;
+		
+		// Listening data here or start a new thread for data?
+		// Reuse the TCP Listener thread for getting data, only support one connection
+		uint32 BufferSize = 1024;
+		int32 Read = 0;
+		TArray<uint8> ReceivedData;
+		ReceivedData.SetNumZeroed(BufferSize);
+		while (1)
+		{ 
+			// Easier to use raw FSocket here, need to detect remote socket disconnection
+			bool RecvStatus = ClientSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), Read);
+			
+			// if (!RecvStatus) // The connection is broken 
+			if (Read == 0) // RecvStatus == true if Read >= 0, this is used to determine client disconnection
+				// -1 means no data, 0 means disconnected
+			{ 
+				ConnectionSocket = NULL; // Use this to determine whether client is connected
+				return false;
+			}
+			int32 Sent;
+			ClientSocket->Send(ReceivedData.GetData(), Read, Sent); // Echo the message back
+			check(Read == Sent);
+		}
+		return true;
 	}
-	Message += "\n"; // TODO: End message with \n, check cross platform issue
-	UE_LOG(LogTemp, Warning, TEXT("Message to client: %s"), *Message);
-	TCHAR* SerializedChar = Message.GetCharArray().GetData();
-	int32 Size = FCString::Strlen(SerializedChar);
-	int32 Sent = 0;
-	ConnectionSocket->Send((uint8*)TCHAR_TO_UTF8(SerializedChar), Size, Sent);
+	return false;
+}
+
+
+bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
+{
+	if (!this->ConnectionSocket)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
+		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
+		ConnectionSocket = ClientSocket;
+
+		while (1) // Listening thread
+		{
+			FArrayReader ArrayReader;
+			if (!FSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket)) 
+				// Wait forever until got a message, or return false when error happened
+			{
+				this->ConnectionSocket = NULL;
+				break; // Remote socket disconnected
+			}
+
+			FString Message = StringFromBinaryArray(ArrayReader);
+			BroadcastReceived(Message);
+			// Fire raw message received event, use message id to connect request and response
+			UE_LOG(LogTemp, Warning, TEXT("Receive message %s"), *Message);
+
+		}
+	}
+	return false; // Already have a connection
+}
+
+bool UNetworkManager::Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
+{
+	bool ServiceStatus = false;
+	// ServiceStatus = StartEchoService(ClientSocket, ClientEndpoint);
+	ServiceStatus = StartMessageService(ClientSocket, ClientEndpoint);
+	return ServiceStatus;
+	// This is a blocking service, if need to support multiple connections, consider start a new thread here.
+}
+
+void UNetworkManager::Start()
+{
+	FIPv4Address IPAddress = FIPv4Address(0, 0, 0, 0);
+	int32 PortNum = 9000; // Make this configuable
+	FIPv4Endpoint Endpoint(IPAddress, PortNum);
+
+	TcpListener = new FTcpListener(Endpoint); // This will be released after start
+	// In FSocket, when a FSocket is set as reusable, it means SO_REUSEADDR, not SO_REUSEPORT.  see SocketsBSD.cpp
+	TcpListener->OnConnectionAccepted().BindUObject(this, &UNetworkManager::Connected);
+	if (TcpListener->Init())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Start listening on %d"), PortNum);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Can not start listening on port %d"), PortNum);
+	}
+}
+
+bool UNetworkManager::SendMessage(const FString& Message)
+{
+	if (ConnectionSocket)
+	{
+		TArray<uint8> Payload;
+		BinaryArrayFromString(Message, Payload);
+
+		FSocketMessageHeader::WrapAndSendPayload(Payload, ConnectionSocket);
+		return true;
+	}
+	return false;
+}
+
+UNetworkManager::~UNetworkManager()
+{
+	delete TcpListener;
 }

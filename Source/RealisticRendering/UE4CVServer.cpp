@@ -3,18 +3,15 @@
 #include "RealisticRendering.h"
 #include "UE4CVServer.h"
 
-FUE4CVServer::FUE4CVServer(FCommandDispatcher* CommandDispatcher, UWorld* World)
+FUE4CVServer::FUE4CVServer(FCommandDispatcher* CommandDispatcher)
 {
 	this->CommandDispatcher = CommandDispatcher;
 	// Command Dispatcher defines the behavior of the server, TODO: Write with javadoc style
-	this->World = World;
 
 	this->NetworkManager = NewObject<UNetworkManager>();
 	this->NetworkManager->AddToRoot(); // Avoid GC
-	this->NetworkManager->World = World;
 
-	this->NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::HandleClientMessage);
-	this->NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::LogClientMessage);
+	this->NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::HandleRequest);
 }
 
 FUE4CVServer::~FUE4CVServer()
@@ -24,22 +21,17 @@ FUE4CVServer::~FUE4CVServer()
 
 bool FUE4CVServer::Start()
 {
-	NetworkManager->ListenSocket();
+	NetworkManager->Start();
 	return true;
 }
 
-void FUE4CVServer::LogClientMessage(FString RawMessage)
+void FUE4CVServer::HandleRequest(const FString& InRawMessage)
 {
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *RawMessage);
-}
-
-void FUE4CVServer::HandleClientMessage(FString RawMessage)
-{
+	UE_LOG(LogTemp, Warning, TEXT("Request: %s"), *InRawMessage);
 	// Parse Raw Message
 	FString MessageFormat = "(\\d{1,8}):(.*)";
 	FRegexPattern RegexPattern(MessageFormat);
-	FRegexMatcher Matcher(RegexPattern, RawMessage);
-
+	FRegexMatcher Matcher(RegexPattern, InRawMessage);
 
 	if (Matcher.FindNext())
 	{
@@ -50,22 +42,18 @@ void FUE4CVServer::HandleClientMessage(FString RawMessage)
 		FExecStatus ExecStatus = CommandDispatcher->Exec(Message);
 		uint32 RequestId = FCString::Atoi(*StrRequestId);
 
-		ReplyClient(RequestId, ExecStatus);
+		UE_LOG(LogTemp, Warning, TEXT("Response: %s"), *ExecStatus.Message);
+		FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), RequestId, *ExecStatus.Message);
+		SendClientMessage(ReplyRawMessage);
 	}
 	else
 	{
-		SendClientMessage(FString::Printf(TEXT("error: Malformat raw message '%s'"), *RawMessage));
+		SendClientMessage(FString::Printf(TEXT("error: Malformat raw message '%s'"), *InRawMessage));
 	}
-	// ReplyClient is required for the communication to work
 }
 
 void FUE4CVServer::SendClientMessage(FString Message)
 {
-	NetworkManager->SendMessage(Message); // Where is the W from??
+	NetworkManager->SendMessage(Message);
 }
 
-void FUE4CVServer::ReplyClient(uint32 RequestId, FExecStatus ExecStatus)
-{
-	FString Message = FString::Printf(TEXT("%d:%s"), RequestId, *ExecStatus.Message);
-	NetworkManager->SendMessage(ExecStatus.Message);
-}

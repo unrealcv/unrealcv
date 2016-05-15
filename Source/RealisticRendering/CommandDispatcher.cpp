@@ -32,8 +32,13 @@ FExecStatus::~FExecStatus()
 
 FCommandDispatcher::FCommandDispatcher()
 {
+	FString Any = "(.*)", UInt = "(\\d*)", Float = "([-+]?\\d*[.]?\\d+)"; // Each type will be considered as a group
+	TypeRegexp.Emplace("str", Any);
+	TypeRegexp.Emplace("uint", UInt);
+	TypeRegexp.Emplace("float", Float);
+
 	FDispatcherDelegate Cmd = FDispatcherDelegate::CreateRaw(this, &FCommandDispatcher::AliasHelper);
-	FString Uri = FString::Printf(TEXT("vrun (.*)"));
+	FString Uri = FString::Printf(TEXT("vrun [str]"));
 	BindCommand(Uri, Cmd, "Run an alias for Unreal CV plugin");
 }
 
@@ -41,17 +46,88 @@ FCommandDispatcher::~FCommandDispatcher()
 {
 }
 
-bool FCommandDispatcher::BindCommand(const FString& UriTemplate, const FDispatcherDelegate& Command, const FString& Description) // Parse URI
+bool FCommandDispatcher::FormatUri(const FString& RawUri, FString& UriRexexp)
 {
-	// TODO: Add Unreal Console support
+	FString Uri = "";
+	bool IsTypeSpecifier = false;
+	FString TypeSpecifier = "";
+
+	// Implement a simple state-machine to parse input string
+	for (int32 Index = 0; Index < RawUri.Len(); Index++)
+	{
+		TCHAR Ch = RawUri[Index];
+		if (!IsTypeSpecifier)
+		{
+			if (Ch == '[')
+			{
+				IsTypeSpecifier = true;
+				continue;
+			}
+			if (Ch == ']')
+			{
+				UE_LOG(LogTemp, Error, TEXT("Unexpected ] in %d"), Index);
+				return false;
+			}
+			// else
+			Uri += Ch;
+			continue;
+		}
+		if (IsTypeSpecifier)
+		{
+			if (Ch == '[')
+			{
+				UE_LOG(LogTemp, Error, TEXT("Unexpected [ in %d"), Index);
+				return false;
+			}
+			if (Ch == ']')
+			{
+				IsTypeSpecifier = false;
+				if (TypeRegexp.Contains(TypeSpecifier))
+				{
+					Uri += TypeRegexp[TypeSpecifier];
+					TypeSpecifier = "";
+					continue;
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("Unknown type specifier "));
+					return false;
+				}
+			}
+			// else
+			TypeSpecifier += Ch;
+			continue;
+		}
+	}
+
+	if (TypeSpecifier != "")
+	{
+		UE_LOG(LogTemp, Error, TEXT("Not all [ are closed by ]"));
+		return false;
+	}
+	UriRexexp = Uri;
+	return true;
+}
+
+bool FCommandDispatcher::BindCommand(const FString& RawUriTemplate, const FDispatcherDelegate& Command, const FString& Description) // Parse URI
+{
 	// TODO: Build a tree structure to boost performance
 	// TODO: The order should matter
+
+	FString UriTemplate;
+	if (!FormatUri(RawUriTemplate, UriTemplate))
+	{
+		UE_LOG(LogTemp, Error, TEXT("The UriTemplate %s is malformat"), *RawUriTemplate);
+		check(false);
+		return false;
+	}
+
 	if (UriMapping.Contains(UriTemplate))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("The UriTemplate %s already exist, overwrited."), *UriTemplate);
 	}
 	UriMapping.Emplace(UriTemplate, Command);
-	UriDescription.Emplace(UriTemplate, Description);
+	UriDescription.Emplace(RawUriTemplate, Description);
 	return true;
 }
 
