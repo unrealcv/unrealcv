@@ -151,6 +151,3 @@ class Client:
         # print 'Got response +1 id'
         self.message_id += 1 # Increment it only after the request/response cycle finished
         return self.response
-
-    def wait(self, wait_time=60 * 60 * 24 * 30): # wait one month?
-        time.sleep(wait_time)

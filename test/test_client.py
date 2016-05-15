@@ -16,13 +16,8 @@ test_commands = [
     # 'vget /object/_/name', this needs to be run on game thread
 ]
 
-def MessageHandler(message):
-    print 'Message from server: %s' % message
-
-if __name__ == '__main__':
-    client = Client((HOST, PORT), MessageHandler)
+def run_commands():
     sleep_time = 1
-    # Do connect automatically
     for i in range(100):
         print '-' * 70
         cmd = test_commands[i % len(test_commands)]
@@ -32,3 +27,13 @@ if __name__ == '__main__':
         # Need to lock until I got a reply
         # print reply
         time.sleep(sleep_time)
+
+
+def MessageHandler(message):
+    print 'Message from server: %s' % message
+
+if __name__ == '__main__':
+    client = Client((HOST, PORT), MessageHandler)
+
+    # run_commands()
+    time.sleep(60 * 60)
