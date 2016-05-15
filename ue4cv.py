@@ -122,7 +122,7 @@ class Client:
     def raw_message_handler(self, raw_message):
         # print 'Waiting for message id %d' % self.message_id
         if raw_message.find(':') != -1:
-            [message_id, message_body] = raw_message.split(':')
+            [message_id, message_body] = raw_message.split(':', maxsplit=1)
             # print 'Received message id %s' % message_id
             if int(message_id) == self.message_id:
                 self.wait_response.set()
