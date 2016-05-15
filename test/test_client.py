@@ -8,7 +8,9 @@ test_commands = [
     'vget /camera/0/location',
     'vget /camera/0/rotation',
     'vget /camera/0/image', # TODO: The regexp in server needs to do exact match
-    'vget /camera/0/depth', 
+    'vget /camera/0/depth',
+    'vget /camera/0/object_mask',
+    'vget /camera/0/normal',
     'vset /mode/lit',
     # 'vrun ls',
     # 'vget /object/_/name', this needs to be run on game thread
