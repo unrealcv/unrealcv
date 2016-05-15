@@ -1,7 +1,7 @@
 ''' Return a message server to handle framed message '''
 from test_common import *
 import SocketServer
-import time, threading
+import time, threading, os
 
 class MyTCPHandler(SocketServer.BaseRequestHandler):
     def handle(self):
@@ -18,7 +18,10 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 
     def ticking_message(self):
         while 1:
-            SocketMessage.WrapAndSendPayload(self.request, 'ticking from server')
+            # SocketMessage.WrapAndSendPayload(self.request, 'ticking from server')
+            filename = '../data/1034.png'
+            fullfilename = os.path.abspath(filename)
+            SocketMessage.WrapAndSendPayload(self.request, filename)
             time.sleep(1)
 
 if __name__ == '__main__':
