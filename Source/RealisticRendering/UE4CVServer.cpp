@@ -25,13 +25,13 @@ bool FUE4CVServer::Start()
 	return true;
 }
 
-void FUE4CVServer::HandleRequest(const FString& RawMessage)
+void FUE4CVServer::HandleRequest(const FString& InRawMessage)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Request: %s"), *RawMessage);
+	UE_LOG(LogTemp, Warning, TEXT("Request: %s"), *InRawMessage);
 	// Parse Raw Message
 	FString MessageFormat = "(\\d{1,8}):(.*)";
 	FRegexPattern RegexPattern(MessageFormat);
-	FRegexMatcher Matcher(RegexPattern, RawMessage);
+	FRegexMatcher Matcher(RegexPattern, InRawMessage);
 
 	if (Matcher.FindNext())
 	{
@@ -43,12 +43,12 @@ void FUE4CVServer::HandleRequest(const FString& RawMessage)
 		uint32 RequestId = FCString::Atoi(*StrRequestId);
 
 		UE_LOG(LogTemp, Warning, TEXT("Response: %s"), *ExecStatus.Message);
-		FString RawMessage = FString::Printf(TEXT("%d:%s"), RequestId, *ExecStatus.Message);
-		SendClientMessage(RawMessage);
+		FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), RequestId, *ExecStatus.Message);
+		SendClientMessage(ReplyRawMessage);
 	}
 	else
 	{
-		SendClientMessage(FString::Printf(TEXT("error: Malformat raw message '%s'"), *RawMessage));
+		SendClientMessage(FString::Printf(TEXT("error: Malformat raw message '%s'"), *InRawMessage));
 	}
 }
 

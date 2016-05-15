@@ -21,53 +21,55 @@ void UE4CVCommands::RegisterCommands()
 	// First version
 	// CommandDispatcher->BindCommand("vset /mode/(?<ViewMode>.*)", SetViewMode); // Better to check the correctness at compile time
 	FDispatcherDelegate Cmd;
-	FString URI, Any = "(.*)", UInt = "(\\d*)", Float = "([-+]?\\d*[.]?\\d+)"; // Each type will be considered as a group
+	FString URI;
 	// The regular expression for float number is from here, http://stackoverflow.com/questions/12643009/regular-expression-for-floating-point-numbers
+	// Use ICU regexp to define URI, See http://userguide.icu-project.org/strings/regexp
 
 	Cmd = FDispatcherDelegate::CreateStatic(FViewMode::SetMode);
-	// Use ICU regexp to define URI, See http://userguide.icu-project.org/strings/regexp
-	URI = FString::Printf(TEXT("vset /mode/%s"), *Any);
+	URI = "vset /mode/[str]";
 	CommandDispatcher->BindCommand(URI, Cmd, "Set mode"); // Better to check the correctness at compile time
 
 	Cmd = FDispatcherDelegate::CreateStatic(FViewMode::GetMode);
 	CommandDispatcher->BindCommand("vget /mode", Cmd, "Get mode");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraLocation);
-	CommandDispatcher->BindCommand("vget /camera/(\\d*)/location", Cmd, "Get camera location");
+	CommandDispatcher->BindCommand("vget /camera/[uint]/location", Cmd, "Get camera location");
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraImage);
-	CommandDispatcher->BindCommand("vget /camera/(\\d*)/image", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
+	CommandDispatcher->BindCommand("vget /camera/[uint]/image", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraRotation);
-	CommandDispatcher->BindCommand("vget /camera/(\\d*)/rotation", Cmd, "Get camera rotation");
+	CommandDispatcher->BindCommand("vget /camera/[uint]/rotation", Cmd, "Get camera rotation");
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraDepth);
-	CommandDispatcher->BindCommand("vget /camera/(\\d*)/depth", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
+	CommandDispatcher->BindCommand("vget /camera/[uint]/depth", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraObjectMask);
-	CommandDispatcher->BindCommand("vget /camera/(\\d*)/object_mask", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
-	// CommandDispatcher->BindCommand("vget /camera/[id]/name", Command);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/object_mask", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::SetCameraLocation);
-	URI = FString::Printf(TEXT("vset /camera/%s/location %s %s %s"), *UInt, *Float, *Float, *Float);
-	// TODO: Would be better if the format string can support named key
+	URI = "vset /camera/[uint]/location [float] [float] [float]";
 	CommandDispatcher->BindCommand(URI, Cmd, "Set camera location");
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::SetCameraRotation);
-	URI = FString::Printf(TEXT("vset /camera/%s/rotation %s %s %s"), *UInt, *Float, *Float, *Float); // Pitch, Yaw, Roll
+	URI = "vset /camera/[uint]/rotation [float] [float] [float]"; // Pitch, Yaw, Roll
 	CommandDispatcher->BindCommand(URI, Cmd, "Set camera rotation");
-	// CommandDispatcher->BindCommand("vset /camera/[id]/rotation [x] [y] [z]", Command);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetObjects);
 	CommandDispatcher->BindCommand(TEXT("vget /objects"), Cmd, "Get all objects in the scene");
 
 	// The order matters
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::CurrentObjectHandler); // Redirect to current 
-	CommandDispatcher->BindCommand(TEXT("(.*) /object/_/(.*)"), Cmd, "Get current object");
+	CommandDispatcher->BindCommand(TEXT("[str] /object/_/[str]"), Cmd, "Get current object");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetObjectColor);
-	CommandDispatcher->BindCommand(TEXT("vget /object/(.*)/color"), Cmd, "Get object color");
+	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/color"), Cmd, "Get object color");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::SetObjectColor);
-	CommandDispatcher->BindCommand(TEXT("vset /object/(.*)/color"), Cmd, "Set object color");
+	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/color"), Cmd, "Set object color");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetObjectName);
-	CommandDispatcher->BindCommand(TEXT("vget /object/(.*)/name"), Cmd, "Get object name");
+	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/name"), Cmd, "Get object name");
 
 	// Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::PaintRandomColors);
 	// CommandDispatcher->BindCommand(TEXT("vget /util/random_paint"), Cmd, "Paint objects with random color");
