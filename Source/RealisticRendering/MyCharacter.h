@@ -23,7 +23,7 @@ public:
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
+
 	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
 
@@ -35,14 +35,9 @@ public:
 
 	// Rotate
 	void MoveRight(float Value);
-	
-	// Define Console Commands
-	void DefineConsoleCommands();
 
 	// Fire
 	void OnFire();
-
-
 
 	void NotifyClient(FString Message);
 
@@ -74,9 +69,4 @@ private:
 	// Paint all objects
 	FExecStatus PaintRandomColors(const TArray<FString>& Args);
 
-	// Test functions for learning and development
-	void TestMaterialLoading();
-	void TestDispatchCommands();
-	void ParseMaterialConfiguration();
 };
-

@@ -113,31 +113,6 @@ void FViewMode::Object(UWorld* World)
 }
 
 
-void FViewMode::RegisterCommands()
-{
-	REG_VIEW("VisionDepth", "Change the Viewport to Depth Mode", Depth);
-	REG_VIEW("VisionNormal", "Show Normal", Normal);
-	REG_VIEW("VisionObject", "Show object instance map", Object);
-	REG_VIEW("VisionLit", "Show Lit Rendering", Lit);
-	REG_VIEW("VisionUnlit", "Show Unlit Rendering", Unlit);
-
-	/*
-	IConsoleObject* VisionLitCmd = IConsoleManager::Get().RegisterConsoleCommand(
-		TEXT("VisionLit"),
-		TEXT("Show Lit rendering"),
-		FConsoleCommandWithWorldDelegate::CreateStatic(VisionLit),
-		ECVF_Default
-		);
-
-	IConsoleObject* VisionUnlitCmd = IConsoleManager::Get().RegisterConsoleCommand(
-		TEXT("VisionUnlit"),
-		TEXT("Show Unlit rendering"),
-		FConsoleCommandWithWorldDelegate::CreateStatic(VisionUnlit),
-		ECVF_Default
-		);
-	*/
-}
-
 FExecStatus FViewMode::SetMode(const TArray<FString>& Args) // Check input arguments
 {
 	UE_LOG(LogTemp, Warning, TEXT("Run SetMode %s"), *Args[0]);

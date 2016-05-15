@@ -17,14 +17,6 @@
 AMyCharacter::AMyCharacter()
 {
 	Commands = new UE4CVCommands(this);
-	/*
-	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/TestMaterial.TestMaterial")); // The content needs to be cooked.
-	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshairTexObj(TEXT("/Game/FirstPersonCrosshair"));
-	static ConstructorHelpers::FObjectFinder<UMaterial> TestMaterial(TEXT("/Game/TestMaterial.TestMaterial"));
-	static ConstructorHelpers::FObjectFinder<UMaterial> TestMaterial1(TEXT("/Game/TestMaterial"));
-	UTexture2D* CrosshairTex = CrosshairTexObj.Object;
-	UTexture2D* CrosshairTex1 = LoadObject<UTexture2D>(NULL, TEXT("/Game/FirstPersonCrosshair"));
-	*/
 
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -40,14 +32,14 @@ void AMyCharacter::BeginPlay()
 
 	FViewMode::World = this->GetWorld();
 	Server = new FUE4CVServer(&CommandDispatcher);
+	Server->Start();
 	NetworkManager = Server->NetworkManager; // I need this to show information on screen.
 
 	ConsoleOutputDevice = new FConsoleOutputDevice(GetWorld()->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
+	// Register commands to UE console
 	ConsoleHelper = new FConsoleHelper(&CommandDispatcher, ConsoleOutputDevice);
 
-	DefineConsoleCommands();
 	// RegisterCommands();
-	// Server->Start();
 
 	PaintRandomColors(TArray<FString>());
 }
@@ -62,7 +54,8 @@ void AMyCharacter::NotifyClient(FString Message)
 void AMyCharacter::TakeScreenShot()
 {
 	FExecStatus ExecStatus = FExecStatus::OK;
-	ExecStatus = CommandDispatcher.Exec("vget /camera/0/image");
+	// TODO: Implement operator + for FExecStatus
+	ExecStatus = CommandDispatcher.Exec("vget /camera/0/view");
 	NotifyClient(ExecStatus.Message);
 	ExecStatus = CommandDispatcher.Exec("vget /camera/0/location");
 	NotifyClient(ExecStatus.Message);
@@ -116,49 +109,11 @@ void AMyCharacter::MoveRight(float Value)
 	}
 }
 
-void AMyCharacter::ParseMaterialConfiguration()
-{
-	// This testing function is from BufferVisualizationData
-	FConfigSection* MaterialSection = GConfig->GetSectionPrivate(TEXT("Engine.BufferVisualizationMaterials"), false, true, GEngineIni);
-
-	if (MaterialSection != NULL)
-	{
-		for (FConfigSection::TIterator It(*MaterialSection); It; ++It)
-		{
-			FString MaterialName;
-			if (FParse::Value(*It.Value(), TEXT("Material="), MaterialName, true))
-			{
-				ConsoleOutputDevice->Log(MaterialName);
-				UMaterial* Material = LoadObject<UMaterial>(NULL, *MaterialName);
-
-				if (Material)
-				{
-					Material->AddToRoot(); // Prevent GC
-					/*
-					Record& Rec = MaterialMap.Add(It.Key(), Record());
-					Rec.Name = It.Key().GetPlainNameString();
-					Rec.Material = Material;
-					FText DisplayName;
-					FParse::Value(*It.Value(), TEXT("Name="), DisplayName, TEXT("Engine.BufferVisualizationMaterials"));
-					Rec.DisplayName = DisplayName;
-					*/
-				}
-			}
-		}
-	}
-
-}
-
-void AMyCharacter::TestMaterialLoading()
-{
-	UMaterial* Material = LoadObject<UMaterial>(NULL, TEXT("/Game/TestMaterial.TestMaterial")); // The content needs to be cooked.
-}
-
 void AMyCharacter::OnFire()
 {
 	Tester->Run();
 	// PaintAllObjects(TArray<FString>());
-	// TakeScreenShot();
+	TakeScreenShot();
 
 	// ParseMaterialConfiguration();
 	// TestMaterialLoading();
@@ -278,41 +233,4 @@ bool AMyCharacter::PaintObject(AActor* Actor, const FColor& NewColor)
 		}
 	}
 	return true;
-}
-
-
-/* A legacy implementation */
-class FImageCapture
-{
-	FString Filename;
-	void CaptureImage()
-	{
-
-	}
-};
-
-
-
-void AMyCharacter::DefineConsoleCommands()
-{
-	// Select An Object, this is done through OnFire event
-	// ViewMode
-	FViewMode::RegisterCommands();
-
-	// Show and Hide the Cursor
-	IConsoleObject* ToggleCursorCmd = IConsoleManager::Get().RegisterConsoleCommand(
-		TEXT("VisionToggleCursor"),
-		TEXT("Toggle whether the cursor is visible"),
-		FConsoleCommandDelegate::CreateStatic(AMyHUD::ToggleCursor),
-		ECVF_Default
-		);
-
-	// Show labels on the screen
-	IConsoleObject* ToggleLabelCmd = IConsoleManager::Get().RegisterConsoleCommand(
-		TEXT("VisionToggleLabel"),
-		TEXT("Toggle whether the label of object is visible"),
-		FConsoleCommandDelegate::CreateStatic(AMyHUD::ToggleLabel),
-		ECVF_Default
-		);
-
 }
