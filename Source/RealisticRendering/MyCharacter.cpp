@@ -26,8 +26,8 @@ AMyCharacter::AMyCharacter()
 void AMyCharacter::BeginPlay()
 {
 	// Tester = new NetworkManagerTester();
-	Tester = new UE4CVServerTester(&CommandDispatcher);
-	Tester->Init();
+	// Tester = new UE4CVServerTester(&CommandDispatcher);
+	// Tester->Init();
 	Super::BeginPlay();
 
 	FViewMode::World = this->GetWorld();
@@ -111,7 +111,10 @@ void AMyCharacter::MoveRight(float Value)
 
 void AMyCharacter::OnFire()
 {
-	Tester->Run();
+	if (Tester)
+	{
+		Tester->Run();
+	}
 	// PaintAllObjects(TArray<FString>());
 	TakeScreenShot();
 

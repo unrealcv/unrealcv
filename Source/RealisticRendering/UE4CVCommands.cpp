@@ -38,6 +38,9 @@ void UE4CVCommands::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraImage);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/image", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 
+	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraView);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/view", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraRotation);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/rotation", Cmd, "Get camera rotation");
 
