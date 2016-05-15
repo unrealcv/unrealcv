@@ -1,4 +1,4 @@
-import ctypes, struct, threading, socket
+import ctypes, struct, threading, socket, re
 
 fmt = 'I'
 
@@ -121,10 +121,11 @@ class Client:
     '''
     def raw_message_handler(self, raw_message):
         # print 'Waiting for message id %d' % self.message_id
-        if raw_message.find(':') != -1:
-            [message_id, message_body] = raw_message.split(':', maxsplit=1)
+        match = self.raw_message_regexp.match(raw_message)
+        if match:
+            [message_id, message_body] = (int(match.group(1)), match.group(2))
             # print 'Received message id %s' % message_id
-            if int(message_id) == self.message_id:
+            if message_id == self.message_id:
                 self.wait_response.set()
                 self.wait_response.clear() # This is important
                 self.response = message_body
@@ -134,6 +135,7 @@ class Client:
             self.message_handler(raw_message)
 
     def __init__(self, endpoint, message_handler):
+        self.raw_message_regexp = re.compile('(\d{1,8}):(.*)')
         self.message_client = BaseClient(endpoint, self.raw_message_handler)
         self.message_handler = message_handler
         self.message_id = 0
