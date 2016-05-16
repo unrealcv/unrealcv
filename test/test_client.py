@@ -14,6 +14,7 @@ test_commands = [
     'vset /mode/lit',
     # 'vrun ls',
     # 'vget /object/_/name', this needs to be run on game thread
+    # TODO: add a test for object location
 ]
 
 def run_commands():
@@ -23,17 +24,17 @@ def run_commands():
         cmd = test_commands[i % len(test_commands)]
         print 'Cmd: %s' % cmd
         response = client.request(cmd)
-        print 'Response: %s' % response
+        print 'Response: %s' % repr(response)
         # Need to lock until I got a reply
         # print reply
         time.sleep(sleep_time)
 
 
 def MessageHandler(message):
-    print 'Message from server: %s' % message
+    print 'Message from server: %s' % repr(message) # Need to show \x00 also
 
 if __name__ == '__main__':
     client = Client((HOST, PORT), MessageHandler)
 
-    # run_commands()
+    run_commands()
     time.sleep(60 * 60)

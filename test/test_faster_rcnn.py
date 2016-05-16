@@ -66,6 +66,7 @@ def process_image(filename):
 
     if not os.path.isfile(filename):
         print 'Image file %s not exist' % filename
+        return
 
     image = D.cv2.imread(filename)
     timer = D.Timer()
@@ -85,6 +86,7 @@ def message_handler(message):
     if not net:
         init_caffe() # Caffe needs to be started in this thread, otherwise GIL will make it very slow
 
+    print repr(message)
     process_image(filename)
 
 if __name__ == '__main__':
