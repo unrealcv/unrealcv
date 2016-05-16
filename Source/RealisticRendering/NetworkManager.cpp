@@ -5,7 +5,7 @@
 #include "Networking.h"
 #include <string>
 
-uint32 FSocketMessageHeader::DefaultMagic = 0x9E2B83C1; 
+uint32 FSocketMessageHeader::DefaultMagic = 0x9E2B83C1;
 
 bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, FSocket* Socket)
 {
@@ -57,8 +57,8 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 	TArray<uint8> HeaderBytes;
 	int32 Size = sizeof(FSocketMessageHeader);
 	HeaderBytes.AddZeroed(Size);
-	
-	if (!SocketReceiveAll(Socket, HeaderBytes.GetData(), Size)) 
+
+	if (!SocketReceiveAll(Socket, HeaderBytes.GetData(), Size))
 	{
 		// false here means socket disconnected.
 		UE_LOG(LogTemp, Error, TEXT("Unable to read header, Socket disconnected."));
@@ -76,7 +76,7 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 	}
 
 	uint32 PayloadSize;
-	Reader << PayloadSize; 
+	Reader << PayloadSize;
 	if (!PayloadSize)
 	{
 		UE_LOG(LogTemp, Error, TEXT("Empty payload"));
@@ -105,8 +105,14 @@ FString StringFromBinaryArray(const TArray<uint8>& BinaryArray)
 
 void BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray)
 {
-	const TArray<TCHAR>& CharArray = Message.GetCharArray();
-	OutBinaryArray.Append(CharArray); // TODO: Need to convert TCHAR to uint8. Fix this later
+	FTCHARToUTF8 Convert(*Message);
+
+	OutBinaryArray.Empty();
+
+	// const TArray<TCHAR>& CharArray = Message.GetCharArray();
+	// OutBinaryArray.Append(CharArray);
+	// This can work, but work add tailing \0 also behavior is not well defined.
+	OutBinaryArray.Append((UTF8CHAR*)Convert.Get(), Convert.Length());
 }
 
 /* Provide a dummy echo service to echo received data back for development purpose */
@@ -117,7 +123,7 @@ bool UNetworkManager::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoin
 		UE_LOG(LogTemp, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
 		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
 		ConnectionSocket = ClientSocket;
-		
+
 		// Listening data here or start a new thread for data?
 		// Reuse the TCP Listener thread for getting data, only support one connection
 		uint32 BufferSize = 1024;
@@ -125,14 +131,14 @@ bool UNetworkManager::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoin
 		TArray<uint8> ReceivedData;
 		ReceivedData.SetNumZeroed(BufferSize);
 		while (1)
-		{ 
+		{
 			// Easier to use raw FSocket here, need to detect remote socket disconnection
 			bool RecvStatus = ClientSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), Read);
-			
-			// if (!RecvStatus) // The connection is broken 
+
+			// if (!RecvStatus) // The connection is broken
 			if (Read == 0) // RecvStatus == true if Read >= 0, this is used to determine client disconnection
 				// -1 means no data, 0 means disconnected
-			{ 
+			{
 				ConnectionSocket = NULL; // Use this to determine whether client is connected
 				return false;
 			}
@@ -157,7 +163,7 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 		while (1) // Listening thread
 		{
 			FArrayReader ArrayReader;
-			if (!FSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket)) 
+			if (!FSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket))
 				// Wait forever until got a message, or return false when error happened
 			{
 				this->ConnectionSocket = NULL;
