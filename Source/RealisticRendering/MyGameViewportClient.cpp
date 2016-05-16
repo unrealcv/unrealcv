@@ -7,7 +7,8 @@
 // TODO: Add lock to wait for screen capture finish
 UMyGameViewportClient::UMyGameViewportClient()
 {
-	// CaptureFinished.Get()->Create();
+	EventWaitCapture = FPlatformProcess::GetSynchEventFromPool(false);
+	// false means auto-reset, undocumented, but can be found in source code.
 }
 
 // Reimplement a GameViewportClient is required according to the discussion from here
@@ -19,9 +20,14 @@ void UMyGameViewportClient::Draw(FViewport * Viewport, FCanvas * SceneCanvas)
 	Super::Draw(Viewport, SceneCanvas);
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	//UE_LOG(Victory,Warning,TEXT("VICTORY GAME VIEWPORT Ticking!"));
 	if (IsPendingSaveRequest)
 	{
+		DoCaptureScreen();
+	}
+}
+
+void UMyGameViewportClient::DoCaptureScreen()
+{
 		// Save to Disk
 		TArray<FColor> Bitmap;
 		bool bScreenshotSuccessful = false;
@@ -52,15 +58,23 @@ void UMyGameViewportClient::Draw(FViewport * Viewport, FCanvas * SceneCanvas)
 		{
 			// return FExecStatus::Error("Fail to capture image"); // TODO: Handle error
 		}
+		// TODO: Trigger a wait event
 		IsPendingSaveRequest = false;
-
-		// Signal an event the capture finished
-		// CaptureFinished.Get()->Trigger();
-	}
+		EventWaitCapture->Trigger(); // Auto reset
 }
 
 void UMyGameViewportClient::CaptureScreen(const FString& Filename)
 {
 	CaptureFilename = Filename;
 	IsPendingSaveRequest = true;
+
+	if (IsInGameThread())
+	{
+		DoCaptureScreen();
+	}
+	else
+	{
+		// Not allow to wait in Game Thread, Draw will also happen in Game Thread
+		EventWaitCapture->Wait();
+	}
 }
