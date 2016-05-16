@@ -68,6 +68,7 @@ void AMyCharacter::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
+	Server->ProcessPendingRequest();
 }
 
 // Called to bind functionality to input

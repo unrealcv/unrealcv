@@ -183,6 +183,7 @@ const TMap<FString, FString>& FCommandDispatcher::GetUriDescription()
 	
 FExecStatus FCommandDispatcher::Exec(const FString Uri)
 {
+	check(IsInGameThread());
 	TArray<FString> Args; // Get args from URI
 	for (auto& Elem : UriMapping)
 	{

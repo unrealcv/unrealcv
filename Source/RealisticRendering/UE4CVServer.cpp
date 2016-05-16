@@ -19,6 +19,21 @@ FUE4CVServer::~FUE4CVServer()
 	this->NetworkManager->FinishDestroy(); // TODO: Check is this usage correct?
 }
 
+void FUE4CVServer::ProcessPendingRequest()
+{
+	while (!PendingRequest.IsEmpty())
+	{
+		FRequest Request;
+		bool DequeueStatus = PendingRequest.Dequeue(Request);
+		check(DequeueStatus);
+
+		FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message);
+		UE_LOG(LogTemp, Warning, TEXT("Response: %s"), *ExecStatus.Message);
+		FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), Request.RequestId, *ExecStatus.Message);
+		SendClientMessage(ReplyRawMessage);
+	}
+}
+
 bool FUE4CVServer::Start()
 {
 	NetworkManager->Start();
@@ -39,12 +54,16 @@ void FUE4CVServer::HandleRequest(const FString& InRawMessage)
 		FString StrRequestId = Matcher.GetCaptureGroup(1);
 		FString Message = Matcher.GetCaptureGroup(2);
 
-		FExecStatus ExecStatus = CommandDispatcher->Exec(Message);
 		uint32 RequestId = FCString::Atoi(*StrRequestId);
+		FRequest Request(Message, RequestId);
+		this->PendingRequest.Enqueue(Request);
 
+		/*
+		FExecStatus ExecStatus = CommandDispatcher->Exec(Message);
 		UE_LOG(LogTemp, Warning, TEXT("Response: %s"), *ExecStatus.Message);
 		FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), RequestId, *ExecStatus.Message);
 		SendClientMessage(ReplyRawMessage);
+		*/
 	}
 	else
 	{
@@ -54,6 +73,7 @@ void FUE4CVServer::HandleRequest(const FString& InRawMessage)
 
 void FUE4CVServer::SendClientMessage(FString Message)
 {
+	// TODO: Do not use game thread to send message.
 	NetworkManager->SendMessage(Message);
 }
 

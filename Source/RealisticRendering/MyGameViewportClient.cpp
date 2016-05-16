@@ -70,7 +70,8 @@ void UMyGameViewportClient::CaptureScreen(const FString& Filename)
 
 	if (IsInGameThread())
 	{
-		DoCaptureScreen();
+		// DoCaptureScreen(); // a direct call to DoCaptureScreen is not allowed.
+		// A potential risk that the file is not saved yet. TODO: Fix this.
 	}
 	else
 	{
