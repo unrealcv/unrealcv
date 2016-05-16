@@ -1,4 +1,4 @@
-import ctypes, struct, threading, socket, re
+import ctypes, struct, threading, socket, re, sys
 
 fmt = 'I'
 
@@ -32,15 +32,18 @@ class SocketMessage:
         raw_payload_size = rfile.read(4)
         # print 'Receive raw payload size: %d, %s' % (len(raw_payload_size), raw_payload_size)
         payload_size = struct.unpack('I', raw_payload_size)[0]
-        # print 'Receive', payload_size
+        print 'Receive payload size', payload_size
 
         # if the message is incomplete, should wait until all the data received
         payload = ""
-        size = payload_size
-        while size > 0:
-            data = rfile.read(payload_size)
+        remain_size = payload_size
+        while remain_size > 0:
+            data = rfile.read(remain_size)
             payload += data
-            size -= len(data)
+            bytes_read = len(data) # len(data) is its string length, but we want length of bytes
+            # print 'bytes_read %d, remain_size %d, read_str %s' % (bytes_read, remain_size, data)
+            assert(bytes_read <= remain_size)
+            remain_size -= bytes_read
 
         rfile.close()
 
@@ -104,7 +107,11 @@ class BaseClient:
             if not message:
                 self.is_connected = False
                 break
-            self.message_handler(message)
+
+            if self.message_handler:
+                self.message_handler(message)
+            else:
+                print 'No message handler for raw message %s' % message
 
     def send(self, message):
         if self.connect():
@@ -132,7 +139,11 @@ class Client:
             else:
                 assert(False)
         else:
-            self.message_handler(raw_message)
+            if self.message_handler:
+                self.message_handler(raw_message)
+            else:
+                # Instead of just dropping this message, give a verbose notice
+                print 'No message handler to handle message %s' % raw_message
 
     def __init__(self, endpoint, message_handler):
         self.raw_message_regexp = re.compile('(\d{1,8}):(.*)')
