@@ -6,7 +6,8 @@ test_commands = [
     'vget /objects',
     'vset /mode/depth',
     'vget /camera/0/location',
-    'vget /camera/0/rotation',
+    'vget /camera/0/rotation', # TODO: Change the Uri handle to exact map
+    'vset /camera/0/rotation 0.0 0.0 0.0',
     'vget /camera/0/image', # TODO: The regexp in server needs to do exact match
     'vget /camera/0/depth',
     'vget /camera/0/object_mask',

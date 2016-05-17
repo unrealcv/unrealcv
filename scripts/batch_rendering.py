@@ -1,5 +1,5 @@
 from common_config import *
-import argparse
+import argparse, time
 
 
 def render_frame(client, pos):
@@ -11,6 +11,7 @@ def render_frame(client, pos):
     cmd = 'vset /camera/0/rotation %.3f %.3f %.3f' % (rot[0], rot[1], rot[2])
     response = client.request(cmd)
     assert response == 'ok'
+    time.sleep(2)
     files = []
     cmd = 'vget /camera/0/image'
     # TODO: need a way to check error
@@ -46,7 +47,7 @@ if __name__ == '__main__':
         all_files.append(render_frame(client, pos))
 
     print all_files
-    with open('testlog.txt') as f:
+    with open('testlog.txt', 'w') as f:
         f.write(all_files)
 
 
