@@ -186,7 +186,11 @@ FExecStatus UE4CVCommands::GetCameraView(const TArray<FString>& Args)
 		NumCaptured++;
 
 		FString Filename = FString::Printf(TEXT("%04d.png"), NumCaptured);
-		ViewportClient->CaptureScreen(Filename);
+
+		// Test system screenshot function
+		FScreenshotRequest::RequestScreenshot(Filename, false, false); // This is an async operation
+
+		// ViewportClient->CaptureScreen(Filename);
 		// ViewportClient->CaptureFinished.Get()->Wait(); // TODO: Need to wait the event to finish
 		const FString Dir = FString(FPlatformProcess::BaseDir());
 		FString FullFilename = FPaths::Combine(*Dir, *Filename);
