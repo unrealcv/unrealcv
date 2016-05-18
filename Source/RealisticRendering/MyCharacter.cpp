@@ -53,14 +53,14 @@ void AMyCharacter::NotifyClient(FString Message)
 
 void AMyCharacter::TakeScreenShot()
 {
-	FExecStatus ExecStatus = FExecStatus::OK;
+	FExecStatus ExecStatus = FExecStatus::OK();
 	// TODO: Implement operator + for FExecStatus
 	ExecStatus = CommandDispatcher.Exec("vget /camera/0/view");
-	NotifyClient(ExecStatus.Message);
+	NotifyClient(ExecStatus.GetMessage());
 	ExecStatus = CommandDispatcher.Exec("vget /camera/0/location");
-	NotifyClient(ExecStatus.Message);
+	NotifyClient(ExecStatus.GetMessage());
 	ExecStatus = CommandDispatcher.Exec("vget /camera/0/rotation");
-	NotifyClient(ExecStatus.Message);
+	NotifyClient(ExecStatus.GetMessage());
 }
 
 // Called every frame
@@ -91,7 +91,7 @@ void AMyCharacter::SetupPlayerInputComponent(class UInputComponent* InputCompone
 FExecStatus AMyCharacter::BindAxisWrapper(const TArray<FString>& Args)
 {
 	// FInputAxisHandlerSignature::TUObjectMethodDelegate< UserClass >::FMethodPtr
-	return FExecStatus::OK;
+	return FExecStatus::OK();
 }
 
 void AMyCharacter::MoveForward(float Value)
@@ -163,7 +163,7 @@ FExecStatus AMyCharacter::PaintRandomColors(const TArray<FString>& Args)
 	}
 
 	// Paint actor using floodfill.
-	return FExecStatus::OK;
+	return FExecStatus::OK();
 }
 
 bool AMyCharacter::PaintObject(AActor* Actor, const FColor& NewColor)

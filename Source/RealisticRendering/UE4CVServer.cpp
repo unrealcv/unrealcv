@@ -21,6 +21,21 @@ FUE4CVServer::~FUE4CVServer()
 
 void FUE4CVServer::ProcessPendingRequest()
 {
+	if (PendingTask.Active) // Do query or wait for callback
+	{
+		FExecStatus ExecStatus = PendingTask.CheckStatus();
+		if (ExecStatus == FExecStatusType::Pending)
+		{
+			return; // The task is still pending
+		}
+		else
+		{
+			PendingTask.Active = false;
+			FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), PendingTask.RequestId, *ExecStatus.GetMessage());
+			SendClientMessage(ReplyRawMessage);
+		}
+	}
+
 	while (!PendingRequest.IsEmpty())
 	{
 		FRequest Request;
@@ -28,9 +43,28 @@ void FUE4CVServer::ProcessPendingRequest()
 		check(DequeueStatus);
 
 		FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message);
-		UE_LOG(LogTemp, Warning, TEXT("Response: %s"), *ExecStatus.Message);
-		FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), Request.RequestId, *ExecStatus.Message);
-		SendClientMessage(ReplyRawMessage);
+		if (ExecStatus == FExecStatusType::Query)
+		{
+			PendingTask = FPendingTask(ExecStatus.Promise, Request.RequestId);
+			break;
+		}
+		if (ExecStatus == FExecStatusType::Callback)
+		{
+			this->PendingTask.Active = true;
+			ExecStatus.OnFinished().BindLambda([&]()
+			{
+				FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), Request.RequestId, *ExecStatus.GetMessage());
+				SendClientMessage(ReplyRawMessage);
+				PendingTask.Active = false;
+			});
+			break;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
+			FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), Request.RequestId, *ExecStatus.GetMessage());
+			SendClientMessage(ReplyRawMessage);
+		}
 	}
 }
 

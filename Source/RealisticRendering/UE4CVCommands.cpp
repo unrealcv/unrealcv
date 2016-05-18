@@ -4,6 +4,7 @@
 #include "UE4CVCommands.h"
 #include "MyGameViewportClient.h"
 #include "ViewMode.h"
+#include "ImageUtils.h"
 
 UE4CVCommands::UE4CVCommands(AMyCharacter* InCharacter)
 {
@@ -84,6 +85,7 @@ void UE4CVCommands::RegisterCommands()
 	CommandDispatcher->Alias("VisionCamInfo", "vget /camera/0/name", "Get camera info");
 	CommandDispatcher->Alias("ls", "vget /util/get_commands", "List all commands");
 	CommandDispatcher->Alias("shot", "vget /camera/0/image", "Save image to disk");
+
 }
 
 
@@ -96,7 +98,7 @@ FExecStatus UE4CVCommands::SetCameraLocation(const TArray<FString>& Args)
 		FVector Location = FVector(X, Y, Z);
 		Character->SetActorLocation(Location);
 
-		return FExecStatus::OK;
+		return FExecStatus::OK();
 	}
 	return FExecStatus::InvalidArgument;
 }
@@ -112,7 +114,7 @@ FExecStatus UE4CVCommands::SetCameraRotation(const TArray<FString>& Args)
 		Controller->ClientSetRotation(Rotator); // Teleport action
 		// SetActorRotation(Rotator);  // This is not working
 
-		return FExecStatus::OK;
+		return FExecStatus::OK();
 	}
 	return FExecStatus::InvalidArgument;
 }
@@ -126,7 +128,7 @@ FExecStatus UE4CVCommands::GetCameraRotation(const TArray<FString>& Args)
 		FRotator CameraRotation = Character->GetControlRotation();
 		FString Message = FString::Printf(TEXT("%.3f %.3f %.3f"), CameraRotation.Pitch, CameraRotation.Yaw, CameraRotation.Roll);
 
-		return FExecStatus(Message);
+		return FExecStatus::OK(Message);
 	}
 	return FExecStatus::Error("Number of arguments incorrect");
 }
@@ -169,7 +171,7 @@ FExecStatus UE4CVCommands::GetCameraLocation(const TArray<FString>& Args)
 		FVector CameraLocation = Character->GetActorLocation();
 		FString Message = FString::Printf(TEXT("%.3f %.3f %.3f"), CameraLocation.X, CameraLocation.Y, CameraLocation.Z);
 
-		return FExecStatus(Message);
+		return FExecStatus::OK(Message);
 	}
 	return FExecStatus::Error("Number of arguments incorrect");
 }
@@ -180,22 +182,70 @@ FExecStatus UE4CVCommands::GetCameraView(const TArray<FString>& Args)
 	{
 		int32 CameraId = FCString::Atoi(*Args[0]);
 
-		UMyGameViewportClient* ViewportClient = (UMyGameViewportClient*)Character->GetWorld()->GetGameViewport();
-
 		static uint32 NumCaptured = 0;
 		NumCaptured++;
-
 		FString Filename = FString::Printf(TEXT("%04d.png"), NumCaptured);
 
-		// Test system screenshot function
-		FScreenshotRequest::RequestScreenshot(Filename, false, false); // This is an async operation
-
+		// Method 1: Use custom ViewportClient
 		// ViewportClient->CaptureScreen(Filename);
 		// ViewportClient->CaptureFinished.Get()->Wait(); // TODO: Need to wait the event to finish
-		const FString Dir = FString(FPlatformProcess::BaseDir());
+		const FString Dir = FString(FPlatformProcess::BaseDir()); // TODO: Change this to screen capture folder
+		const FString ProcessBasePath = FPlatformProcess::BaseDir();
+		const FString ScreenShotDir = FPaths::ScreenShotDir();
+		// const FString Dir = FPaths::ConvertRelativePathToFull(FPaths::ScreenShotDir());
+		const FString SandboxDir = FPaths::SandboxesDir();
 		FString FullFilename = FPaths::Combine(*Dir, *Filename);
+		const FString SysFilename = FScreenshotRequest::GetFilename();
 
-		return FExecStatus(FullFilename);
+		// Method2: System screenshot function
+		FScreenshotRequest::RequestScreenshot(FullFilename, false, false); // This is an async operation
+
+		/*
+		// Implement 1, Start async and callback
+		FExecStatus ExecStatusAsyncCallback = FExecStatus::AsyncCallback();
+		UMyGameViewportClient* ViewportClient = (UMyGameViewportClient*)Character->GetWorld()->GetGameViewport();
+		ViewportClient->OnScreenshotCaptured().Clear();
+		ViewportClient->OnScreenshotCaptured().AddLambda(
+			[&](int32 SizeX, int32 SizeY, const TArray<FColor>& Bitmap) 
+		{
+			// Save bitmap to disk
+			TArray<FColor>& RefBitmap = const_cast<TArray<FColor>&>(Bitmap);
+			TArray<uint8> CompressedBitmap;
+			FImageUtils::CompressImageArray(SizeX, SizeY, RefBitmap, CompressedBitmap);
+			FFileHelper::SaveArrayToFile(CompressedBitmap, *FullFilename);
+
+			// Mark this async task finished
+			ExecStatusAsyncCallback.MessageBody = FullFilename;
+			ExecStatusAsyncCallback.OnFinished().Execute(); // FullFilename is the message to return
+		});
+		return ExecStatusAsyncCallback;
+		*/
+
+		// Implement 2, Start async and query
+		// FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateRaw(this, &UE4CVCommands::CheckStatusScreenshot);
+		FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([FullFilename]()
+		{
+			if (FScreenshotRequest::IsScreenshotRequested()) return FExecStatus::Pending();
+			else return FExecStatus::OK(FullFilename);
+		});
+		FExecStatus ExecStatusQuery = FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
+		UGameViewportClient* ViewportClient = Character->GetWorld()->GetGameViewport();
+		ViewportClient->OnScreenshotCaptured().Clear(); // This is required to handle the filename issue.
+		ViewportClient->OnScreenshotCaptured().AddLambda(
+			[FullFilename](int32 SizeX, int32 SizeY, const TArray<FColor>& Bitmap) 
+		{
+			// Save bitmap to disk
+			TArray<FColor>& RefBitmap = const_cast<TArray<FColor>&>(Bitmap);
+			for (auto& Color : RefBitmap)
+			{
+				Color.A = 255;
+			}
+
+			TArray<uint8> CompressedBitmap;
+			FImageUtils::CompressImageArray(SizeX, SizeY, RefBitmap, CompressedBitmap);
+			FFileHelper::SaveArrayToFile(CompressedBitmap, *FullFilename);
+		});
+		return ExecStatusQuery;
 	}
 	return FExecStatus::InvalidArgument;
 }
@@ -214,7 +264,7 @@ FExecStatus UE4CVCommands::GetCommands(const TArray<FString>& Args)
 		Message += Value.Value + "\n";
 	}
 
-	return FExecStatus(Message);
+	return FExecStatus::OK(Message);
 }
 
 FExecStatus UE4CVCommands::GetObjects(const TArray<FString>& Args)
@@ -226,7 +276,7 @@ FExecStatus UE4CVCommands::GetObjects(const TArray<FString>& Args)
 	{
 		Message += ObjectName + " ";
 	}
-	return FExecStatus(Message);
+	return FExecStatus::OK(Message);
 }
 
 FExecStatus UE4CVCommands::SetObjectColor(const TArray<FString>& Args)
@@ -244,7 +294,7 @@ FExecStatus UE4CVCommands::SetObjectColor(const TArray<FString>& Args)
 			if (Character->PaintObject(Actor, NewColor))
 			{
 				Character->ObjectsColorMapping.Emplace(ObjectName, NewColor);
-				return FExecStatus::OK;
+				return FExecStatus::OK();
 			}
 			else
 			{
@@ -272,7 +322,7 @@ FExecStatus UE4CVCommands::GetObjectColor(const TArray<FString>& Args)
 			FColor ObjectColor = Character->ObjectsColorMapping[ObjectName]; // Make sure the object exist
 			FString Message = ObjectColor.ToString();
 			// FString Message = "%.3f %.3f %.3f %.3f";
-			return FExecStatus(Message);
+			return FExecStatus::OK(Message);
 		}
 		else
 		{
@@ -287,7 +337,7 @@ FExecStatus UE4CVCommands::GetObjectName(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
 	{
-		return FExecStatus(Args[0]);
+		return FExecStatus::OK(Args[0]);
 	}
 	return FExecStatus::InvalidArgument;
 }

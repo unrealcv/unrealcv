@@ -7,18 +7,63 @@
 /**
  * 
  */
+class FExecStatus;
+class FPromise;
+
+DECLARE_DELEGATE_RetVal(FExecStatus, FPromiseDelegate);
+class FPromise 
+// Return by async task, used to check status to see whether the task is finished.
+{
+private:
+	FPromiseDelegate PromiseDelegate;
+public:
+	FPromise();
+	FPromise(FPromiseDelegate InPromiseDelegate);
+	FExecStatus CheckStatus();
+};
+
+enum FExecStatusType 
+{
+	OK,
+	Error,
+	// Support async task
+	Pending,
+	Query,
+	Callback
+};
+
+DECLARE_DELEGATE(FCallbackDelegate);
 class FExecStatus
 {
 public:
-	FString Message;
-	static FExecStatus OK;
+	// Support aync task
+	FPromise Promise; 
+	static FExecStatus Pending(FString Message=""); // Useful for async task
+	static FExecStatus AsyncQuery(FPromise Promise);
+	static FExecStatus AsyncCallback();
+
+	// The status of the FExecStatus can be changed during the async task
+	FString MessageBody;
+	FExecStatusType ExecStatusType;
+
+	static FExecStatus OK(FString Message="");
 	static FExecStatus InvalidArgument;
 	static FExecStatus Error(FString ErrorMessage);
-	FExecStatus(FString Message);
 	~FExecStatus();
+	FString GetMessage() const; // Convert this ExecStatus to String
+	FCallbackDelegate& OnFinished();
+private:
+	FExecStatus(FExecStatusType InExecStatusType, FString Message);
+	// For query
+	FExecStatus(FExecStatusType InExecStatusType, FPromise Promise);
+	// FExecStatus& operator+=(const FExecStatus& InExecStatus);
+	FCallbackDelegate FinishedDelegate;
 };
-DECLARE_DELEGATE_RetVal_OneParam(FExecStatus, FDispatcherDelegate, const TArray< FString >&);
 
+bool operator==(const FExecStatus& ExecStatus, const FExecStatusType& ExecStatusEnum);
+
+
+DECLARE_DELEGATE_RetVal_OneParam(FExecStatus, FDispatcherDelegate, const TArray< FString >&);
 class REALISTICRENDERING_API FCommandDispatcher
 {
 public:

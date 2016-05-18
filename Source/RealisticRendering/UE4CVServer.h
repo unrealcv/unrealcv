@@ -12,19 +12,27 @@
 class FRequest
 {
 public:
-	FRequest()
-	{
-	}
-	FRequest(FString InMessage, uint32 InRequestId) : Message(InMessage), RequestId(InRequestId)
-	{
-	}
+	FRequest() {}
+	FRequest(FString InMessage, uint32 InRequestId) : Message(InMessage), RequestId(InRequestId) {}
 	FString Message;
+	uint32 RequestId;
+};
+
+class FPendingTask
+{
+public:
+	FPendingTask(FPromise InPromise, uint32 InRequestId) : Promise(InPromise), RequestId(InRequestId), Active(true) {}
+	FPendingTask() : Active(false) {}
+	FExecStatus CheckStatus() { return Promise.CheckStatus();  }
+	bool Active;
+	FPromise Promise;
 	uint32 RequestId;
 };
 
 class REALISTICRENDERING_API FUE4CVServer
 {
 public:
+	FPendingTask PendingTask;
 	FUE4CVServer(FCommandDispatcher* CommandDispatcher);
 	~FUE4CVServer();
 	bool Start();

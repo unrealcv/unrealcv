@@ -151,7 +151,7 @@ FExecStatus FViewMode::SetMode(const TArray<FString>& Args) // Check input argum
 		if (bSuccess)
 		{
 			FViewMode::CurrentViewMode = ViewMode;
-			return FExecStatus::OK;
+			return FExecStatus::OK();
 		}
 	}
 	// Send successful message back
@@ -166,5 +166,5 @@ FExecStatus FViewMode::GetMode(const TArray<FString>& Args) // Check input argum
 	// How to send message back. Need the conversation id.
 	// Send message back
 	// Complex information will be saved to file
-	return FExecStatus(*FViewMode::CurrentViewMode);
+	return FExecStatus::OK(*FViewMode::CurrentViewMode);
 }

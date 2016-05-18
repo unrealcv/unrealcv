@@ -39,7 +39,7 @@ void FConsoleHelper::VRun(const TArray<FString>& Args)
 		FString Alias = Args[0];
 		FString Cmd = FString::Printf(TEXT("vrun %s"), *Alias);
 		FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
-		ConsoleOutputDevice->Log(ExecStatus.Message);
+		ConsoleOutputDevice->Log(ExecStatus.GetMessage());
 	}
 	else
 	{
@@ -61,8 +61,8 @@ void FConsoleHelper::VGet(const TArray<FString>& Args)
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
 	UE_LOG(LogTemp, Warning, TEXT("vget helper function, the real command is %s"), *Cmd);
 	// In the console mode, output should be writen to the output log.
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *ExecStatus.Message);
-	ConsoleOutputDevice->Log(ExecStatus.Message);
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *ExecStatus.GetMessage());
+	ConsoleOutputDevice->Log(ExecStatus.GetMessage());
 }
 
 void FConsoleHelper::VSet(const TArray<FString>& Args)
@@ -77,7 +77,7 @@ void FConsoleHelper::VSet(const TArray<FString>& Args)
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
 	// Output result to the console
 	UE_LOG(LogTemp, Warning, TEXT("vset helper function, the real command is %s"), *Cmd);
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *ExecStatus.Message);
-	ConsoleOutputDevice->Log(ExecStatus.Message);
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *ExecStatus.GetMessage());
+	ConsoleOutputDevice->Log(ExecStatus.GetMessage());
 }
 

@@ -4,30 +4,99 @@
 #include "Regex.h"
 #include "CommandDispatcher.h"
 
-// DECLARE_DELEGATE_OneParam(FDispatcherDelegate, const TArray< FString >&);
-
-FExecStatus FExecStatus::OK = FExecStatus("ok"); // The status should start with ok or error for client to understand
-FExecStatus FExecStatus::InvalidArgument = FExecStatus("error Argument Invalid");
-// FExecStatus FExecStatus::Error = FExecStatus("error");
-FExecStatus FExecStatus::Error(FString ErrorMessage)
+bool operator==(const FExecStatus& ExecStatus, const FExecStatusType& ExecStatusEnum)
 {
-	return FExecStatus(FString::Printf(TEXT("error %s"), *ErrorMessage));
+	return (ExecStatus.ExecStatusType == ExecStatusEnum);
 }
 
-FExecStatus::FExecStatus(FString Message)
+// DECLARE_DELEGATE_OneParam(FDispatcherDelegate, const TArray< FString >&);
+// FExecStatus FExecStatus::Pending = FExecStatus("pending");
+// FExecStatus FExecStatus::OK = FExecStatus("ok"); // The status should start with ok or error for client to understand
+FExecStatus FExecStatus::InvalidArgument = FExecStatus(FExecStatusType::Error, "Argument Invalid");
+// FExecStatus FExecStatus::Error = FExecStatus("error");
+
+FExecStatus FExecStatus::OK(FString InMessage)
 {
-	if (Message != "")
+	return FExecStatus(FExecStatusType::OK, InMessage);
+}
+
+FExecStatus FExecStatus::Pending(FString InMessage)
+{
+	return FExecStatus(FExecStatusType::Pending, InMessage);
+}
+
+FExecStatus FExecStatus::AsyncQuery(FPromise Promise)
+{
+	return FExecStatus(FExecStatusType::Query, Promise);
+}
+
+FExecStatus FExecStatus::AsyncCallback()
+{
+	return FExecStatus(FExecStatusType::Callback, "");
+}
+
+FExecStatus FExecStatus::Error(FString ErrorMessage)
+{
+	return FExecStatus(FExecStatusType::Error, ErrorMessage);
+}
+
+FCallbackDelegate& FExecStatus::OnFinished()
+{
+	return this->FinishedDelegate;
+}
+
+FString FExecStatus::GetMessage() const // Define how to format the reply string
+{
+	switch (ExecStatusType)
+	{
+	case FExecStatusType::Error: 
+		return FString::Printf(TEXT("error %s"), *MessageBody);
+	case FExecStatusType::OK:
+		if (MessageBody == "")
+			return "ok";
+		else
+			return MessageBody;
+	default:
+		check(0); // Unexpected
+	}
+	return ""; // This will never be reached
+}
+
+FExecStatus::FExecStatus(FExecStatusType InExecStatusType, FPromise InPromise)
+{
+	ExecStatusType = InExecStatusType;
+	Promise = InPromise;
+}
+
+FExecStatus::FExecStatus(FExecStatusType InExecStatusType, FString InMessage)
+{
+	ExecStatusType = InExecStatusType;
+	MessageBody = InMessage;
+	/*
+	if (InMessage != "")
 	{ 
-		this->Message = Message;
+		Message = InMessage;
 	}
 	else
 	{
-		this->Message = "error Message can not be empty";
+		Message = "error Message can not be empty";
 	}
+	*/
 }
 
 FExecStatus::~FExecStatus()
 {
+}
+
+FPromise::FPromise()
+{
+}
+
+FPromise::FPromise(FPromiseDelegate InPromiseDelegate) : PromiseDelegate(InPromiseDelegate) {}
+	
+FExecStatus FPromise::CheckStatus()
+{
+	return PromiseDelegate.Execute();
 }
 
 FCommandDispatcher::FCommandDispatcher()
@@ -163,9 +232,9 @@ FExecStatus FCommandDispatcher::AliasHelper(const TArray<FString>& Args)
 			for (FString Command : Commands)
 			{
 				FExecStatus ExecStatus = Exec(Command);
-				Message += ExecStatus.Message; // TODO: Ovewrite the + operator of ExecStatus
+				Message += ExecStatus.GetMessage(); // TODO: Ovewrite the + operator of ExecStatus
 			}
-			return FExecStatus(Message); // TODO: Check whether one of them failed and set ExecStatus based on that.
+			return FExecStatus::OK(Message); // TODO: Check whether one of them failed and set ExecStatus based on that.
 		}
 		else
 		{
