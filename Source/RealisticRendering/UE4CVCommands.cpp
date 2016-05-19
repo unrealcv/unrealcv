@@ -176,50 +176,56 @@ FExecStatus UE4CVCommands::GetCameraLocation(const TArray<FString>& Args)
 	return FExecStatus::Error("Number of arguments incorrect");
 }
 
-FExecStatus UE4CVCommands::GetCameraView(const TArray<FString>& Args)
+// Sync operation for screen capture
+bool DoCaptureScreen(UGameViewportClient *ViewportClient, const FString& CaptureFilename)
 {
-	if (Args.Num() == 1)
+		TArray<FColor> Bitmap;
+		bool bScreenshotSuccessful = false;
+		FViewport* InViewport = ViewportClient->Viewport;
+		ViewportClient->GetEngineShowFlags()->SetMotionBlur(false);
+		bScreenshotSuccessful = GetViewportScreenShot(InViewport, Bitmap);
+
+		if (bScreenshotSuccessful)
+		{
+			// Ensure that all pixels' alpha is set to 255
+			for (auto& Color : Bitmap)
+			{
+				Color.A = 255;
+			}
+			FIntVector Size(InViewport->GetSizeXY().X, InViewport->GetSizeXY().Y, 0);
+			// TODO: Need to blend alpha, a bit weird from screen.
+
+			TArray<uint8> CompressedBitmap;
+			FImageUtils::CompressImageArray(Size.X, Size.Y, Bitmap, CompressedBitmap);
+			FFileHelper::SaveArrayToFile(CompressedBitmap, *CaptureFilename);
+		}
+		return bScreenshotSuccessful;
+}
+
+FExecStatus UE4CVCommands::GetCameraViewSync(const FString& FullFilename)
+{
+	// This can only work within editor
+	// Reimplement a GameViewportClient is required according to the discussion from here
+	// https://forums.unrealengine.com/showthread.php?50857-FViewPort-ReadPixels-crash-while-play-on-quot-standalone-Game-quot-mode
+	UGameViewportClient* ViewportClient = Character->GetWorld()->GetGameViewport();
+	if (DoCaptureScreen(ViewportClient, FullFilename))
 	{
-		int32 CameraId = FCString::Atoi(*Args[0]);
+		return FExecStatus::OK(FullFilename);
+	}
+	else
+	{
+		return FExecStatus::Error("Fail to capture screen");
+	}
+}
 
-		static uint32 NumCaptured = 0;
-		NumCaptured++;
-		FString Filename = FString::Printf(TEXT("%04d.png"), NumCaptured);
-
+FExecStatus UE4CVCommands::GetCameraViewAsyncQuery(const FString& FullFilename)
+{
 		// Method 1: Use custom ViewportClient
-		// ViewportClient->CaptureScreen(Filename);
-		// ViewportClient->CaptureFinished.Get()->Wait(); // TODO: Need to wait the event to finish
-		const FString Dir = FString(FPlatformProcess::BaseDir()); // TODO: Change this to screen capture folder
-		const FString ProcessBasePath = FPlatformProcess::BaseDir();
-		const FString ScreenShotDir = FPaths::ScreenShotDir();
-		// const FString Dir = FPaths::ConvertRelativePathToFull(FPaths::ScreenShotDir());
-		const FString SandboxDir = FPaths::SandboxesDir();
-		FString FullFilename = FPaths::Combine(*Dir, *Filename);
-		const FString SysFilename = FScreenshotRequest::GetFilename();
+		UMyGameViewportClient* ViewportClient = (UMyGameViewportClient*)Character->GetWorld()->GetGameViewport();
+		ViewportClient->CaptureScreen(FullFilename);
 
 		// Method2: System screenshot function
 		FScreenshotRequest::RequestScreenshot(FullFilename, false, false); // This is an async operation
-
-		/*
-		// Implement 1, Start async and callback
-		FExecStatus ExecStatusAsyncCallback = FExecStatus::AsyncCallback();
-		UMyGameViewportClient* ViewportClient = (UMyGameViewportClient*)Character->GetWorld()->GetGameViewport();
-		ViewportClient->OnScreenshotCaptured().Clear();
-		ViewportClient->OnScreenshotCaptured().AddLambda(
-			[&](int32 SizeX, int32 SizeY, const TArray<FColor>& Bitmap) 
-		{
-			// Save bitmap to disk
-			TArray<FColor>& RefBitmap = const_cast<TArray<FColor>&>(Bitmap);
-			TArray<uint8> CompressedBitmap;
-			FImageUtils::CompressImageArray(SizeX, SizeY, RefBitmap, CompressedBitmap);
-			FFileHelper::SaveArrayToFile(CompressedBitmap, *FullFilename);
-
-			// Mark this async task finished
-			ExecStatusAsyncCallback.MessageBody = FullFilename;
-			ExecStatusAsyncCallback.OnFinished().Execute(); // FullFilename is the message to return
-		});
-		return ExecStatusAsyncCallback;
-		*/
 
 		// Implement 2, Start async and query
 		// FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateRaw(this, &UE4CVCommands::CheckStatusScreenshot);
@@ -229,6 +235,7 @@ FExecStatus UE4CVCommands::GetCameraView(const TArray<FString>& Args)
 			else return FExecStatus::OK(FullFilename);
 		});
 		FExecStatus ExecStatusQuery = FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
+		/*
 		UGameViewportClient* ViewportClient = Character->GetWorld()->GetGameViewport();
 		ViewportClient->OnScreenshotCaptured().Clear(); // This is required to handle the filename issue.
 		ViewportClient->OnScreenshotCaptured().AddLambda(
@@ -245,7 +252,54 @@ FExecStatus UE4CVCommands::GetCameraView(const TArray<FString>& Args)
 			FImageUtils::CompressImageArray(SizeX, SizeY, RefBitmap, CompressedBitmap);
 			FFileHelper::SaveArrayToFile(CompressedBitmap, *FullFilename);
 		});
+		*/
 		return ExecStatusQuery;
+
+}
+
+FExecStatus UE4CVCommands::GetCameraViewAsyncCallback(const FString& FullFilename)
+{
+		FScreenshotRequest::RequestScreenshot(FullFilename, false, false); // This is an async operation
+
+		// async implement 1, Start async and callback
+		FExecStatus ExecStatusAsyncCallback = FExecStatus::AsyncCallback();
+		int32 TaskId = ExecStatusAsyncCallback.TaskId;
+		UMyGameViewportClient* ViewportClient = (UMyGameViewportClient*)Character->GetWorld()->GetGameViewport();
+		ViewportClient->OnScreenshotCaptured().Clear();
+		ViewportClient->OnScreenshotCaptured().AddLambda(
+			[FullFilename, TaskId](int32 SizeX, int32 SizeY, const TArray<FColor>& Bitmap) 
+		{
+			// Save bitmap to disk
+			TArray<FColor>& RefBitmap = const_cast<TArray<FColor>&>(Bitmap);
+			TArray<uint8> CompressedBitmap;
+			FImageUtils::CompressImageArray(SizeX, SizeY, RefBitmap, CompressedBitmap);
+			FFileHelper::SaveArrayToFile(CompressedBitmap, *FullFilename);
+
+			FString Message = FullFilename;
+			// FAsyncTaskPool::Get().CompleteTask(TaskId, Message); // int32 is easy to pass around in lamdba
+			/*
+			// Mark this async task finished
+			ExecStatusAsyncCallback.MessageBody = FullFilename;
+			ExecStatusAsyncCallback.OnFinished().Execute(); // FullFilename is the message to return
+			*/
+		});
+		return ExecStatusAsyncCallback;
+}
+
+
+FExecStatus UE4CVCommands::GetCameraView(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		int32 CameraId = FCString::Atoi(*Args[0]);
+
+		static uint32 NumCaptured = 0;
+		NumCaptured++;
+		FString Filename = FString::Printf(TEXT("%04d.png"), NumCaptured);
+		const FString Dir = FString(FPlatformProcess::BaseDir()); // TODO: Change this to screen capture folder
+		FString FullFilename = FPaths::Combine(*Dir, *Filename);
+		
+		return this->GetCameraViewAsyncCallback(FullFilename);
 	}
 	return FExecStatus::InvalidArgument;
 }

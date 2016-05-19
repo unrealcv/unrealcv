@@ -19,6 +19,11 @@ private:
 	FExecStatus GetCameraRotation(const TArray<FString>& Args);
 	FExecStatus	SetCameraRotation(const TArray<FString>& Args);
 	FExecStatus GetCameraView(const TArray<FString>& Args);
+
+	FExecStatus GetCameraViewSync(const FString& Fullfilename);
+	FExecStatus GetCameraViewAsyncQuery(const FString& Fullfilename);
+	FExecStatus GetCameraViewAsyncCallback(const FString& Fullfilename);
+
 	FExecStatus GetCameraImage(const TArray<FString>& Args);
 	FExecStatus GetCameraDepth(const TArray<FString>& Args);
 	FExecStatus GetCameraObjectMask(const TArray<FString>& Args);
