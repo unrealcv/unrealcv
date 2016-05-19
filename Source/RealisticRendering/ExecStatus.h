@@ -39,11 +39,11 @@ public:
 	static FExecStatus Error(FString ErrorMessage);
 	~FExecStatus();
 	FString GetMessage() const; // Convert this ExecStatus to String
+	FExecStatus& operator+=(const FExecStatus& InExecStatus);
 private:
 	FExecStatus(FExecStatusType InExecStatusType, FString Message);
 	// For query
 	FExecStatus(FExecStatusType InExecStatusType, FPromise Promise);
-	// FExecStatus& operator+=(const FExecStatus& InExecStatus);
 };
 
 bool operator==(const FExecStatus& ExecStatus, const FExecStatusType& ExecStatusEnum);

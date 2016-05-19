@@ -11,6 +11,16 @@ bool operator!=(const FExecStatus& ExecStatus, const FExecStatusType& ExecStatus
 	return (ExecStatus.ExecStatusType != ExecStatusType);
 }
 
+FExecStatus& FExecStatus::operator+=(const FExecStatus& Src)
+{
+	this->MessageBody += "\n" + Src.MessageBody;
+	if (Src.ExecStatusType == FExecStatusType::OK)
+	{
+		
+	}
+	return *this;
+}
+
 FPromise::FPromise()
 {
 }

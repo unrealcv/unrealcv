@@ -57,10 +57,9 @@ void AMyCharacter::TakeScreenShot()
 	FCallbackDelegate CallbackDelegate;
 	CallbackDelegate.BindLambda([this](FExecStatus ExecStatus)
 	{
-		FExecStatus ExecStatusCombine = FExecStatus::OK();
-		NotifyClient(ExecStatus.GetMessage());
-		ExecStatusCombine = CommandDispatcher.Exec("vget /camera/0/location");
-		ExecStatusCombine = CommandDispatcher.Exec("vget /camera/0/rotation");
+		FExecStatus ExecStatusCombine = ExecStatus;
+		ExecStatusCombine += CommandDispatcher.Exec("vget /camera/0/location");
+		ExecStatusCombine += CommandDispatcher.Exec("vget /camera/0/rotation");
 		NotifyClient(ExecStatusCombine.GetMessage());
 	});
 	CommandDispatcher.ExecAsync("vget /camera/0/view", CallbackDelegate);

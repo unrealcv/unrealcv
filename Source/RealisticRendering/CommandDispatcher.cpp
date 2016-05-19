@@ -10,10 +10,10 @@ class FAsyncWatcher : public FRunnable
 public:
 	void Wait(FPromise InPromise, FCallbackDelegate InCompletedCallback) // Need to open a new thread. Can not wait on the original thread
 	{
-		check(!this->Pending); // Make sure previous is done.
-		CompletedCallback = InCompletedCallback;
-		Promise = InPromise;
-		Pending = true;
+		this->PendingPromise.Enqueue(InPromise);
+		this->PendingCompletedCallback.Enqueue(InCompletedCallback);
+		// CompletedCallback = InCompletedCallback;
+		// Promise = InPromise;
 		// Start the timer
 	}
 	static FAsyncWatcher& Get()
@@ -23,7 +23,11 @@ public:
 	}
 	bool IsActive() const
 	{
-		return Pending;
+		return !PendingPromise.IsEmpty();
+	}
+	~FAsyncWatcher()
+	{
+		this->Stopping = true;
 	}
 private:
 	FAsyncWatcher()
@@ -32,33 +36,35 @@ private:
 		Stopping = false;
 	}
 	
-	// TQueue<FPromise, EQueueMode::Spsc> PendingPromise; 
-	// TQueue<FCallbackDelegate, EQueueMode::Spsc> PendingCompletedCallback; 
-	FPromise Promise;
-	FCallbackDelegate CompletedCallback;
+	TQueue<FPromise, EQueueMode::Spsc> PendingPromise; 
+	TQueue<FCallbackDelegate, EQueueMode::Spsc> PendingCompletedCallback; 
+	// FPromise Promise;
+	// FCallbackDelegate CompletedCallback;
 	bool Stopping;
-	bool Pending;
+	// bool Pending;
 
 	FRunnableThread* Thread;
 	virtual uint32 Run() override
 	{
 		while (!Stopping) 
 		{
-			if (Pending)
+			while (IsActive())
 			{
+				FPromise Promise;
+				PendingPromise.Peek(Promise);
 				FExecStatus ExecStatus = Promise.CheckStatus();
 				if (ExecStatus != FExecStatusType::Pending)
 				{
-					if (CompletedCallback.IsBound())
-					{
-						// This needs to be sent back to game thread
-						AsyncTask(ENamedThreads::GameThread, [this, ExecStatus]() {
-							CompletedCallback.ExecuteIfBound(ExecStatus);
-							CompletedCallback.Unbind();
-						});
-						// Stop the timer
-						Pending = false;
-					}
+					// This needs to be sent back to game thread
+					AsyncTask(ENamedThreads::GameThread, [this, ExecStatus]() {
+						FPromise Promise;
+						FCallbackDelegate CompletedCallback;
+						PendingPromise.Dequeue(Promise);
+						PendingCompletedCallback.Dequeue(CompletedCallback);
+						CompletedCallback.ExecuteIfBound(ExecStatus);
+						// CompletedCallback.Unbind();
+					});
+					// Stop the timer
 				}
 			}
 		}
