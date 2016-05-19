@@ -43,20 +43,9 @@ void FUE4CVServer::ProcessPendingRequest()
 		check(DequeueStatus);
 
 		FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message);
-		if (ExecStatus == FExecStatusType::Query)
+		if (ExecStatus == FExecStatusType::Pending)
 		{
 			PendingTask = FPendingTask(ExecStatus.Promise, Request.RequestId);
-			break;
-		}
-		if (ExecStatus == FExecStatusType::Callback)
-		{
-			this->PendingTask.Active = true;
-			ExecStatus.OnFinished().BindLambda([&]()
-			{
-				FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), Request.RequestId, *ExecStatus.GetMessage());
-				SendClientMessage(ReplyRawMessage);
-				PendingTask.Active = false;
-			});
 			break;
 		}
 		else

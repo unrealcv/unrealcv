@@ -4,100 +4,68 @@
 #include "Regex.h"
 #include "CommandDispatcher.h"
 
-bool operator==(const FExecStatus& ExecStatus, const FExecStatusType& ExecStatusEnum)
-{
-	return (ExecStatus.ExecStatusType == ExecStatusEnum);
-}
 
-// DECLARE_DELEGATE_OneParam(FDispatcherDelegate, const TArray< FString >&);
-// FExecStatus FExecStatus::Pending = FExecStatus("pending");
-// FExecStatus FExecStatus::OK = FExecStatus("ok"); // The status should start with ok or error for client to understand
-FExecStatus FExecStatus::InvalidArgument = FExecStatus(FExecStatusType::Error, "Argument Invalid");
-// FExecStatus FExecStatus::Error = FExecStatus("error");
-
-FExecStatus FExecStatus::OK(FString InMessage)
+class FAsyncWatcher : public FRunnable
 {
-	return FExecStatus(FExecStatusType::OK, InMessage);
-}
-
-FExecStatus FExecStatus::Pending(FString InMessage)
-{
-	return FExecStatus(FExecStatusType::Pending, InMessage);
-}
-
-FExecStatus FExecStatus::AsyncQuery(FPromise Promise)
-{
-	return FExecStatus(FExecStatusType::Query, Promise);
-}
-
-FExecStatus FExecStatus::AsyncCallback()
-{
-	return FExecStatus(FExecStatusType::Callback, "");
-}
-
-FExecStatus FExecStatus::Error(FString ErrorMessage)
-{
-	return FExecStatus(FExecStatusType::Error, ErrorMessage);
-}
-
-FCallbackDelegate& FExecStatus::OnFinished()
-{
-	return this->FinishedDelegate;
-}
-
-FString FExecStatus::GetMessage() const // Define how to format the reply string
-{
-	switch (ExecStatusType)
+public:
+	void Wait(FPromise InPromise, FCallbackDelegate InCompletedCallback) // Need to open a new thread. Can not wait on the original thread
 	{
-	case FExecStatusType::Error: 
-		return FString::Printf(TEXT("error %s"), *MessageBody);
-	case FExecStatusType::OK:
-		if (MessageBody == "")
-			return "ok";
-		else
-			return MessageBody;
-	default:
-		check(0); // Unexpected
+		check(!this->Pending); // Make sure previous is done.
+		CompletedCallback = InCompletedCallback;
+		Promise = InPromise;
+		Pending = true;
+		// Start the timer
 	}
-	return ""; // This will never be reached
-}
-
-FExecStatus::FExecStatus(FExecStatusType InExecStatusType, FPromise InPromise)
-{
-	ExecStatusType = InExecStatusType;
-	Promise = InPromise;
-}
-
-FExecStatus::FExecStatus(FExecStatusType InExecStatusType, FString InMessage)
-{
-	ExecStatusType = InExecStatusType;
-	MessageBody = InMessage;
-	/*
-	if (InMessage != "")
-	{ 
-		Message = InMessage;
-	}
-	else
+	static FAsyncWatcher& Get()
 	{
-		Message = "error Message can not be empty";
+		static FAsyncWatcher Singleton;
+		return Singleton;
 	}
-	*/
-}
-
-FExecStatus::~FExecStatus()
-{
-}
-
-FPromise::FPromise()
-{
-}
-
-FPromise::FPromise(FPromiseDelegate InPromiseDelegate) : PromiseDelegate(InPromiseDelegate) {}
+	bool IsActive() const
+	{
+		return Pending;
+	}
+private:
+	FAsyncWatcher()
+	{
+		Thread = FRunnableThread::Create(this, TEXT("FAsyncWatcher"), 8 * 1024, TPri_Normal);
+		Stopping = false;
+	}
 	
-FExecStatus FPromise::CheckStatus()
-{
-	return PromiseDelegate.Execute();
-}
+	// TQueue<FPromise, EQueueMode::Spsc> PendingPromise; 
+	// TQueue<FCallbackDelegate, EQueueMode::Spsc> PendingCompletedCallback; 
+	FPromise Promise;
+	FCallbackDelegate CompletedCallback;
+	bool Stopping;
+	bool Pending;
+
+	FRunnableThread* Thread;
+	virtual uint32 Run() override
+	{
+		while (!Stopping) 
+		{
+			if (Pending)
+			{
+				FExecStatus ExecStatus = Promise.CheckStatus();
+				if (ExecStatus != FExecStatusType::Pending)
+				{
+					if (CompletedCallback.IsBound())
+					{
+						// This needs to be sent back to game thread
+						AsyncTask(ENamedThreads::GameThread, [this, ExecStatus]() {
+							CompletedCallback.ExecuteIfBound(ExecStatus);
+							CompletedCallback.Unbind();
+						});
+						// Stop the timer
+						Pending = false;
+					}
+				}
+			}
+		}
+		return 0; // This thread will exit
+	}
+};
+
 
 FCommandDispatcher::FCommandDispatcher()
 {
@@ -247,6 +215,25 @@ FExecStatus FCommandDispatcher::AliasHelper(const TArray<FString>& Args)
 const TMap<FString, FString>& FCommandDispatcher::GetUriDescription()
 {
 	return this->UriDescription;
+}
+
+void FCommandDispatcher::ExecAsync(const FString Uri, const FCallbackDelegate Callback)
+// TODO: This is a stupid implementation to use a new thread to check whether the task is completed.
+{
+	if (FAsyncWatcher::Get().IsActive())
+	{
+		UE_LOG(LogTemp, Error, TEXT("There are pending tasks."));
+		return;
+	}
+	FExecStatus ExecStatus = Exec(Uri);
+	if (ExecStatus == FExecStatusType::Pending)
+	{
+		FAsyncWatcher::Get().Wait(ExecStatus.Promise, Callback);
+	}
+	else
+	{
+		Callback.ExecuteIfBound(ExecStatus);
+	}
 }
 
 	

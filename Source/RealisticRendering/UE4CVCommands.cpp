@@ -257,6 +257,7 @@ FExecStatus UE4CVCommands::GetCameraViewAsyncQuery(const FString& FullFilename)
 
 }
 
+/*
 FExecStatus UE4CVCommands::GetCameraViewAsyncCallback(const FString& FullFilename)
 {
 		FScreenshotRequest::RequestScreenshot(FullFilename, false, false); // This is an async operation
@@ -277,14 +278,14 @@ FExecStatus UE4CVCommands::GetCameraViewAsyncCallback(const FString& FullFilenam
 
 			FString Message = FullFilename;
 			// FAsyncTaskPool::Get().CompleteTask(TaskId, Message); // int32 is easy to pass around in lamdba
-			/*
+			
 			// Mark this async task finished
-			ExecStatusAsyncCallback.MessageBody = FullFilename;
-			ExecStatusAsyncCallback.OnFinished().Execute(); // FullFilename is the message to return
-			*/
+			// ExecStatusAsyncCallback.MessageBody = FullFilename;
+			// ExecStatusAsyncCallback.OnFinished().Execute(); // FullFilename is the message to return
 		});
 		return ExecStatusAsyncCallback;
 }
+*/
 
 
 FExecStatus UE4CVCommands::GetCameraView(const TArray<FString>& Args)
@@ -299,7 +300,7 @@ FExecStatus UE4CVCommands::GetCameraView(const TArray<FString>& Args)
 		const FString Dir = FString(FPlatformProcess::BaseDir()); // TODO: Change this to screen capture folder
 		FString FullFilename = FPaths::Combine(*Dir, *Filename);
 		
-		return this->GetCameraViewAsyncCallback(FullFilename);
+		return this->GetCameraViewAsyncQuery(FullFilename);
 	}
 	return FExecStatus::InvalidArgument;
 }

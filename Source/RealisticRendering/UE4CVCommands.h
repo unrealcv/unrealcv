@@ -22,7 +22,7 @@ private:
 
 	FExecStatus GetCameraViewSync(const FString& Fullfilename);
 	FExecStatus GetCameraViewAsyncQuery(const FString& Fullfilename);
-	FExecStatus GetCameraViewAsyncCallback(const FString& Fullfilename);
+	// FExecStatus GetCameraViewAsyncCallback(const FString& Fullfilename);
 
 	FExecStatus GetCameraImage(const TArray<FString>& Args);
 	FExecStatus GetCameraDepth(const TArray<FString>& Args);

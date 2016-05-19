@@ -54,13 +54,18 @@ void AMyCharacter::NotifyClient(FString Message)
 void AMyCharacter::TakeScreenShot()
 {
 	FExecStatus ExecStatus = FExecStatus::OK();
+	FCallbackDelegate CallbackDelegate;
+	CallbackDelegate.BindLambda([this](FExecStatus ExecStatus)
+	{
+		FExecStatus ExecStatusCombine = FExecStatus::OK();
+		NotifyClient(ExecStatus.GetMessage());
+		ExecStatusCombine = CommandDispatcher.Exec("vget /camera/0/location");
+		ExecStatusCombine = CommandDispatcher.Exec("vget /camera/0/rotation");
+		NotifyClient(ExecStatusCombine.GetMessage());
+	});
+	CommandDispatcher.ExecAsync("vget /camera/0/view", CallbackDelegate);
+	// CommandDispatcher.ExecAsync("vget /camera/0/location", CallbackDelegate);
 	// TODO: Implement operator + for FExecStatus
-	ExecStatus = CommandDispatcher.Exec("vget /camera/0/view");
-	NotifyClient(ExecStatus.GetMessage());
-	ExecStatus = CommandDispatcher.Exec("vget /camera/0/location");
-	NotifyClient(ExecStatus.GetMessage());
-	ExecStatus = CommandDispatcher.Exec("vget /camera/0/rotation");
-	NotifyClient(ExecStatus.GetMessage());
 }
 
 // Called every frame
