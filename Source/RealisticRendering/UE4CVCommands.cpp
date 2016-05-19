@@ -221,8 +221,8 @@ FExecStatus UE4CVCommands::GetCameraViewSync(const FString& FullFilename)
 FExecStatus UE4CVCommands::GetCameraViewAsyncQuery(const FString& FullFilename)
 {
 		// Method 1: Use custom ViewportClient
-		UMyGameViewportClient* ViewportClient = (UMyGameViewportClient*)Character->GetWorld()->GetGameViewport();
-		ViewportClient->CaptureScreen(FullFilename);
+		// UMyGameViewportClient* ViewportClient = (UMyGameViewportClient*)Character->GetWorld()->GetGameViewport();
+		// ViewportClient->CaptureScreen(FullFilename);
 
 		// Method2: System screenshot function
 		FScreenshotRequest::RequestScreenshot(FullFilename, false, false); // This is an async operation
@@ -231,8 +231,16 @@ FExecStatus UE4CVCommands::GetCameraViewAsyncQuery(const FString& FullFilename)
 		// FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateRaw(this, &UE4CVCommands::CheckStatusScreenshot);
 		FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([FullFilename]()
 		{
-			if (FScreenshotRequest::IsScreenshotRequested()) return FExecStatus::Pending();
-			else return FExecStatus::OK(FullFilename);
+			if (FScreenshotRequest::IsScreenshotRequested())
+			{
+				return FExecStatus::Pending();
+			}
+			else
+			{
+				FString DiskFilename = IFileManager::Get().GetFilenameOnDisk(*FullFilename); // This is important
+				// See: https://wiki.unrealengine.com/Packaged_Game_Paths,_Obtain_Directories_Based_on_Executable_Location.
+				return FExecStatus::OK(DiskFilename);
+			}
 		});
 		FExecStatus ExecStatusQuery = FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
 		/*
@@ -297,7 +305,7 @@ FExecStatus UE4CVCommands::GetCameraView(const TArray<FString>& Args)
 		static uint32 NumCaptured = 0;
 		NumCaptured++;
 		FString Filename = FString::Printf(TEXT("%04d.png"), NumCaptured);
-		const FString Dir = FString(FPlatformProcess::BaseDir()); // TODO: Change this to screen capture folder
+		const FString Dir = FPlatformProcess::BaseDir(); // TODO: Change this to screen capture folder
 		FString FullFilename = FPaths::Combine(*Dir, *Filename);
 		
 		return this->GetCameraViewAsyncQuery(FullFilename);

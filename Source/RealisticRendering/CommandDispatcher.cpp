@@ -225,16 +225,19 @@ const TMap<FString, FString>& FCommandDispatcher::GetUriDescription()
 
 void FCommandDispatcher::ExecAsync(const FString Uri, const FCallbackDelegate Callback)
 // TODO: This is a stupid implementation to use a new thread to check whether the task is completed.
+// ExecAsync can not guarantee the execuation order, this needs to be enforced in the client.
 {
+	/*
 	if (FAsyncWatcher::Get().IsActive())
 	{
 		UE_LOG(LogTemp, Error, TEXT("There are pending tasks."));
 		return;
 	}
+	*/
 	FExecStatus ExecStatus = Exec(Uri);
 	if (ExecStatus == FExecStatusType::Pending)
 	{
-		FAsyncWatcher::Get().Wait(ExecStatus.Promise, Callback);
+		FAsyncWatcher::Get().Wait(ExecStatus.GetPromise(), Callback);
 	}
 	else
 	{

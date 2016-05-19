@@ -27,6 +27,7 @@ void AMyCharacter::BeginPlay()
 {
 	// Tester = new NetworkManagerTester();
 	// Tester = new UE4CVServerTester(&CommandDispatcher);
+	Tester = new FilePathTester();
 	// Tester->Init();
 	Super::BeginPlay();
 

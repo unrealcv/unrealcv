@@ -26,7 +26,7 @@ FPromise::FPromise()
 }
 
 FPromise::FPromise(FPromiseDelegate InPromiseDelegate) : PromiseDelegate(InPromiseDelegate) {}
-	
+
 FExecStatus FPromise::CheckStatus()
 {
 	check(this);
@@ -39,6 +39,14 @@ FExecStatus FPromise::CheckStatus()
 FExecStatus FExecStatus::InvalidArgument = FExecStatus(FExecStatusType::Error, "Argument Invalid");
 // FExecStatus FExecStatus::Error = FExecStatus("error");
 
+FPromise& FExecStatus::GetPromise()
+{ 
+	check(this->ExecStatusType == FExecStatusType::Pending); 
+	// Check should be in a single line, make it easier to read and debug
+	// The promise is set only when the operation is async and ExecStatus is pending
+	return this->Promise; 
+}
+	
 FExecStatus FExecStatus::OK(FString InMessage)
 {
 	return FExecStatus(FExecStatusType::OK, InMessage);

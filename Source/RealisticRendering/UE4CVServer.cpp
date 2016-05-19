@@ -21,6 +21,7 @@ FUE4CVServer::~FUE4CVServer()
 
 void FUE4CVServer::ProcessPendingRequest()
 {
+	/*
 	if (PendingTask.Active) // Do query or wait for callback
 	{
 		FExecStatus ExecStatus = PendingTask.CheckStatus();
@@ -54,6 +55,23 @@ void FUE4CVServer::ProcessPendingRequest()
 			FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), Request.RequestId, *ExecStatus.GetMessage());
 			SendClientMessage(ReplyRawMessage);
 		}
+	}
+	*/
+	while (!PendingRequest.IsEmpty())
+	{
+		FRequest Request;
+		bool DequeueStatus = PendingRequest.Dequeue(Request);
+		check(DequeueStatus);
+		int32 RequestId = Request.RequestId;
+
+		FCallbackDelegate CallbackDelegate;
+		CallbackDelegate.BindLambda([this, RequestId](FExecStatus ExecStatus)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
+			FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), RequestId, *ExecStatus.GetMessage());
+			SendClientMessage(ReplyRawMessage);
+		});
+		CommandDispatcher->ExecAsync(Request.Message, CallbackDelegate);
 	}
 }
 

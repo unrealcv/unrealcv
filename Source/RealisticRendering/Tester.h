@@ -10,7 +10,7 @@ class ITester
 {
 public:
 	virtual void Run() = 0;
-	virtual void Init() = 0;
+	virtual void Init() {};
 };
 
 class NetworkManagerTester : public ITester
@@ -39,4 +39,10 @@ public:
 	UE4CVServerTester(FCommandDispatcher* InCommandDispatcher);
 	void Run();
 	void Init();
+};
+
+class FilePathTester : public ITester
+{
+public: 
+	void Run();
 };

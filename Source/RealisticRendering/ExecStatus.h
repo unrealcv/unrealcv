@@ -26,7 +26,6 @@ class FExecStatus
 {
 public:
 	// Support aync task
-	FPromise Promise; 
 	static FExecStatus Pending(FString Message=""); // Useful for async task
 	static FExecStatus AsyncQuery(FPromise Promise);
 
@@ -40,7 +39,10 @@ public:
 	~FExecStatus();
 	FString GetMessage() const; // Convert this ExecStatus to String
 	FExecStatus& operator+=(const FExecStatus& InExecStatus);
+
+	FPromise& GetPromise(); 
 private:
+	FPromise Promise; 
 	FExecStatus(FExecStatusType InExecStatusType, FString Message);
 	// For query
 	FExecStatus(FExecStatusType InExecStatusType, FPromise Promise);
