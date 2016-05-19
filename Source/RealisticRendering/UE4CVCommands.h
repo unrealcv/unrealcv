@@ -13,6 +13,7 @@ private:
 	AMyCharacter* Character;
 	FCommandDispatcher* CommandDispatcher;
 	void RegisterCommands();
+	void RegisterCommandsCamera();
 
 	FExecStatus GetCameraLocation(const TArray<FString>& Args);
 	FExecStatus	SetCameraLocation(const TArray<FString>& Args);
