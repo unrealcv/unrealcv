@@ -9,16 +9,19 @@
 class FViewMode
 {
 public:
-	FViewMode();
+	static FViewMode& Get();
 	~FViewMode();
-	static void Depth(UWorld *World);
-	static void SetCurrentBufferVisualizationMode(FString ViewMode);
-	static void Normal(UWorld *World);
-	static void Lit(UWorld* World);
-	static void Unlit(UWorld* World);
-	static void Object(UWorld* World);
-	static FExecStatus SetMode(const TArray<FString>& Args); // Check input arguments
-	static FExecStatus GetMode(const TArray<FString>& Args);
-	static UWorld* World;
-	static FString CurrentViewMode;
+	void SetCurrentBufferVisualizationMode(FString ViewMode);
+	void Depth();
+	void Normal();
+	void Lit();
+	void Unlit();
+	void Object();
+	void BaseColor();
+	FExecStatus SetMode(const TArray<FString>& Args); // Check input arguments
+	FExecStatus GetMode(const TArray<FString>& Args);
+	UWorld* World;
+private:
+	FViewMode();
+	FString CurrentViewMode;
 };

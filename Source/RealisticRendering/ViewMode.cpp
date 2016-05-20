@@ -10,33 +10,42 @@
 		IConsoleManager::Get().RegisterConsoleCommand(TEXT(COMMAND), TEXT(DESC), \
 			FConsoleCommandWithWorldDelegate::CreateStatic(DELEGATE), ECVF_Default);
 
-UWorld* FViewMode::World = NULL;
-FString FViewMode::CurrentViewMode = "lit"; // "lit" the default mode when the game starts
+FViewMode::FViewMode() : World(NULL), CurrentViewMode("lit") {}
 
-FViewMode::FViewMode()
+FViewMode::~FViewMode() {}
+
+FViewMode& FViewMode::Get()
 {
+	static FViewMode Singleton;
+	return Singleton;
 }
 
-FViewMode::~FViewMode()
-{
-}
 
-
-/* Define console commands */
-void FViewMode::Depth(UWorld *World)
-{
-	check(World);
-
-	UGameViewportClient* Viewport = World->GetGameViewport();
-	// Viewport->CurrentBufferVisualization
-	Viewport->EngineShowFlags.SetVisualizeBuffer(true);
-	SetCurrentBufferVisualizationMode(TEXT("SceneDepth"));
-	// TODO: Enable post process or not will show interesting result.
-	// Viewport->EngineShowFlags.SetPostProcessing(false);
-}
 
 void FViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 {
+	check(World);
+	UGameViewportClient* Viewport = World->GetGameViewport();
+	ApplyViewMode(EViewModeIndex::VMI_VisualizeBuffer, true, Viewport->EngineShowFlags); // This did more than just SetVisualizeBuffer(true);
+
+	// bPostProcessing = true;
+	// From ShowFlags.cpp
+	Viewport->EngineShowFlags.SetPostProcessing(true);
+	// Viewport->EngineShowFlags.SetPostProcessing(false);
+	// Viewport->EngineShowFlags.SetMaterials(false);
+	Viewport->EngineShowFlags.SetMaterials(true);
+	Viewport->EngineShowFlags.SetVisualizeBuffer(true);
+
+
+	//Viewport->EngineShowFlags.AmbientOcclusion = 0;
+	//Viewport->EngineShowFlags.ScreenSpaceAO = 0;
+	//Viewport->EngineShowFlags.Decals = 0;
+	//Viewport->EngineShowFlags.DynamicShadows = 0;
+	//Viewport->EngineShowFlags.GlobalIllumination = 0;
+	//Viewport->EngineShowFlags.ScreenSpaceReflections = 0;
+	Viewport->EngineShowFlags.SetTonemapper(false);
+	Viewport->EngineShowFlags.TemporalAA = 1;
+
 	// A complete list can be found from Engine/Config/BaseEngine.ini, Engine.BufferVisualizationMaterials
 	// TODO: BaseColor is weird, check BUG.
 	// No matter in which thread, ICVar needs to be set in the GameThread
@@ -57,36 +66,45 @@ void FViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 	// The ICVar can only be set in GameThread, the CommandDispatcher already enforce this requirement.
 }
 
-void FViewMode::Normal(UWorld *World)
+/* Define console commands */
+void FViewMode::Depth()
 {
-	check(World);
+	SetCurrentBufferVisualizationMode(TEXT("SceneDepth"));
+}
 
-	UGameViewportClient* Viewport = World->GetGameViewport();
-	Viewport->EngineShowFlags.SetVisualizeBuffer(true);
+void FViewMode::Normal()
+{
 	SetCurrentBufferVisualizationMode(TEXT("WorldNormal"));
 }
 
-
-void FViewMode::Lit(UWorld* World)
+void FViewMode::BaseColor()
 {
-	check(World);
-
-	auto Viewport = World->GetGameViewport();
-	ApplyViewMode(VMI_Lit, true, Viewport->EngineShowFlags);
-
-	Viewport->EngineShowFlags.SetMaterials(true);
+	SetCurrentBufferVisualizationMode(TEXT("BaseColor"));
 }
 
-void FViewMode::Unlit(UWorld* World)
+void FViewMode::Lit()
 {
 	check(World);
+	auto Viewport = World->GetGameViewport();
+	ApplyViewMode(VMI_Lit, true, Viewport->EngineShowFlags);
+	Viewport->EngineShowFlags.SetMaterials(true);
+	Viewport->EngineShowFlags.SetLighting(true);
+}
 
+void FViewMode::Unlit()
+{
+	check(World);
 	auto Viewport = World->GetGameViewport();
 	ApplyViewMode(VMI_Unlit, true, Viewport->EngineShowFlags);
 	Viewport->EngineShowFlags.SetMaterials(false);
+	Viewport->EngineShowFlags.SetVertexColors(false);
+	Viewport->EngineShowFlags.LightFunctions = 0;
+	Viewport->EngineShowFlags.DynamicShadows = 0;
+	Viewport->EngineShowFlags.SetLighting(false);
+	Viewport->EngineShowFlags.AtmosphericFog = 0;
 }
 
-void FViewMode::Object(UWorld* World)
+void FViewMode::Object()
 {
 	check(World);
 
@@ -124,23 +142,27 @@ FExecStatus FViewMode::SetMode(const TArray<FString>& Args) // Check input argum
 		bool bSuccess = true;
 		if (ViewMode == "depth")
 		{
-			FViewMode::Depth(FViewMode::World);
+			Depth();
 		}
 		else if (ViewMode == "normal")
 		{
-			FViewMode::Normal(FViewMode::World);
+			Normal();
 		}
-		else if (ViewMode == "object")
+		else if (ViewMode == "object_mask")
 		{
-			FViewMode::Object(FViewMode::World);
+			Object();
 		}
 		else if (ViewMode == "lit")
 		{
-			FViewMode::Lit(FViewMode::World);
+			Lit();
 		}
 		else if (ViewMode == "unlit")
 		{
-			FViewMode::Unlit(FViewMode::World);
+			Unlit();
+		}
+		else if (ViewMode == "base_color")
+		{
+			BaseColor();
 		}
 		else
 		{
@@ -150,7 +172,7 @@ FExecStatus FViewMode::SetMode(const TArray<FString>& Args) // Check input argum
 		}
 		if (bSuccess)
 		{
-			FViewMode::CurrentViewMode = ViewMode;
+			CurrentViewMode = ViewMode;
 			return FExecStatus::OK();
 		}
 	}
@@ -162,9 +184,9 @@ FExecStatus FViewMode::SetMode(const TArray<FString>& Args) // Check input argum
 
 FExecStatus FViewMode::GetMode(const TArray<FString>& Args) // Check input arguments
 {
-	UE_LOG(LogTemp, Warning, TEXT("Run GetMode, The mode is %s"), *FViewMode::CurrentViewMode);
+	UE_LOG(LogTemp, Warning, TEXT("Run GetMode, The mode is %s"), *CurrentViewMode);
 	// How to send message back. Need the conversation id.
 	// Send message back
 	// Complex information will be saved to file
-	return FExecStatus::OK(*FViewMode::CurrentViewMode);
+	return FExecStatus::OK(CurrentViewMode);
 }

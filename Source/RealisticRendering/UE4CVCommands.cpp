@@ -25,11 +25,11 @@ void UE4CVCommands::RegisterCommands()
 	// The regular expression for float number is from here, http://stackoverflow.com/questions/12643009/regular-expression-for-floating-point-numbers
 	// Use ICU regexp to define URI, See http://userguide.icu-project.org/strings/regexp
 
-	Cmd = FDispatcherDelegate::CreateStatic(FViewMode::SetMode);
+	Cmd = FDispatcherDelegate::CreateRaw(&FViewMode::Get(), &FViewMode::SetMode);
 	URI = "vset /mode/[str]";
 	CommandDispatcher->BindCommand(URI, Cmd, "Set mode"); // Better to check the correctness at compile time
 
-	Cmd = FDispatcherDelegate::CreateStatic(FViewMode::GetMode);
+	Cmd = FDispatcherDelegate::CreateRaw(&FViewMode::Get(), &FViewMode::GetMode);
 	CommandDispatcher->BindCommand("vget /mode", Cmd, "Get mode");
 
 

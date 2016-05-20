@@ -28,6 +28,9 @@ private:
 	FExecStatus GetCameraImage(const TArray<FString>& Args);
 	FExecStatus GetCameraDepth(const TArray<FString>& Args);
 	FExecStatus GetCameraObjectMask(const TArray<FString>& Args);
+	FExecStatus GetCameraNormal(const TArray<FString>& Args); // Consider a more compact implementation
+	FExecStatus GetCameraBaseColor(const TArray<FString>& Args);
+	FExecStatus GetCameraViewMode(const TArray<FString>& Args);
 
 	FExecStatus GetObjects(const TArray<FString>& Args);
 	FExecStatus GetObjectColor(const TArray<FString>& Args);

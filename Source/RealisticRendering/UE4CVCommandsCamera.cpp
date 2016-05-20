@@ -21,6 +21,10 @@ void UE4CVCommands::RegisterCommandsCamera()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraView);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/view", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 
+	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraViewMode);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/[str]", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
+
+	/*
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraImage);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/image", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 
@@ -30,12 +34,11 @@ void UE4CVCommands::RegisterCommandsCamera()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraObjectMask);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/object_mask", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 
-	/*
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraNormal);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/normal", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraNormal);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/normal", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
+	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraBaseColor);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/base_color", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 	*/
 }
 
@@ -83,6 +86,7 @@ FExecStatus UE4CVCommands::GetCameraRotation(const TArray<FString>& Args)
 	return FExecStatus::Error("Number of arguments incorrect");
 }
 
+/*
 FExecStatus UE4CVCommands::GetCameraDepth(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
@@ -92,7 +96,33 @@ FExecStatus UE4CVCommands::GetCameraDepth(const TArray<FString>& Args)
 	}
 	return FExecStatus::InvalidArgument;
 }
+*/
 
+/*
+FExecStatus UE4CVCommands::GetCameraBaseColor(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		FExecStatus ExecStatus = CommandDispatcher->Exec("vset /mode/normal"); // TODO: Overwrite the + operator of FExecStatus
+		return GetCameraView(Args);
+	}
+	return FExecStatus::InvalidArgument;
+}
+*/
+
+/*
+FExecStatus UE4CVCommands::GetCameraNormal(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		FExecStatus ExecStatus = CommandDispatcher->Exec("vset /mode/normal"); // TODO: Overwrite the + operator of FExecStatus
+		return GetCameraView(Args);
+	}
+	return FExecStatus::InvalidArgument;
+}
+*/
+
+/*
 FExecStatus UE4CVCommands::GetCameraObjectMask(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
@@ -102,7 +132,9 @@ FExecStatus UE4CVCommands::GetCameraObjectMask(const TArray<FString>& Args)
 	}
 	return FExecStatus::InvalidArgument;
 }
+*/
 
+/*
 FExecStatus UE4CVCommands::GetCameraImage(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
@@ -112,6 +144,7 @@ FExecStatus UE4CVCommands::GetCameraImage(const TArray<FString>& Args)
 	}
 	return FExecStatus::InvalidArgument;
 }
+*/
 
 FExecStatus UE4CVCommands::GetCameraLocation(const TArray<FString>& Args)
 {
@@ -245,6 +278,31 @@ FExecStatus UE4CVCommands::GetCameraViewAsyncCallback(const FString& FullFilenam
 }
 */
 
+FExecStatus UE4CVCommands::GetCameraViewMode(const TArray<FString>& Args)
+{
+	if (Args.Num() == 2) // The first is camera id, the second is ViewMode
+	{ 
+		FString CameraId = Args[0];
+		FString ViewMode = Args[1];
+
+		/*
+		TArray<FString> Args1;
+		Args1.Add(ViewMode);
+		FViewMode::Get().SetMode(Args1);
+		*/
+		FExecStatus ExecStatus = CommandDispatcher->Exec(FString::Printf(TEXT("vset /mode/%s"), *ViewMode));
+		if (ExecStatus != FExecStatusType::OK)
+		{
+			return ExecStatus;
+		}
+
+		TArray<FString> Args2;
+		Args2.Add(CameraId);
+		ExecStatus = GetCameraView(Args2);
+		return ExecStatus;
+	}
+	return FExecStatus::InvalidArgument;
+}
 
 FExecStatus UE4CVCommands::GetCameraView(const TArray<FString>& Args)
 {
