@@ -6,7 +6,7 @@
 /**
  * 
  */
-class REALISTICRENDERING_API FConsoleHelper
+class FConsoleHelper
 {
 public:
 	FConsoleHelper(FCommandDispatcher* CommandDispatcher, FConsoleOutputDevice* ConsoleOutputDevice);

@@ -4,7 +4,7 @@
   "VersionName": "1.0",
   "FriendlyName": "Unreal CV",
   "Description": "UnrealCV is a plugin to connect computer vision algorithm and the games built by Unreal Engine",
-	"Category" : "Developer",
+	"Category" : "Science",
   "CreatedBy": "Weichao Qiu",
   "CreatedByURL": "http://weichaoqiu.com",
 	"DocsURL" : "",
@@ -17,7 +17,7 @@
 	"Modules" :
 	[
 		{
-			"Name" : "UObjectPlugin",
+      "Name": "UnrealCV",
 			"Type" : "Developer",
 			"LoadingPhase" : "Default"
 		}

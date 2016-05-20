@@ -2,11 +2,11 @@
 
 #pragma once
 #include "CommandDispatcher.h"
-#include "MyCharacter.h"
+// #include "MyCharacter.h"
 /**
  * 
  */
-class REALISTICRENDERING_API UE4CVCommands
+class UE4CVCommands
 {
 	friend class AMyCharacter; // Need to access information from Character;
 private:

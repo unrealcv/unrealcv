@@ -29,7 +29,7 @@ public:
 	uint32 RequestId;
 };
 
-class REALISTICRENDERING_API FUE4CVServer
+class FUE4CVServer
 {
 public:
 	FPendingTask PendingTask;

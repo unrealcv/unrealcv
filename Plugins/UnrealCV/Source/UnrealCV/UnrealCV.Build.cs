@@ -2,9 +2,9 @@
 
 namespace UnrealBuildTool.Rules
 {
-	public class UObjectPlugin : ModuleRules
+	public class UnrealCV: ModuleRules
 	{
-		public UObjectPlugin(TargetInfo Target)
+		public UnrealCV(TargetInfo Target)
 		{
 			PublicIncludePaths.AddRange(
 				new string[] {
@@ -15,10 +15,14 @@ namespace UnrealBuildTool.Rules
 			PrivateIncludePaths.AddRange(
 				new string[] {
 					"Developer/UObjectPlugin/Private",
+                    "UnrealCV/Private",
+                    // "Developer/UnrealCV/Private",
 					// ... add other private include paths required here ...
 				}
 				);
 
+            PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "RenderCore", "Networking", "Sockets"});
+            /*
 			PublicDependencyModuleNames.AddRange(
 				new string[]
 				{
@@ -27,6 +31,7 @@ namespace UnrealBuildTool.Rules
 					// ... add other public dependencies that you statically link with here ...
 				}
 				);
+                */
 
 			PrivateDependencyModuleNames.AddRange(
 				new string[]

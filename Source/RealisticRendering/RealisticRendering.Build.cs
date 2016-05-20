@@ -6,7 +6,10 @@ public class RealisticRendering : ModuleRules
 {
 	public RealisticRendering(TargetInfo Target)
 	{
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "RenderCore", "Networking", "Sockets" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "RenderCore", "Networking", "Sockets", 
+            "UObjectPlugin",
+            // "UnrealCV_Plugin"
+        });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

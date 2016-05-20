@@ -1,4 +1,5 @@
-#include "RealisticRendering.h"
+// #include "RealisticRendering.h"
+#include "UnrealCVPrivate.h"
 #include "UE4CVCommands.h"
 #include "ViewMode.h"
 #include "ImageUtils.h"
