@@ -56,7 +56,7 @@ void FViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 	static IConsoleVariable* ICVar = IConsoleManager::Get().FindConsoleVariable(FBufferVisualizationData::GetVisualizationTargetConsoleCommandName());
 	if (ICVar)
 	{
-		ICVar->Set(*ViewMode, ECVF_SetByCode);
+		ICVar->Set(*ViewMode, ECVF_SetByCode); // TODO: Should wait here for a moment.
 	}
 	else
 	{
