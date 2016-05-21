@@ -8,6 +8,7 @@ except:
     pass
 
 def skip(response):
+    return True
     pass
 
 def justcreated(filename, timelimit=1):
@@ -17,6 +18,7 @@ def justcreated(filename, timelimit=1):
     delta = now - t
     assert(delta > 0) # file is created before this function
     assert(delta < timelimit) # file is just created
+    return True
 
 
 def ispng(response):
@@ -30,6 +32,7 @@ def ispng(response):
 
     # Make sure file is just created
     justcreated(response)
+    return True
 
 test_commands = [
     ['vset /mode/depth', 'ok'],
@@ -47,10 +50,38 @@ test_commands = [
     # 'vrun ls',
     # 'vget /object/_/name', this needs to be run on game thread
     # TODO: add a test for object location
+    # Check different view mode
+    ['vget /camera/0/normal', ispng],
+    ['vget /camera/0/base_color', ispng],
+    ['vget /camera/0/depth', ispng],
+    ['vget /camera/0/lit', ispng],
+    ['vget /camera/0/object_mask', ispng],
+    ['vget /camera/0/view', ispng],
 ]
 
-def run_commands():
-    sleep_time = 1
+def test_some_locations(client):
+    test_camera_locations = get_filelist('./correctness_test/camera_info_basename.txt')
+    for camera_location in test_camera_locations:
+        res = client.request('vset /camera/0/location %s' % ' '.join([str(v) for v in camera_location[1]]))
+        assert(res == 'ok')
+        res = client.request('vset /camera/0/rotation %s' % ' '.join([str(v) for v in camera_location[2]]))
+        assert(res == 'ok')
+
+        # modes = ['normal', 'base_color', 'depth', 'lit', 'unlit', 'object_mask']
+        modes = ['normal', 'base_color', 'depth', 'lit', 'unlit', 'object_mask'] # Buffer Visualization
+        for mode in modes: # TODO: shuffle the order of modes
+            time.sleep(0)
+            # Make sure the result is consistent
+            res = client.request('vget /camera/0/%s' % mode)
+            print res
+            # res = client.request('vget /camera/0/%s' % mode)
+            # print res
+            # res = client.request('vget /camera/0/%s' % mode)
+            # print res
+            assert(ispng(res))
+
+def run_commands(client):
+    sleep_time = 0
     for i in range(100):
         print '-' * 70
         task = test_commands[i % len(test_commands)]
@@ -77,4 +108,5 @@ def MessageHandler(message):
 if __name__ == '__main__':
     client = Client((HOST, PORT), MessageHandler)
 
-    run_commands()
+    run_commands(client)
+    # test_some_locations(client)
