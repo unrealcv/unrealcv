@@ -5,7 +5,7 @@
 /**
  *
  */
-class FViewMode
+class UNREALCV_API FViewMode
 {
 public:
 	static FViewMode& Get();

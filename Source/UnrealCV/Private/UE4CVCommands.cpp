@@ -5,10 +5,10 @@
 #include "UE4CVCommands.h"
 #include "ViewMode.h"
 
-UE4CVCommands::UE4CVCommands(AMyCharacter* InCharacter)
+UE4CVCommands::UE4CVCommands(ACharacter* InCharacter, FCommandDispatcher* InCommandDispatcher)
 {
 	this->Character = InCharacter;
-	this->CommandDispatcher = &InCharacter->CommandDispatcher;
+	this->CommandDispatcher = InCommandDispatcher;
 	this->RegisterCommands();
 }
 
@@ -33,7 +33,7 @@ void UE4CVCommands::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(&FViewMode::Get(), &FViewMode::GetMode);
 	CommandDispatcher->BindCommand("vget /mode", Cmd, "Get mode");
 
-
+	/*
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetObjects);
 	CommandDispatcher->BindCommand(TEXT("vget /objects"), Cmd, "Get all objects in the scene");
 
@@ -49,6 +49,7 @@ void UE4CVCommands::RegisterCommands()
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetObjectName);
 	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/name"), Cmd, "Get object name");
+	*/
 
 	// Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::PaintRandomColors);
 	// CommandDispatcher->BindCommand(TEXT("vget /util/random_paint"), Cmd, "Paint objects with random color");
@@ -81,6 +82,7 @@ FExecStatus UE4CVCommands::GetCommands(const TArray<FString>& Args)
 	return FExecStatus::OK(Message);
 }
 
+/*
 FExecStatus UE4CVCommands::GetObjects(const TArray<FString>& Args)
 {
 	TArray<FString> Keys;
@@ -92,7 +94,9 @@ FExecStatus UE4CVCommands::GetObjects(const TArray<FString>& Args)
 	}
 	return FExecStatus::OK(Message);
 }
+*/
 
+/*
 FExecStatus UE4CVCommands::SetObjectColor(const TArray<FString>& Args)
 {
 	// ObjectName, R, G, B, A
@@ -123,8 +127,9 @@ FExecStatus UE4CVCommands::SetObjectColor(const TArray<FString>& Args)
 
 	return FExecStatus::InvalidArgument;
 }
+*/
 
-
+/*
 FExecStatus UE4CVCommands::GetObjectColor(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
@@ -146,6 +151,7 @@ FExecStatus UE4CVCommands::GetObjectColor(const TArray<FString>& Args)
 
 	return FExecStatus::InvalidArgument;
 }
+*/
 
 FExecStatus UE4CVCommands::GetObjectName(const TArray<FString>& Args)
 {
@@ -188,7 +194,7 @@ FExecStatus UE4CVCommands::CurrentObjectHandler(const TArray<FString>& Args)
 				TraceString += FString::Printf(TEXT("Trace Comp %s."), *TraceResult.GetComponent()->GetName());
 			}
 			// TheHud->TraceResultText = TraceString;
-			Character->ConsoleOutputDevice->Log(TraceString);
+			// Character->ConsoleOutputDevice->Log(TraceString);
 		}
 		// TODO: This is not working well.
 

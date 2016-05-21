@@ -11,7 +11,7 @@
 DECLARE_DELEGATE_OneParam(FCallbackDelegate, FExecStatus); // Callback needs to be set before Exec, accept ExecStatus
 DECLARE_DELEGATE_RetVal_OneParam(FExecStatus, FDispatcherDelegate, const TArray< FString >&);
 
-class FCommandDispatcher
+class UNREALCV_API FCommandDispatcher
 {
 public:
 	FCommandDispatcher();

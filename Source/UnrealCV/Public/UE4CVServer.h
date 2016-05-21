@@ -29,7 +29,7 @@ public:
 	uint32 RequestId;
 };
 
-class FUE4CVServer
+class UNREALCV_API FUE4CVServer
 {
 public:
 	FPendingTask PendingTask;

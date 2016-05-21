@@ -3,10 +3,11 @@
 #pragma once
 
 #include "CommandDispatcher.h"
+#include "EngineUtils.h"
 /**
  * 
  */
-class FConsoleHelper
+class UNREALCV_API FConsoleHelper
 {
 public:
 	FConsoleHelper(FCommandDispatcher* CommandDispatcher, FConsoleOutputDevice* ConsoleOutputDevice);

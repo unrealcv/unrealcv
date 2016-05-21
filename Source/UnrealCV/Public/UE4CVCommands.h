@@ -6,11 +6,12 @@
 /**
  * 
  */
-class UE4CVCommands
+/* Define a set of commands to interact with the Unreal World */
+class UNREALCV_API UE4CVCommands
 {
-	friend class AMyCharacter; // Need to access information from Character;
+	friend class ACharacter; // Need to access information from Character;
 private:
-	AMyCharacter* Character;
+	ACharacter* Character;
 	FCommandDispatcher* CommandDispatcher;
 	void RegisterCommands();
 	void RegisterCommandsCamera();
@@ -40,7 +41,7 @@ private:
 	FExecStatus CurrentObjectHandler(const TArray<FString>& Args);
 	FExecStatus GetCommands(const TArray<FString>& Args);
 public:
-	UE4CVCommands(AMyCharacter* MyCharacter);
+	UE4CVCommands(ACharacter* MyCharacter, FCommandDispatcher* InCommandDispatcher);
 	~UE4CVCommands();
 
 };

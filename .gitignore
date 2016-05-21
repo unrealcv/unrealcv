@@ -2,3 +2,6 @@
 .DS_Store
 *.txt
 
+Binaries/
+Intermediate/
+
