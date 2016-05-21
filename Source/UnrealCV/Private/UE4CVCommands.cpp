@@ -33,7 +33,6 @@ void UE4CVCommands::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(&FViewMode::Get(), &FViewMode::GetMode);
 	CommandDispatcher->BindCommand("vget /mode", Cmd, "Get mode");
 
-	/*
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetObjects);
 	CommandDispatcher->BindCommand(TEXT("vget /objects"), Cmd, "Get all objects in the scene");
 
@@ -49,7 +48,6 @@ void UE4CVCommands::RegisterCommands()
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetObjectName);
 	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/name"), Cmd, "Get object name");
-	*/
 
 	// Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::PaintRandomColors);
 	// CommandDispatcher->BindCommand(TEXT("vget /util/random_paint"), Cmd, "Paint objects with random color");

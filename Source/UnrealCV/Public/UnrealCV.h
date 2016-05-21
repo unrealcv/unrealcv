@@ -6,3 +6,4 @@
 #include "UE4CVCommands.h"
 #include "UE4CVServer.h"
 #include "ViewMode.h"
+#include "ObjectPainter.h"

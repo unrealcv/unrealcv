@@ -14,10 +14,6 @@ namespace UnrealBuildTool.Rules
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
-					"Developer/UObjectPlugin/Private",
-                    "UnrealCV/Private",
-                    // "Developer/UnrealCV/Private",
-					// ... add other private include paths required here ...
 				}
 				);
 

@@ -45,7 +45,7 @@ void AMyCharacter::BeginPlay()
 
 	// RegisterCommands();
 
-	PaintRandomColors(TArray<FString>());
+	// PaintRandomColors(TArray<FString>());
 }
 
 void AMyCharacter::NotifyClient(FString Message)
@@ -149,100 +149,3 @@ void AMyCharacter::OnFire()
 	}
 }
 
-FExecStatus AMyCharacter::PaintRandomColors(const TArray<FString>& Args)
-{
-	// Iterate over all actors
-	ULevel* Level = GetLevel();
-
-	// Get a random color
-	for (auto Actor : Level->Actors)
-	{
-		if (Actor && Actor->IsA(AStaticMeshActor::StaticClass())) // Only StaticMeshActor is interesting
-		{
-			// FString ActorLabel = Actor->GetActorLabel();
-			FString ActorLabel = Actor->GetHumanReadableName();
-			FColor NewColor = FColor(FMath::RandRange(0, 255), FMath::RandRange(0, 255), FMath::RandRange(0, 255), 255);
-			ObjectsColorMapping.Emplace(ActorLabel, NewColor);
-			// if (Actor->GetActorLabel() == FString("SM_Door43"))
-			{
-				PaintObject(Actor, NewColor);
-			}
-		}
-	}
-
-	// Paint actor using floodfill.
-	return FExecStatus::OK();
-}
-
-bool AMyCharacter::PaintObject(AActor* Actor, const FColor& NewColor)
-{
-	if (!Actor) return false;
-
-	TArray<UMeshComponent*> PaintableComponents;
-	// TInlineComponentArray<UMeshComponent*> MeshComponents;
-	// Actor->GetComponents<UMeshComponent>(MeshComponents);
-	Actor->GetComponents<UMeshComponent>(PaintableComponents);
-
-
-	for (auto MeshComponent : PaintableComponents)
-	{
-		if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(MeshComponent))
-		{
-			if (UStaticMesh* StaticMesh = StaticMeshComponent->StaticMesh)
-			{
-				uint32 PaintingMeshLODIndex = 0;
-				uint32 NumLODLevel = StaticMeshComponent->StaticMesh->RenderData->LODResources.Num();
-				check(NumLODLevel == 1);
-				FStaticMeshLODResources& LODModel = StaticMeshComponent->StaticMesh->RenderData->LODResources[PaintingMeshLODIndex];
-				FStaticMeshComponentLODInfo* InstanceMeshLODInfo = NULL;
-
-				// PaintingMeshLODIndex + 1 is the minimum requirement, enlarge if not satisfied
-				StaticMeshComponent->SetLODDataCount(PaintingMeshLODIndex + 1, StaticMeshComponent->LODData.Num());
-				InstanceMeshLODInfo = &StaticMeshComponent->LODData[PaintingMeshLODIndex];
-
-				// Setup OverrideVertexColors
-				if (!InstanceMeshLODInfo->OverrideVertexColors) {
-					InstanceMeshLODInfo->OverrideVertexColors = new FColorVertexBuffer;
-
-					FColor FillColor = FColor(255, 255, 255, 255);
-					InstanceMeshLODInfo->OverrideVertexColors->InitFromSingleColor(FColor::White, LODModel.GetNumVertices());
-				}
-
-				uint32 NumVertices = LODModel.GetNumVertices();
-				check(InstanceMeshLODInfo->OverrideVertexColors);
-				check(NumVertices <= InstanceMeshLODInfo->OverrideVertexColors->GetNumVertices());
-				// StaticMeshComponent->CachePaintedDataIfNecessary();
-
-				for (uint32 ColorIndex = 0; ColorIndex < NumVertices; ++ColorIndex)
-				{
-					// FColor NewColor = FColor(FMath::RandRange(0, 255), FMath::RandRange(0, 255), FMath::RandRange(0, 255), 255);
-					// LODModel.ColorVertexBuffer.VertexColor(ColorIndex) = NewColor;  // This is vertex level
-					// Need to initialize the vertex buffer first
-					uint32 NumOverrideVertexColors = InstanceMeshLODInfo->OverrideVertexColors->GetNumVertices();
-					uint32 NumPaintedVertices = InstanceMeshLODInfo->PaintedVertices.Num();
-					// check(NumOverrideVertexColors == NumPaintedVertices);
-					InstanceMeshLODInfo->OverrideVertexColors->VertexColor(ColorIndex) = NewColor;
-					// InstanceMeshLODInfo->PaintedVertices[ColorIndex].Color = NewColor;
-				}
-				BeginInitResource(InstanceMeshLODInfo->OverrideVertexColors);
-				StaticMeshComponent->MarkRenderStateDirty();
-				// BeginUpdateResourceRHI(InstanceMeshLODInfo->OverrideVertexColors);
-
-
-				/*
-				// TODO: Need to check other LOD levels
-				// Use flood fill to paint mesh vertices
-				UE_LOG(LogTemp, Warning, TEXT("%s:%s has %d vertices"), *Actor->GetActorLabel(), *StaticMeshComponent->GetName(), NumVertices);
-
-				if (LODModel.ColorVertexBuffer.GetNumVertices() == 0)
-				{
-					// Mesh doesn't have a color vertex buffer yet!  We'll create one now.
-					LODModel.ColorVertexBuffer.InitFromSingleColor(FColor(255, 255, 255, 255), LODModel.GetNumVertices());
-				}
-
-				*/
-			}
-		}
-	}
-	return true;
-}

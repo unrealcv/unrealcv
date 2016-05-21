@@ -63,14 +63,8 @@ private:
 	FUE4CVServer* Server;
 	FConsoleHelper* ConsoleHelper;
 	FConsoleOutputDevice* ConsoleOutputDevice;
-	TMap<FString, FColor> ObjectsColorMapping;
-	TMap<FString, AActor*> ObjectsMapping;
 
 	FExecStatus BindAxisWrapper(const TArray<FString>& Args);
 
-	// Vertex One Object with Flood-Fill
-	bool PaintObject(AActor* Actor, const FColor& NewColor);
-	// Paint all objects
-	FExecStatus PaintRandomColors(const TArray<FString>& Args);
 
 };
