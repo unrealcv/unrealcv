@@ -41,7 +41,7 @@ test_commands = [
     ['vget /camera/0/location', skip],
     ['vset /camera/0/rotation 0.0 0.0 0.0', 'ok'],
     ['vget /camera/0/rotation', '0.000 0.000 0.000'], # TODO: Change the Uri handle to exact map
-    ['vget /camera/0/image', ispng], # TODO: The regexp in server needs to do exact match
+    ['vget /camera/0/lit', ispng], # TODO: The regexp in server needs to do exact match
     # Check the async operation, make sure the task is already completed.
     ['vget /camera/0/depth', ispng],
     ['vget /camera/0/object_mask', ispng],
