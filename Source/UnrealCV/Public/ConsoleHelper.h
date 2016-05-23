@@ -5,7 +5,7 @@
 #include "CommandDispatcher.h"
 #include "EngineUtils.h"
 /**
- * 
+ * Helper class to bind UnrealCV commands to Unreal Engine console
  */
 class UNREALCV_API FConsoleHelper
 {

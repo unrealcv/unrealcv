@@ -4,6 +4,7 @@
 #include "UnrealCVPrivate.h"
 #include "UE4CVCommands.h"
 #include "ViewMode.h"
+#include "ObjectPainter.h"
 
 UE4CVCommands::UE4CVCommands(ACharacter* InCharacter, FCommandDispatcher* InCommandDispatcher)
 {
@@ -80,11 +81,10 @@ FExecStatus UE4CVCommands::GetCommands(const TArray<FString>& Args)
 	return FExecStatus::OK(Message);
 }
 
-/*
 FExecStatus UE4CVCommands::GetObjects(const TArray<FString>& Args)
 {
 	TArray<FString> Keys;
-	Character->ObjectsColorMapping.GetKeys(Keys);
+	FObjectPainter::Get().ObjectsColorMapping.GetKeys(Keys);
 	FString Message = "";
 	for (auto ObjectName : Keys)
 	{
@@ -92,24 +92,25 @@ FExecStatus UE4CVCommands::GetObjects(const TArray<FString>& Args)
 	}
 	return FExecStatus::OK(Message);
 }
-*/
 
-/*
 FExecStatus UE4CVCommands::SetObjectColor(const TArray<FString>& Args)
 {
 	// ObjectName, R, G, B, A
 	// The color format is RGBA
 	if (Args.Num() == 5)
 	{ 
+
 		FString ObjectName = Args[0];
 		uint32 R = FCString::Atoi(*Args[1]), G = FCString::Atoi(*Args[2]), B = FCString::Atoi(*Args[3]), A = FCString::Atoi(*Args[4]);
 		FColor NewColor(R, G, B, A);
-		if (Character->ObjectsMapping.Contains(ObjectName))
+		TMap<FString, AActor*>& ObjectsMapping = FObjectPainter::Get().ObjectsMapping;
+		TMap<FString, FColor>& ObjectsColorMapping = FObjectPainter::Get().ObjectsColorMapping;
+		if (ObjectsMapping.Contains(ObjectName))
 		{
-			AActor* Actor = Character->ObjectsMapping[ObjectName];
-			if (Character->PaintObject(Actor, NewColor))
+			AActor* Actor = ObjectsMapping[ObjectName];
+			if (FObjectPainter::Get().PaintObject(Actor, NewColor))
 			{
-				Character->ObjectsColorMapping.Emplace(ObjectName, NewColor);
+				ObjectsColorMapping.Emplace(ObjectName, NewColor);
 				return FExecStatus::OK();
 			}
 			else
@@ -125,18 +126,17 @@ FExecStatus UE4CVCommands::SetObjectColor(const TArray<FString>& Args)
 
 	return FExecStatus::InvalidArgument;
 }
-*/
 
-/*
 FExecStatus UE4CVCommands::GetObjectColor(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
 	{ 
 		FString ObjectName = Args[0];
 
-		if (Character->ObjectsColorMapping.Contains(ObjectName))
+		TMap<FString, FColor>& ObjectsColorMapping = FObjectPainter::Get().ObjectsColorMapping;
+		if (ObjectsColorMapping.Contains(ObjectName))
 		{
-			FColor ObjectColor = Character->ObjectsColorMapping[ObjectName]; // Make sure the object exist
+			FColor ObjectColor = ObjectsColorMapping[ObjectName]; // Make sure the object exist
 			FString Message = ObjectColor.ToString();
 			// FString Message = "%.3f %.3f %.3f %.3f";
 			return FExecStatus::OK(Message);
@@ -149,7 +149,6 @@ FExecStatus UE4CVCommands::GetObjectColor(const TArray<FString>& Args)
 
 	return FExecStatus::InvalidArgument;
 }
-*/
 
 FExecStatus UE4CVCommands::GetObjectName(const TArray<FString>& Args)
 {

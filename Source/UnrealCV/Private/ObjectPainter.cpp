@@ -1,13 +1,11 @@
 #include "UnrealCVPrivate.h"
 #include "ObjectPainter.h"
 
-/*
 FObjectPainter& FObjectPainter::Get()
 {
-	static FObjectPainter Singleton;
+	static FObjectPainter Singleton(NULL);
 	return Singleton;
 }
-*/ 
 
 FObjectPainter::FObjectPainter(ULevel* InLevel)
 {
@@ -20,6 +18,7 @@ bool FObjectPainter::PaintRandomColors()
 	// ULevel* Level = GetLevel();
 
 	// Get a random color
+	check(Level);
 	for (auto Actor : Level->Actors)
 	{
 		if (Actor && Actor->IsA(AStaticMeshActor::StaticClass())) // Only StaticMeshActor is interesting
@@ -111,4 +110,9 @@ bool FObjectPainter::PaintObject(AActor* Actor, const FColor& NewColor)
 		}
 	}
 	return true;
+}
+
+void FObjectPainter::SetLevel(ULevel* InLevel)
+{
+	Level = InLevel;
 }

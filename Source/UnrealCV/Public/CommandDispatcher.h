@@ -4,13 +4,13 @@
 #include "Regex.h"
 #include "ExecStatus.h"
 
-/**
- * 
- */
 // DECLARE_DELEGATE(FCallbackDelegate);
 DECLARE_DELEGATE_OneParam(FCallbackDelegate, FExecStatus); // Callback needs to be set before Exec, accept ExecStatus
 DECLARE_DELEGATE_RetVal_OneParam(FExecStatus, FDispatcherDelegate, const TArray< FString >&);
 
+/**
+ * 
+ */
 class UNREALCV_API FCommandDispatcher
 {
 public:

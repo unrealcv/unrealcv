@@ -3,15 +3,16 @@
 class UNREALCV_API FObjectPainter
 {
 private:
-	TMap<FString, FColor> ObjectsColorMapping;
-	TMap<FString, AActor*> ObjectsMapping;
 	ULevel* Level;
+	FObjectPainter(ULevel* InLevel);
 
 public:
-	FObjectPainter(ULevel* InLevel);
+	TMap<FString, FColor> ObjectsColorMapping;
+	TMap<FString, AActor*> ObjectsMapping;
 	// Vertex One Object with Flood-Fill
 	bool PaintObject(AActor* Actor, const FColor& NewColor);
 	// Paint all objects
 	bool PaintRandomColors();
-	// FObjectPainter& Get();
+	void SetLevel(ULevel* InLevel);
+	static FObjectPainter& Get();
 };
