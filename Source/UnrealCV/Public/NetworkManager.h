@@ -39,7 +39,7 @@ DECLARE_EVENT_OneParam(UNetworkManager, FReceivedEvent, const FString&)
  * Server to send and receive message
  */
 UCLASS()
-class UNetworkManager : public UObject
+class UNREALCV_API UNetworkManager : public UObject
 // NetworkManager needs to be an UObject, because TimerManager can only support method of an UObject
 {
 	GENERATED_BODY()

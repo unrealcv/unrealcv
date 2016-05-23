@@ -3,27 +3,19 @@
 #pragma once
 
 #include "GameFramework/Character.h"
-/*
-#include "CommandDispatcher.h"
-#include "UE4CVServer.h"
-#include "ConsoleHelper.h"
-*/
 #include "UnrealCV.h"
-#include "MyCharacter.generated.h"
+#include "UE4CVCharacter.generated.h"
 
 
-class UE4CVCommands;
-class ITester;
 UCLASS()
 // TODO: Make this programmable with blueprint
-class AMyCharacter : public ACharacter
+class AUE4CVCharacter : public ACharacter
 {
-	friend class UE4CVCommands;
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this character's properties
-	AMyCharacter();
+	AUE4CVCharacter();
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -56,9 +48,6 @@ protected:
 	int32 Health;
 private:
 	UE4CVCommands* Commands;
-	ITester* Tester;
-	// UPROPERTY() // This is super important to prevent the NetworkManager from GC.
-	// UNetworkManager* NetworkManager;
 	FCommandDispatcher CommandDispatcher;
 	FUE4CVServer* Server;
 	FConsoleHelper* ConsoleHelper;

@@ -1,5 +1,6 @@
 #include "UnrealCVPrivate.h"
 #include "ObjectPainter.h"
+#include "StaticMeshResources.h"
 
 FObjectPainter& FObjectPainter::Get()
 {

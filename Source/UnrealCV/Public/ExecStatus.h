@@ -27,7 +27,7 @@ enum FExecStatusType
 /**
  * Present the return value of a command. If the FExecStatusType is pending, check the promise value.
  */
-class FExecStatus
+class UNREALCV_API FExecStatus
 {
 public:
 	// Support aync task
