@@ -9,7 +9,7 @@ DECLARE_DELEGATE_OneParam(FCallbackDelegate, FExecStatus); // Callback needs to 
 DECLARE_DELEGATE_RetVal_OneParam(FExecStatus, FDispatcherDelegate, const TArray< FString >&);
 
 /**
- * 
+ * Engine to execute commands
  */
 class UNREALCV_API FCommandDispatcher
 {

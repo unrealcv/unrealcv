@@ -6,7 +6,7 @@
 #include "ViewMode.h"
 #include "ObjectPainter.h"
 
-UE4CVCommands::UE4CVCommands(ACharacter* InCharacter, FCommandDispatcher* InCommandDispatcher)
+UE4CVCommands::UE4CVCommands(APawn* InCharacter, FCommandDispatcher* InCommandDispatcher)
 {
 	this->Character = InCharacter;
 	this->CommandDispatcher = InCommandDispatcher;

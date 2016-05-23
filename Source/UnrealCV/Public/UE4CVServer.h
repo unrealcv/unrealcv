@@ -2,9 +2,6 @@
 
 #pragma once
 
-/**
- * 
- */
 #include "CommandDispatcher.h"
 #include "NetworkManager.h"
 
@@ -29,11 +26,15 @@ public:
 	uint32 RequestId;
 };
 
+/**
+ * UnrealCV server to interact with python/MATLAB client
+ */
 class UNREALCV_API FUE4CVServer
 {
 public:
 	FPendingTask PendingTask;
 	FUE4CVServer(FCommandDispatcher* CommandDispatcher);
+	FUE4CVServer(APawn* InCharacter);
 	~FUE4CVServer();
 	bool Start();
 	void SendClientMessage(FString Message);

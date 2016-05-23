@@ -3,14 +3,13 @@
 #pragma once
 #include "CommandDispatcher.h"
 /**
- *
+ * Define different ViewModes of the scene
  */
 class UNREALCV_API FViewMode
 {
 public:
 	static FViewMode& Get();
 	~FViewMode();
-	void SetCurrentBufferVisualizationMode(FString ViewMode);
 	void Depth();
 	void Normal();
 	void Lit();
@@ -19,8 +18,10 @@ public:
 	void BaseColor();
 	FExecStatus SetMode(const TArray<FString>& Args); // Check input arguments
 	FExecStatus GetMode(const TArray<FString>& Args);
-	UWorld* World;
+	void SetWorld(UWorld* InWorld) { World = InWorld; }
 private:
+	void SetCurrentBufferVisualizationMode(FString ViewMode);
 	FViewMode();
+	UWorld* World;
 	FString CurrentViewMode;
 };

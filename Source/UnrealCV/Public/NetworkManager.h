@@ -7,7 +7,9 @@
 #include "NetworkMessage.h"
 #include "NetworkManager.generated.h"
 
-/* a simplified version from FNFSMessageHeader, without CRC check */
+/* 
+* a simplified version from FNFSMessageHeader, without CRC check 
+*/
 class FSocketMessageHeader
 {
 	/* Error checking */
@@ -28,12 +30,14 @@ public:
 	static bool ReceivePayload(FArrayReader& OutPayload, FSocket* Socket);
 };
 
-/**
- *
- */
 DECLARE_EVENT_OneParam(UNetworkManager, FReceivedEvent, const FString&)
 // TODO: Consider add a pointer to NetworkManager itself
 // TODO: Add connected event
+
+
+/**
+ * Server to send and receive message
+ */
 UCLASS()
 class UNetworkManager : public UObject
 // NetworkManager needs to be an UObject, because TimerManager can only support method of an UObject

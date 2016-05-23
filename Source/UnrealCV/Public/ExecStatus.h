@@ -3,8 +3,10 @@
 class FExecStatus;
 DECLARE_DELEGATE_RetVal(FExecStatus, FPromiseDelegate); // Check task status
 
+/**
+ * Return by async task, used to check status to see whether the task is finished.
+ */
 class FPromise 
-// Return by async task, used to check status to see whether the task is finished.
 {
 private:
 	FPromiseDelegate PromiseDelegate;
@@ -22,6 +24,9 @@ enum FExecStatusType
 	Pending,
 };
 
+/**
+ * Present the return value of a command. If the FExecStatusType is pending, check the promise value.
+ */
 class FExecStatus
 {
 public:

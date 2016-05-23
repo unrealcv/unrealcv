@@ -34,7 +34,7 @@ void AMyCharacter::BeginPlay()
 	// Tester->Init();
 	Super::BeginPlay();
 
-	FViewMode::Get().World = this->GetWorld();
+	FViewMode::Get().SetWorld(this->GetWorld());
 	Server = new FUE4CVServer(&CommandDispatcher);
 	Server->Start();
 	NetworkManager = Server->NetworkManager; // I need this to show information on screen.

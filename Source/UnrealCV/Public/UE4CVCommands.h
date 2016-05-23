@@ -2,17 +2,15 @@
 
 #pragma once
 #include "CommandDispatcher.h"
-// #include "MyCharacter.h"
+
 /**
- * 
+ * Define a set of commands to interact with the Unreal World 
  */
-/* Define a set of commands to interact with the Unreal World */
 class UNREALCV_API UE4CVCommands
 {
-	friend class ACharacter; // Need to access information from Character;
 private:
-	ACharacter* Character;
-	FCommandDispatcher* CommandDispatcher;
+	APawn* Character;
+	FCommandDispatcher* CommandDispatcher; // Maintain a FCommandDispatcher, so that command can invoke other commands
 	void RegisterCommands();
 	void RegisterCommandsCamera();
 
@@ -41,7 +39,7 @@ private:
 	FExecStatus CurrentObjectHandler(const TArray<FString>& Args);
 	FExecStatus GetCommands(const TArray<FString>& Args);
 public:
-	UE4CVCommands(ACharacter* MyCharacter, FCommandDispatcher* InCommandDispatcher);
+	UE4CVCommands(APawn* MyCharacter, FCommandDispatcher* InCommandDispatcher);
 	~UE4CVCommands();
 
 };

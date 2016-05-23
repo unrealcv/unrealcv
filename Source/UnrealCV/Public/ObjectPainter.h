@@ -1,5 +1,8 @@
 #pragma once
 
+/*
+* Annotate objects in the scene with a unique color
+*/
 class UNREALCV_API FObjectPainter
 {
 private:

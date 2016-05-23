@@ -3,6 +3,7 @@
 // #include "RealisticRendering.h"
 #include "UnrealCVPrivate.h"
 #include "UE4CVServer.h"
+#include "UnrealCV.h"
 
 FUE4CVServer::FUE4CVServer(FCommandDispatcher* CommandDispatcher)
 {
@@ -13,6 +14,20 @@ FUE4CVServer::FUE4CVServer(FCommandDispatcher* CommandDispatcher)
 	this->NetworkManager->AddToRoot(); // Avoid GC
 
 	this->NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::HandleRequest);
+}
+
+FUE4CVServer::FUE4CVServer(APawn* InCharacter)
+{
+	FObjectPainter::Get().SetLevel(InCharacter->GetLevel());
+	FObjectPainter::Get().PaintRandomColors();
+
+	FViewMode::Get().SetWorld(InCharacter->GetWorld());
+
+	CommandDispatcher = new FCommandDispatcher();
+	UE4CVCommands* Commands = new UE4CVCommands(InCharacter, CommandDispatcher);
+
+	FConsoleOutputDevice* ConsoleOutputDevice = new FConsoleOutputDevice(InCharacter->GetWorld()->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
+	FConsoleHelper* ConsoleHelper = new FConsoleHelper(CommandDispatcher, ConsoleOutputDevice);
 }
 
 FUE4CVServer::~FUE4CVServer()
