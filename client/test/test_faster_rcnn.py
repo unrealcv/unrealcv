@@ -87,7 +87,9 @@ def message_handler(message):
         init_caffe() # Caffe needs to be started in this thread, otherwise GIL will make it very slow
 
     print repr(message)
-    process_image(filename)
+    lines = message.split('\n')
+    if lines:
+        process_image(lines[0])
 
 if __name__ == '__main__':
     image = np.zeros((300, 300))
