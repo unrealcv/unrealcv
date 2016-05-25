@@ -130,7 +130,8 @@ class Client:
         # print 'Waiting for message id %d' % self.message_id
         match = self.raw_message_regexp.match(raw_message)
         if match:
-            [message_id, message_body] = (int(match.group(1)), match.group(2))
+            [message_id, message_body] = (int(match.group(1)), match.group(2)) # TODO: handle multiline response
+            message_body = raw_message[len(match.group(1))+1:]
             # print 'Received message id %s' % message_id
             if message_id == self.message_id:
                 self.wait_response.set()
