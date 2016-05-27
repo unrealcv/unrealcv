@@ -121,7 +121,7 @@ class BaseClient:
         else:
             return None
 
-class Client:
+class Client: # TODO: Add python code document
     '''
     - request (sync)
     - receive request
