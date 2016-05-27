@@ -7,7 +7,6 @@ def message_handler(message):
     # Ignore message from server
     return
 
-
 def render_frame(client, pos):
     loc = pos[0] # location
     rot = pos[1] # rotation
