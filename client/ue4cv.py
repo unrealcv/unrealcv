@@ -1,10 +1,16 @@
 import ctypes, struct, threading, socket, re, sys
+import logging as L
+L.basicConfig(level = L.INFO)
+# TODO: Add filename
 
 fmt = 'I'
 
 class SocketMessage:
-    # This magic number is from Unreal implementation
-    # See https://github.com/EpicGames/UnrealEngine/blob/dff3c48be101bb9f84633a733ef79c91c38d9542/Engine/Source/Runtime/Sockets/Public/NetworkMessage.h
+    '''
+    Define the format of a message. This class is defined similar to the class FNFSMessageHeader in UnrealEngine4, but without CRC check.
+    The magic number is from Unreal implementation
+    See https://github.com/EpicGames/UnrealEngine/blob/dff3c48be101bb9f84633a733ef79c91c38d9542/Engine/Source/Runtime/Sockets/Public/NetworkMessage.h
+    '''
     magic = ctypes.c_uint32(0x9E2B83C1).value
     def __init__(self, payload):
         self.magic = SocketMessage.magic
@@ -32,7 +38,7 @@ class SocketMessage:
         raw_payload_size = rfile.read(4)
         # print 'Receive raw payload size: %d, %s' % (len(raw_payload_size), raw_payload_size)
         payload_size = struct.unpack('I', raw_payload_size)[0]
-        print 'Receive payload size', payload_size
+        L.debug('Receive payload size', payload_size)
 
         # if the message is incomplete, should wait until all the data received
         payload = ""
@@ -76,9 +82,16 @@ class SocketMessage:
 
 class BaseClient:
     '''
-    Add message framing on top of TCP
+    BaseClient send message out and receiving message in a seperate thread.
+    After calling the `send` function, only True or False will be returned to indicate whether the operation was successful. If you are trying to send a request and get a response, consider using `Client` instead.
+    This class adds message framing on top of TCP
     '''
     def __init__(self, endpoint, message_handler):
+        '''
+        Parameters:
+        endpoint: a tuple (ip, port)
+        message_handler: a function defined as `def message_handler(msg)` to handle incoming message, msg is a string
+        '''
         self.endpoint = endpoint
         self.message_handler = message_handler
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -86,21 +99,28 @@ class BaseClient:
         self.connect()
 
     def connect(self):
+        '''
+        Try to connect to server, return whether connection successful
+        '''
         if not self.is_connected:
             try:
                 self.socket.connect(self.endpoint)
                 self.is_connected = True
                 # Start a thread to get data from the socket
-                receiving_thread = threading.Thread(target = self.receiving)
+                receiving_thread = threading.Thread(target = self.__receiving)
                 receiving_thread.setDaemon(1)
                 receiving_thread.start()
             except:
-                print 'Can not connect to %s' % str(self.endpoint)
+                L.error('Can not connect to %s' % str(self.endpoint))
                 self.is_connected = False
 
         return self.is_connected
 
-    def receiving(self):
+    def __receiving(self):
+        '''
+        Receive packages, Extract message from packages
+        Call self.message_handler if got a message
+        '''
         while (1):
             # Only this thread is allowed to read from socket, otherwise need lock to avoid competing
             message = SocketMessage.ReceivePayload(self.socket)
@@ -112,21 +132,26 @@ class BaseClient:
                 self.message_handler(message)
             else:
                 print 'No message handler for raw message %s' % message
+                # TODO: Check error report
 
     def send(self, message):
+        '''
+        Send message out, return whether the message was successfully sent
+        '''
         if self.connect():
             SocketMessage.WrapAndSendPayload(self.socket, message)
-            reply = 'reply'
-            return reply
+            return True
         else:
-            return None
+            return False
 
-class Client: # TODO: Add python code document
+class Client:
     '''
-    - request (sync)
-    - receive request
+    Client can be used to send request to server and get response
+    Currently only one client is allowed at a time
+    More clients will be rejected
     '''
-    def raw_message_handler(self, raw_message):
+    # TODO: Merge other document to here
+    def __raw_message_handler(self, raw_message):
         # print 'Waiting for message id %d' % self.message_id
         match = self.raw_message_regexp.match(raw_message)
         if match:
@@ -148,13 +173,16 @@ class Client: # TODO: Add python code document
 
     def __init__(self, endpoint, message_handler):
         self.raw_message_regexp = re.compile('(\d{1,8}):(.*)')
-        self.message_client = BaseClient(endpoint, self.raw_message_handler)
+        self.message_client = BaseClient(endpoint, self.__raw_message_handler)
         self.message_handler = message_handler
         self.message_id = 0
         self.wait_response = threading.Event()
         self.response = ''
 
-    def request(self, message):
+    def request(self, message, timeout=1):
+        '''
+        Send a request to server and wait util get a response from server or timeout.
+        '''
         raw_message = '%d:%s' % (self.message_id, message)
         if not self.message_client.send(raw_message):
             return None
