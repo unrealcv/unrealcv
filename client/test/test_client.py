@@ -80,6 +80,13 @@ def test_some_locations(client):
             # print res
             assert(ispng(res))
 
+# This is server test
+def test_multi_line_message(client):
+    client.request()
+
+def test_multi_connection(client):
+    pass
+
 def run_commands(client):
     sleep_time = 0
     for i in range(100):

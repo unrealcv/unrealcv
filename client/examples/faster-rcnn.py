@@ -1,6 +1,7 @@
 # Config of faster rcnn
-from test_common import *
-import os, sys
+import sys, os
+sys.path.append('..')
+from ue4cv import *
 
 # RCNN config
 rcnn_path = '/home/qiuwch/workspace/py-faster-rcnn'
@@ -9,6 +10,8 @@ import demo as D # Use demo.py provided in faster-rcnn
 import numpy as np
 import matplotlib.pyplot as plt
 net = None
+
+HOST, PORT = "localhost", 9000
 
 def init_caffe(): # TODO: parse args into here
     global net
