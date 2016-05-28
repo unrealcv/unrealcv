@@ -1,4 +1,6 @@
 import ctypes, struct, threading, socket, re, sys
+import logging as L
+L.basicConfig(level = L.INFO)
 
 fmt = 'I'
 
@@ -32,7 +34,7 @@ class SocketMessage:
         raw_payload_size = rfile.read(4)
         # print 'Receive raw payload size: %d, %s' % (len(raw_payload_size), raw_payload_size)
         payload_size = struct.unpack('I', raw_payload_size)[0]
-        print 'Receive payload size', payload_size
+        L.debug('Receive payload size %d' % payload_size)
 
         # if the message is incomplete, should wait until all the data received
         payload = ""
@@ -116,8 +118,7 @@ class BaseClient:
     def send(self, message):
         if self.connect():
             SocketMessage.WrapAndSendPayload(self.socket, message)
-            reply = 'reply'
-            return reply
+            return True
         else:
             return None
 
