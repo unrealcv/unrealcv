@@ -169,7 +169,7 @@ class Client:
                 self.message_handler(raw_message)
             else:
                 # Instead of just dropping this message, give a verbose notice
-                print 'No message handler to handle message %s' % raw_message
+                L.error('No message handler to handle message %s' % raw_message)
 
     def __init__(self, endpoint, message_handler):
         self.raw_message_regexp = re.compile('(\d{1,8}):(.*)')

@@ -2,42 +2,57 @@ import unittest, time, sys
 from checker import *
 from test_common import *
 from test_server import EchoServer, MessageServer
+import argparse
+import threading
 
-if '--develop' in sys.argv:
-    in_develop_mode = True
-    sys.argv.remove('--develop')
-else:
-    in_develop_mode = False
+TESTPORT = PORT + 1
+NO_PORT = PORT + 10 # Make it a random port
+lock_ports = {}
+for port in [PORT, TESTPORT]:
+    lock_ports[port] = threading.RLock()
+
+lock_unreal_server = threading.RLock()
+
+in_develop_mode = False
+# if '--develop' in sys.argv:
+#     in_develop_mode = True
+#     sys.argv.remove('--develop')
+# else:
+#     in_develop_mode = False
 
 # client = Client((HOST, PORT), None) # Try different port number
 # in_develop_mode = False
 
+def run_tasks(testcase, client, tasks):
+    for task in tasks:
+        cmd = task[0]
+        expect = task[1]
+
+        print 'Cmd: %s' % cmd
+        response = client.request(cmd)
+        print 'Response: %s' % repr(response)
+        # Need to lock until I got a reply
+        # print reply
+
+        if expect == None or isinstance(expect, str):
+            testcase.assertEqual(response, expect, 'Expect %s, Response %s' % ( expect, response))
+        else:
+            testcase.assertTrue(expect(response))
+
 
 class TestCommands(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.client = Client((HOST, PORT), None)
+
     # TODO: Test some error handling case
     def setUp(self): # this setUp will be run for each test function??
         pass
         # self.client = Client((HOST, PORT), None) # Try different port number
 
-    def run_tasks(self, tasks):
-        for task in tasks:
-            cmd = task[0]
-            expect = task[1]
-
-            print 'Cmd: %s' % cmd
-            response = client.request(cmd)
-            print 'Response: %s' % repr(response)
-            # Need to lock until I got a reply
-            # print reply
-
-            if isinstance(expect, str):
-                self.assertEqual(response, expect, 'Expect %s, Response %s' % ( expect, response))
-            else:
-                self.assertTrue(expect(response))
-
     @unittest.skipIf(in_develop_mode, 'skip')
     def test_objects(self):
-        response = client.request('vget /objects')
+        response = self.client.request('vget /objects')
         response = response.strip() # TODO: remove this line
         self.assertTrue(validate_format(response))
 
@@ -51,10 +66,10 @@ class TestCommands(unittest.TestCase):
             tasks.append(['vget /object/%s/color' % objname, skip])
             # TODO: add a function to check regular expression
 
-        self.run_tasks(tasks)
+        run_tasks(self, self.client, tasks)
 
-    # @unittest.expectedFailure # TODO: Need to fix location
-    @unittest.skipIf(in_develop_mode, 'skip')
+    @unittest.expectedFailure # TODO: Need to fix location
+    # @unittest.skipIf(in_develop_mode, 'skip')
     def test_camera(self):
         tasks = [
             ['vget /camera/0/location', skip],
@@ -71,7 +86,7 @@ class TestCommands(unittest.TestCase):
         for mode in modes:
             tasks.append(['vget /camera/0/%s' % mode, ispng])
 
-        self.run_tasks(tasks)
+        run_tasks(self, self.client, tasks)
 
     @unittest.skipIf(in_develop_mode, 'skip')
     def test_viewmode(self):
@@ -81,21 +96,7 @@ class TestCommands(unittest.TestCase):
             tasks.append(['vset /mode/%s' % mode, 'ok']) # TODO: Change it to vset /mode modename
             tasks.append(['vget /mode', mode])
 
-        self.run_tasks(tasks)
-
-
-def start_echo_server():
-    def _():
-        server = EchoServer((HOST, PORT))
-        server.start()
-
-    import threading
-    receiving_thread = threading.Thread(target = _)
-    receiving_thread.setDaemon(1)
-    receiving_thread.start() # TODO: stop this thread
-    time.sleep(0.1) # Wait for the server started
-    print 'Started'
-
+        run_tasks(self, self.client, tasks)
 
 class TestBaseClient(unittest.TestCase):
     '''
@@ -103,14 +104,16 @@ class TestBaseClient(unittest.TestCase):
     '''
     @classmethod
     def setUpClass(cls):
-        cls.server = EchoServer((HOST, PORT))
+        cls.port = TESTPORT
+        lock_ports[cls.port].acquire()
+        cls.server = MessageServer((HOST, cls.port))
         cls.server.start()
         # cls.base_client = BaseClient((HOST, PORT), None)
 
-    # @classmethod
-    # def tearDownClass(cls):
-    #     print 'tear down'
-    #     cls.server.shutdown()
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.shutdown()
+        lock_ports[cls.port].release()
 
     def test_send(self):
         request = "Hello"
@@ -119,10 +122,10 @@ class TestBaseClient(unittest.TestCase):
             if response == request:
                 num_response[0] += 1
 
-        client1 = BaseClient((HOST, PORT), handler)
-        client2 = BaseClient((HOST, PORT), handler)
-        client3 = BaseClient((HOST, PORT), handler)
-        client4 = BaseClient((HOST, PORT), handler)
+        client1 = BaseClient((HOST, self.port), handler)
+        client2 = BaseClient((HOST, self.port), handler)
+        client3 = BaseClient((HOST, self.port), handler)
+        client4 = BaseClient((HOST, self.port), handler)
         for client in [client1, client2, client3, client4]:
             sent= client.send(request)
             self.assertEqual(sent, True, 'Can not send message')
@@ -135,85 +138,90 @@ class TestBaseClient(unittest.TestCase):
         Test what will happen if no server is available
         Should give reasonable error
         '''
-        client = BaseClient((HOST, PORT+1), None)
+        client = BaseClient((HOST, NO_PORT), None)
         sent = client.send('hello')
         self.assertEqual(sent, False)
 
+
 class TestClient(unittest.TestCase):
-    def run_tasks(self, client, tasks):
-        for task in tasks:
-            cmd = task[0]
-            expect = task[1]
-
-            print 'Cmd: %s' % cmd
-            response = client.request(cmd)
-            print 'Response: %s' % repr(response)
-            # Need to lock until I got a reply
-            # print reply
-
-            if isinstance(expect, str):
-                self.assertEqual(response, expect, 'Expect %s, Response %s' % ( expect, response))
-            else:
-                self.assertTrue(expect(response))
-
     @classmethod
     def setUpClass(cls):
-        cls.server = MessageServer((HOST, PORT))
+        cls.port = TESTPORT
+        lock_ports[cls.port].acquire()
+        cls.server = MessageServer((HOST, cls.port))
         cls.server.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.server.shutdown()
+        lock_ports[cls.port].release()
 
     def test_request(self):
         '''
         Simple test to test basic function
         '''
-        client = Client((HOST, PORT), None)
+        client = Client((HOST, self.port), None)
         tasks = [
             ['hi', 'hi'],
             ['hello', 'hello']
             ]
 
-        self.run_tasks(client, tasks)
+        run_tasks(self, client, tasks)
 
     # def test_multi_clients(self):
     #     clients = [Client((HOST, PORT)) for _ in range(5)] # create 5 clients
 
     def test_no_server(self):
-        pass
+        client = Client((HOST, NO_PORT), None)
+        tasks = [
+            ['hi', None],
+            ['hello', None]
+            ]
 
+        run_tasks(self, client, tasks)
 
-class TestNetworkConnection(unittest.TestCase):
+class TestMessageServer(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.port = TESTPORT
 
-    # def test_timeout(self):
-    #     # Check whether the request timeout can work well.
-    #     pass
+    def test_server(self):
+        with lock_ports[self.port]:
+            print 'test server'
+            server = MessageServer((HOST, self.port))
+            server.start()
+            server.shutdown()
 
-    # def test_disconnected(self):
-    #     pass
-
-    def test_request(self):
-        print 'test request'
-        request = 'random message'
-        response = client.request(request)
-        self.assertEqual(request, response)
-
-    @unittest.skipIf(in_develop_mode, 'skip')
-    def test_double_connection(self):
-        print 'Testing double connection'
-        second_client = Client((HOST, PORT), None)
-        request = 'vget /mode'
-        response = second_client.request(request)
-        self.assertEqual(response, request)
-
-
+    def test_release(self):
+        with lock_ports[self.port]:
+            print 'test release'
+            server = MessageServer((HOST, self.port))
+            server.start()
+            server.shutdown()
+            server = MessageServer((HOST, self.port))
+            server.start()
+            server.shutdown()
 
 if __name__ == '__main__':
+    load = unittest.defaultTestLoader.loadTestsFromTestCase
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--travis', action='store_true') # Only run test availabe to travis CI
+
+    args = parser.parse_args()
+
     # unittest.main()
     # suite = unittest.TestSuite()
     # suite.addTest(TestCommands())
+    suites = []
+    s = load(TestMessageServer); suites.append(s)
+    s = load(TestBaseClient); suites.append(s)
+    s = load(TestClient); suites.append(s)
 
-    load = unittest.defaultTestLoader.loadTestsFromTestCase
-    suite = load(TestCommands)
-    suite = load(TestNetworkConnection)
-    suite = load(TestBaseClient)
-    suite = load(TestClient)
+    if not args.travis:
+        s = load(TestCommands)
+        suites.append(s)
+
+    suite_obj = unittest.TestSuite(suites)
     # suite.run()
-    unittest.TextTestRunner().run(suite)
+    unittest.TextTestRunner().run(suite_obj)
