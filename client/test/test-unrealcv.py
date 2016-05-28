@@ -98,32 +98,89 @@ def start_echo_server():
 
 
 class TestBaseClient(unittest.TestCase):
+    '''
+    Test BaseClient
+    '''
     @classmethod
     def setUpClass(cls):
         cls.server = EchoServer((HOST, PORT))
         cls.server.start()
-        cls.base_client = BaseClient((HOST, PORT), None)
+        # cls.base_client = BaseClient((HOST, PORT), None)
 
-    @classmethod
-    def tearDownClass(cls):
-        print 'tear down'
-        cls.server.shutdown()
+    # @classmethod
+    # def tearDownClass(cls):
+    #     print 'tear down'
+    #     cls.server.shutdown()
 
     def test_send(self):
-        msg = "Hello"
-        client1 = BaseClient((HOST, PORT), None)
-        client2 = BaseClient((HOST, PORT), None)
-        client3 = BaseClient((HOST, PORT), None)
-        client4 = BaseClient((HOST, PORT), None)
+        request = "Hello"
+        num_response = [0] # This is a trick for workaround
+        def handler(response):
+            if response == request:
+                num_response[0] += 1
+
+        client1 = BaseClient((HOST, PORT), handler)
+        client2 = BaseClient((HOST, PORT), handler)
+        client3 = BaseClient((HOST, PORT), handler)
+        client4 = BaseClient((HOST, PORT), handler)
         for client in [client1, client2, client3, client4]:
-            self.assertEqual(self.base_client.send(msg), True, 'Can not send message')
+            sent= client.send(request)
+            self.assertEqual(sent, True, 'Can not send message')
+
+        time.sleep(0.1) # Tolerate some delay
+        self.assertEqual(num_response[0], 4)
+
+    def test_no_server(self):
+        '''
+        Test what will happen if no server is available
+        Should give reasonable error
+        '''
+        client = BaseClient((HOST, PORT+1), None)
+        sent = client.send('hello')
+        self.assertEqual(sent, False)
+
+class TestClient(unittest.TestCase):
+    def run_tasks(self, client, tasks):
+        for task in tasks:
+            cmd = task[0]
+            expect = task[1]
+
+            print 'Cmd: %s' % cmd
+            response = client.request(cmd)
+            print 'Response: %s' % repr(response)
+            # Need to lock until I got a reply
+            # print reply
+
+            if isinstance(expect, str):
+                self.assertEqual(response, expect, 'Expect %s, Response %s' % ( expect, response))
+            else:
+                self.assertTrue(expect(response))
+
+    @classmethod
+    def setUpClass(cls):
+        cls.server = MessageServer((HOST, PORT))
+        cls.server.start()
+
+    def test_request(self):
+        '''
+        Simple test to test basic function
+        '''
+        client = Client((HOST, PORT), None)
+        tasks = [
+            ['hi', 'hi'],
+            ['hello', 'hello']
+            ]
+
+        self.run_tasks(client, tasks)
+
+    # def test_multi_clients(self):
+    #     clients = [Client((HOST, PORT)) for _ in range(5)] # create 5 clients
+
+    def test_no_server(self):
+        pass
 
 
 class TestNetworkConnection(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        # Start a test server
-        start_echo_server()
 
     # def test_timeout(self):
     #     # Check whether the request timeout can work well.
@@ -157,5 +214,6 @@ if __name__ == '__main__':
     suite = load(TestCommands)
     suite = load(TestNetworkConnection)
     suite = load(TestBaseClient)
+    suite = load(TestClient)
     # suite.run()
     unittest.TextTestRunner().run(suite)
