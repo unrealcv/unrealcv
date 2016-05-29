@@ -5,6 +5,7 @@
 #include "UE4CVServer.h"
 #include "UnrealCV.h"
 
+/*
 FUE4CVServer::FUE4CVServer(FCommandDispatcher* CommandDispatcher)
 {
 	this->CommandDispatcher = CommandDispatcher;
@@ -15,6 +16,7 @@ FUE4CVServer::FUE4CVServer(FCommandDispatcher* CommandDispatcher)
 
 	this->NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::HandleRequest);
 }
+*/
 
 FUE4CVServer::FUE4CVServer(APawn* InCharacter)
 {
@@ -28,6 +30,10 @@ FUE4CVServer::FUE4CVServer(APawn* InCharacter)
 
 	FConsoleOutputDevice* ConsoleOutputDevice = new FConsoleOutputDevice(InCharacter->GetWorld()->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
 	FConsoleHelper* ConsoleHelper = new FConsoleHelper(CommandDispatcher, ConsoleOutputDevice);
+
+	NetworkManager = NewObject<UNetworkManager>();
+	NetworkManager->AddToRoot(); // Avoid GC
+	NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::HandleRequest);
 }
 
 FUE4CVServer::~FUE4CVServer()

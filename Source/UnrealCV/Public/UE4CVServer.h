@@ -33,7 +33,7 @@ class UNREALCV_API FUE4CVServer
 {
 public:
 	FPendingTask PendingTask;
-	FUE4CVServer(FCommandDispatcher* CommandDispatcher);
+	// FUE4CVServer(FCommandDispatcher* CommandDispatcher);
 	FUE4CVServer(APawn* InCharacter);
 	~FUE4CVServer();
 	bool Start();
