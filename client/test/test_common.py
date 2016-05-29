@@ -1,8 +1,9 @@
 '''
 Define configuration for testing
 '''
-import sys
-sys.path.append('..')
+import sys, os
+libpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+sys.path.append(libpath)
 from ue4cv import *
 
 
