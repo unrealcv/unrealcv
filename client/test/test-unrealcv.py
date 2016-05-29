@@ -1,3 +1,4 @@
+# TODO: Test robustness, test speed
 import unittest, time, sys
 from checker import *
 from test_common import *
@@ -6,7 +7,7 @@ import argparse
 import threading
 
 TESTPORT = PORT + 1
-NO_PORT = PORT + 10 # Make it a random port
+NO_PORT = PORT + 10 # TODO: Make it a random port
 lock_ports = {}
 for port in [PORT, TESTPORT]:
     lock_ports[port] = threading.RLock()
@@ -179,6 +180,9 @@ class TestClient(unittest.TestCase):
             ]
 
         run_tasks(self, client, tasks)
+
+class TestRealisticRendering(unittest.TestCase):
+    pass
 
 class TestMessageServer(unittest.TestCase):
     @classmethod
