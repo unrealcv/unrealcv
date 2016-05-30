@@ -13,6 +13,7 @@ private:
 	FCommandDispatcher* CommandDispatcher; // Maintain a FCommandDispatcher, so that command can invoke other commands
 	void RegisterCommands();
 	void RegisterCommandsCamera();
+	void RegisterCommandsPlugin(); // TODO: make this more extensible
 
 	FExecStatus GetCameraLocation(const TArray<FString>& Args);
 	FExecStatus	SetCameraLocation(const TArray<FString>& Args);
@@ -35,6 +36,11 @@ private:
 	FExecStatus GetObjectColor(const TArray<FString>& Args);
 	FExecStatus SetObjectColor(const TArray<FString>& Args);
 	FExecStatus GetObjectName(const TArray<FString>& Args);
+
+
+	FExecStatus GetPort(const TArray<FString>& Args);
+	FExecStatus SetPort(const TArray<FString>& Args);
+	FExecStatus GetUnrealCVStatus(const TArray<FString>& Args);
 
 	FExecStatus CurrentObjectHandler(const TArray<FString>& Args);
 	FExecStatus GetCommands(const TArray<FString>& Args);
