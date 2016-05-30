@@ -116,6 +116,12 @@ void BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray
 	OutBinaryArray.Append((UTF8CHAR*)Convert.Get(), Convert.Length());
 }
 
+
+bool UNetworkManager::IsConnected()
+{
+	return (this->ConnectionSocket != NULL);
+}
+
 /* Provide a dummy echo service to echo received data back for development purpose */
 bool UNetworkManager::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
@@ -190,22 +196,39 @@ bool UNetworkManager::Connected(FSocket* ClientSocket, const FIPv4Endpoint& Clie
 	// This is a blocking service, if need to support multiple connections, consider start a new thread here.
 }
 
-void UNetworkManager::Start()
+
+bool UNetworkManager::SetPort(int32 InPortNum)
+{
+	this->PortNum = InPortNum;
+	return this->Start();
+}
+
+bool UNetworkManager::Start()
 {
 	FIPv4Address IPAddress = FIPv4Address(0, 0, 0, 0);
-	int32 PortNum = 9000; // Make this configuable
+	// int32 PortNum = this->PortNum; // Make this configuable
 	FIPv4Endpoint Endpoint(IPAddress, PortNum);
+
+	if (TcpListener) // Delete previous configuration first
+	{
+		TcpListener->Stop();
+		delete TcpListener;
+	}
 
 	TcpListener = new FTcpListener(Endpoint); // This will be released after start
 	// In FSocket, when a FSocket is set as reusable, it means SO_REUSEADDR, not SO_REUSEPORT.  see SocketsBSD.cpp
 	TcpListener->OnConnectionAccepted().BindUObject(this, &UNetworkManager::Connected);
 	if (TcpListener->Init())
 	{
+		this->bIsListening = true;
 		UE_LOG(LogTemp, Warning, TEXT("Start listening on %d"), PortNum);
+		return true;
 	}
 	else
 	{
+		this->bIsListening = false;
 		UE_LOG(LogTemp, Error, TEXT("Can not start listening on port %d"), PortNum);
+		return false;
 	}
 }
 

@@ -32,8 +32,6 @@ public:
 class UNREALCV_API FUE4CVServer
 {
 public:
-	/** Construct a server */
-	FUE4CVServer(APawn* InCharacter);
 	~FUE4CVServer();
 
 	/** Start the server */
@@ -47,7 +45,16 @@ public:
 
 	/** The underlying class to handle network connection, ip and port are configured here */
 	UNetworkManager* NetworkManager;
+
+	/** Initialize the server with the game pawn */
+	bool Init(APawn* InCharacter);
+
+	/** Get the singleton */
+	static FUE4CVServer& Get();
 private:
+	/** Construct a server */
+	FUE4CVServer();
+
 	/** Store pending requests, A new request will be stored here and be processed in the next tick of GameThread */
 	TQueue<FRequest, EQueueMode::Spsc> PendingRequest; // TQueue is a thread safe implementation
 

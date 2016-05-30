@@ -21,8 +21,8 @@ void AUE4CVCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Server = new FUE4CVServer(this);
-	Server->Start();
+	// Server = new FUE4CVServer(this);
+	// Server->Start();
 	/*
 	FViewMode::Get().SetWorld(this->GetWorld());
 	FObjectPainter::Get().SetLevel(this->GetLevel());

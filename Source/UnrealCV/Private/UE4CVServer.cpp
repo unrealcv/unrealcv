@@ -4,7 +4,7 @@
 #include "UE4CVServer.h"
 #include "UnrealCV.h"
 
-FUE4CVServer::FUE4CVServer(APawn* InCharacter)
+bool FUE4CVServer::Init(APawn* InCharacter)
 {
 	FObjectPainter::Get().SetLevel(InCharacter->GetLevel());
 	FObjectPainter::Get().PaintRandomColors();
@@ -18,6 +18,17 @@ FUE4CVServer::FUE4CVServer(APawn* InCharacter)
 	FConsoleOutputDevice* ConsoleOutputDevice = new FConsoleOutputDevice(InCharacter->GetWorld()->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
 	FConsoleHelper* ConsoleHelper = new FConsoleHelper(CommandDispatcher, ConsoleOutputDevice);
 
+	return NetworkManager->Start();
+}
+
+FUE4CVServer& FUE4CVServer::Get()
+{
+	static FUE4CVServer Singleton;
+	return Singleton;
+}
+
+FUE4CVServer::FUE4CVServer()
+{
 	NetworkManager = NewObject<UNetworkManager>();
 	NetworkManager->AddToRoot(); // Avoid GC
 	NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::HandleRawMessage);

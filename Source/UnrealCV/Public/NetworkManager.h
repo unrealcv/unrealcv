@@ -48,15 +48,21 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 PortNum = 9000;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	bool bIsConnected = false;
+	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	// bool bIsConnected = false;
+	bool IsConnected();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FString ListenIP = "0.0.0.0"; // TODO: this is hard coded right now
+	bool IsListening() { return bIsListening;  }
+
+	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	// FString ListenIP = "0.0.0.0"; // TODO: this is hard coded right now
+
+	/** Set the port number of server */
+	bool SetPort(int32 InPortNum);
 
 	/** Start the underlying TcpListener to listen for new connection */
 	// TODO: Handle port in use exception
-	void Start();
+	bool Start();
 
 	/** Send a message to connected client, return false if false to send. Will fail if no connection available */
 	bool SendMessage(const FString& Message);
@@ -64,6 +70,9 @@ public:
 	FReceivedEvent& OnReceived() { return ReceivedEvent;  } // The reference can not be changed
 
 private:
+	/** Is the listening socket running */
+	bool bIsListening = false;
+
 	/** Handle a new connected client, need to decide accept of reject */
 	bool Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
 
@@ -71,7 +80,7 @@ private:
 	FSocket* ConnectionSocket = NULL; // FSimpleAbstractSocket's receive is hard to use for non-blocking mode
 
 	/** TcpListener used to listen new incoming connection */
-	FTcpListener* TcpListener;
+	FTcpListener* TcpListener = NULL;
 
 	~UNetworkManager();
 
