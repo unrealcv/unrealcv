@@ -1,10 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-// #include "RealisticRendering.h"
 #include "UnrealCVPrivate.h"
 #include "Regex.h"
 #include "CommandDispatcher.h"
-
 
 class FAsyncWatcher : public FRunnable
 {
@@ -13,9 +11,6 @@ public:
 	{
 		this->PendingPromise.Enqueue(InPromise);
 		this->PendingCompletedCallback.Enqueue(InCompletedCallback);
-		// CompletedCallback = InCompletedCallback;
-		// Promise = InPromise;
-		// Start the timer
 	}
 	static FAsyncWatcher& Get()
 	{
@@ -39,10 +34,7 @@ private:
 	
 	TQueue<FPromise, EQueueMode::Spsc> PendingPromise; 
 	TQueue<FCallbackDelegate, EQueueMode::Spsc> PendingCompletedCallback; 
-	// FPromise Promise;
-	// FCallbackDelegate CompletedCallback;
-	bool Stopping;
-	// bool Pending;
+	bool Stopping; // Whether this thread should stop?
 
 	FRunnableThread* Thread;
 	virtual uint32 Run() override
@@ -227,22 +219,19 @@ const TMap<FString, FString>& FCommandDispatcher::GetUriDescription()
 void FCommandDispatcher::ExecAsync(const FString Uri, const FCallbackDelegate Callback)
 // TODO: This is a stupid implementation to use a new thread to check whether the task is completed.
 // ExecAsync can not guarantee the execuation order, this needs to be enforced in the client.
+// Which means later tasks can finish earlier
 {
-	/*
-	if (FAsyncWatcher::Get().IsActive())
-	{
-		UE_LOG(LogTemp, Error, TEXT("There are pending tasks."));
-		return;
-	}
-	*/
+	// If there are unfinished tasks, new async task will be pushed into a queue.
+	// so even FAsyncWatcher::Get().IsActive(), you can still keep executing more async tasks
 	FExecStatus ExecStatus = Exec(Uri);
 	if (ExecStatus == FExecStatusType::Pending)
 	{
-		FAsyncWatcher::Get().Wait(ExecStatus.GetPromise(), Callback);
+		FAsyncWatcher::Get().Wait(ExecStatus.GetPromise(), Callback); 
 	}
 	else
 	{
 		Callback.ExecuteIfBound(ExecStatus);
+		// If this is a sync task, return the result immediately
 	}
 }
 
@@ -259,7 +248,6 @@ FExecStatus FCommandDispatcher::Exec(const FString Uri)
 		FRegexMatcher Matcher(Pattern, Uri);
 		if (Matcher.FindNext())
 		{
-			// for (uint32 GroupIndex = 1)
 			for (uint32 GroupIndex = 1; GroupIndex < NumArgsLimit + 1; GroupIndex++)
 			{ 
 				uint32 BeginIndex = Matcher.GetCaptureGroupBeginning(GroupIndex);
@@ -272,7 +260,6 @@ FExecStatus FCommandDispatcher::Exec(const FString Uri)
 		
 		// TODO: Regular expression mapping is slow, need to implement in a more efficient way.
 		// FRegexMatcher()
-		
 	}
 	return FExecStatus::Error(FString::Printf(TEXT("Can not find a handler for URI '%s'"), *Uri));
 }

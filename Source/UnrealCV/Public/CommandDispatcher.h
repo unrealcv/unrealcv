@@ -22,15 +22,24 @@ public:
 	// bool BindCommand(const FString Uri, const FConsoleCommandDelegate& Command); // Parse URI
 	FExecStatus Exec(const FString Uri);
 	void ExecAsync(const FString Uri, const FCallbackDelegate Callback);
+
+	/** Command handler for vrun */
 	FExecStatus AliasHelper(const TArray<FString>& Args);
+	/** Return help message for each command */
 	const TMap<FString, FString>& GetUriDescription();
 
 private:
+	/** Store which URI handler */
 	TMap<FString, FDispatcherDelegate> UriMapping;
+	/** Store help message */
 	TMap<FString, FString> UriDescription; // Contains help message 
+	/** Store the definition of an alias */
 	TMap<FString, TArray<FString> > AliasMapping;
+	/** Store the regular expression for each type */
 	TMap<FString, FString> TypeRegexp; // Define regular expression for type
+
 	uint32 NumArgsLimit = 32;
 
+	/** Convert from a human readable URI to a regular expression */
 	bool FormatUri(const FString& RawUri, FString& UriRexexp);
 };

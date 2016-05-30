@@ -10,12 +10,22 @@ private:
 	FObjectPainter(ULevel* InLevel);
 
 public:
+	/** The assigned color for each object */
 	TMap<FString, FColor> ObjectsColorMapping;
+
+	/** The pointer for each object */
 	TMap<FString, AActor*> ObjectsMapping;
-	// Vertex One Object with Flood-Fill
+
+	/** Vertex paint one object with Flood-Fill */
 	bool PaintObject(AActor* Actor, const FColor& NewColor);
-	// Paint all objects
+
+	/** Paint all objects */
+	// TODO: Random color is not a good idea
 	bool PaintRandomColors();
+
+	/** Set the level for this painter */
 	void SetLevel(ULevel* InLevel);
+
+	/** Return the singleton of FObjectPainter */
 	static FObjectPainter& Get();
 };

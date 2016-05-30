@@ -1,20 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-// #include "RealisticRendering.h"
 #include "UnrealCVPrivate.h"
 #include "UE4CVServer.h"
 #include "UnrealCV.h"
-
-FUE4CVServer::FUE4CVServer(FCommandDispatcher* CommandDispatcher)
-{
-	this->CommandDispatcher = CommandDispatcher;
-	// Command Dispatcher defines the behavior of the server, TODO: Write with javadoc style
-
-	this->NetworkManager = NewObject<UNetworkManager>();
-	this->NetworkManager->AddToRoot(); // Avoid GC
-
-	this->NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::HandleRequest);
-}
 
 FUE4CVServer::FUE4CVServer(APawn* InCharacter)
 {
@@ -25,9 +13,14 @@ FUE4CVServer::FUE4CVServer(APawn* InCharacter)
 
 	CommandDispatcher = new FCommandDispatcher();
 	UE4CVCommands* Commands = new UE4CVCommands(InCharacter, CommandDispatcher);
+	// Register a set of commands to the command dispatcher
 
 	FConsoleOutputDevice* ConsoleOutputDevice = new FConsoleOutputDevice(InCharacter->GetWorld()->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
 	FConsoleHelper* ConsoleHelper = new FConsoleHelper(CommandDispatcher, ConsoleOutputDevice);
+
+	NetworkManager = NewObject<UNetworkManager>();
+	NetworkManager->AddToRoot(); // Avoid GC
+	NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::HandleRawMessage);
 }
 
 FUE4CVServer::~FUE4CVServer()
@@ -37,42 +30,6 @@ FUE4CVServer::~FUE4CVServer()
 
 void FUE4CVServer::ProcessPendingRequest()
 {
-	/*
-	if (PendingTask.Active) // Do query or wait for callback
-	{
-		FExecStatus ExecStatus = PendingTask.CheckStatus();
-		if (ExecStatus == FExecStatusType::Pending)
-		{
-			return; // The task is still pending
-		}
-		else
-		{
-			PendingTask.Active = false;
-			FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), PendingTask.RequestId, *ExecStatus.GetMessage());
-			SendClientMessage(ReplyRawMessage);
-		}
-	}
-
-	while (!PendingRequest.IsEmpty())
-	{
-		FRequest Request;
-		bool DequeueStatus = PendingRequest.Dequeue(Request);
-		check(DequeueStatus);
-
-		FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message);
-		if (ExecStatus == FExecStatusType::Pending)
-		{
-			PendingTask = FPendingTask(ExecStatus.Promise, Request.RequestId);
-			break;
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
-			FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), Request.RequestId, *ExecStatus.GetMessage());
-			SendClientMessage(ReplyRawMessage);
-		}
-	}
-	*/
 	while (!PendingRequest.IsEmpty())
 	{
 		FRequest Request;
@@ -97,7 +54,7 @@ bool FUE4CVServer::Start()
 	return true;
 }
 
-void FUE4CVServer::HandleRequest(const FString& InRawMessage)
+void FUE4CVServer::HandleRawMessage(const FString& InRawMessage)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Request: %s"), *InRawMessage);
 	// Parse Raw Message
@@ -114,13 +71,6 @@ void FUE4CVServer::HandleRequest(const FString& InRawMessage)
 		uint32 RequestId = FCString::Atoi(*StrRequestId);
 		FRequest Request(Message, RequestId);
 		this->PendingRequest.Enqueue(Request);
-
-		/*
-		FExecStatus ExecStatus = CommandDispatcher->Exec(Message);
-		UE_LOG(LogTemp, Warning, TEXT("Response: %s"), *ExecStatus.Message);
-		FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), RequestId, *ExecStatus.Message);
-		SendClientMessage(ReplyRawMessage);
-		*/
 	}
 	else
 	{
