@@ -35,29 +35,26 @@ def run_tasks(testcase, client, tasks):
         # Need to lock until I got a reply
         # print reply
 
+        error_message = 'cmd: %s, expect: %s, response %s' % (cmd, str(expect), response)
         if expect == None or isinstance(expect, str):
-            testcase.assertEqual(response, expect, 'Expect %s, Response %s' % ( expect, response))
+            testcase.assertEqual(response, expect, error_message)
         else:
-            testcase.assertTrue(expect(response))
+            testcase.assertTrue(expect(response), error_message)
 
 
-class TestCommands(unittest.TestCase):
+class TestPlugin(unittest.TestCase):
+    # Test a generic small game
     @classmethod
     def setUpClass(cls):
         cls.client = Client((HOST, PORT), None)
+        # If can not connect, report a reasonable message
 
-    # TODO: Test some error handling case
-    def setUp(self): # this setUp will be run for each test function??
-        pass
-        # self.client = Client((HOST, PORT), None) # Try different port number
-
-    @unittest.skipIf(in_develop_mode, 'skip')
     def test_objects(self):
         response = self.client.request('vget /objects')
         response = response.strip() # TODO: remove this line
         self.assertTrue(validate_format(response))
 
-        objects = response.split(' ')
+        objects = response.split(' ')[:10]
         self.assertTrue(len(objects) > 0)
 
         print 'Number of objects %d' % len(objects)
@@ -69,7 +66,7 @@ class TestCommands(unittest.TestCase):
 
         run_tasks(self, self.client, tasks)
 
-    @unittest.expectedFailure # TODO: Need to fix location
+    # @unittest.expectedFailure # TODO: Need to fix location
     # @unittest.skipIf(in_develop_mode, 'skip')
     def test_camera(self):
         tasks = [
@@ -182,7 +179,25 @@ class TestClient(unittest.TestCase):
         run_tasks(self, client, tasks)
 
 class TestRealisticRendering(unittest.TestCase):
-    pass
+    def test_objects(self):
+        '''
+        Make sure the object list is the same as expected
+        '''
+        response = self.client.request('vget /objects')
+        response = response.strip() # TODO: remove this line
+        self.assertTrue(validate_format(response))
+
+        objects = response.split(' ')
+        self.assertTrue(len(objects) > 0)
+
+        print 'Number of objects %d' % len(objects)
+        tasks = []
+        for objname in objects:
+            tasks.append(['vget /object/%s/name' % objname, objname])
+            tasks.append(['vget /object/%s/color' % objname, skip])
+            # TODO: add a function to check regular expression
+
+        run_tasks(self, self.client, tasks)
 
 class TestMessageServer(unittest.TestCase):
     @classmethod
@@ -218,13 +233,13 @@ if __name__ == '__main__':
     # suite = unittest.TestSuite()
     # suite.addTest(TestCommands())
     suites = []
-    s = load(TestMessageServer); suites.append(s)
-    s = load(TestBaseClient); suites.append(s)
-    s = load(TestClient); suites.append(s)
+    # s = load(TestMessageServer); suites.append(s)
+    # s = load(TestBaseClient); suites.append(s)
+    # s = load(TestClient); suites.append(s)
 
     if not args.travis:
-        s = load(TestCommands)
-        suites.append(s)
+        s = load(TestPlugin); suites.append(s)
+        # s = load(TestRealisticRendering); suites.append(s)
 
     suite_obj = unittest.TestSuite(suites)
     # suite.run()
