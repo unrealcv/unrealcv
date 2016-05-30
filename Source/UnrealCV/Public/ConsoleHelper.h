@@ -14,9 +14,16 @@ public:
 	~FConsoleHelper();
 
 private:
+	/** The exec result of CommandDispatcher will be written to FConsoleOutputDevice */
 	FConsoleOutputDevice* ConsoleOutputDevice;
+	
+	/** The command from UE4 console will be sent to CommandDispatcher for execution */
 	FCommandDispatcher* CommandDispatcher;
+
+	/** Register vget command to UE4 console */
 	void VGet(const TArray<FString>& Args);
+	/** Register vset command to UE4 console */
 	void VSet(const TArray<FString>& Args);
+	/** Register vrun command to UE4 console */
 	void VRun(const TArray<FString>& Args);
 };

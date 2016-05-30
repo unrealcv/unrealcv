@@ -13,6 +13,7 @@ private:
 public:
 	FPromise();
 	FPromise(FPromiseDelegate InPromiseDelegate);
+	/** Use PromiseDelegate to check whether the task already completed */
 	FExecStatus CheckStatus();
 };
 
@@ -30,23 +31,40 @@ enum FExecStatusType
 class UNREALCV_API FExecStatus
 {
 public:
-	// Support aync task
+	// Define some typical FExecStatus for convinience
+	/** OK : Message */
+	static FExecStatus OK(FString Message="");
+	/** Error : ErrorMessage */
+	static FExecStatus Error(FString ErrorMessage);
+	/** Error : Argument Invalid */
+	static FExecStatus InvalidArgument;
+	/** Pending : Message */
 	static FExecStatus Pending(FString Message=""); // Useful for async task
+
+	/** 
+	 * For an async task, return a special pending FExecStatus
+	 * Use the CheckStatus of FPromise to check whether the task is completed
+	 * If the CheckStatus function returns no longer pending, means the async task finished
+	 * see UE4CVCommandsCamera.cpp : GetCameraViewAsyncQuery for an example 
+	 */
 	static FExecStatus AsyncQuery(FPromise Promise);
 
-	// The status of the FExecStatus can be changed during the async task
+	/** The message body of this ExecStatus, the full message will also include the ExecStatusType */
 	FString MessageBody;
+	/** An enum type to show the ExecStatus */
 	FExecStatusType ExecStatusType;
 
-	static FExecStatus OK(FString Message="");
-	static FExecStatus InvalidArgument;
-	static FExecStatus Error(FString ErrorMessage);
 	~FExecStatus();
-	FString GetMessage() const; // Convert this ExecStatus to String
+	/** Convert this ExecStatus to String */
+	FString GetMessage() const; 
+
+	/** Add this FExecStatus with other FExecStatus, useful for executing a few commands at the same time */
 	FExecStatus& operator+=(const FExecStatus& InExecStatus);
 
+	/** Return the promise of this FExecStatus, will only be set if the status is pending */
 	FPromise& GetPromise(); 
 private:
+	/** The promise to check result, only useful for async tasks */
 	FPromise Promise; 
 	FExecStatus(FExecStatusType InExecStatusType, FString Message);
 	// For query

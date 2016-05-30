@@ -1,3 +1,13 @@
+
+'''
+UnrealCV
+===
+Provides functions to interact with games built using Unreal Engine.
+
+>>> import unrealcv
+>>> (HOST, PORT) = ('localhost', 9000)
+>>> client = unrealcv.Client((HOST, PORT))
+'''
 import ctypes, struct, threading, socket, re, sys
 import logging as L
 L.basicConfig(level = L.INFO)
@@ -146,7 +156,7 @@ class BaseClient:
 
 class Client:
     '''
-    Client can be used to send request to server and get response
+    Client can be used to send request to a game and get response
     Currently only one client is allowed at a time
     More clients will be rejected
     '''
@@ -180,9 +190,24 @@ class Client:
         self.response = ''
 
     def request(self, message, timeout=1):
-        '''
+        """
         Send a request to server and wait util get a response from server or timeout.
-        '''
+
+        Parameters
+        ---
+        cmd : string, command to control the game
+        More info can be seen from http://unrealcv.github.io/commands.html
+
+        Returns
+        ---
+        response: plain text message from server
+
+        Examples
+        ---
+        >>> client = Client('localhost', 9000)
+        >>> client.connect()
+        >>> response = client.request('vget /camera/0/view')
+        """
         raw_message = '%d:%s' % (self.message_id, message)
         if not self.message_client.send(raw_message):
             return None

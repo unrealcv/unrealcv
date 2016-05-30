@@ -31,6 +31,10 @@ def run_tasks(testcase, client, tasks):
 
         print 'Cmd: %s' % cmd
         response = client.request(cmd)
+        if response == None:
+            testcase.assertTrue(False, 'Can not connect to UnrealCV server')
+            return
+
         print 'Response: %s' % repr(response)
         # Need to lock until I got a reply
         # print reply
@@ -51,7 +55,6 @@ class TestPlugin(unittest.TestCase):
 
     def test_objects(self):
         response = self.client.request('vget /objects')
-        response = response.strip() # TODO: remove this line
         self.assertTrue(validate_format(response))
 
         objects = response.split(' ')[:10]

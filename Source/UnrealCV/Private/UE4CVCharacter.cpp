@@ -21,6 +21,9 @@ void AUE4CVCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	Server = new FUE4CVServer(this);
+	Server->Start();
+	/*
 	FViewMode::Get().SetWorld(this->GetWorld());
 	FObjectPainter::Get().SetLevel(this->GetLevel());
 	FObjectPainter::Get().PaintRandomColors();
@@ -34,6 +37,7 @@ void AUE4CVCharacter::BeginPlay()
 	// TODO: Check the pointers
 	// Register commands to UE console
 	ConsoleHelper = new FConsoleHelper(&CommandDispatcher, ConsoleOutputDevice);
+	*/
 }
 
 void AUE4CVCharacter::TakeScreenShot()

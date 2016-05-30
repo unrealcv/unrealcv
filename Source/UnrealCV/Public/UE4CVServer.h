@@ -32,18 +32,28 @@ public:
 class UNREALCV_API FUE4CVServer
 {
 public:
-	FPendingTask PendingTask;
-	FUE4CVServer(FCommandDispatcher* CommandDispatcher);
+	/** Construct a server */
 	FUE4CVServer(APawn* InCharacter);
 	~FUE4CVServer();
+
+	/** Start the server */
 	bool Start();
+
+	/** Send a string message to connected clients */
 	void SendClientMessage(FString Message);
+
+	/** Process pending requests in a tick */
 	void ProcessPendingRequest();
 
-	// Expose this for UI interaction
+	/** The underlying class to handle network connection, ip and port are configured here */
 	UNetworkManager* NetworkManager;
 private:
+	/** Store pending requests, A new request will be stored here and be processed in the next tick of GameThread */
 	TQueue<FRequest, EQueueMode::Spsc> PendingRequest; // TQueue is a thread safe implementation
+
+	/** The CommandDispatcher to handle a pending request */
 	FCommandDispatcher* CommandDispatcher;
-	void HandleRequest(const FString& RawMessage);
+
+	/** Handle the raw message from NetworkManager and parse raw message to a FRequest */
+	void HandleRawMessage(const FString& RawMessage);
 };
