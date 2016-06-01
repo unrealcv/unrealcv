@@ -5,13 +5,18 @@ import SocketServer
 SocketServer.ThreadingMixIn.daemon_threads = True
 SocketServer.TCPServer.allow_reuse_address = True
 import socket
+import unittest
+import logging
+L = logging.getLogger(__name__)
+L.setLevel(logging.DEBUG)
+L.addHandler(logging.NullHandler())
 # This is important
 
 class ThreadedServer:
     def start(self):
         def _():
             cur_thread = threading.current_thread()
-            print 'Start in ', cur_thread.name
+            L.debug('Start in %s' % cur_thread.name)
 
             self.server.serve_forever()
             # Activate the server; this will keep running until you
@@ -25,15 +30,14 @@ class ThreadedServer:
 
     def shutdown(self):
         cur_thread = threading.current_thread()
-        print 'Shutdown in ', cur_thread.name
-        print 'shutdown'
+        L.debug('Shutdown in %s' % cur_thread.name)
         self.server.shutdown()
         # try:
         #     self.server.socket.shutdown(socket.SHUT_RDWR)
         # except:
         #     pass
         self.server.server_close() # Close socket
-        print 'shutdown completed'
+        L.debug('Shutdown completed')
 
 
 class EchoTCPHandler(SocketServer.BaseRequestHandler):
@@ -58,18 +62,40 @@ class EchoTCPHandler(SocketServer.BaseRequestHandler):
             self.request.sendall(data)
         # print 'Close data thread ', cur_thread.name
 
+connected = False
+connected_lock = threading.RLock()
 class MessageTCPHandler(SocketServer.BaseRequestHandler):
     def handle(self):
-        t = threading.Thread(target = self.ticking_message)
-        t.setDaemon(True)
-        t.start()
+        thread_name = threading.current_thread().name
+        L.debug('Got a new connection from %s in %s' % (  self.request.getpeername(), thread_name))
+        with connected_lock:
+            global connected
+            if connected:
+                # SocketMessage.WrapAndSendPayload(self.request, "Only accept one connection")
+                # Close socket, Disconnect request
+                self.request.close()
+                # self.request.close()
+                L.debug('Reject, only accept one connection')
+                return
+            else:
+                L.debug('Accept new connection')
+                connected = True
+
+        # t = threading.Thread(target = self.ticking_message)
+        # t.setDaemon(True)
+        # t.start()
         while 1: # Main loop to receive message
+            L.debug('Server looping in %s' % thread_name)
             message = SocketMessage.ReceivePayload(self.request)
+            L.debug('Server looping finished in %s' % thread_name)
             if not message:
+                L.debug('Server release connection in %s' % thread_name)
+                connected = False
                 break
             # SocketMessage.WrapAndSendPayload(self.request, 'reply')
             SocketMessage.WrapAndSendPayload(self.request, message)
             # SocketMessage.WrapAndSendPayload(self.request, 'got2')
+        connected = False
 
     def ticking_message(self):
         while 1:
@@ -77,6 +103,13 @@ class MessageTCPHandler(SocketServer.BaseRequestHandler):
             filename = '../data/1034.png'
             SocketMessage.WrapAndSendPayload(self.request, filename)
             time.sleep(1)
+
+class NULLTCPHandler(SocketServer.BaseRequestHandler):
+    def handle(self):
+        while 1:
+            message = SocketMessage.ReceivePayload(self.request)
+            if not message:
+                break
 
 class EchoServer(ThreadedServer):
     def __init__(self, endpoint):
@@ -90,3 +123,59 @@ class MessageServer(ThreadedServer):
     def __init__(self, endpoint):
         self.endpoint = endpoint
         self.server = SocketServer.ThreadingTCPServer(self.endpoint, MessageTCPHandler)
+
+class NullServer(ThreadedServer):
+    '''
+    Message sent to here will get no response
+    '''
+    def __init__(self, endpoint):
+        self.endpoint = endpoint
+        self.server = SocketServer.ThreadingTCPServer(self.endpoint, NULLTCPHandler)
+
+port_lock = threading.RLock()
+class TestMessageServer(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.port = 9001
+        cls.host = 'localhost'
+
+    def test_server(self):
+        with port_lock:
+            server = MessageServer((self.host, self.port))
+            server.start()
+            server.shutdown()
+
+    def test_release(self):
+        '''
+        Test whether resources are correctly released
+        '''
+        with port_lock:
+            for i in range(10):
+                server = MessageServer((self.host, self.port))
+                server.start()
+                server.shutdown()
+
+    def test_client_release(self):
+        '''
+        Test whether the server can correctly detect client disconnection
+        '''
+        with port_lock:
+            server = MessageServer((self.host, self.port))
+            server.start()
+
+            for i in range(10):
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.connect((self.host, self.port))
+                # s.sendall('Hello, world')
+                # data = s.recv(1024)
+                # How to know whether this s is closed by remote?
+                SocketMessage.WrapAndSendPayload(s, 'hello')
+                s.close() # It will take some time to notify the server
+                time.sleep(1)
+                self.assertEqual(connected, False)
+
+            server.shutdown()
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.ERROR)
+    unittest.main(verbosity=2)

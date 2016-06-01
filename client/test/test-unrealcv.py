@@ -24,27 +24,6 @@ in_develop_mode = False
 # client = Client((HOST, PORT), None) # Try different port number
 # in_develop_mode = False
 
-def run_tasks(testcase, client, tasks):
-    for task in tasks:
-        cmd = task[0]
-        expect = task[1]
-
-        print 'Cmd: %s' % cmd
-        response = client.request(cmd)
-        if response == None:
-            testcase.assertTrue(False, 'Can not connect to UnrealCV server')
-            return
-
-        print 'Response: %s' % repr(response)
-        # Need to lock until I got a reply
-        # print reply
-
-        error_message = 'cmd: %s, expect: %s, response %s' % (cmd, str(expect), response)
-        if expect == None or isinstance(expect, str):
-            testcase.assertEqual(response, expect, error_message)
-        else:
-            testcase.assertTrue(expect(response), error_message)
-
 
 class TestPlugin(unittest.TestCase):
     # Test a generic small game
@@ -170,27 +149,6 @@ class TestRealisticRendering(unittest.TestCase):
 
         run_tasks(self, self.client, tasks)
 
-class TestMessageServer(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.port = TESTPORT
-
-    def test_server(self):
-        with lock_ports[self.port]:
-            print 'test server'
-            server = MessageServer((HOST, self.port))
-            server.start()
-            server.shutdown()
-
-    def test_release(self):
-        with lock_ports[self.port]:
-            print 'test release'
-            server = MessageServer((HOST, self.port))
-            server.start()
-            server.shutdown()
-            server = MessageServer((HOST, self.port))
-            server.start()
-            server.shutdown()
 
 if __name__ == '__main__':
     load = unittest.defaultTestLoader.loadTestsFromTestCase

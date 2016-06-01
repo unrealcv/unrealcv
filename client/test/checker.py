@@ -1,4 +1,9 @@
 import time, os
+import logging
+_L = logging.getLogger(__name__)
+_L.addHandler(logging.NullHandler())
+_L.setLevel(logging.INFO)
+
 has_plt = False
 try:
     import matplotlib.pyplot as plt
@@ -44,3 +49,24 @@ def skip(response):
     flag = True
     flag &= validate_format(response)
     return flag
+
+def run_tasks(testcase, client, tasks):
+    for task in tasks:
+        cmd = task[0]
+        expect = task[1]
+
+        _L.debug('Cmd: %s' % cmd)
+        response = client.request(cmd)
+        # if response == None:
+        #     testcase.assertTrue(False, 'Can not connect to UnrealCV server')
+        #     return
+
+        _L.debug('Response: %s' % repr(response))
+        # Need to lock until I got a reply
+        # print reply
+
+        error_message = 'cmd: %s, expect: %s, response %s' % (cmd, str(expect), response)
+        if expect == None or isinstance(expect, str):
+            testcase.assertEqual(response, expect, error_message)
+        else:
+            testcase.assertTrue(expect(response), error_message)
