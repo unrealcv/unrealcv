@@ -1,5 +1,5 @@
 import unittest, threading, random, logging
-from test_common import *
+from common_conf import *
 import ue4cv
 from checker import *
 from test_server import EchoServer, MessageServer, NullServer

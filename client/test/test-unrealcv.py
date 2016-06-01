@@ -25,58 +25,6 @@ in_develop_mode = False
 # in_develop_mode = False
 
 
-class TestPlugin(unittest.TestCase):
-    # Test a generic small game
-    @classmethod
-    def setUpClass(cls):
-        cls.client = Client((HOST, PORT), None)
-        # If can not connect, report a reasonable message
-
-    def test_objects(self):
-        response = self.client.request('vget /objects')
-        self.assertTrue(validate_format(response))
-
-        objects = response.split(' ')[:10]
-        self.assertTrue(len(objects) > 0)
-
-        print 'Number of objects %d' % len(objects)
-        tasks = []
-        for objname in objects:
-            tasks.append(['vget /object/%s/name' % objname, objname])
-            tasks.append(['vget /object/%s/color' % objname, skip])
-            # TODO: add a function to check regular expression
-
-        run_tasks(self, self.client, tasks)
-
-    # @unittest.expectedFailure # TODO: Need to fix location
-    # @unittest.skipIf(in_develop_mode, 'skip')
-    def test_camera(self):
-        tasks = [
-            ['vget /camera/0/location', skip],
-            ['vset /camera/0/rotation 0.0 0.0 0.0', 'ok'],
-            ['vget /camera/0/rotation', '0.000 0.000 0.000'],
-            # TODO: Change the Uri handle to exact map
-            # The regexp in server needs to do exact match
-            ['vset /camera/0/location 0.0 0.0 0.0', 'ok'],
-            ['vget /camera/0/location', '0.000 0.000 0.000'],
-        ]
-
-
-        modes = ['normal', 'base_color', 'depth', 'lit', 'unlit', 'view', 'object_mask']
-        for mode in modes:
-            tasks.append(['vget /camera/0/%s' % mode, ispng])
-
-        run_tasks(self, self.client, tasks)
-
-    @unittest.skipIf(in_develop_mode, 'skip')
-    def test_viewmode(self):
-        tasks = []
-        modes = ['depth', 'lit', 'unlit', 'normal', 'object_mask']
-        for mode in modes:
-            tasks.append(['vset /mode/%s' % mode, 'ok']) # TODO: Change it to vset /mode modename
-            tasks.append(['vget /mode', mode])
-
-        run_tasks(self, self.client, tasks)
 
 '''
 Stress test to measure performance and whether stable during connection lost
@@ -173,3 +121,26 @@ if __name__ == '__main__':
     suite_obj = unittest.TestSuite(suites)
     # suite.run()
     unittest.TextTestRunner().run(suite_obj)
+
+
+
+# def test_some_locations(client):
+#     test_camera_locations = get_filelist('./correctness_test/camera_info_basename.txt')
+#     for camera_location in test_camera_locations:
+#         res = client.request('vset /camera/0/location %s' % ' '.join([str(v) for v in camera_location[1]]))
+#         assert(res == 'ok')
+#         res = client.request('vset /camera/0/rotation %s' % ' '.join([str(v) for v in camera_location[2]]))
+#         assert(res == 'ok')
+#
+#         # modes = ['normal', 'base_color', 'depth', 'lit', 'unlit', 'object_mask']
+#         modes = ['normal', 'base_color', 'depth', 'lit', 'unlit', 'object_mask'] # Buffer Visualization
+#         for mode in modes: # TODO: shuffle the order of modes
+#             time.sleep(0)
+#             # Make sure the result is consistent
+#             res = client.request('vget /camera/0/%s' % mode)
+#             print res
+#             # res = client.request('vget /camera/0/%s' % mode)
+#             # print res
+#             # res = client.request('vget /camera/0/%s' % mode)
+#             # print res
+#             assert(ispng(res))

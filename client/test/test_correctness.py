@@ -1,5 +1,5 @@
 # Check whether the rendering result is as expected.
-from test_common import *
+from common_conf import *
 import time, os, ipdb
 import matplotlib.pyplot as plt
 
