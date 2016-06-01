@@ -20,7 +20,7 @@ AUE4CVCharacter::AUE4CVCharacter()
 void AUE4CVCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
+	FUE4CVServer::Get().Init(this);
 	// Server = new FUE4CVServer(this);
 	// Server->Start();
 	/*
@@ -40,6 +40,7 @@ void AUE4CVCharacter::BeginPlay()
 	*/
 }
 
+/*
 void AUE4CVCharacter::TakeScreenShot()
 {
 	FExecStatus ExecStatus = FExecStatus::OK();
@@ -53,12 +54,18 @@ void AUE4CVCharacter::TakeScreenShot()
 	});
 	CommandDispatcher.ExecAsync("vget /camera/0/view", CallbackDelegate);
 }
+*/
 
 // Called every frame
 void AUE4CVCharacter::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
-	Server->ProcessPendingRequest();
+	FUE4CVServer::Get().ProcessPendingRequest();
+	/*
+	FExecStatus ExecStatus = FUE4CVServer::Get().CommandDispatcher->Exec("vget /camera/0/location");
+	ExecStatus += FUE4CVServer::Get().CommandDispatcher->Exec("vget /camera/0/rotation");
+	FUE4CVServer::Get().SendClientMessage(ExecStatus.GetMessage());
+	*/
 }
 
 // Called to bind functionality to input
@@ -96,7 +103,7 @@ void AUE4CVCharacter::MoveRight(float Value)
 
 void AUE4CVCharacter::OnFire()
 {
-	TakeScreenShot();
-	UE_LOG(LogTemp, Warning, TEXT("Fire"));
+	// TakeScreenShot();
+	// UE_LOG(LogTemp, Warning, TEXT("Fire"));
 }
 

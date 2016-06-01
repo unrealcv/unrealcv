@@ -51,15 +51,15 @@ public:
 
 	/** Get the singleton */
 	static FUE4CVServer& Get();
+
+	/** The CommandDispatcher to handle a pending request */
+	FCommandDispatcher* CommandDispatcher;
 private:
 	/** Construct a server */
 	FUE4CVServer();
 
 	/** Store pending requests, A new request will be stored here and be processed in the next tick of GameThread */
 	TQueue<FRequest, EQueueMode::Spsc> PendingRequest; // TQueue is a thread safe implementation
-
-	/** The CommandDispatcher to handle a pending request */
-	FCommandDispatcher* CommandDispatcher;
 
 	/** Handle the raw message from NetworkManager and parse raw message to a FRequest */
 	void HandleRawMessage(const FString& RawMessage);

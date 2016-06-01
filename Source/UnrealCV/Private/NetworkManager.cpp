@@ -6,6 +6,24 @@
 #include "Networking.h"
 #include <string>
 
+class FMessageService : public FRunnable
+{
+public:
+	FMessageService()
+	{
+		Thread = FRunnableThread::Create(this, TEXT("FMessageService"), 8 * 1024, TPri_Normal);
+	}
+
+	~FMessageService()
+	{
+		if (Thread != nullptr)
+		{
+			Thread->Kill(true);
+			delete Thread;
+		}
+	}
+};
+
 uint32 FSocketMessageHeader::DefaultMagic = 0x9E2B83C1;
 
 bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, FSocket* Socket)
@@ -62,7 +80,8 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 	if (!SocketReceiveAll(Socket, HeaderBytes.GetData(), Size))
 	{
 		// false here means socket disconnected.
-		UE_LOG(LogTemp, Error, TEXT("Unable to read header, Socket disconnected."));
+		// UE_LOG(LogTemp, Error, TEXT("Unable to read header, Socket disconnected."));
+		UE_LOG(LogTemp, Warning, TEXT("Client disconnected."));
 		return false;
 	}
 
@@ -158,7 +177,7 @@ bool UNetworkManager::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoin
 	return false;
 }
 
-
+/** Start a new background thread to receive message */
 bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
 	if (!this->ConnectionSocket)
@@ -167,6 +186,7 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
 		ConnectionSocket = ClientSocket;
 
+		// Start a new thread
 		while (1) // Listening thread
 		{
 			FArrayReader ArrayReader;
@@ -181,10 +201,14 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 			BroadcastReceived(Message);
 			// Fire raw message received event, use message id to connect request and response
 			UE_LOG(LogTemp, Warning, TEXT("Receive message %s"), *Message);
-
 		}
+		return true; // TODO: What is the meaning of return value?
 	}
-	return false; // Already have a connection
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Only one client is allowed, can not allow new connection from %s"), *ClientEndpoint.ToString());
+		return false; // Already have a connection
+	}
 }
 
 bool UNetworkManager::Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)

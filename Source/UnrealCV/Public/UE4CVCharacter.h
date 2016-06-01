@@ -37,21 +37,11 @@ public:
 
 	void NotifyClient(FString Message);
 
-	void TakeScreenShot();
+	// void TakeScreenShot();
 
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UNetworkManager* NetworkManager;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	int32 Health;
 private:
-	UE4CVCommands* Commands;
-	FCommandDispatcher CommandDispatcher;
-	FUE4CVServer* Server;
-	FConsoleHelper* ConsoleHelper;
-	FConsoleOutputDevice* ConsoleOutputDevice;
 
 	FExecStatus BindAxisWrapper(const TArray<FString>& Args);
 
