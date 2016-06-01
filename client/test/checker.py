@@ -13,6 +13,8 @@ except:
 
 def validate_format(response):
     valid = True
+    if not response:
+        return False
     valid &= (response == response.strip())
     return valid
 
