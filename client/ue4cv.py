@@ -9,11 +9,9 @@ Provides functions to interact with games built using Unreal Engine.
 '''
 import ctypes, struct, threading, socket, re, sys, time, logging
 _L = logging.getLogger(__name__)
-# L.addHandler(logging.StreamHandler())
-_L.addHandler(logging.NullHandler()) # Let client to decide how to do logging
+# _L.addHandler(logging.NullHandler()) # Let client to decide how to do logging
 _L.addHandler(logging.StreamHandler()); _L.propagate = False
 _L.setLevel(logging.INFO)
-# TODO: Add filename
 
 fmt = 'I'
 
@@ -120,10 +118,8 @@ class BaseClient:
         self.endpoint = endpoint
         self.message_handler = message_handler
         self.socket = None # if socket == None, means client is not connected
-        # self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # self.__isconnected = False
-        # self.connect()
+
+        # Start a thread to get data from the socket
         receiving_thread = threading.Thread(target = self.__receiving)
         receiving_thread.setDaemon(1)
         receiving_thread.start()
@@ -134,9 +130,6 @@ class BaseClient:
         '''
         if not self.isconnected():
             try:
-                # if self.socket: # Create a new socket
-                #     self.socket.close()
-
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.connect(self.endpoint)
                 self.socket = s
@@ -146,38 +139,24 @@ class BaseClient:
                 # This does not neccessarily mean connection successful, might be closed by server
                 # Unless explicitly to tell the server to accept new socket
 
-                # print 'Ret of connect', ret
-                # self.__isconnected = True
-                # Start a thread to get data from the socket
             except Exception as e:
                 _L.error('Can not connect to %s' % str(self.endpoint))
                 _L.error("Error %s", e)
                 self.socket = None
-                # self.__isconnected = False
-
-        # return self.__isconnected
 
     def isconnected(self):
-        # return self.__isconnected
-        # _L.debug(self.socket)
         return self.socket != None
 
     def disconnect(self):
-        # try:
-        #     self.socket.shutdown(socket.SHUT_RDWR)
-        # except:
-        #     pass
-        # self.__isconnected = False
         if self.isconnected():
             _L.info("BaseClient, request disconnect from server in %s" % threading.current_thread().name)
 
-            # self.socket.shutdown(socket.SHUT_RDWR)
-            self.socket.shutdown(socket.SHUT_RD) # Because socket is on read in __receiving thread, need to call shutdown to force it to close
-            if self.socket: # This may also be set in the __receiving thread
+            self.socket.shutdown(socket.SHUT_RD)
+            # Because socket is on read in __receiving thread, need to call shutdown to force it to close
+            if self.socket: # This may also be set to None in the __receiving thread
                 self.socket.close()
                 self.socket = None
             time.sleep(0.1) # TODO, this is tricky
-        # self.socket.close() # do not release resource, this may be used to connect again
 
     def __receiving(self):
         '''
@@ -191,7 +170,6 @@ class BaseClient:
                 # Only this thread is allowed to read from socket, otherwise need lock to avoid competing
                 message = SocketMessage.ReceivePayload(self.socket)
                 if not message:
-                    # self.__isconnected = False
                     _L.debug('BaseClient disconnected, no more message')
                     self.socket = None
                     continue
@@ -200,7 +178,6 @@ class BaseClient:
                     self.message_handler(message)
                 else:
                     _L.error('No message handler for raw message %s' % message)
-                    # TODO: Check error report
 
     def send(self, message):
         '''
@@ -253,15 +230,6 @@ class Client:
         self.connect = self.message_client.connect
         self.disconnect = self.message_client.disconnect
 
-    # def isconnected(self):
-    #     return self.message_client.isconnected()
-    #
-    # def connect(self):
-    #     return self.message_client.connect()
-    #
-    # def disconnect(self):
-    #     return self.message_client.disconnect()
-
     def request(self, message, timeout=5):
         """
         Send a request to server and wait util get a response from server or timeout.
@@ -295,7 +263,6 @@ class Client:
             _L.error('Can not receive a response from server, timeout after %d seconds' % timeout)
             return None
         else:
-            # print 'Got response +1 id'
             return self.response
 
 (HOST, PORT) = ('localhost', 9000)
