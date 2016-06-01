@@ -6,6 +6,7 @@
 #include "Networking.h"
 #include <string>
 
+/*
 class FMessageService : public FRunnable
 {
 public:
@@ -23,6 +24,7 @@ public:
 		}
 	}
 };
+*/
 
 uint32 FSocketMessageHeader::DefaultMagic = 0x9E2B83C1;
 
