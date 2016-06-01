@@ -24,40 +24,19 @@ in_develop_mode = False
 # client = Client((HOST, PORT), None) # Try different port number
 # in_develop_mode = False
 
-def run_tasks(testcase, client, tasks):
-    for task in tasks:
-        cmd = task[0]
-        expect = task[1]
 
-        print 'Cmd: %s' % cmd
-        response = client.request(cmd)
-        print 'Response: %s' % repr(response)
-        # Need to lock until I got a reply
-        # print reply
-
-        if expect == None or isinstance(expect, str):
-            testcase.assertEqual(response, expect, 'Expect %s, Response %s' % ( expect, response))
-        else:
-            testcase.assertTrue(expect(response))
-
-
-class TestCommands(unittest.TestCase):
+class TestPlugin(unittest.TestCase):
+    # Test a generic small game
     @classmethod
     def setUpClass(cls):
         cls.client = Client((HOST, PORT), None)
+        # If can not connect, report a reasonable message
 
-    # TODO: Test some error handling case
-    def setUp(self): # this setUp will be run for each test function??
-        pass
-        # self.client = Client((HOST, PORT), None) # Try different port number
-
-    @unittest.skipIf(in_develop_mode, 'skip')
     def test_objects(self):
         response = self.client.request('vget /objects')
-        response = response.strip() # TODO: remove this line
         self.assertTrue(validate_format(response))
 
-        objects = response.split(' ')
+        objects = response.split(' ')[:10]
         self.assertTrue(len(objects) > 0)
 
         print 'Number of objects %d' % len(objects)
@@ -69,7 +48,7 @@ class TestCommands(unittest.TestCase):
 
         run_tasks(self, self.client, tasks)
 
-    @unittest.expectedFailure # TODO: Need to fix location
+    # @unittest.expectedFailure # TODO: Need to fix location
     # @unittest.skipIf(in_develop_mode, 'skip')
     def test_camera(self):
         tasks = [
@@ -99,6 +78,10 @@ class TestCommands(unittest.TestCase):
 
         run_tasks(self, self.client, tasks)
 
+'''
+Stress test to measure performance and whether stable during connection lost
+Also check correctness for high throughput case
+'''
 class TestBaseClient(unittest.TestCase):
     '''
     Test BaseClient
@@ -144,67 +127,28 @@ class TestBaseClient(unittest.TestCase):
         self.assertEqual(sent, False)
 
 
-class TestClient(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.port = TESTPORT
-        lock_ports[cls.port].acquire()
-        cls.server = MessageServer((HOST, cls.port))
-        cls.server.start()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.server.shutdown()
-        lock_ports[cls.port].release()
-
-    def test_request(self):
-        '''
-        Simple test to test basic function
-        '''
-        client = Client((HOST, self.port), None)
-        tasks = [
-            ['hi', 'hi'],
-            ['hello', 'hello']
-            ]
-
-        run_tasks(self, client, tasks)
-
-    # def test_multi_clients(self):
-    #     clients = [Client((HOST, PORT)) for _ in range(5)] # create 5 clients
-
-    def test_no_server(self):
-        client = Client((HOST, NO_PORT), None)
-        tasks = [
-            ['hi', None],
-            ['hello', None]
-            ]
-
-        run_tasks(self, client, tasks)
 
 class TestRealisticRendering(unittest.TestCase):
-    pass
+    def test_objects(self):
+        '''
+        Make sure the object list is the same as expected
+        '''
+        response = self.client.request('vget /objects')
+        response = response.strip() # TODO: remove this line
+        self.assertTrue(validate_format(response))
 
-class TestMessageServer(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.port = TESTPORT
+        objects = response.split(' ')
+        self.assertTrue(len(objects) > 0)
 
-    def test_server(self):
-        with lock_ports[self.port]:
-            print 'test server'
-            server = MessageServer((HOST, self.port))
-            server.start()
-            server.shutdown()
+        print 'Number of objects %d' % len(objects)
+        tasks = []
+        for objname in objects:
+            tasks.append(['vget /object/%s/name' % objname, objname])
+            tasks.append(['vget /object/%s/color' % objname, skip])
+            # TODO: add a function to check regular expression
 
-    def test_release(self):
-        with lock_ports[self.port]:
-            print 'test release'
-            server = MessageServer((HOST, self.port))
-            server.start()
-            server.shutdown()
-            server = MessageServer((HOST, self.port))
-            server.start()
-            server.shutdown()
+        run_tasks(self, self.client, tasks)
+
 
 if __name__ == '__main__':
     load = unittest.defaultTestLoader.loadTestsFromTestCase
@@ -218,13 +162,13 @@ if __name__ == '__main__':
     # suite = unittest.TestSuite()
     # suite.addTest(TestCommands())
     suites = []
-    s = load(TestMessageServer); suites.append(s)
-    s = load(TestBaseClient); suites.append(s)
-    s = load(TestClient); suites.append(s)
+    # s = load(TestMessageServer); suites.append(s)
+    # s = load(TestBaseClient); suites.append(s)
+    # s = load(TestClient); suites.append(s)
 
     if not args.travis:
-        s = load(TestCommands)
-        suites.append(s)
+        s = load(TestPlugin); suites.append(s)
+        # s = load(TestRealisticRendering); suites.append(s)
 
     suite_obj = unittest.TestSuite(suites)
     # suite.run()

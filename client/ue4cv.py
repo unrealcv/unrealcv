@@ -1,4 +1,3 @@
-
 '''
 UnrealCV
 ===
@@ -8,10 +7,11 @@ Provides functions to interact with games built using Unreal Engine.
 >>> (HOST, PORT) = ('localhost', 9000)
 >>> client = unrealcv.Client((HOST, PORT))
 '''
-import ctypes, struct, threading, socket, re, sys
-import logging as L
-L.basicConfig(level = L.INFO)
-# TODO: Add filename
+import ctypes, struct, threading, socket, re, sys, time, logging
+_L = logging.getLogger(__name__)
+# _L.addHandler(logging.NullHandler()) # Let client to decide how to do logging
+_L.addHandler(logging.StreamHandler()); _L.propagate = False
+_L.setLevel(logging.INFO)
 
 fmt = 'I'
 
@@ -31,30 +31,43 @@ class SocketMessage:
         '''
         Return only payload, not the raw message, None if failed
         '''
-        rbufsize = -1 # From SocketServer.py
+        # rbufsize = -1 # From SocketServer.py
+        rbufsize = 0
         rfile = socket.makefile('rb', rbufsize)
-        raw_magic = rfile.read(4)
-        if not raw_magic:
+        _L.debug('read raw_magic %s' % threading.current_thread().name)
+        try:
+            raw_magic = rfile.read(4) # socket is disconnected or invalid
+        except Exception as e:
+            _L.error('Fail to read raw_magic, %s', e)
+            raw_magic = None
+
+        _L.debug('read raw_magic %s done: %s' % (threading.current_thread().name, repr(raw_magic)))
+        if not raw_magic: # nothing to read
+            # _L.debug('socket disconnect')
             return None
         # print 'Receive raw magic: %d, %s' % (len(raw_magic), raw_magic)
         magic = struct.unpack('I', raw_magic)[0]
         # print 'Receive magic:', magic
 
         if magic != cls.magic:
-            L.error('Error: receive a malformat message, the message should start from a four bytes uint32 magic number')
+            _L.error('Error: receive a malformat message, the message should start from a four bytes uint32 magic number')
             return None
             # The next time it will read four bytes again
 
+        _L.debug('read payload')
         raw_payload_size = rfile.read(4)
         # print 'Receive raw payload size: %d, %s' % (len(raw_payload_size), raw_payload_size)
         payload_size = struct.unpack('I', raw_payload_size)[0]
-        L.debug('Receive payload size %d' % payload_size)
+        _L.debug('Receive payload size %d' % payload_size)
 
         # if the message is incomplete, should wait until all the data received
         payload = ""
         remain_size = payload_size
         while remain_size > 0:
             data = rfile.read(remain_size)
+            if not data:
+                return None
+
             payload += data
             bytes_read = len(data) # len(data) is its string length, but we want length of bytes
             # print 'bytes_read %d, remain_size %d, read_str %s' % (bytes_read, remain_size, data)
@@ -104,54 +117,77 @@ class BaseClient:
         '''
         self.endpoint = endpoint
         self.message_handler = message_handler
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.is_connected = False
-        self.connect()
+        self.socket = None # if socket == None, means client is not connected
+
+        # Start a thread to get data from the socket
+        receiving_thread = threading.Thread(target = self.__receiving)
+        receiving_thread.setDaemon(1)
+        receiving_thread.start()
 
     def connect(self):
         '''
         Try to connect to server, return whether connection successful
         '''
-        if not self.is_connected:
+        if not self.isconnected():
             try:
-                self.socket.connect(self.endpoint)
-                self.is_connected = True
-                # Start a thread to get data from the socket
-                receiving_thread = threading.Thread(target = self.__receiving)
-                receiving_thread.setDaemon(1)
-                receiving_thread.start()
-            except:
-                L.error('Can not connect to %s' % str(self.endpoint))
-                self.is_connected = False
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.connect(self.endpoint)
+                self.socket = s
+                time.sleep(0.1)
+                # only assign self.socket to connected socket
+                # so it is safe to use self.socket != None to check connection status
+                # This does not neccessarily mean connection successful, might be closed by server
+                # Unless explicitly to tell the server to accept new socket
 
-        return self.is_connected
+            except Exception as e:
+                _L.error('Can not connect to %s' % str(self.endpoint))
+                _L.error("Error %s", e)
+                self.socket = None
+
+    def isconnected(self):
+        return self.socket != None
+
+    def disconnect(self):
+        if self.isconnected():
+            _L.info("BaseClient, request disconnect from server in %s" % threading.current_thread().name)
+
+            self.socket.shutdown(socket.SHUT_RD)
+            # Because socket is on read in __receiving thread, need to call shutdown to force it to close
+            if self.socket: # This may also be set to None in the __receiving thread
+                self.socket.close()
+                self.socket = None
+            time.sleep(0.1) # TODO, this is tricky
 
     def __receiving(self):
         '''
         Receive packages, Extract message from packages
         Call self.message_handler if got a message
+        Also check whether client is still connected
         '''
+        _L.debug('BaseClient start receiving in %s' % threading.current_thread().name)
         while (1):
-            # Only this thread is allowed to read from socket, otherwise need lock to avoid competing
-            message = SocketMessage.ReceivePayload(self.socket)
-            if not message:
-                self.is_connected = False
-                break
+            if self.isconnected():
+                # Only this thread is allowed to read from socket, otherwise need lock to avoid competing
+                message = SocketMessage.ReceivePayload(self.socket)
+                if not message:
+                    _L.debug('BaseClient disconnected, no more message')
+                    self.socket = None
+                    continue
 
-            if self.message_handler:
-                self.message_handler(message)
-            else:
-                print 'No message handler for raw message %s' % message
-                # TODO: Check error report
+                if self.message_handler:
+                    self.message_handler(message)
+                else:
+                    _L.error('No message handler for raw message %s' % message)
 
     def send(self, message):
         '''
         Send message out, return whether the message was successfully sent
         '''
-        if self.connect():
+        if self.isconnected():
             SocketMessage.WrapAndSendPayload(self.socket, message)
             return True
         else:
+            _L.error('Fail to send message, client is not connected')
             return False
 
 class Client:
@@ -160,7 +196,6 @@ class Client:
     Currently only one client is allowed at a time
     More clients will be rejected
     '''
-    # TODO: Merge other document to here
     def __raw_message_handler(self, raw_message):
         # print 'Waiting for message id %d' % self.message_id
         match = self.raw_message_regexp.match(raw_message)
@@ -169,9 +204,10 @@ class Client:
             message_body = raw_message[len(match.group(1))+1:]
             # print 'Received message id %s' % message_id
             if message_id == self.message_id:
+                self.response = message_body
+                self.is_timeout = False
                 self.wait_response.set()
                 self.wait_response.clear() # This is important
-                self.response = message_body
             else:
                 assert(False)
         else:
@@ -179,17 +215,22 @@ class Client:
                 self.message_handler(raw_message)
             else:
                 # Instead of just dropping this message, give a verbose notice
-                L.error('No message handler to handle message %s' % raw_message)
+                _L.error('No message handler to handle message %s' % raw_message)
 
-    def __init__(self, endpoint, message_handler):
+    def __init__(self, endpoint, message_handler=None):
         self.raw_message_regexp = re.compile('(\d{1,8}):(.*)')
         self.message_client = BaseClient(endpoint, self.__raw_message_handler)
         self.message_handler = message_handler
         self.message_id = 0
         self.wait_response = threading.Event()
         self.response = ''
+        self.is_timeout = False
 
-    def request(self, message, timeout=1):
+        self.isconnected = self.message_client.isconnected
+        self.connect = self.message_client.connect
+        self.disconnect = self.message_client.disconnect
+
+    def request(self, message, timeout=5):
         """
         Send a request to server and wait util get a response from server or timeout.
 
@@ -209,12 +250,20 @@ class Client:
         >>> response = client.request('vget /camera/0/view')
         """
         raw_message = '%d:%s' % (self.message_id, message)
+        _L.debug('Request: %s' % raw_message)
         if not self.message_client.send(raw_message):
             return None
         # Timeout is required
         # see: https://bugs.python.org/issue8844
-        self.wait_response.wait(60 * 60)
-
-        # print 'Got response +1 id'
+        self.is_timeout = True
+        self.wait_response.wait(timeout)
         self.message_id += 1 # Increment it only after the request/response cycle finished
-        return self.response
+
+        if self.is_timeout:
+            _L.error('Can not receive a response from server, timeout after %d seconds' % timeout)
+            return None
+        else:
+            return self.response
+
+(HOST, PORT) = ('localhost', 9000)
+client = Client((HOST, PORT), None)
