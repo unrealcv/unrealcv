@@ -99,6 +99,10 @@ class TestPlugin(unittest.TestCase):
 
         run_tasks(self, self.client, tasks)
 
+'''
+Stress test to measure performance and whether stable during connection lost
+Also check correctness for high throughput case
+'''
 class TestBaseClient(unittest.TestCase):
     '''
     Test BaseClient
@@ -144,42 +148,6 @@ class TestBaseClient(unittest.TestCase):
         self.assertEqual(sent, False)
 
 
-class TestClient(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.port = TESTPORT
-        lock_ports[cls.port].acquire()
-        cls.server = MessageServer((HOST, cls.port))
-        cls.server.start()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.server.shutdown()
-        lock_ports[cls.port].release()
-
-    def test_request(self):
-        '''
-        Simple test to test basic function
-        '''
-        client = Client((HOST, self.port), None)
-        tasks = [
-            ['hi', 'hi'],
-            ['hello', 'hello']
-            ]
-
-        run_tasks(self, client, tasks)
-
-    # def test_multi_clients(self):
-    #     clients = [Client((HOST, PORT)) for _ in range(5)] # create 5 clients
-
-    def test_no_server(self):
-        client = Client((HOST, NO_PORT), None)
-        tasks = [
-            ['hi', None],
-            ['hello', None]
-            ]
-
-        run_tasks(self, client, tasks)
 
 class TestRealisticRendering(unittest.TestCase):
     def test_objects(self):

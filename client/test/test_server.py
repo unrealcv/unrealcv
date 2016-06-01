@@ -90,28 +90,3 @@ class MessageServer(ThreadedServer):
     def __init__(self, endpoint):
         self.endpoint = endpoint
         self.server = SocketServer.ThreadingTCPServer(self.endpoint, MessageTCPHandler)
-
-
-# class EchoServer:
-#     '''
-#     Low level echo server, return whatever it got
-#     '''
-#
-#
-#
-# class MessageServer:
-#     '''
-#     Receive a message and return exactly the same message back
-#     '''
-#
-#
-#     def __init__(self, endpoint):
-#         self.endpoint = endpoint
-#
-#     def start(self):
-#         # Create the server, binding to localhost on port 9999
-#         server = SocketServer.TCPServer(self.endpoint, MessageServer.MyTCPHandler)
-#
-#         # Activate the server; this will keep running until you
-#         # interrupt the program with Ctrl-C
-#         server.serve_forever()
