@@ -78,7 +78,7 @@ FExecStatus UE4CVCommands::GetCameraRotation(const TArray<FString>& Args)
 	if (Args.Num() == 1)
 	{
 		int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
-		// FRotator CameraRotation = GetActorRotation();  // We need the rotation of the controller
+		// FRotator CameraRotation = this->Character->GetActorRotation();  // We need the rotation of the controller
 		FRotator CameraRotation = Character->GetControlRotation();
 		FString Message = FString::Printf(TEXT("%.3f %.3f %.3f"), CameraRotation.Pitch, CameraRotation.Yaw, CameraRotation.Roll);
 

@@ -91,6 +91,7 @@ FExecStatus UE4CVCommands::GetObjects(const TArray<FString>& Args)
 	{
 		Message += ObjectName + " ";
 	}
+	Message = Message.LeftChop(1);
 	return FExecStatus::OK(Message);
 }
 
