@@ -23,7 +23,7 @@ class ThreadedServer:
         server_thread = threading.Thread(target = _)
         server_thread.setDaemon(1)
         server_thread.start() # TODO: stop this thread
-        time.sleep(0.1) # Wait for the server started
+        # time.sleep(0.1) # Wait for the server started
 
     def shutdown(self):
         cur_thread = threading.current_thread()
@@ -104,6 +104,7 @@ class MessageTCPHandler(SocketServer.BaseRequestHandler):
 
 class NULLTCPHandler(SocketServer.BaseRequestHandler):
     def handle(self):
+        ue4cv.SocketMessage.WrapAndSendPayload(self.request, 'connected to Python Null Server')
         while 1:
             message = ue4cv.SocketMessage.ReceivePayload(self.request)
             if not message:
@@ -153,7 +154,7 @@ class TestMessageServer(unittest.TestCase):
                 server.start()
                 server.shutdown()
 
-    def test_client_release(self):
+    def test_client_side_close(self):
         '''
         Test whether the server can correctly detect client disconnection
         '''
@@ -169,7 +170,7 @@ class TestMessageServer(unittest.TestCase):
                 # How to know whether this s is closed by remote?
                 ue4cv.SocketMessage.WrapAndSendPayload(s, 'hello')
                 s.close() # It will take some time to notify the server
-                time.sleep(1)
+                time.sleep(0.1) # How long will the server should detect the client side loss
                 self.assertEqual(connected, False)
 
             server.shutdown()
