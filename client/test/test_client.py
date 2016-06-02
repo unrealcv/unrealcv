@@ -145,8 +145,8 @@ if __name__ == '__main__':
 
     # suite = TestSuite()
     tests = [
-        'test_client_release',
         'test_request',
+        'test_client_release',
         'test_multiple_connection',
         'test_random_operation',
         'test_stress',

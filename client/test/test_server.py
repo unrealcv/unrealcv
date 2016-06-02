@@ -75,6 +75,7 @@ class MessageTCPHandler(SocketServer.BaseRequestHandler):
                 L.debug('Reject, only accept one connection')
                 return
             else:
+                ue4cv.SocketMessage.WrapAndSendPayload(self.request, 'connected to Python Message Server')
                 L.debug('Accept new connection')
                 connected = True
 

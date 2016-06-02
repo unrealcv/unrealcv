@@ -119,13 +119,14 @@ class BaseClient:
         self.endpoint = endpoint
         self.message_handler = message_handler
         self.socket = None # if socket == None, means client is not connected
+        self.wait_connected = threading.Event()
 
         # Start a thread to get data from the socket
         receiving_thread = threading.Thread(target = self.__receiving)
         receiving_thread.setDaemon(1)
         receiving_thread.start()
 
-    def connect(self):
+    def connect(self, timeout = 1):
         '''
         Try to connect to server, return whether connection successful
         '''
@@ -134,7 +135,16 @@ class BaseClient:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.connect(self.endpoint)
                 self.socket = s
-                time.sleep(0.1)
+                _L.debug('BaseClient: wait for connection confirm')
+                self.is_timeout = True
+                self.wait_connected.clear()
+                isset = self.wait_connected.wait(timeout)
+                assert(isset != None)
+                if isset:
+                    return
+                else:
+                    self.socket = None
+                    _L.error('Can not connect to %s, timeout after %d seconds' % (self.endpoint, timeout))
                 # only assign self.socket to connected socket
                 # so it is safe to use self.socket != None to check connection status
                 # This does not neccessarily mean connection successful, might be closed by server
@@ -171,8 +181,14 @@ class BaseClient:
                 # Only this thread is allowed to read from socket, otherwise need lock to avoid competing
                 message = SocketMessage.ReceivePayload(self.socket)
                 if not message:
-                    _L.debug('BaseClient disconnected, no more message')
+                    _L.debug('BaseClient: remote disconnected, no more message')
                     self.socket = None
+                    continue
+
+                if message.startswith('connected'):
+                    _L.info('Got connection confirm %s' % message)
+                    self.wait_connected.set()
+                    # self.wait_connected.clear()
                     continue
 
                 if self.message_handler:
@@ -185,6 +201,7 @@ class BaseClient:
         Send message out, return whether the message was successfully sent
         '''
         if self.isconnected():
+            _L.debug('BaseClient: Send message %s' % self.socket)
             SocketMessage.WrapAndSendPayload(self.socket, message)
             return True
         else:
@@ -206,9 +223,7 @@ class Client:
             # print 'Received message id %s' % message_id
             if message_id == self.message_id:
                 self.response = message_body
-                self.is_timeout = False
                 self.wait_response.set()
-                self.wait_response.clear() # This is important
             else:
                 assert(False)
         else:
@@ -225,7 +240,6 @@ class Client:
         self.message_id = 0
         self.wait_response = threading.Event()
         self.response = ''
-        self.is_timeout = False
 
         self.isconnected = self.message_client.isconnected
         self.connect = self.message_client.connect
@@ -256,15 +270,16 @@ class Client:
             return None
         # Timeout is required
         # see: https://bugs.python.org/issue8844
-        self.is_timeout = True
-        self.wait_response.wait(timeout)
+        self.wait_response.clear() # This is important
+        isset = self.wait_response.wait(timeout)
         self.message_id += 1 # Increment it only after the request/response cycle finished
 
-        if self.is_timeout:
+        assert(isset != None) # only python prior to 2.7 will return None
+        if isset:
+            return self.response
+        else:
             _L.error('Can not receive a response from server, timeout after %d seconds' % timeout)
             return None
-        else:
-            return self.response
 
 (HOST, PORT) = ('localhost', 9000)
 client = Client((HOST, PORT), None)
