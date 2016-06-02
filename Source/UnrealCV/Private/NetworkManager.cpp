@@ -179,16 +179,19 @@ bool UNetworkManager::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoin
 	return false;
 }
 
-/** Start a new background thread to receive message */
+/** Start message service in listening thread
+	* TODO: Start a new background thread to receive message
+	*/
 bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
 	if (!this->ConnectionSocket)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
 		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
+		FSocketMessageHeader::WrapAndSendPayload(FString::Printf(TEXT("connected to %s", FApp::GetGameName()))); // Send a hello message
 		ConnectionSocket = ClientSocket;
 
-		// Start a new thread
+		// TODO: Start a new thread
 		while (1) // Listening thread
 		{
 			FArrayReader ArrayReader;
@@ -196,6 +199,7 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 				// Wait forever until got a message, or return false when error happened
 			{
 				this->ConnectionSocket = NULL;
+				return false; // false will release the ClientSocket
 				break; // Remote socket disconnected
 			}
 
@@ -204,10 +208,11 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 			// Fire raw message received event, use message id to connect request and response
 			UE_LOG(LogTemp, Warning, TEXT("Receive message %s"), *Message);
 		}
-		return true; // TODO: What is the meaning of return value?
+		return false; // TODO: What is the meaning of return value?
 	}
 	else
 	{
+		// No response and let the client silently timeout
 		UE_LOG(LogTemp, Warning, TEXT("Only one client is allowed, can not allow new connection from %s"), *ClientEndpoint.ToString());
 		return false; // Already have a connection
 	}
