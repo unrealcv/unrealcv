@@ -24,14 +24,15 @@ class TestClientWithDummyServer(unittest.TestCase):
     '''
     @classmethod
     def setUpClass(cls):
-        cls.echo_port = 9000 # Message sent to here will be echoed back
-        cls.null_port = 9001 # Message sent to here will not get any reply
-        cls.no_port = 9002 # No server is running on this port
+        cls.echo_port = 9010 # Message sent to here will be echoed back
+        cls.null_port = 9011 # Message sent to here will not get any reply
+        cls.no_port = 9012 # No server is running on this port
         cls.host = 'localhost'
         cls.echo_server = MessageServer((cls.host, cls.echo_port))
         cls.echo_server.start()
         cls.null_server = NullServer((cls.host, cls.null_port))
         cls.null_server.start()
+        ue4cv.client = ue4cv.Client((HOST, cls.echo_port))
 
     @classmethod
     def tearDownClass(cls):
@@ -49,9 +50,10 @@ class TestClientWithDummyServer(unittest.TestCase):
             ['hello', 'hello'],
             ['asdf'*70, 'asdf'*70], # TODO: Create some random strings
         ]
-        for _ in range(5):
-            request = random_payload()
-            tasks.append([request, request])
+        # for _ in range(5):
+        #     request = random_payload()
+        #     request.replace(':', '')
+        #     tasks.append([request, request])
 
         run_tasks(self, ue4cv.client, tasks)
 
