@@ -1,12 +1,9 @@
-import threading, time
-from test_common import *
+import threading, time, socket, unittest, logging, SocketServer
+from common_conf import *
+import ue4cv
 # import MySocketServer as SocketServer
-import SocketServer
 SocketServer.ThreadingMixIn.daemon_threads = True
 SocketServer.TCPServer.allow_reuse_address = True
-import socket
-import unittest
-import logging
 L = logging.getLogger(__name__)
 L.setLevel(logging.DEBUG)
 L.addHandler(logging.NullHandler())
@@ -86,14 +83,14 @@ class MessageTCPHandler(SocketServer.BaseRequestHandler):
         # t.start()
         while 1: # Main loop to receive message
             L.debug('Server looping in %s' % thread_name)
-            message = SocketMessage.ReceivePayload(self.request)
+            message = ue4cv.SocketMessage.ReceivePayload(self.request)
             L.debug('Server looping finished in %s' % thread_name)
             if not message:
                 L.debug('Server release connection in %s' % thread_name)
                 connected = False
                 break
             # SocketMessage.WrapAndSendPayload(self.request, 'reply')
-            SocketMessage.WrapAndSendPayload(self.request, message)
+            ue4cv.SocketMessage.WrapAndSendPayload(self.request, message)
             # SocketMessage.WrapAndSendPayload(self.request, 'got2')
         connected = False
 
@@ -101,13 +98,13 @@ class MessageTCPHandler(SocketServer.BaseRequestHandler):
         while 1:
             # SocketMessage.WrapAndSendPayload(self.request, 'ticking from server')
             filename = '../data/1034.png'
-            SocketMessage.WrapAndSendPayload(self.request, filename)
+            ue4cv.SocketMessage.WrapAndSendPayload(self.request, filename)
             time.sleep(1)
 
 class NULLTCPHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         while 1:
-            message = SocketMessage.ReceivePayload(self.request)
+            message = ue4cv.SocketMessage.ReceivePayload(self.request)
             if not message:
                 break
 
@@ -169,7 +166,7 @@ class TestMessageServer(unittest.TestCase):
                 # s.sendall('Hello, world')
                 # data = s.recv(1024)
                 # How to know whether this s is closed by remote?
-                SocketMessage.WrapAndSendPayload(s, 'hello')
+                ue4cv.SocketMessage.WrapAndSendPayload(s, 'hello')
                 s.close() # It will take some time to notify the server
                 time.sleep(1)
                 self.assertEqual(connected, False)

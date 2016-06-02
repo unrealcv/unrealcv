@@ -1,6 +1,6 @@
 # TODO: Test robustness, test speed
 import unittest, time, sys
-from test_common import *
+from common_conf import *
 from test_server import EchoServer, MessageServer
 import argparse
 import threading
