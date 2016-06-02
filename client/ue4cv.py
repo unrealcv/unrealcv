@@ -84,25 +84,29 @@ class SocketMessage:
         '''
         Send payload, true if success, false if failed
         '''
-        # From SocketServer.py
-        # wbufsize = 0, flush immediately
-        wbufsize = -1
-        # Convert
-        socket_message = SocketMessage(payload)
-        wfile = socket.makefile('wb', wbufsize)
-        # Write the message
-        wfile.write(struct.pack(fmt, socket_message.magic))
-        # Need to send the packed version
-        # print 'Sent ', socket_message.magic
+        try:
+            # From SocketServer.py
+            # wbufsize = 0, flush immediately
+            wbufsize = -1
+            # Convert
+            socket_message = SocketMessage(payload)
+            wfile = socket.makefile('wb', wbufsize)
+            # Write the message
+            wfile.write(struct.pack(fmt, socket_message.magic))
+            # Need to send the packed version
+            # print 'Sent ', socket_message.magic
 
-        wfile.write(struct.pack(fmt, socket_message.payload_size))
-        # print 'Sent ', socket_message.payload_size
+            wfile.write(struct.pack(fmt, socket_message.payload_size))
+            # print 'Sent ', socket_message.payload_size
 
-        wfile.write(payload)
-        # print 'Sent ', payload
-        wfile.flush()
-        wfile.close() # Close file object, not close the socket
-        return True
+            wfile.write(payload)
+            # print 'Sent ', payload
+            wfile.flush()
+            wfile.close() # Close file object, not close the socket
+            return True
+        except Exception as e:
+            _L.error('Fail to send message %s' % e)
+            return False
 
 class BaseClient:
     '''
