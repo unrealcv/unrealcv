@@ -3,7 +3,7 @@ from common_conf import *
 import ue4cv
 from checker import *
 from test_server import EchoServer, MessageServer, NullServer
-L = logging.getLogger(__name__)
+_L = logging.getLogger(__name__)
 
 def random_payload():
     len = random.randrange(1024)
@@ -94,7 +94,7 @@ class TestClientWithDummyServer(unittest.TestCase):
         '''
         ue4cv.client.disconnect()
         for _ in range(10):
-            L.info('Try to connect')
+            _L.info('Try to connect')
             ue4cv.client.connect()
             self.assertEqual(ue4cv.client.isconnected(), True)
 
