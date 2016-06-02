@@ -234,17 +234,20 @@ bool UNetworkManager::SetPort(int32 InPortNum)
 	return this->Start();
 }
 
-bool UNetworkManager::Start()
+bool UNetworkManager::Start(int32 InPortNum) // If restart the server if configuration changed
 {
-	FIPv4Address IPAddress = FIPv4Address(0, 0, 0, 0);
-	// int32 PortNum = this->PortNum; // Make this configuable
-	FIPv4Endpoint Endpoint(IPAddress, PortNum);
+	if (InPortNum == this->PortNum && this->bIsListening) return true; // Already started
 
 	if (TcpListener) // Delete previous configuration first
 	{
-		TcpListener->Stop();
+		TcpListener->Stop(); // TODO: test the robustness, will this operation successful?
 		delete TcpListener;
 	}
+
+	this->PortNum = InPortNum; // Start a new TCPListener
+	FIPv4Address IPAddress = FIPv4Address(0, 0, 0, 0);
+	// int32 PortNum = this->PortNum; // Make this configuable
+	FIPv4Endpoint Endpoint(IPAddress, PortNum);
 
 	TcpListener = new FTcpListener(Endpoint); // This will be released after start
 	// In FSocket, when a FSocket is set as reusable, it means SO_REUSEADDR, not SO_REUSEPORT.  see SocketsBSD.cpp
