@@ -10,7 +10,8 @@ Provides functions to interact with games built using Unreal Engine.
 import ctypes, struct, threading, socket, re, sys, time, logging
 _L = logging.getLogger(__name__)
 # _L.addHandler(logging.NullHandler()) # Let client to decide how to do logging
-_L.addHandler(logging.StreamHandler()); _L.propagate = False
+_L.addHandler(logging.StreamHandler())
+_L.propagate = False
 _L.setLevel(logging.INFO)
 
 fmt = 'I'
@@ -38,7 +39,7 @@ class SocketMessage:
         try:
             raw_magic = rfile.read(4) # socket is disconnected or invalid
         except Exception as e:
-            _L.error('Fail to read raw_magic, %s', e)
+            _L.debug('Fail to read raw_magic, %s', e)
             raw_magic = None
 
         _L.debug('read raw_magic %s done: %s' % (threading.current_thread().name, repr(raw_magic)))
@@ -149,7 +150,7 @@ class BaseClient:
 
     def disconnect(self):
         if self.isconnected():
-            _L.info("BaseClient, request disconnect from server in %s" % threading.current_thread().name)
+            _L.debug("BaseClient, request disconnect from server in %s" % threading.current_thread().name)
 
             self.socket.shutdown(socket.SHUT_RD)
             # Because socket is on read in __receiving thread, need to call shutdown to force it to close
