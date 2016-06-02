@@ -24,4 +24,5 @@ if __name__ == '__main__':
         s = load(TestRealisticRendering); suites.append(s)
 
     suite_obj = unittest.TestSuite(suites)
-    unittest.TextTestRunner(verbosity = 2).run(suite_obj)
+    ret = not unittest.TextTestRunner(verbosity = 2).run(suite_obj).wasSucessful()
+    sys.exit(ret)
