@@ -6,6 +6,7 @@
 #include "BufferVisualizationData.h"
 #include "CommandDispatcher.h"
 #include "Async.h"
+#include "SceneViewport.h"
 
 #define REG_VIEW(COMMAND, DESC, DELEGATE) \
 		IConsoleManager::Get().RegisterConsoleCommand(TEXT(COMMAND), TEXT(DESC), \
@@ -105,6 +106,16 @@ void FViewMode::Unlit()
 	Viewport->EngineShowFlags.AtmosphericFog = 0;
 }
 
+void FViewMode::DebugMode()
+{
+	// float DisplayGamma = FRenderTarget::GetDisplayGamma();
+	// GetDisplayGamma();
+	UGameViewportClient* GameViewportClient = World->GetGameViewport();
+	FSceneViewport* SceneViewport = GameViewportClient->GetGameViewport();
+	float DisplayGamma = SceneViewport->GetDisplayGamma();
+	// World->GetGameViewport()->
+}
+
 void FViewMode::Object()
 {
 	check(World);
@@ -164,6 +175,10 @@ FExecStatus FViewMode::SetMode(const TArray<FString>& Args) // Check input argum
 		else if (ViewMode == "base_color")
 		{
 			BaseColor();
+		}
+		else if (ViewMode == "debug")
+		{
+			DebugMode();
 		}
 		else
 		{
