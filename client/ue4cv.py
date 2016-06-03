@@ -190,7 +190,7 @@ class BaseClient:
                     continue
 
                 if message.startswith('connected'):
-                    _L.info('Got connection confirm %s' % message)
+                    _L.info('Got connection confirm: %s' % repr(message))
                     self.wait_connected.set()
                     # self.wait_connected.clear()
                     continue
