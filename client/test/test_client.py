@@ -2,7 +2,7 @@ import unittest, threading, random, logging
 from common_conf import *
 import ue4cv
 from checker import *
-from test_server import EchoServer, MessageServer, NullServer
+from test_dev_server import EchoServer, MessageServer, NullServer
 _L = logging.getLogger(__name__)
 
 def random_payload():
@@ -140,6 +140,14 @@ class TestUE4CVClient(unittest.TestCase):
 
         run_tasks(self, client, tasks)
 
+    def test_server_shutdown(self):
+        '''
+        Close on the server side and check whether client can detect it
+        '''
+        pass
+
+    def test_change_port(self):
+        pass
 
 if __name__ == '__main__':
     logging.basicConfig()
@@ -153,7 +161,7 @@ if __name__ == '__main__':
         'test_stress',
         'test_no_server', # TODO, random order
         ]
-    suite = unittest.TestSuite(map(TestClientWithDummyServer, tests))
+    suite = unittest.TestSuite(map(TestUE4CVClient, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
 
     # unittest.main(verbosity = 3)

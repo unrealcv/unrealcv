@@ -1,4 +1,4 @@
-import unittest
+import unittest, logging, argparse, random, socket, time
 from common_conf import *
 import ue4cv
 _L = logging.getLogger(__name__)
@@ -8,9 +8,32 @@ class TestUE4CVServer(unittest.TestCase):
     Test the robustness of UE4CVServer
     Pass the test of UE4CVClient first
     '''
+    port = 9000
+    host = 'localhost'
     @classmethod
     def setUpClass(cls):
-        cls.port = 9000
+        print cls.port
+        cls.test_cmd = 'vset /mode/depth'
+        ue4cv.client = ue4cv.Client(('localhost', cls.port))
+        ue4cv.client.connect()
+        if not ue4cv.client.isconnected():
+            raise Exception('Fail to connect to UE4CVServer, check whether server is running and whether a connection exists')
+
+    def test_client_release(self):
+        '''
+        If the previous client release the connection, further connection should be accepted. This will also test the server code
+        '''
+        ue4cv.client.disconnect()
+        for _ in range(10):
+            _L.info('Try to connect')
+            ue4cv.client.connect()
+            self.assertEqual(ue4cv.client.isconnected(), True)
+
+            response = ue4cv.client.request(self.test_cmd)
+            self.assertEqual(response, 'ok')
+
+            ue4cv.client.disconnect()
+            self.assertEqual(ue4cv.client.isconnected(), False)
 
     def test_multiple_connection(self):
         ue4cv.client.disconnect()
@@ -19,7 +42,7 @@ class TestUE4CVServer(unittest.TestCase):
         response = ue4cv.client.request(self.test_cmd)
         self.assertEqual(response, 'ok')
         for i in range(10):
-            client = ue4cv.Client((self.host, self.echo_port))
+            client = ue4cv.Client((self.host, self.port))
             client.connect()
             # print client.connect()
             self.assertEqual(client.isconnected(), False)
@@ -41,18 +64,35 @@ class TestUE4CVServer(unittest.TestCase):
             ue4cv.client.disconnect()
             self.assertEqual(ue4cv.client.isconnected(), False)
 
-    def test_client_release(self):
+    def test_client_side_close(self):
         '''
-        If the previous client release the connection, further connection should be accepted. This will also test the server code
+        Test whether the server can correctly detect client disconnection
         '''
-        ue4cv.client.disconnect()
-        for _ in range(10):
-            _L.info('Try to connect')
-            ue4cv.client.connect()
-            self.assertEqual(ue4cv.client.isconnected(), True)
+        for i in range(5): # TODO, change this number to 10
+            print i
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((self.host, self.port))
+            # s.sendall('Hello, world')
+            # data = s.recv(1024)
+            # How to know whether this s is closed by remote?
+            ue4cv.SocketMessage.WrapAndSendPayload(s, 'hello')
+            # No shutdown to simulate sudden close
+            s.close() # It will take some time to notify the server
+            # time.sleep(1) # Wait for the server to release the connection
 
-            response = ue4cv.client.request(self.test_cmd)
-            self.assertEqual(response, 'ok')
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.ERROR)
 
-            ue4cv.client.disconnect()
-            self.assertEqual(ue4cv.client.isconnected(), False)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--port', help='Which port the game is running', default=9000, type=int)
+    args = parser.parse_args()
+    TestUE4CVServer.port = args.port
+
+    tests = [
+        'test_client_release',
+        'test_multiple_connection',
+        'test_random_operation',
+        'test_client_side_close',
+        ]
+    suite = unittest.TestSuite(map(TestUE4CVServer, tests))
+    unittest.TextTestRunner(verbosity=2).run(suite)

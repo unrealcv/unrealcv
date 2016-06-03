@@ -25,10 +25,14 @@ def read_camera_info(filename):
     return camera_pos
 
 class TestCommands(unittest.TestCase):
+    host = 'localhost'
+    port = 9000
     # Test a generic small game
     @classmethod
     def setUpClass(cls):
         ue4cv.client.connect()
+        if not ue4cv.client.isconnected():
+            raise Exception('Can not connect to a running game instance')
         cls.camera_poses = read_camera_info('./correctness_test/camera_info_basename.txt')
 
     def test_objects(self):
@@ -60,7 +64,7 @@ class TestCommands(unittest.TestCase):
         # TODO: also try random positions
         # Will there be some invalid location that can not be set to?
         # Can I know the boundary of the world?
-        for _ in range(100):
+        for _ in range(5):
             param_str = '%.3f %.3f %.3f' % (random.randrange(100), random.randrange(100), random.randrange(100))
             cmd = 'vset /camera/0/location %s' % param_str
             response = request(cmd)
@@ -82,7 +86,7 @@ class TestCommands(unittest.TestCase):
         # TODO: also try random positions
         # Will there be some invalid location that can not be set to?
         # Can I know the boundary of the world?
-        for _ in range(100):
+        for _ in range(5):
             param_str = '%.3f %.3f %.3f' % (random.randrange(100), random.randrange(100), random.randrange(100))
             cmd = 'vset /camera/0/location %s' % param_str
             response = request(cmd)
@@ -118,17 +122,41 @@ class TestCommands(unittest.TestCase):
 
         run_tasks(self, ue4cv.client, tasks)
 
+    def test_set_port(self):
+        ue4cv.client.disconnect()
+
+        client = ue4cv.Client((self.host, 9000))
+        client.connect()
+        self.assertEqual(client.isconnected(), True)
+        response = client.request('vget /unrealcv/port')
+        self.assertEqual(response, '9000')
+        response = client.request('vset /unrealcv/port 9001', timeout=1) # This is a special command and should not expect a response
+        self.assertEqual(response, None)
+        self.assertEqual(client.isconnected(), False)
+
+        client = ue4cv.Client((self.host, 9001))
+        client.connect()
+        self.assertEqual(client.isconnected(), True)
+        response = client.request('vget /unrealcv/port')
+        self.assertEqual(response, '9001')
+        response = client.request('vset /unrealcv/port 9000', timeout=1) # This is a special command and should not expect a response
+        self.assertEqual(response, None)
+        self.assertEqual(client.isconnected(), False)
+
+        ue4cv.client.connect()
+
 if __name__ == '__main__':
     logging.basicConfig()
     # unittest.main(verbosity = 2)
 
     tests = [
-        # 'test_camera',
-        # 'test_viewmode',
-        # 'test_objects',
-        # 'test_set_rotation',
-        # 'test_set_location',
+        'test_camera',
+        'test_viewmode',
+        'test_objects',
+        'test_set_rotation',
+        'test_set_location',
         'test_location_limit',
+        'test_set_port',
     ]
     suite = unittest.TestSuite(map(TestCommands, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
