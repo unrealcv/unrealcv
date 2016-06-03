@@ -1,5 +1,9 @@
-from common_config import *
-import argparse, time
+import sys, argparse, time
+sys.path.append('..')
+from ue4cv import *
+
+HOST, PORT = "localhost", 9000
+# HOST, PORT = "xd", 9000
 
 def message_handler(message):
     print 'Message from server: %s' % repr(message) # Need to show \x00 also
