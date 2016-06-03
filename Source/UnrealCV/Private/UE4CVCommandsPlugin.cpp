@@ -27,7 +27,7 @@ FExecStatus UE4CVCommands::SetPort(const TArray<FString>& Args)
 	if (Args.Num() == 1)
 	{
 		int32 PortNum = FCString::Atoi(*Args[0]);
-		bool IsSuccessful = FUE4CVServer::Get().NetworkManager->SetPort(PortNum);
+		bool IsSuccessful = FUE4CVServer::Get().NetworkManager->Start(PortNum);
 		if (IsSuccessful)
 		{
 			return FExecStatus::OK();
