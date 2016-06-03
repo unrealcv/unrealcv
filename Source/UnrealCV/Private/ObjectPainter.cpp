@@ -26,7 +26,9 @@ bool FObjectPainter::PaintRandomColors()
 		{
 			// FString ActorLabel = Actor->GetActorLabel();
 			FString ActorLabel = Actor->GetHumanReadableName();
-			FColor NewColor = FColor(FMath::RandRange(0, 255), FMath::RandRange(0, 255), FMath::RandRange(0, 255), 255);
+			// FColor NewColor = FColor(FMath::RandRange(0, 255), FMath::RandRange(0, 255), FMath::RandRange(0, 255), 255);
+			// FColor NewColor = FColor(0, 0, 0, 255);
+			FColor NewColor = FColor(128, 128, 128, 255);
 			ObjectsColorMapping.Emplace(ActorLabel, NewColor);
 			// if (Actor->GetActorLabel() == FString("SM_Door43"))
 			{
@@ -42,7 +44,12 @@ bool FObjectPainter::PaintRandomColors()
 
 bool FObjectPainter::PaintObject(AActor* Actor, const FColor& NewColor)
 {
+	// NewColor is the Color of the user input, We need to manually compute the value to put into video memory
+	// But the value to the video memory should be different, see more detail in 
+	// https://en.wikipedia.org/wiki/Gamma_correction#Methods_to_perform_display_gamma_correction_in_computing
 	if (!Actor) return false;
+
+	FColor ColorInVideoMemory; // Maybe use a lookup table?
 
 	TArray<UMeshComponent*> PaintableComponents;
 	// TInlineComponentArray<UMeshComponent*> MeshComponents;
