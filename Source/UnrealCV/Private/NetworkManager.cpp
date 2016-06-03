@@ -53,18 +53,49 @@ bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
 	int32 Offset = 0;
 	while (ExpectedSize > 0)
 	{
+		// uint32 PendingDataSize;
+		// bool Status = Socket->HasPendingData(PendingDataSize);
+		/*
+		if (!Status)
+		{
+			return false;
+		}// Operation failed
+		if (PendingDataSize == 0)
+		{
+			continue;
+		}
+		*/
+
+		// if PendingDataSize != 0
 		int32 NumRead = 0;
-		Socket->Recv(Result + Offset, ExpectedSize, NumRead);
+		bool RecvStatus = Socket->Recv(Result + Offset, ExpectedSize, NumRead);
+		// bool RecvStatus = Socket->Recv(Result + Offset, ExpectedSize, NumRead, ESocketReceiveFlags::WaitAll);
+		// WaitAll is not effective for non-blocking socket, see here https://msdn.microsoft.com/en-us/library/windows/desktop/ms740121(v=vs.85).aspx
+		// Check pending data first, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms738573(v=vs.85).aspx
+
+		// ESocketConnectionState ConnectionState = Socket->GetConnectionState();
+		// check(NumRead <= ExpectedSize);
+		// RecvStatus == BytesRead >= 0
 		check(NumRead <= ExpectedSize);
 
-		if (NumRead == 0)
+		if (NumRead == 0) // 0 means gracefully closed 
 		{
 			return false; // Socket is disconnected. if -1, keep waiting for data
 		}
 
-		if (NumRead == -1)
+		if (NumRead == -1) 
+		// -1 means error happen, but not sure what the error is, in windows WSAGetLastError can get the real error
+		// HasPendingData already eliminate the error of not having data
 		{
-			continue;
+			ESocketErrors LastError = ISocketSubsystem::Get()->GetLastErrorCode();
+			if (LastError == ESocketErrors::SE_EWOULDBLOCK)
+			{
+				continue; // No data received
+			}
+			else // SE_ECONNABORTED
+			{
+				return false;
+			}
 		}
 		Offset += NumRead;
 		ExpectedSize -= NumRead;
@@ -186,13 +217,15 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 {
 	if (!this->ConnectionSocket)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
-		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
-		FSocketMessageHeader::WrapAndSendPayload(FString::Printf(TEXT("connected to %s", FApp::GetGameName()))); // Send a hello message
 		ConnectionSocket = ClientSocket;
 
+		UE_LOG(LogTemp, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
+		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
+		FString Confirm = FString::Printf(TEXT("connected to %s"), FApp::GetGameName());
+		this->SendMessage(Confirm); // Send a hello message
+
 		// TODO: Start a new thread
-		while (1) // Listening thread
+		while (this->ConnectionSocket) // Listening thread, while the client is still connected
 		{
 			FArrayReader ArrayReader;
 			if (!FSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket))
@@ -228,18 +261,19 @@ bool UNetworkManager::Connected(FSocket* ClientSocket, const FIPv4Endpoint& Clie
 }
 
 
-bool UNetworkManager::SetPort(int32 InPortNum)
-{
-	this->PortNum = InPortNum;
-	return this->Start();
-}
-
-bool UNetworkManager::Start(int32 InPortNum) // If restart the server if configuration changed
+bool UNetworkManager::Start(int32 InPortNum) // Restart the server if configuration changed
 {
 	if (InPortNum == this->PortNum && this->bIsListening) return true; // Already started
 
+	if (ConnectionSocket) // Release previous connection
+	{
+		ConnectionSocket->Close();
+		ConnectionSocket = NULL;
+	}
+
 	if (TcpListener) // Delete previous configuration first
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Stop previous server"));
 		TcpListener->Stop(); // TODO: test the robustness, will this operation successful?
 		delete TcpListener;
 	}
