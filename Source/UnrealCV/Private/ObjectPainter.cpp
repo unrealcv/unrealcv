@@ -1,6 +1,48 @@
 #include "UnrealCVPrivate.h"
 #include "ObjectPainter.h"
 #include "StaticMeshResources.h"
+#include "UE4CVServer.h"
+#include "SceneViewport.h"
+
+static TMap<uint8, uint8> DecodeColorValue; // Convert Encoded Color to Display Color, for numerical issue
+
+// Do Gamma correction
+void BuildDecodeColorValue(float InvGamma)
+{
+	DecodeColorValue.Empty();
+	for (int32 DisplayIter = 0; DisplayIter < 256; DisplayIter++) // if use uint8, this loop will go forever
+	{
+		int32 EncodeVal = FMath::FloorToInt(FMath::Pow((float)DisplayIter / 255.0, InvGamma) * 255.0);
+		check(EncodeVal >= 0);
+		check(EncodeVal <= 255);
+		if (!DecodeColorValue.Find(EncodeVal))
+		{
+			DecodeColorValue.Emplace(EncodeVal, DisplayIter);
+		}
+	}
+	check(DecodeColorValue.Num() < 256); // Not all of them can find a correspondence due to numerical issue
+}
+
+bool GetDisplayValue(uint8 InEncodedValue, uint8& OutDisplayValue, float InvGamma)
+{
+	static float CachedInvGamma;
+	if (DecodeColorValue.Num() == 0 || CachedInvGamma != InvGamma)
+	{
+		BuildDecodeColorValue(InvGamma);
+		CachedInvGamma = InvGamma;
+	}
+
+	if (DecodeColorValue.Find(InEncodedValue))
+	{
+		OutDisplayValue = DecodeColorValue[InEncodedValue];
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 
 FObjectPainter& FObjectPainter::Get()
 {
@@ -13,8 +55,83 @@ FObjectPainter::FObjectPainter(ULevel* InLevel)
 	this->Level = InLevel;
 }
 
+FExecStatus FObjectPainter::SetActorColor(FString ObjectName, FColor Color)
+{
+	auto ObjectsMapping = GetObjectsMapping();
+	if (ObjectsMapping.Contains(ObjectName))
+	{
+		AActor* Actor = ObjectsMapping[ObjectName];
+		if (PaintObject(Actor, Color))
+		{
+			ObjectsColorMapping.Emplace(ObjectName, Color);
+			return FExecStatus::OK();
+		}
+		else
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Failed to paint object %s"), *ObjectName));
+		}
+	}
+	else
+	{
+		return FExecStatus::Error(FString::Printf(TEXT("Object %s not exist"), *ObjectName));
+	}
+}
+
+FExecStatus FObjectPainter::GetActorColor(FString ObjectName)
+{
+	if (ObjectsColorMapping.Contains(ObjectName))
+	{
+		FColor ObjectColor = ObjectsColorMapping[ObjectName]; // Make sure the object exist
+		FString Message = ObjectColor.ToString();
+		// FString Message = "%.3f %.3f %.3f %.3f";
+		return FExecStatus::OK(Message);
+	}
+	else
+	{
+		return FExecStatus::Error(FString::Printf(TEXT("Object %s not exist"), *ObjectName));
+	}
+}
+
+FExecStatus FObjectPainter::GetObjectList()
+{
+	TArray<FString> Keys;
+	GetObjectsMapping().GetKeys(Keys);
+	FString Message = "";
+	for (auto ObjectName : Keys)
+	{
+		Message += ObjectName + " ";
+	}
+	Message = Message.LeftChop(1);
+	return FExecStatus::OK(Message);
+}
+
+TMap<FString, AActor*>& FObjectPainter::GetObjectsMapping()
+{
+	static TMap<FString, AActor*> ObjectsMapping;
+	if (!this->Level) return ObjectsMapping;
+	check(Level);
+	if (ObjectsMapping.Num() == 0)
+	{
+		for (AActor* Actor : Level->Actors)
+		{
+			if (Actor && Actor->IsA(AStaticMeshActor::StaticClass())) // Only StaticMeshActor is interesting
+			{
+				FString ActorLabel = Actor->GetActorLabel();
+				ObjectsMapping.Emplace(ActorLabel, Actor);
+			}
+		}
+	}
+	return ObjectsMapping;
+}
+
 bool FObjectPainter::PaintRandomColors()
 {
+	FSceneViewport* SceneViewport = FUE4CVServer::Get().GetPawn()->GetWorld()->GetGameViewport()->GetGameViewport();
+	float Gamma = SceneViewport->GetDisplayGamma();
+	check(Gamma != 0);
+	if (Gamma == 0) Gamma = 1;
+	float InvGamma = 1 / Gamma;
+	BuildDecodeColorValue(InvGamma);
 	// Iterate over all actors
 	// ULevel* Level = GetLevel();
 
@@ -24,15 +141,24 @@ bool FObjectPainter::PaintRandomColors()
 	{
 		if (Actor && Actor->IsA(AStaticMeshActor::StaticClass())) // Only StaticMeshActor is interesting
 		{
-			// FString ActorLabel = Actor->GetActorLabel();
-			FString ActorLabel = Actor->GetHumanReadableName();
+			FString ActorLabel = Actor->GetActorLabel();
+			// FString ActorLabel = Actor->GetHumanReadableName();
 			// FColor NewColor = FColor(FMath::RandRange(0, 255), FMath::RandRange(0, 255), FMath::RandRange(0, 255), 255);
-			// FColor NewColor = FColor(0, 0, 0, 255);
-			FColor NewColor = FColor(128, 128, 128, 255);
+			// FColor NewColor = FColor(1, 1, 1, 255);
+			FColor NewColor;
+			TArray<uint8> ValidVals;
+			DecodeColorValue.GenerateKeyArray(ValidVals);
+
+			NewColor.R = ValidVals[FMath::RandRange(0, ValidVals.Num()-1)];
+			NewColor.G = ValidVals[FMath::RandRange(0, ValidVals.Num()-1)];
+			NewColor.B = ValidVals[FMath::RandRange(0, ValidVals.Num()-1)];
+			NewColor.A = 255;
+			// FColor NewColor = FColor(128, 128, 128, 255);
+
 			ObjectsColorMapping.Emplace(ActorLabel, NewColor);
 			// if (Actor->GetActorLabel() == FString("SM_Door43"))
 			{
-				PaintObject(Actor, NewColor);
+				check(PaintObject(Actor, NewColor));
 			}
 		}
 	}
@@ -42,14 +168,46 @@ bool FObjectPainter::PaintRandomColors()
 	return true;
 }
 
-bool FObjectPainter::PaintObject(AActor* Actor, const FColor& NewColor)
+/** DisplayColor is the color that the screen will show
+	If DisplayColor.R = 128, the display will show 0.5 voltage
+	To achieve this, UnrealEngine will do gamma correction.
+	The value on image will be 187.
+	https://en.wikipedia.org/wiki/Gamma_correction#Methods_to_perform_display_gamma_correction_in_computing
+*/
+bool FObjectPainter::PaintObject(AActor* Actor, const FColor& Color, bool IsColorGammaEncoded)
 {
-	// NewColor is the Color of the user input, We need to manually compute the value to put into video memory
-	// But the value to the video memory should be different, see more detail in 
-	// https://en.wikipedia.org/wiki/Gamma_correction#Methods_to_perform_display_gamma_correction_in_computing
 	if (!Actor) return false;
 
-	FColor ColorInVideoMemory; // Maybe use a lookup table?
+	FColor NewColor;
+	if (IsColorGammaEncoded)
+	{
+		FSceneViewport* SceneViewport = FUE4CVServer::Get().GetPawn()->GetWorld()->GetGameViewport()->GetGameViewport();
+		float Gamma = SceneViewport->GetDisplayGamma();
+		check(Gamma != 0);
+		if (Gamma == 0) Gamma = 1;
+		float InvGamma = 1 / Gamma;
+
+		bool Converted = true;
+		Converted &= GetDisplayValue(Color.R, NewColor.R, InvGamma);
+		Converted &= GetDisplayValue(Color.G, NewColor.G, InvGamma);
+		Converted &= GetDisplayValue(Color.B, NewColor.B, InvGamma);
+		if (!Converted)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Can not convert encoded color %d %d %d"), Color.R, Color.G, Color.B);
+			return false;
+		}
+
+		// See UnrealEngine/Engine/Shaders/GammaCorrection.usf
+		/* This is the real calculation, but due to numerical issue, we need to use table lookup
+		NewColor.R = FMath::RoundToInt(FMath::Pow(Color.R / 255.0, Gamma) * 255.0);
+		NewColor.G = FMath::RoundToInt(FMath::Pow(Color.G / 255.0, Gamma) * 255.0);
+		NewColor.B = FMath::RoundToInt(FMath::Pow(Color.B / 255.0, Gamma) * 255.0);
+		*/
+	}
+	else
+	{
+		NewColor = Color;
+	}
 
 	TArray<UMeshComponent*> PaintableComponents;
 	// TInlineComponentArray<UMeshComponent*> MeshComponents;

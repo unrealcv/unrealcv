@@ -39,14 +39,14 @@ void UE4CVCommands::RegisterCommands()
 	CommandDispatcher->BindCommand(TEXT("vget /objects"), Cmd, "Get all objects in the scene");
 
 	// The order matters
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::CurrentObjectHandler); // Redirect to current 
+	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::CurrentObjectHandler); // Redirect to current
 	CommandDispatcher->BindCommand(TEXT("[str] /object/_/[str]"), Cmd, "Get current object");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetObjectColor);
 	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/color"), Cmd, "Get object color");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::SetObjectColor);
-	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/color"), Cmd, "Set object color");
+	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/color [uint] [uint] [uint]"), Cmd, "Set object color");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetObjectName);
 	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/name"), Cmd, "Get object name");
@@ -84,46 +84,20 @@ FExecStatus UE4CVCommands::GetCommands(const TArray<FString>& Args)
 
 FExecStatus UE4CVCommands::GetObjects(const TArray<FString>& Args)
 {
-	TArray<FString> Keys;
-	FObjectPainter::Get().ObjectsColorMapping.GetKeys(Keys);
-	FString Message = "";
-	for (auto ObjectName : Keys)
-	{
-		Message += ObjectName + " ";
-	}
-	Message = Message.LeftChop(1);
-	return FExecStatus::OK(Message);
+	return FObjectPainter::Get().GetObjectList();
 }
 
 FExecStatus UE4CVCommands::SetObjectColor(const TArray<FString>& Args)
 {
-	// ObjectName, R, G, B, A
+	// ObjectName, R, G, B, A = 255
 	// The color format is RGBA
-	if (Args.Num() == 5)
-	{ 
-
+	if (Args.Num() == 4)
+	{
 		FString ObjectName = Args[0];
-		uint32 R = FCString::Atoi(*Args[1]), G = FCString::Atoi(*Args[2]), B = FCString::Atoi(*Args[3]), A = FCString::Atoi(*Args[4]);
+		uint32 R = FCString::Atoi(*Args[1]), G = FCString::Atoi(*Args[2]), B = FCString::Atoi(*Args[3]), A = 255; // A = FCString::Atoi(*Args[4]);
 		FColor NewColor(R, G, B, A);
-		TMap<FString, AActor*>& ObjectsMapping = FObjectPainter::Get().ObjectsMapping;
-		TMap<FString, FColor>& ObjectsColorMapping = FObjectPainter::Get().ObjectsColorMapping;
-		if (ObjectsMapping.Contains(ObjectName))
-		{
-			AActor* Actor = ObjectsMapping[ObjectName];
-			if (FObjectPainter::Get().PaintObject(Actor, NewColor))
-			{
-				ObjectsColorMapping.Emplace(ObjectName, NewColor);
-				return FExecStatus::OK();
-			}
-			else
-			{
-				return FExecStatus::Error(FString::Printf(TEXT("Failed to paint object %s"), *ObjectName));
-			}
-		}
-		else
-		{
-			return FExecStatus::Error(FString::Printf(TEXT("Object %s not exist"), *ObjectName));
-		}
+
+		return FObjectPainter::Get().SetActorColor(ObjectName, NewColor);
 	}
 
 	return FExecStatus::InvalidArgument;
@@ -132,21 +106,9 @@ FExecStatus UE4CVCommands::SetObjectColor(const TArray<FString>& Args)
 FExecStatus UE4CVCommands::GetObjectColor(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
-	{ 
+	{
 		FString ObjectName = Args[0];
-
-		TMap<FString, FColor>& ObjectsColorMapping = FObjectPainter::Get().ObjectsColorMapping;
-		if (ObjectsColorMapping.Contains(ObjectName))
-		{
-			FColor ObjectColor = ObjectsColorMapping[ObjectName]; // Make sure the object exist
-			FString Message = ObjectColor.ToString();
-			// FString Message = "%.3f %.3f %.3f %.3f";
-			return FExecStatus::OK(Message);
-		}
-		else
-		{
-			return FExecStatus::Error(FString::Printf(TEXT("Object %s not exist"), *ObjectName));
-		}
+		return FObjectPainter::Get().GetActorColor(ObjectName);
 	}
 
 	return FExecStatus::InvalidArgument;
@@ -221,4 +183,3 @@ FExecStatus UE4CVCommands::CurrentObjectHandler(const TArray<FString>& Args)
 	}
 	return FExecStatus::InvalidArgument;
 }
-

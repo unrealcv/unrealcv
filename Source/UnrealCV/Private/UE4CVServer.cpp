@@ -6,8 +6,10 @@
 
 bool FUE4CVServer::Init(APawn* InCharacter)
 {
+	this->Pawn = InCharacter;
+
 	FObjectPainter::Get().SetLevel(InCharacter->GetLevel());
-	FObjectPainter::Get().PaintRandomColors();
+	// FObjectPainter::Get().PaintRandomColors();
 
 	FViewMode::Get().SetWorld(InCharacter->GetWorld());
 
@@ -19,6 +21,12 @@ bool FUE4CVServer::Init(APawn* InCharacter)
 	FConsoleHelper* ConsoleHelper = new FConsoleHelper(CommandDispatcher, ConsoleOutputDevice);
 
 	return NetworkManager->Start();
+}
+
+APawn* FUE4CVServer::GetPawn()
+{
+	check(this->Pawn);
+	return this->Pawn;
 }
 
 FUE4CVServer& FUE4CVServer::Get()

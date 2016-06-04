@@ -54,7 +54,13 @@ public:
 
 	/** The CommandDispatcher to handle a pending request */
 	FCommandDispatcher* CommandDispatcher;
+
+	/** Return the Pawn of this game */
+	APawn* GetPawn();
 private:
+	/** The Pawn of the Game */
+	APawn* Pawn;
+
 	/** Construct a server */
 	FUE4CVServer();
 
