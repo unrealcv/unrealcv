@@ -232,7 +232,8 @@ bool FObjectPainter::PaintObject(AActor* Actor, const FColor& Color, bool IsColo
 				InstanceMeshLODInfo = &StaticMeshComponent->LODData[PaintingMeshLODIndex];
 
 				// Setup OverrideVertexColors
-				if (!InstanceMeshLODInfo->OverrideVertexColors) {
+				// if (!InstanceMeshLODInfo->OverrideVertexColors) // TODO: Check this
+				{
 					InstanceMeshLODInfo->OverrideVertexColors = new FColorVertexBuffer;
 
 					FColor FillColor = FColor(255, 255, 255, 255);
