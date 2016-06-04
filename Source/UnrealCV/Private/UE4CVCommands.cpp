@@ -16,18 +16,24 @@ UE4CVCommands::UE4CVCommands(APawn* InCharacter, FCommandDispatcher* InCommandDi
 
 UE4CVCommands::~UE4CVCommands()
 {
+	for (FCommandHandler* Handler : CommandHandlers)
+	{
+		delete Handler;
+	}
 }
 
 void UE4CVCommands::RegisterCommands()
 {
-	FObjectCommandHandler ObjectCommandHandler(Character, CommandDispatcher);
-	ObjectCommandHandler.RegisterCommands();
+	if (CommandHandlers.Num() != 0) return;
+	// Need to keep the reference
+	CommandHandlers.Add(new FObjectCommandHandler(Character, CommandDispatcher));
+	CommandHandlers.Add(new FCameraCommandHandler(Character, CommandDispatcher));
+	CommandHandlers.Add(new FPluginCommandHandler(Character, CommandDispatcher));
 
-	FCameraCommandHandler CameraCommandHandler(Character, CommandDispatcher);
-	CameraCommandHandler.RegisterCommands();
-
-	FPluginCommandHandler PluginCommandHandler(Character, CommandDispatcher);
-	PluginCommandHandler.RegisterCommands();
+	for (FCommandHandler* Handler : CommandHandlers)
+	{
+		Handler->RegisterCommands();
+	}
 
 	// this->RegisterCommandsCamera();
 	// this->RegisterCommandsPlugin();

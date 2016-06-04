@@ -4,10 +4,10 @@
 class FCommandHandler
 {
 public:
-	FCommandHandler(APawn* InCharacter, FCommandDispatcher* InCommandDispatcher) :
-		Character(InCharacter), CommandDispatcher(InCommandDispatcher)
+	FCommandHandler(APawn* InCharacter, FCommandDispatcher* InCommandDispatcher)
+	: Character(InCharacter), CommandDispatcher(InCommandDispatcher)
 	{}
-	virtual void RegisterCommands() = 0;
+	virtual void RegisterCommands() {};
 protected:
 	FCommandDispatcher* CommandDispatcher;
 	APawn* Character;
@@ -17,7 +17,8 @@ protected:
 class FObjectCommandHandler : public FCommandHandler
 {
 public:
-	FObjectCommandHandler(APawn* InCharacter, FCommandDispatcher* InCommandDispatcher) : FCommandHandler(InCharacter, InCommandDispatcher)
+	FObjectCommandHandler(APawn* InCharacter, FCommandDispatcher* InCommandDispatcher)
+	: FCommandHandler(InCharacter, InCommandDispatcher)
 	{}
 	void RegisterCommands();
 
@@ -36,7 +37,8 @@ public:
 class FCameraCommandHandler : public FCommandHandler
 {
 public:
-	FCameraCommandHandler(APawn* InCharacter, FCommandDispatcher* InCommandDispatcher) : FCommandHandler(InCharacter, InCommandDispatcher)
+	FCameraCommandHandler(APawn* InCharacter, FCommandDispatcher* InCommandDispatcher)
+	: FCommandHandler(InCharacter, InCommandDispatcher)
 	{}
 	void RegisterCommands();
 
@@ -64,7 +66,8 @@ public:
 class FPluginCommandHandler : public FCommandHandler
 {
 public:
-	FPluginCommandHandler(APawn* InCharacter, FCommandDispatcher* InCommandDispatcher) : FCommandHandler(InCharacter, InCommandDispatcher)
+	FPluginCommandHandler(APawn* InCharacter, FCommandDispatcher* InCommandDispatcher)
+	: FCommandHandler(InCharacter, InCommandDispatcher)
 	{}
 	void RegisterCommands();
 

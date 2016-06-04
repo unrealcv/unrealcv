@@ -92,66 +92,6 @@ FExecStatus FCameraCommandHandler::GetCameraRotation(const TArray<FString>& Args
 	return FExecStatus::Error("Number of arguments incorrect");
 }
 
-/*
-FExecStatus FCameraCommandHandler::GetCameraDepth(const TArray<FString>& Args)
-{
-	if (Args.Num() == 1)
-	{
-		FExecStatus ExecStatus = CommandDispatcher->Exec("vset /mode/depth"); // TODO: Overwrite the + operator of FExecStatus
-		return GetCameraView(Args);
-	}
-	return FExecStatus::InvalidArgument;
-}
-*/
-
-/*
-FExecStatus FCameraCommandHandler::GetCameraBaseColor(const TArray<FString>& Args)
-{
-	if (Args.Num() == 1)
-	{
-		FExecStatus ExecStatus = CommandDispatcher->Exec("vset /mode/normal"); // TODO: Overwrite the + operator of FExecStatus
-		return GetCameraView(Args);
-	}
-	return FExecStatus::InvalidArgument;
-}
-*/
-
-/*
-FExecStatus FCameraCommandHandler::GetCameraNormal(const TArray<FString>& Args)
-{
-	if (Args.Num() == 1)
-	{
-		FExecStatus ExecStatus = CommandDispatcher->Exec("vset /mode/normal"); // TODO: Overwrite the + operator of FExecStatus
-		return GetCameraView(Args);
-	}
-	return FExecStatus::InvalidArgument;
-}
-*/
-
-/*
-FExecStatus FCameraCommandHandler::GetCameraObjectMask(const TArray<FString>& Args)
-{
-	if (Args.Num() == 1)
-	{
-		FExecStatus ExecStatus = CommandDispatcher->Exec("vset /mode/object"); // TODO: Overwrite the + operator of FExecStatus
-		return GetCameraView(Args);
-	}
-	return FExecStatus::InvalidArgument;
-}
-*/
-
-/*
-FExecStatus FCameraCommandHandler::GetCameraImage(const TArray<FString>& Args)
-{
-	if (Args.Num() == 1)
-	{
-		FExecStatus ExecStatus = CommandDispatcher->Exec("vset /mode/lit");
-		return GetCameraView(Args);
-	}
-	return FExecStatus::InvalidArgument;
-}
-*/
-
 FExecStatus FCameraCommandHandler::GetCameraLocation(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
@@ -296,7 +236,7 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 		Args1.Add(ViewMode);
 		FViewMode::Get().SetMode(Args1);
 		*/
-		FExecStatus ExecStatus = CommandDispatcher->Exec(FString::Printf(TEXT("vset /mode/%s"), *ViewMode));
+		FExecStatus ExecStatus = CommandDispatcher->Exec(FString::Printf(TEXT("vset /mode %s"), *ViewMode));
 		if (ExecStatus != FExecStatusType::OK)
 		{
 			return ExecStatus;

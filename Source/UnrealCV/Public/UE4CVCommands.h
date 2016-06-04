@@ -2,6 +2,7 @@
 
 #pragma once
 #include "CommandDispatcher.h"
+#include "CommandHandler.h"
 
 /**
  * Define a set of commands to interact with the Unreal World
@@ -16,6 +17,7 @@ private:
 	/** Register commands to a CommandDispatcher */
 	void RegisterCommands();
 	// See more details in RegisterCommands()
+	TArray<FCommandHandler*> CommandHandlers;
 
 public:
 	UE4CVCommands(APawn* MyCharacter, FCommandDispatcher* InCommandDispatcher);
