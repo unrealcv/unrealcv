@@ -1,49 +1,49 @@
 // #include "RealisticRendering.h"
 #include "UnrealCVPrivate.h"
-#include "UE4CVCommands.h"
+#include "CommandHandler.h"
 #include "ViewMode.h"
 #include "ImageUtils.h"
 
-void UE4CVCommands::RegisterCommandsCamera()
+void FCameraCommandHandler::RegisterCommands()
 {
 	FDispatcherDelegate Cmd;
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraLocation);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraLocation);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/location", Cmd, "Get camera location");
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraRotation);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraRotation);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/rotation", Cmd, "Get camera rotation");
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::SetCameraLocation);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::SetCameraLocation);
 	CommandDispatcher->BindCommand("vset /camera/[uint]/location [float] [float] [float]", Cmd, "Set camera location");
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::SetCameraRotation);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::SetCameraRotation);
 	CommandDispatcher->BindCommand("vset /camera/[uint]/rotation [float] [float] [float]", Cmd, "Set camera rotation");
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraView);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraView);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/view", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraViewMode);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraViewMode);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/[str]", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 
 	/*
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraImage);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraImage);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/image", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraDepth);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraDepth);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/depth", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraObjectMask);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraObjectMask);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/object_mask", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraNormal);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraNormal);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/normal", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCameraBaseColor);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraBaseColor);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/base_color", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
 	*/
 }
 
-FExecStatus UE4CVCommands::SetCameraLocation(const TArray<FString>& Args)
+FExecStatus FCameraCommandHandler::SetCameraLocation(const TArray<FString>& Args)
 {
 	if (Args.Num() == 4) // ID, X, Y, Z
 	{
@@ -57,7 +57,7 @@ FExecStatus UE4CVCommands::SetCameraLocation(const TArray<FString>& Args)
 	return FExecStatus::InvalidArgument;
 }
 
-FExecStatus UE4CVCommands::SetCameraRotation(const TArray<FString>& Args)
+FExecStatus FCameraCommandHandler::SetCameraRotation(const TArray<FString>& Args)
 {
 	if (Args.Num() == 4) // ID, Pitch, Roll, Yaw
 	{
@@ -73,7 +73,7 @@ FExecStatus UE4CVCommands::SetCameraRotation(const TArray<FString>& Args)
 	return FExecStatus::InvalidArgument;
 }
 
-FExecStatus UE4CVCommands::GetCameraRotation(const TArray<FString>& Args)
+FExecStatus FCameraCommandHandler::GetCameraRotation(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
 	{
@@ -88,7 +88,7 @@ FExecStatus UE4CVCommands::GetCameraRotation(const TArray<FString>& Args)
 }
 
 /*
-FExecStatus UE4CVCommands::GetCameraDepth(const TArray<FString>& Args)
+FExecStatus FCameraCommandHandler::GetCameraDepth(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
 	{
@@ -100,7 +100,7 @@ FExecStatus UE4CVCommands::GetCameraDepth(const TArray<FString>& Args)
 */
 
 /*
-FExecStatus UE4CVCommands::GetCameraBaseColor(const TArray<FString>& Args)
+FExecStatus FCameraCommandHandler::GetCameraBaseColor(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
 	{
@@ -112,7 +112,7 @@ FExecStatus UE4CVCommands::GetCameraBaseColor(const TArray<FString>& Args)
 */
 
 /*
-FExecStatus UE4CVCommands::GetCameraNormal(const TArray<FString>& Args)
+FExecStatus FCameraCommandHandler::GetCameraNormal(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
 	{
@@ -124,7 +124,7 @@ FExecStatus UE4CVCommands::GetCameraNormal(const TArray<FString>& Args)
 */
 
 /*
-FExecStatus UE4CVCommands::GetCameraObjectMask(const TArray<FString>& Args)
+FExecStatus FCameraCommandHandler::GetCameraObjectMask(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
 	{
@@ -136,7 +136,7 @@ FExecStatus UE4CVCommands::GetCameraObjectMask(const TArray<FString>& Args)
 */
 
 /*
-FExecStatus UE4CVCommands::GetCameraImage(const TArray<FString>& Args)
+FExecStatus FCameraCommandHandler::GetCameraImage(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
 	{
@@ -147,7 +147,7 @@ FExecStatus UE4CVCommands::GetCameraImage(const TArray<FString>& Args)
 }
 */
 
-FExecStatus UE4CVCommands::GetCameraLocation(const TArray<FString>& Args)
+FExecStatus FCameraCommandHandler::GetCameraLocation(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
 	{
@@ -186,7 +186,7 @@ bool DoCaptureScreen(UGameViewportClient *ViewportClient, const FString& Capture
 		return bScreenshotSuccessful;
 }
 
-FExecStatus UE4CVCommands::GetCameraViewSync(const FString& FullFilename)
+FExecStatus FCameraCommandHandler::GetCameraViewSync(const FString& FullFilename)
 {
 	// This can only work within editor
 	// Reimplement a GameViewportClient is required according to the discussion from here
@@ -202,7 +202,7 @@ FExecStatus UE4CVCommands::GetCameraViewSync(const FString& FullFilename)
 	}
 }
 
-FExecStatus UE4CVCommands::GetCameraViewAsyncQuery(const FString& FullFilename)
+FExecStatus FCameraCommandHandler::GetCameraViewAsyncQuery(const FString& FullFilename)
 {
 		// Method 1: Use custom ViewportClient
 		// UMyGameViewportClient* ViewportClient = (UMyGameViewportClient*)Character->GetWorld()->GetGameViewport();
@@ -212,7 +212,7 @@ FExecStatus UE4CVCommands::GetCameraViewAsyncQuery(const FString& FullFilename)
 		FScreenshotRequest::RequestScreenshot(FullFilename, false, false); // This is an async operation
 
 		// Implement 2, Start async and query
-		// FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateRaw(this, &UE4CVCommands::CheckStatusScreenshot);
+		// FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateRaw(this, &FCameraCommandHandler::CheckStatusScreenshot);
 		FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([FullFilename]()
 		{
 			if (FScreenshotRequest::IsScreenshotRequested())
@@ -231,7 +231,7 @@ FExecStatus UE4CVCommands::GetCameraViewAsyncQuery(const FString& FullFilename)
 		UGameViewportClient* ViewportClient = Character->GetWorld()->GetGameViewport();
 		ViewportClient->OnScreenshotCaptured().Clear(); // This is required to handle the filename issue.
 		ViewportClient->OnScreenshotCaptured().AddLambda(
-			[FullFilename](int32 SizeX, int32 SizeY, const TArray<FColor>& Bitmap) 
+			[FullFilename](int32 SizeX, int32 SizeY, const TArray<FColor>& Bitmap)
 		{
 			// Save bitmap to disk
 			TArray<FColor>& RefBitmap = const_cast<TArray<FColor>&>(Bitmap);
@@ -250,7 +250,7 @@ FExecStatus UE4CVCommands::GetCameraViewAsyncQuery(const FString& FullFilename)
 }
 
 /*
-FExecStatus UE4CVCommands::GetCameraViewAsyncCallback(const FString& FullFilename)
+FExecStatus FCameraCommandHandler::GetCameraViewAsyncCallback(const FString& FullFilename)
 {
 		FScreenshotRequest::RequestScreenshot(FullFilename, false, false); // This is an async operation
 
@@ -260,7 +260,7 @@ FExecStatus UE4CVCommands::GetCameraViewAsyncCallback(const FString& FullFilenam
 		UMyGameViewportClient* ViewportClient = (UMyGameViewportClient*)Character->GetWorld()->GetGameViewport();
 		ViewportClient->OnScreenshotCaptured().Clear();
 		ViewportClient->OnScreenshotCaptured().AddLambda(
-			[FullFilename, TaskId](int32 SizeX, int32 SizeY, const TArray<FColor>& Bitmap) 
+			[FullFilename, TaskId](int32 SizeX, int32 SizeY, const TArray<FColor>& Bitmap)
 		{
 			// Save bitmap to disk
 			TArray<FColor>& RefBitmap = const_cast<TArray<FColor>&>(Bitmap);
@@ -270,7 +270,7 @@ FExecStatus UE4CVCommands::GetCameraViewAsyncCallback(const FString& FullFilenam
 
 			FString Message = FullFilename;
 			// FAsyncTaskPool::Get().CompleteTask(TaskId, Message); // int32 is easy to pass around in lamdba
-			
+
 			// Mark this async task finished
 			// ExecStatusAsyncCallback.MessageBody = FullFilename;
 			// ExecStatusAsyncCallback.OnFinished().Execute(); // FullFilename is the message to return
@@ -279,10 +279,10 @@ FExecStatus UE4CVCommands::GetCameraViewAsyncCallback(const FString& FullFilenam
 }
 */
 
-FExecStatus UE4CVCommands::GetCameraViewMode(const TArray<FString>& Args)
+FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args)
 {
 	if (Args.Num() == 2) // The first is camera id, the second is ViewMode
-	{ 
+	{
 		FString CameraId = Args[0];
 		FString ViewMode = Args[1];
 
@@ -305,7 +305,7 @@ FExecStatus UE4CVCommands::GetCameraViewMode(const TArray<FString>& Args)
 	return FExecStatus::InvalidArgument;
 }
 
-FExecStatus UE4CVCommands::GetCameraView(const TArray<FString>& Args)
+FExecStatus FCameraCommandHandler::GetCameraView(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
 	{
@@ -316,9 +316,8 @@ FExecStatus UE4CVCommands::GetCameraView(const TArray<FString>& Args)
 		FString Filename = FString::Printf(TEXT("%04d.png"), NumCaptured);
 		const FString Dir = FPlatformProcess::BaseDir(); // TODO: Change this to screen capture folder
 		FString FullFilename = FPaths::Combine(*Dir, *Filename);
-		
+
 		return this->GetCameraViewAsyncQuery(FullFilename);
 	}
 	return FExecStatus::InvalidArgument;
 }
-

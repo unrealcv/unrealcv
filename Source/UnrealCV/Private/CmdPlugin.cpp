@@ -1,28 +1,28 @@
 #include "UnrealCVPrivate.h"
-#include "UE4CVCommands.h"
+#include "CommandHandler.h"
 #include "UE4CVServer.h"
 
-void UE4CVCommands::RegisterCommandsPlugin()
+void FPluginCommandHandler::RegisterCommands()
 {
 	FDispatcherDelegate Cmd;
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetPort);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetPort);
 	CommandDispatcher->BindCommand("vget /unrealcv/port", Cmd, "Get port from the plugin listening to");
-	
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::SetPort);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::SetPort);
 	CommandDispatcher->BindCommand("vset /unrealcv/port [uint]", Cmd, "Set port the plugin listening to");
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetUnrealCVStatus);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetUnrealCVStatus);
 	CommandDispatcher->BindCommand("vget /unrealcv/status", Cmd, "Get camera location");
 }
 
-FExecStatus UE4CVCommands::GetPort(const TArray<FString>& Args)
+FExecStatus FPluginCommandHandler::GetPort(const TArray<FString>& Args)
 {
 	FString Msg = FString::Printf(TEXT("%d"), FUE4CVServer::Get().NetworkManager->PortNum);
 	return FExecStatus::OK(Msg);
 	// return FExecStatus::InvalidArgument;
 }
 
-FExecStatus UE4CVCommands::SetPort(const TArray<FString>& Args)
+FExecStatus FPluginCommandHandler::SetPort(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
 	{
@@ -43,7 +43,7 @@ FExecStatus UE4CVCommands::SetPort(const TArray<FString>& Args)
 	}
 }
 
-FExecStatus UE4CVCommands::GetUnrealCVStatus(const TArray<FString>& Args)
+FExecStatus FPluginCommandHandler::GetUnrealCVStatus(const TArray<FString>& Args)
 {
 	FString Msg;
 	FUE4CVServer& Server = FUE4CVServer::Get(); // TODO: Can not use a copy constructor, need to disable copy constructor

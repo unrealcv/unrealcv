@@ -20,11 +20,17 @@ UE4CVCommands::~UE4CVCommands()
 
 void UE4CVCommands::RegisterCommands()
 {
-	FObjectCommandHandler CommandHandler(Character, CommandDispatcher);
-	CommandHandler.RegisterCommands();
+	FObjectCommandHandler ObjectCommandHandler(Character, CommandDispatcher);
+	ObjectCommandHandler.RegisterCommands();
 
-	this->RegisterCommandsCamera();
-	this->RegisterCommandsPlugin();
+	FCameraCommandHandler CameraCommandHandler(Character, CommandDispatcher);
+	CameraCommandHandler.RegisterCommands();
+
+	FPluginCommandHandler PluginCommandHandler(Character, CommandDispatcher);
+	PluginCommandHandler.RegisterCommands();
+
+	// this->RegisterCommandsCamera();
+	// this->RegisterCommandsPlugin();
 	// First version
 	// CommandDispatcher->BindCommand("vset /mode/(?<ViewMode>.*)", SetViewMode); // Better to check the correctness at compile time
 	FDispatcherDelegate Cmd;
