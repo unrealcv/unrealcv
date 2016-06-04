@@ -1,93 +1,35 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-// #include "RealisticRendering.h"
 #include "UnrealCVPrivate.h"
-#include "UE4CVCommands.h"
-#include "ViewMode.h"
+#include "CommandHandler.h"
 #include "ObjectPainter.h"
 
-UE4CVCommands::UE4CVCommands(APawn* InCharacter, FCommandDispatcher* InCommandDispatcher)
-{
-	this->Character = InCharacter;
-	this->CommandDispatcher = InCommandDispatcher;
-	this->RegisterCommands();
-}
 
-UE4CVCommands::~UE4CVCommands()
+void FObjectCommandHandler::RegisterCommands()
 {
-}
-
-void UE4CVCommands::RegisterCommands()
-{
-	this->RegisterCommandsCamera();
-	this->RegisterCommandsPlugin();
-	// First version
-	// CommandDispatcher->BindCommand("vset /mode/(?<ViewMode>.*)", SetViewMode); // Better to check the correctness at compile time
 	FDispatcherDelegate Cmd;
-	FString URI;
-	// The regular expression for float number is from here, http://stackoverflow.com/questions/12643009/regular-expression-for-floating-point-numbers
-	// Use ICU regexp to define URI, See http://userguide.icu-project.org/strings/regexp
 
-	Cmd = FDispatcherDelegate::CreateRaw(&FViewMode::Get(), &FViewMode::SetMode);
-	URI = "vset /mode/[str]";
-	CommandDispatcher->BindCommand(URI, Cmd, "Set mode"); // Better to check the correctness at compile time
-
-	Cmd = FDispatcherDelegate::CreateRaw(&FViewMode::Get(), &FViewMode::GetMode);
-	CommandDispatcher->BindCommand("vget /mode", Cmd, "Get mode");
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetObjects);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjects);
 	CommandDispatcher->BindCommand(TEXT("vget /objects"), Cmd, "Get all objects in the scene");
 
 	// The order matters
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::CurrentObjectHandler); // Redirect to current
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::CurrentObjectHandler); // Redirect to current
 	CommandDispatcher->BindCommand(TEXT("[str] /object/_/[str]"), Cmd, "Get current object");
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetObjectColor);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectColor);
 	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/color"), Cmd, "Get object color");
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::SetObjectColor);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectColor);
 	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/color [uint] [uint] [uint]"), Cmd, "Set object color");
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetObjectName);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectName);
 	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/name"), Cmd, "Get object name");
-
-	// Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::PaintRandomColors);
-	// CommandDispatcher->BindCommand(TEXT("vget /util/random_paint"), Cmd, "Paint objects with random color");
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &UE4CVCommands::GetCommands);
-	CommandDispatcher->BindCommand(TEXT("vget /util/get_commands"), Cmd, "Get all available commands");
-
-	CommandDispatcher->Alias("SetDepth", "vset /mode/depth", "Set mode to depth"); // Alias for human interaction
-	CommandDispatcher->Alias("VisionCamInfo", "vget /camera/0/name", "Get camera info");
-	CommandDispatcher->Alias("ls", "vget /util/get_commands", "List all commands");
-	CommandDispatcher->Alias("shot", "vget /camera/0/image", "Save image to disk");
-
 }
 
-
-FExecStatus UE4CVCommands::GetCommands(const TArray<FString>& Args)
-{
-	FString Message;
-
-	TArray<FString> UriList;
-	TMap<FString, FString> UriDescription = CommandDispatcher->GetUriDescription();
-	UriDescription.GetKeys(UriList);
-
-	for (auto Value : UriDescription)
-	{
-		Message += Value.Key + "\n";
-		Message += Value.Value + "\n";
-	}
-
-	return FExecStatus::OK(Message);
-}
-
-FExecStatus UE4CVCommands::GetObjects(const TArray<FString>& Args)
+FExecStatus FObjectCommandHandler::GetObjects(const TArray<FString>& Args)
 {
 	return FObjectPainter::Get().GetObjectList();
 }
 
-FExecStatus UE4CVCommands::SetObjectColor(const TArray<FString>& Args)
+FExecStatus FObjectCommandHandler::SetObjectColor(const TArray<FString>& Args)
 {
 	// ObjectName, R, G, B, A = 255
 	// The color format is RGBA
@@ -103,7 +45,7 @@ FExecStatus UE4CVCommands::SetObjectColor(const TArray<FString>& Args)
 	return FExecStatus::InvalidArgument;
 }
 
-FExecStatus UE4CVCommands::GetObjectColor(const TArray<FString>& Args)
+FExecStatus FObjectCommandHandler::GetObjectColor(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
 	{
@@ -114,7 +56,7 @@ FExecStatus UE4CVCommands::GetObjectColor(const TArray<FString>& Args)
 	return FExecStatus::InvalidArgument;
 }
 
-FExecStatus UE4CVCommands::GetObjectName(const TArray<FString>& Args)
+FExecStatus FObjectCommandHandler::GetObjectName(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
 	{
@@ -123,7 +65,7 @@ FExecStatus UE4CVCommands::GetObjectName(const TArray<FString>& Args)
 	return FExecStatus::InvalidArgument;
 }
 
-FExecStatus UE4CVCommands::CurrentObjectHandler(const TArray<FString>& Args)
+FExecStatus FObjectCommandHandler::CurrentObjectHandler(const TArray<FString>& Args)
 {
 	// At least one parameter
 	if (Args.Num() >= 2)
