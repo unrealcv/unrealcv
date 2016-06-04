@@ -9,7 +9,7 @@ bool FUE4CVServer::Init(APawn* InCharacter)
 	this->Pawn = InCharacter;
 
 	FObjectPainter::Get().SetLevel(InCharacter->GetLevel());
-	// FObjectPainter::Get().PaintRandomColors();
+	FObjectPainter::Get().PaintRandomColors();
 
 	FViewMode::Get().SetWorld(InCharacter->GetWorld());
 

@@ -17,8 +17,6 @@ private:
 	void RegisterCommands();
 	// See more details in RegisterCommands()
 
-	/** Get the help message of defined commands */
-	FExecStatus GetCommands(const TArray<FString>& Args);
 public:
 	UE4CVCommands(APawn* MyCharacter, FCommandDispatcher* InCommandDispatcher);
 	~UE4CVCommands();

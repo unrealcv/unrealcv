@@ -13,6 +13,9 @@ void FPluginCommandHandler::RegisterCommands()
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetUnrealCVStatus);
 	CommandDispatcher->BindCommand("vget /unrealcv/status", Cmd, "Get camera location");
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetCommands);
+	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/help"), Cmd, "Get all available commands");
 }
 
 FExecStatus FPluginCommandHandler::GetPort(const TArray<FString>& Args)
@@ -65,4 +68,22 @@ FExecStatus FPluginCommandHandler::GetUnrealCVStatus(const TArray<FString>& Args
 	}
 	Msg += FString::Printf(TEXT("%d\n"), Server.NetworkManager->PortNum);
 	return FExecStatus::OK(Msg);
+}
+
+
+FExecStatus FPluginCommandHandler::GetCommands(const TArray<FString>& Args)
+{
+	FString Message;
+
+	TArray<FString> UriList;
+	TMap<FString, FString> UriDescription = CommandDispatcher->GetUriDescription();
+	UriDescription.GetKeys(UriList);
+
+	for (auto Value : UriDescription)
+	{
+		Message += Value.Key + "\n";
+		Message += Value.Value + "\n";
+	}
+
+	return FExecStatus::OK(Message);
 }
