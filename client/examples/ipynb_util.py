@@ -1,3 +1,8 @@
+import os, sys, time
+import numpy as np
+sys.path.append('..')
+import ue4cv
+
 import matplotlib.pyplot as plt
 import numpy as np
 import re, time
@@ -96,7 +101,9 @@ def plot_color(color, title):
     plt.axis('off')
     plt.title(title)
 
-def get_color_for_selected_objects(client):
+
+
+def get_selected_color_mapping(client):
     color_mapping = {}
     objects = ['WallPiece124', 'SM_Shelving8', 'SM_Couch_1seat7', 'SM_Frame41']
     for objname in objects:
@@ -117,44 +124,94 @@ def get_color_for_selected_objects(client):
     plot_color(frame_color, 'frame')
     return color_mapping
 
-def match_color(color_image, target_color, tolerance=3): # Tolerance is used to solve numerical issue
-    match_region = np.ones(color_image.shape[0:2], dtype=bool)
-    for c in range(3): # Iterate over three channels
-        min_val = target_color[c]-tolerance; max_val = target_color[c]+tolerance
-        channel_region = (color_image[:,:,c] >= min_val) & (color_image[:,:,c] <= max_val)
-        # channel_region = color_image[:,:,c] == target_color[c]
-        match_region &= channel_region
-    return match_region
-
-
-
-def count_object_instance(object_mask_filename):
-    object_mask = plt.imread(object_mask_filename)
-    plt.rcParams['figure.figsize'] = (8.0, 8.0)
-    plt.imshow(object_mask)
-    plt.axis('off')
-
-    dict_instance_mask = {}
-    dict_instance_color = {}
-    id = 0
-
-    counted_region = np.zeros(object_mask.shape[0:2], dtype=bool)
-    while (~counted_region).sum() != 0:
-        id += 1
-        # Count how many unique objects in this scene?
-        remaining_pixels = object_mask[~counted_region]
-        instance_color = remaining_pixels[0,:]
-
-        instance_mask = (object_mask == instance_color).all(axis=2)
-        counted_region += instance_mask
-
-        object_name = 'object%d' % id
-        dict_instance_mask[object_name] = instance_mask
-        dict_instance_color[object_name] = instance_color * 255
-    return [dict_instance_mask, dict_instance_color]
-
-def check_coverage(dic_object_instance):
+def get_color_mapping(client):
     '''
-    Check the portion of labeled image
+    Get the color mapping of this scene
     '''
-    pass
+    # Get object list
+    import time
+    objects = client.request('vget /objects').split(' ')
+    # Get the color mapping for each object
+    color_mapping = {}
+    for objname in objects:
+        color_mapping[objname] = Color(client.request('vget /object/%s/color' % objname))
+    return color_mapping
+
+class ObjectInstanceMap:
+    def __init__(self, color_object_mask, color_mapping):
+        '''
+        color_object_mask, in which each object is labeled with a unique color
+        color_mapping, maps from object name to a color
+        '''
+        self.color_object_mask = color_object_mask
+        self.color_mapping = color_mapping
+        self.dic_object_instance = {}
+
+        # TODO: Make sure one object is only labeled once
+        objects_names = self.color_mapping.keys()
+        for object_name in objects_names:
+            color = self.color_mapping[object_name]
+            region = self.match_color(self.color_object_mask * 255.999, [color.R, color.G, color.B], tolerance=2)
+            if region.sum() != 0: # Present in the image
+                self.dic_object_instance[object_name] = region
+
+    def print_object_size(self):
+        '''
+        Print the size of each object
+        '''
+        for object_name in dic_object_instance.keys():
+            print object_name, dict_object_instance[object_name].sum()
+
+    def check_coverage(self):
+        '''
+        Check the portion of labeled image
+        '''
+        pass
+
+    @staticmethod
+    def match_color(color_image, target_color, tolerance=3): # Tolerance is used to solve numerical issue
+        match_region = np.ones(color_image.shape[0:2], dtype=bool)
+        for c in range(3): # Iterate over three channels
+            min_val = target_color[c]-tolerance; max_val = target_color[c]+tolerance
+            channel_region = (color_image[:,:,c] >= min_val) & (color_image[:,:,c] <= max_val)
+            # channel_region = color_image[:,:,c] == target_color[c]
+            match_region &= channel_region
+        return match_region
+
+    def count_object_instance(object_mask_filename):
+        object_mask = plt.imread(object_mask_filename)
+        plt.rcParams['figure.figsize'] = (8.0, 8.0)
+        plt.imshow(object_mask)
+        plt.axis('off')
+
+        dict_instance_mask = {}
+        dict_instance_color = {}
+        id = 0
+
+        counted_region = np.zeros(object_mask.shape[0:2], dtype=bool)
+        while (~counted_region).sum() != 0:
+            id += 1
+            # Count how many unique objects in this scene?
+            remaining_pixels = object_mask[~counted_region]
+            instance_color = remaining_pixels[0,:]
+
+            instance_mask = (object_mask == instance_color).all(axis=2)
+            counted_region += instance_mask
+
+            object_name = 'object%d' % id
+            dict_instance_mask[object_name] = instance_mask
+            dict_instance_color[object_name] = instance_color * 255
+        return [dict_instance_mask, dict_instance_color]
+
+if __name__ == '__main__':
+    ue4cv.client.connect()
+
+    camera_pos = read_camera_info('./realistic_rendering_camera_info.txt')
+    pos = camera_pos[1]
+    f = render_frame(ue4cv.client, pos)
+    color_object_mask = plt.imread(f.object_mask)
+
+    with Timer():
+        color_mapping = get_color_mapping(ue4cv.client)
+    object_instance_map = ObjectInstanceMap(color_object_mask, color_mapping)
+    object_instance_map.check_coverage()
