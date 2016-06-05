@@ -47,7 +47,7 @@ class SocketMessage:
             # _L.debug('socket disconnect')
             return None
         # print 'Receive raw magic: %d, %s' % (len(raw_magic), raw_magic)
-        magic = struct.unpack('I', raw_magic)[0]
+        magic = struct.unpack(fmt, raw_magic)[0] # 'I' means unsigned int
         # print 'Receive magic:', magic
 
         if magic != cls.magic:
