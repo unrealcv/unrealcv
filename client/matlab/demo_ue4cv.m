@@ -1,3 +1,4 @@
 % Run the program
 clearvars;
-ue4cv
+response = request('vget /mode'); % The connection
+response = request('vget ');

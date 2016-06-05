@@ -1,40 +1,38 @@
-function ue4cv()
-    import java.net.Socket
-    import java.io.*
+function response = request(cmd)
+    % import java.io.*
 
+    global client_socket;
+    if isempty(client_socket)
+      connect();
+    end
+
+    send_message(client_socket, cmd)
+    message = [];
+    while isempty(message) % Set timeout
+        message = read_message(client_socket);
+        fprintf('Got response %s\n', message);
+        % disp(message);
+    end
+    response = message;
+end
+
+function connect()
+    import java.net.Socket
     host = 'localhost';
     port = 9000;
 
-%     try
-        fprintf('Try connecting to %s:%d\n', ...
-                host, port);
+    fprintf('Try connecting to %s:%d\n', ...
+            host, port);
 
-        global client_socket;
-        if ~isempty(client_socket)
-            client_socket.close
-        end
-        client_socket = Socket(host, port);
-        pause(2);
+    global client_socket;
+    if ~isempty(client_socket)
+        client_socket.close
+    end
+    client_socket = Socket(host, port);
 
-        fprintf('Connected to server\n');
-        message = read_message(client_socket);
-        disp(message);
-%         message = char(byte_message);
-%         disp(message);
-        send_message(client_socket, 'hello')
-        pause(1);
-        message = read_message(client_socket);
-        disp(message);
-
-%         client_socket.close; % Make sure to release the connection in any case.
-
-%     catch exception
-%         disp(exception);
-%         fprintf('Fail to connect to server\n');
-%         if ~isempty(client_socket)
-%             client_socket.close;
-%         end
-%     end
+    fprintf('Connected to server\n');
+    hello_message = read_message(client_socket);
+    disp(hello_message);
 end
 
 function payload = read_message(socket)
@@ -46,16 +44,6 @@ function payload = read_message(socket)
         payload = '';
         return
     end
-
-%     magic = socket.readByte;
-%     payload_len = socket.readByte;
-%
-%     bytes_available = input_stream.available;
-%         byte_message = zeros(1, bytes_available, 'int8');
-%         for i = 1:bytes_available
-%             byte = data_input_stream.readByte;
-%             byte_message(i) = byte;
-%         end
 
     bytes = zeros(1, 4, 'int8');
     for i = 1:4
@@ -82,16 +70,15 @@ function send_message(socket, message)
     data_output_stream = DataOutputStream(output_stream);
     magic = hex2dec('9E2B83C1');
     magic_bytes = typecast(uint32(hex2dec('9E2B83C1')), 'int8');
-%     data_output_stream.writeBytes(magic_bytes);
-%     data_output_stream.writeInt(
     for i = 1:4
         data_output_stream.writeByte(magic_bytes(i));
     end
+
     payload_len = length(message);
     len_bytes = typecast(uint32(payload_len), 'int8');
     for i = 1:4
       data_output_stream.writeByte(len_bytes(i));
     end
-% data_output_stream.writeInt(payload_len);
+
     data_output_stream.writeBytes(char(message));
 end
