@@ -43,6 +43,77 @@ bool GetDisplayValue(uint8 InEncodedValue, uint8& OutDisplayValue, float InvGamm
 	}
 }
 
+int32 GetChannelValue(uint32 Index)
+{
+	static int32 Values[256] = { 0 };
+	static bool Init = false;
+	if (!Init)
+	{
+		float Step = 256;
+		uint32 Iter = 0;
+		Values[0] = 0;
+		while (Step >= 1)
+		{
+			for (uint32 Value = Step-1; Value <= 256; Value += Step * 2)
+			{
+				Iter++;
+				Values[Iter] = Value;
+			}
+			Step /= 2;
+		}
+		Init = true;
+	}
+	if (Index >= 0 && Index <= 255)
+	{
+		return Values[Index];
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid channel index"));
+		check(false);
+		return -1;
+	}
+}
+
+void GetColors(int32 MaxVal, bool Fix1, bool Fix2, bool Fix3, TArray<FColor>& ColorMap)
+{
+	for (int32 I = 0; I <= (Fix1 ? 0 : MaxVal-1); I++)
+	{
+		for (int32 J = 0; J <= (Fix2 ? 0 : MaxVal-1); J++)
+		{
+			for (int32 K = 0; K <= (Fix3 ? 0 : MaxVal-1); K++)
+			{
+				uint8 R = GetChannelValue(Fix1 ? MaxVal : I);
+				uint8 G = GetChannelValue(Fix2 ? MaxVal : J);
+				uint8 B = GetChannelValue(Fix3 ? MaxVal : K);
+				FColor Color(R, G, B, 255);
+				ColorMap.Add(Color);
+			}
+		}
+	}
+}
+
+FColor GetColorFromColorMap(int32 ObjectIndex)
+{
+	static TArray<FColor> ColorMap;
+	if (ColorMap.Num() == 0)
+	{
+		for (int32 MaxChannelIndex = 0; MaxChannelIndex < 10; MaxChannelIndex++) // Get color map for 1000 objects
+		{
+			// GetColors(MaxChannelIndex, false, false, false, ColorMap);
+			GetColors(MaxChannelIndex, false, false, true , ColorMap);
+			GetColors(MaxChannelIndex, false, true , false, ColorMap);
+			GetColors(MaxChannelIndex, false, true , true , ColorMap);
+			GetColors(MaxChannelIndex, true , false, false, ColorMap);
+			GetColors(MaxChannelIndex, true , false, true , ColorMap);
+			GetColors(MaxChannelIndex, true , true , false, ColorMap);
+			GetColors(MaxChannelIndex, true , true , true , ColorMap);
+		}
+	}
+	check(ColorMap.Num() == 1000);
+	check(ObjectIndex >= 0 && ObjectIndex <= 1000);
+	return ColorMap[ObjectIndex];
+}
 
 FObjectPainter& FObjectPainter::Get()
 {
@@ -137,6 +208,7 @@ bool FObjectPainter::PaintRandomColors()
 
 	// Get a random color
 	check(Level);
+	uint32 ObjectIndex = 0;
 	for (auto Actor : Level->Actors)
 	{
 		if (Actor && Actor->IsA(AStaticMeshActor::StaticClass())) // Only StaticMeshActor is interesting
@@ -145,6 +217,7 @@ bool FObjectPainter::PaintRandomColors()
 			// FString ActorLabel = Actor->GetHumanReadableName();
 			// FColor NewColor = FColor(FMath::RandRange(0, 255), FMath::RandRange(0, 255), FMath::RandRange(0, 255), 255);
 			// FColor NewColor = FColor(1, 1, 1, 255);
+			/*
 			FColor NewColor;
 			TArray<uint8> ValidVals;
 			DecodeColorValue.GenerateKeyArray(ValidVals);
@@ -153,13 +226,14 @@ bool FObjectPainter::PaintRandomColors()
 			NewColor.G = ValidVals[FMath::RandRange(0, ValidVals.Num()-1)];
 			NewColor.B = ValidVals[FMath::RandRange(0, ValidVals.Num()-1)];
 			NewColor.A = 255;
+			*/
 			// FColor NewColor = FColor(128, 128, 128, 255);
+			// FColor NewColor = FColor::MakeRandomColor();
+			FColor NewColor = GetColorFromColorMap(ObjectIndex);
 
 			ObjectsColorMapping.Emplace(ActorLabel, NewColor);
-			// if (Actor->GetActorLabel() == FString("SM_Door43"))
-			{
-				check(PaintObject(Actor, NewColor));
-			}
+			check(PaintObject(Actor, NewColor));
+			ObjectIndex++;
 		}
 	}
 
@@ -181,6 +255,7 @@ bool FObjectPainter::PaintObject(AActor* Actor, const FColor& Color, bool IsColo
 	FColor NewColor;
 	if (IsColorGammaEncoded)
 	{
+		/*
 		FSceneViewport* SceneViewport = FUE4CVServer::Get().GetPawn()->GetWorld()->GetGameViewport()->GetGameViewport();
 		float Gamma = SceneViewport->GetDisplayGamma();
 		check(Gamma != 0);
@@ -198,11 +273,14 @@ bool FObjectPainter::PaintObject(AActor* Actor, const FColor& Color, bool IsColo
 		}
 
 		// See UnrealEngine/Engine/Shaders/GammaCorrection.usf
-		/* This is the real calculation, but due to numerical issue, we need to use table lookup
-		NewColor.R = FMath::RoundToInt(FMath::Pow(Color.R / 255.0, Gamma) * 255.0);
-		NewColor.G = FMath::RoundToInt(FMath::Pow(Color.G / 255.0, Gamma) * 255.0);
-		NewColor.B = FMath::RoundToInt(FMath::Pow(Color.B / 255.0, Gamma) * 255.0);
+		// This is the real calculation, but due to numerical issue, we need to use table lookup
+		// NewColor.R = FMath::RoundToInt(FMath::Pow(Color.R / 255.0, Gamma) * 255.0);
+		// NewColor.G = FMath::RoundToInt(FMath::Pow(Color.G / 255.0, Gamma) * 255.0);
+		// NewColor.B = FMath::RoundToInt(FMath::Pow(Color.B / 255.0, Gamma) * 255.0);
 		*/
+		FLinearColor LinearColor = FLinearColor::FromPow22Color(Color);
+		NewColor = LinearColor.ToFColor(false);
+		// NewColor = LinearColor.ToFColor(true); // this is incorrect, not sRGB, just pow22
 	}
 	else
 	{
