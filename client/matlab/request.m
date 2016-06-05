@@ -93,5 +93,5 @@ function send_message(socket, message)
       data_output_stream.writeByte(len_bytes(i));
     end
 % data_output_stream.writeInt(payload_len);
-    data_output_stream.writeBytes(message)
+    data_output_stream.writeBytes(char(message));
 end
