@@ -68,8 +68,8 @@ private:
 
 FCommandDispatcher::FCommandDispatcher()
 {
-	FString Any = "(.*)", UInt = "(\\d*)", Float = "([-+]?\\d*[.]?\\d+)"; // Each type will be considered as a group
-	TypeRegexp.Emplace("str", Any);
+	FString Str = "([^ ]*)", UInt = "(\\d*)", Float = "([-+]?\\d*[.]?\\d+)"; // Each type will be considered as a group
+	TypeRegexp.Emplace("str", Str);
 	TypeRegexp.Emplace("uint", UInt);
 	TypeRegexp.Emplace("float", Float);
 
@@ -141,7 +141,7 @@ bool FCommandDispatcher::FormatUri(const FString& RawUri, FString& UriRexexp)
 		UE_LOG(LogTemp, Error, TEXT("Not all [ are closed by ]"));
 		return false;
 	}
-	UriRexexp = Uri;
+	UriRexexp = Uri + "[ ]*$"; // Make sure no more parameters
 	return true;
 }
 
