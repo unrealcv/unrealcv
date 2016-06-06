@@ -140,7 +140,7 @@ class BaseClient:
                 s.connect(self.endpoint)
                 self.socket = s
                 _L.debug('BaseClient: wait for connection confirm')
-                self.is_timeout = True
+                
                 self.wait_connected.clear()
                 isset = self.wait_connected.wait(timeout)
                 assert(isset != None)
