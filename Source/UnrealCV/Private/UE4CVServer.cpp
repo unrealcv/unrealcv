@@ -44,7 +44,7 @@ FUE4CVServer::FUE4CVServer()
 
 FUE4CVServer::~FUE4CVServer()
 {
-	this->NetworkManager->FinishDestroy(); // TODO: Check is this usage correct?
+	// this->NetworkManager->FinishDestroy(); // TODO: Check is this usage correct?
 }
 
 void FUE4CVServer::ProcessPendingRequest()
