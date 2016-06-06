@@ -21,7 +21,14 @@ class Timer(object):
 
 class Namedict:
     def __init__(self, **kwargs):
-        self.__dict__.update(kwargs)
+        self.dic = kwargs
+        self.__dict__.update(self.dic)
+
+    def __repr__(self):
+        return self.dic
+
+    def __str__(self):
+        return str(self.dic)
 # d = namedict(a=1, b=2)
 # d.a
 
@@ -59,26 +66,6 @@ def render_frame(client, pos):
     )
     return f
 
-def plot_rendered_frame(f):
-    import matplotlib.gridspec as gridspec
-    gs1 = gridspec.GridSpec(2, 2)
-    gs1.update(wspace=0, hspace=0)
-    plt.rcParams['figure.figsize'] = (18.0, 10.0) # (w, h)
-
-    def subplot(filename, index):
-        # plt.subplot(2,2,index)
-        plt.subplot(gs1[index-1])
-        im = plt.imread(filename)
-        plt.imshow(im)
-        plt.axis('off')
-
-    subplot(f.lit, 1)
-    subplot(f.depth, 2)
-    subplot(f.object_mask, 3)
-    subplot(f.normal, 4)
-    # plt.subplots_adjust(wspace=0, hspace=0)
-    # plt.tight_layout()
-
 # Get the color of each object
 class Color:
     regexp = re.compile('\(R=(.*),G=(.*),B=(.*),A=(.*)\)')
@@ -90,6 +77,14 @@ class Color:
     def __repr__(self):
         return self.color_str
 
+def plot_rendered_frame(f):
+
+    subplot_image(221, f.lit)
+    subplot_image(222, f.depth)
+    subplot_image(223, f.object_mask)
+    subplot_image(224, f.normal)
+    # plt.subplots_adjust(wspace=0, hspace=0)
+    # plt.tight_layout()
 
 def plot_color(color, title):
     im = np.zeros((100, 100, 4))
@@ -101,39 +96,41 @@ def plot_color(color, title):
     plt.axis('off')
     plt.title(title)
 
+def subplot_image(sub_index, image):
+    if isinstance(image, str):
+        image = plt.imread(image)
+    plt.subplot(sub_index)
+    plt.imshow(image)
+    plt.axis('off')
 
+def plot_object_region(image, object_mask):
+    if isinstance(image, str):
+        image = plt.imread(image)
+    subplot_image(121, image)
+    obj_image = image.copy()
+    obj_image[~object_mask] = 0
+    subplot_image(122, obj_image)
 
-def get_selected_color_mapping(client):
-    color_mapping = {}
-    objects = ['WallPiece124', 'SM_Shelving8', 'SM_Couch_1seat7', 'SM_Frame41']
-    for objname in objects:
-        color_mapping[objname] = Color(client.request('vget /object/%s/color' % objname))
+def plot_object_color(object_list, color_mapping):
+    N = len(object_list)
+    object_id = 1
+    for object_name in object_list:
+        color = color_mapping[object_name]
+        plt.subplot(1,N,object_id)
+        plot_color(color, object_name)
+        object_id += 1
 
-    wall_color = color_mapping['WallPiece124']
-    shelf_color = color_mapping['SM_Shelving8']
-    coach_color = color_mapping['SM_Couch_1seat7']
-    frame_color = color_mapping['SM_Frame41']
-
-    plt.subplot(1,4,1)
-    plot_color(wall_color, 'wall')
-    plt.subplot(1,4,2)
-    plot_color(shelf_color, 'shelf')
-    plt.subplot(1,4,3)
-    plot_color(coach_color, 'coach')
-    plt.subplot(1,4,4)
-    plot_color(frame_color, 'frame')
-    return color_mapping
-
-def get_color_mapping(client):
+def get_color_mapping(client, object_list=None):
     '''
     Get the color mapping of this scene
     '''
     # Get object list
     import time
-    objects = client.request('vget /objects').split(' ')
+    if not object_list:
+        object_list = client.request('vget /objects').split(' ')
     # Get the color mapping for each object
     color_mapping = {}
-    for objname in objects:
+    for objname in object_list:
         color_mapping[objname] = Color(client.request('vget /object/%s/color' % objname))
     return color_mapping
 
@@ -159,14 +156,18 @@ class ObjectInstanceMap:
         '''
         Print the size of each object
         '''
-        for object_name in dic_object_instance.keys():
-            print object_name, dict_object_instance[object_name].sum()
+        for object_name in self.dic_object_instance.keys():
+            print object_name, self.dic_object_instance[object_name].sum()
 
     def check_coverage(self):
         '''
         Check the portion of labeled image
         '''
-        pass
+        marked_region = np.zeros(self.color_object_mask.shape[0:2])
+        for object_name in self.dic_object_instance.keys():
+            marked_region += self.dic_object_instance[object_name]
+        assert(marked_region.max() == 1)
+        print marked_region.sum() / (marked_region.shape[0] * marked_region.shape[1])
 
     @staticmethod
     def match_color(color_image, target_color, tolerance=3): # Tolerance is used to solve numerical issue
@@ -211,7 +212,9 @@ if __name__ == '__main__':
     f = render_frame(ue4cv.client, pos)
     color_object_mask = plt.imread(f.object_mask)
 
+    objects = ['WallPiece1_22', 'SM_Shelving_6', 'SM_Couch_1seat_5', 'SM_Frame_39', 'SM_Shelving_7', 'SM_Shelving_8']
     with Timer():
-        color_mapping = get_color_mapping(ue4cv.client)
+        # color_mapping = get_color_mapping(ue4cv.client)
+        color_mapping = get_selected_color_mapping(ue4cv.client)
     object_instance_map = ObjectInstanceMap(color_object_mask, color_mapping)
     object_instance_map.check_coverage()
