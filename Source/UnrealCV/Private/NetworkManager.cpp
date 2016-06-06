@@ -283,7 +283,25 @@ bool UNetworkManager::Start(int32 InPortNum) // Restart the server if configurat
 	// int32 PortNum = this->PortNum; // Make this configuable
 	FIPv4Endpoint Endpoint(IPAddress, PortNum);
 
-	TcpListener = new FTcpListener(Endpoint); // This will be released after start
+	FSocket* ServerSocket = FTcpSocketBuilder(TEXT("FTcpListener server")) // TODO: Need to realease this socket
+		// .AsReusable()
+		.BoundToEndpoint(Endpoint)
+		.Listening(8);
+
+	if (ServerSocket)
+	{
+		int32 NewSize = 0;
+		ServerSocket->SetReceiveBufferSize(2 * 1024 * 1024, NewSize);
+	}
+	else
+	{
+		this->bIsListening = false;
+		UE_LOG(LogTemp, Error, TEXT("Can not start listening on port %d, Port might be in use"), PortNum);
+		return false;
+	}
+
+	TcpListener = new FTcpListener(*ServerSocket);
+	// TcpListener = new FTcpListener(Endpoint); // This will be released after start
 	// In FSocket, when a FSocket is set as reusable, it means SO_REUSEADDR, not SO_REUSEPORT.  see SocketsBSD.cpp
 	TcpListener->OnConnectionAccepted().BindUObject(this, &UNetworkManager::Connected);
 	if (TcpListener->Init())
@@ -315,5 +333,9 @@ bool UNetworkManager::SendMessage(const FString& Message)
 
 UNetworkManager::~UNetworkManager()
 {
+	if (ConnectionSocket)
+	{
+		ConnectionSocket->Close();
+	}
 	delete TcpListener;
 }
