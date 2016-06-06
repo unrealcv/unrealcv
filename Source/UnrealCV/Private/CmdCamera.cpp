@@ -20,10 +20,16 @@ void FCameraCommandHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vset /camera/[uint]/rotation [float] [float] [float]", Cmd, "Set camera rotation");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraView);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/view", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
+	CommandDispatcher->BindCommand("vget /camera/[uint]/view", Cmd, "Get snapshot from camera, the second parameter is optional"); // Take a screenshot and return filename
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraView);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/view [str]", Cmd, "Get snapshot from camera, the second parameter is optional"); // Take a screenshot and return filename
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraViewMode);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/[str]", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
+	CommandDispatcher->BindCommand("vget /camera/[uint]/[str]", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraViewMode);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/[str] [str]", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
 
 	Cmd = FDispatcherDelegate::CreateRaw(&FViewMode::Get(), &FViewMode::SetMode);
 	CommandDispatcher->BindCommand("vset /mode [str]", Cmd, "Set mode"); // Better to check the correctness at compile time
@@ -226,7 +232,7 @@ FExecStatus FCameraCommandHandler::GetCameraViewAsyncCallback(const FString& Ful
 
 FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args)
 {
-	if (Args.Num() == 2) // The first is camera id, the second is ViewMode
+	if (Args.Num() <= 3) // The first is camera id, the second is ViewMode
 	{
 		FString CameraId = Args[0];
 		FString ViewMode = Args[1];
@@ -236,6 +242,7 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 		Args1.Add(ViewMode);
 		FViewMode::Get().SetMode(Args1);
 		*/
+		// Use command dispatcher is more universal
 		FExecStatus ExecStatus = CommandDispatcher->Exec(FString::Printf(TEXT("vset /mode %s"), *ViewMode));
 		if (ExecStatus != FExecStatusType::OK)
 		{
@@ -244,6 +251,11 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 
 		TArray<FString> Args2;
 		Args2.Add(CameraId);
+		if (Args.Num() == 3)
+		{
+			FString Fullfilename = Args[2];
+			Args2.Add(Fullfilename);
+		}
 		ExecStatus = GetCameraView(Args2);
 		return ExecStatus;
 	}
@@ -252,15 +264,24 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 
 FExecStatus FCameraCommandHandler::GetCameraView(const TArray<FString>& Args)
 {
-	if (Args.Num() == 1)
+	if (Args.Num() <= 2)
 	{
 		int32 CameraId = FCString::Atoi(*Args[0]);
-
 		static uint32 NumCaptured = 0;
-		NumCaptured++;
-		FString Filename = FString::Printf(TEXT("%04d.png"), NumCaptured);
-		const FString Dir = FPlatformProcess::BaseDir(); // TODO: Change this to screen capture folder
-		FString FullFilename = FPaths::Combine(*Dir, *Filename);
+
+		FString FullFilename, Filename;
+		if (Args.Num() == 1)
+		{
+			NumCaptured++;
+			Filename = FString::Printf(TEXT("%04d.png"), NumCaptured);
+		}
+		if (Args.Num() == 2)
+		{
+			Filename = Args[1];
+		}
+		// const FString Dir = FPlatformProcess::BaseDir(); // TODO: Change this to screen capture folder
+		const FString Dir = FPaths::ScreenShotDir();
+		FullFilename = FPaths::Combine(*Dir, *Filename);
 
 		return this->GetCameraViewAsyncQuery(FullFilename);
 	}
