@@ -91,6 +91,7 @@ void FViewMode::Lit()
 	ApplyViewMode(VMI_Lit, true, Viewport->EngineShowFlags);
 	Viewport->EngineShowFlags.SetMaterials(true);
 	Viewport->EngineShowFlags.SetLighting(true);
+	Viewport->EngineShowFlags.SetPostProcessing(true);
 }
 
 void FViewMode::Unlit()
