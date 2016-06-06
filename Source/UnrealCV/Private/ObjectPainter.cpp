@@ -187,7 +187,8 @@ TMap<FString, AActor*>& FObjectPainter::GetObjectsMapping()
 		{
 			if (Actor && Actor->IsA(AStaticMeshActor::StaticClass())) // Only StaticMeshActor is interesting
 			{
-				FString ActorLabel = Actor->GetActorLabel();
+				// FString ActorLabel = Actor->GetActorLabel();
+				FString ActorLabel = Actor->GetHumanReadableName();
 				ObjectsMapping.Emplace(ActorLabel, Actor);
 			}
 		}
@@ -213,8 +214,8 @@ bool FObjectPainter::PaintRandomColors()
 	{
 		if (Actor && Actor->IsA(AStaticMeshActor::StaticClass())) // Only StaticMeshActor is interesting
 		{
-			FString ActorLabel = Actor->GetActorLabel();
-			// FString ActorLabel = Actor->GetHumanReadableName();
+			// FString ActorLabel = Actor->GetActorLabel();
+			FString ActorLabel = Actor->GetHumanReadableName();
 			// FColor NewColor = FColor(FMath::RandRange(0, 255), FMath::RandRange(0, 255), FMath::RandRange(0, 255), 255);
 			// FColor NewColor = FColor(1, 1, 1, 255);
 			/*
