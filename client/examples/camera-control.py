@@ -9,17 +9,23 @@ plt.rcParams['keymap.save'] = ''
 def onpress(event):
     print event.key
     cmd = ''
-    if event.key == 'd':
+    if event.key == 'a':
         rot[1] += 1
         cmd = 'vset /camera/0/rotation %s' % ' '.join([str(v) for v in rot])
 
-    if event.key == 'a':
+    if event.key == 'd':
         rot[1] -= 1
         cmd = 'vset /camera/0/rotation %s' % ' '.join([str(v) for v in rot])
 
     if event.key == 'q':
         loc[2] += 1
         cmd = 'vset /camera/0/location %s' % ' '.join([str(v) for v in loc])
+
+    if event.key == 'e':
+        loc[2] -= 1
+        cmd = 'vset /camera/0/location %s' % ' '.join([str(v) for v in loc])
+
+
     # cmd = 'vset /camera/0/location %s' % ' '.join([str(v) for v in pos])
     if cmd:
         print cmd
