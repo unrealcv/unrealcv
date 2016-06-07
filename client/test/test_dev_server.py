@@ -4,16 +4,16 @@ import ue4cv
 # import MySocketServer as SocketServer
 SocketServer.ThreadingMixIn.daemon_threads = True
 SocketServer.TCPServer.allow_reuse_address = True
-L = logging.getLogger(__name__)
-L.setLevel(logging.DEBUG)
-L.addHandler(logging.NullHandler())
+_L = logging.getLogger(__name__)
+_L.setLevel(logging.DEBUG)
+_L.addHandler(logging.NullHandler())
 # This is important
 
 class ThreadedServer:
     def start(self):
         def _():
             cur_thread = threading.current_thread()
-            L.debug('Start in %s' % cur_thread.name)
+            _L.debug('Start in %s' % cur_thread.name)
 
             self.server.serve_forever()
             # Activate the server; this will keep running until you
@@ -27,14 +27,14 @@ class ThreadedServer:
 
     def shutdown(self):
         cur_thread = threading.current_thread()
-        L.debug('Shutdown in %s' % cur_thread.name)
+        _L.debug('Shutdown in %s' % cur_thread.name)
         self.server.shutdown()
         # try:
         #     self.server.socket.shutdown(socket.SHUT_RDWR)
         # except:
         #     pass
         self.server.server_close() # Close socket
-        L.debug('Shutdown completed')
+        _L.debug('Shutdown completed')
 
 
 class EchoTCPHandler(SocketServer.BaseRequestHandler):
@@ -64,7 +64,7 @@ connected_lock = threading.RLock()
 class MessageTCPHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         thread_name = threading.current_thread().name
-        L.debug('Got a new connection from %s in %s' % (  self.request.getpeername(), thread_name))
+        _L.debug('Got a new connection from %s in %s' % (  self.request.getpeername(), thread_name))
         with connected_lock:
             global connected
             if connected:
@@ -72,22 +72,22 @@ class MessageTCPHandler(SocketServer.BaseRequestHandler):
                 # Close socket, Disconnect request
                 self.request.close()
                 # self.request.close()
-                L.debug('Reject, only accept one connection')
+                _L.debug('Reject, only accept one connection')
                 return
             else:
                 ue4cv.SocketMessage.WrapAndSendPayload(self.request, 'connected to Python Message Server')
-                L.debug('Accept new connection')
+                _L.debug('Accept new connection')
                 connected = True
 
         # t = threading.Thread(target = self.ticking_message)
         # t.setDaemon(True)
         # t.start()
         while 1: # Main loop to receive message
-            L.debug('Server looping in %s' % thread_name)
+            _L.debug('Server looping in %s' % thread_name)
             message = ue4cv.SocketMessage.ReceivePayload(self.request)
-            L.debug('Server looping finished in %s' % thread_name)
+            _L.debug('Server looping finished in %s' % thread_name)
             if not message:
-                L.debug('Server release connection in %s' % thread_name)
+                _L.debug('Server release connection in %s' % thread_name)
                 connected = False
                 break
             # SocketMessage.WrapAndSendPayload(self.request, 'reply')
@@ -173,11 +173,19 @@ class TestDevServer(unittest.TestCase):
                 # How to know whether this s is closed by remote?
                 ue4cv.SocketMessage.WrapAndSendPayload(s, 'hello')
                 s.close() # It will take some time to notify the server
-                time.sleep(0.1) # How long will the server should detect the client side loss
+                time.sleep(1) # How long will the server should detect the client side loss
                 self.assertEqual(connected, False)
 
             server.shutdown()
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.ERROR)
-    unittest.main(verbosity=2)
+    # unittest.main(verbosity=2)
+
+    tests = [
+        'test_server',
+        'test_release',
+        'test_client_side_close',
+        ]
+    suite = unittest.TestSuite(map(TestDevServer, tests))
+    unittest.TextTestRunner(verbosity=2).run(suite)
