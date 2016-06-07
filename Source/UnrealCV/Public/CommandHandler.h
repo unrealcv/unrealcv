@@ -8,6 +8,7 @@ public:
 	: Character(InCharacter), CommandDispatcher(InCommandDispatcher)
 	{}
 	virtual void RegisterCommands() {};
+	virtual ~FCommandHandler() {};
 protected:
 	FCommandDispatcher* CommandDispatcher;
 	APawn* Character;

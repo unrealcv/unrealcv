@@ -4,10 +4,10 @@
 #include "UnrealCVPrivate.h"
 #include "ConsoleHelper.h"
 
-FConsoleHelper::FConsoleHelper(FCommandDispatcher* CommandDispatcher, FConsoleOutputDevice* ConsoleOutputDevice)
+FConsoleHelper::FConsoleHelper(FCommandDispatcher* InCommandDispatcher, FConsoleOutputDevice* InConsoleOutputDevice)
 {
-	this->CommandDispatcher = CommandDispatcher;
-	this->ConsoleOutputDevice = ConsoleOutputDevice;
+	this->CommandDispatcher = InCommandDispatcher;
+	this->ConsoleOutputDevice = InConsoleOutputDevice;
 	// Add Unreal Console Support
 	IConsoleObject* VGetCmd = IConsoleManager::Get().RegisterConsoleCommand(
 		TEXT("vget"),

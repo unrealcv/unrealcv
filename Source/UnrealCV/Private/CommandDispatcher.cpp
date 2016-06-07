@@ -50,9 +50,9 @@ private:
 				{
 					// This needs to be sent back to game thread
 					AsyncTask(ENamedThreads::GameThread, [this, ExecStatus]() {
-						FPromise Promise;
+						FPromise FinishedPromise;
 						FCallbackDelegate CompletedCallback;
-						PendingPromise.Dequeue(Promise);
+						PendingPromise.Dequeue(FinishedPromise);
 						PendingCompletedCallback.Dequeue(CompletedCallback);
 						CompletedCallback.ExecuteIfBound(ExecStatus);
 						// CompletedCallback.Unbind();
