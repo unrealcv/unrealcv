@@ -1,15 +1,7 @@
-import time, os
-import logging
+import time, os, logging
 _L = logging.getLogger(__name__)
 _L.addHandler(logging.NullHandler())
 _L.setLevel(logging.INFO)
-
-has_plt = False
-try:
-    import matplotlib.pyplot as plt
-    has_plt = True
-except:
-    pass
 
 def validate_format(response):
     valid = True
@@ -38,10 +30,6 @@ def ispng(response):
     flag &= response.endswith('.png')
     # Make sure file exsit
     flag &= os.path.isfile(response)
-
-    # Make sure file readable
-    if has_plt:
-        im = plt.imread(response)
 
     # Make sure file is just created
     flag &= justcreated(response)

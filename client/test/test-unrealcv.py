@@ -1,11 +1,8 @@
 # TODO: Test robustness, test speed
-import unittest, time, sys
+import unittest, time, sys, argparse, threading
 from common_conf import *
-from test_server import EchoServer, MessageServer
-import argparse
-import threading
-from test_server import TestMessageServer
-from test_client import TestClientWithDummyServer
+from test_dev_server import EchoServer, MessageServer, TestDevServer
+from test_client import TestUE4CVClient
 from test_commands import TestCommands
 from test_realistic_rendering import TestRealisticRendering
 
@@ -17,8 +14,8 @@ if __name__ == '__main__':
     suites = []
 
     load = unittest.TestLoader().loadTestsFromTestCase
-    s = load(TestMessageServer); suites.append(s)
-    s = load(TestClientWithDummyServer); suites.append(s)
+    s = load(TestDevServer); suites.append(s)
+    s = load(TestUE4CVClient); suites.append(s)
     if not args.travis:
         s = load(TestCommands); suites.append(s)
         s = load(TestRealisticRendering); suites.append(s)
