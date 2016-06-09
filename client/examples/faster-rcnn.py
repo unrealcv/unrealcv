@@ -83,24 +83,32 @@ def process_image(filename):
     plot_image(show_img, boxes, scores)
 
 
-def message_handler(message):
-    # This is a different thread
-    filename = message
-    if not net:
-        init_caffe() # Caffe needs to be started in this thread, otherwise GIL will make it very slow
+# def message_handler(message):
+#     # This is a different thread
+#     filename = message
+#     if not net:
+#         init_caffe() # Caffe needs to be started in this thread, otherwise GIL will make it very slow
+#
+#     print repr(message)
+#     lines = message.split('\n')
+#     if lines:
+#         process_image(lines[0])
 
-    print repr(message)
-    lines = message.split('\n')
-    if lines:
-        process_image(lines[0])
+def onclick(event):
+    image = ue4cv.client.request('vget /camera/0/lit')
+    process_image(image)
+    pass
 
 if __name__ == '__main__':
     image = np.zeros((300, 300))
 
-    client = Client((HOST, PORT), message_handler)
+    # client = Client((HOST, PORT), message_handler)
+    ue4cv.client.connect()
 
     # Initialize the matplotlib
     fig, ax = plt.subplots()
+    fig.canvas.mpl_connect('button_press_event', onclick)
+
     ax.imshow(image)
     plt.axis('off')
     plt.tight_layout()
