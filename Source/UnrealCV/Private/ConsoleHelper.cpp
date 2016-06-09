@@ -54,6 +54,8 @@ void FConsoleHelper::VGet(const TArray<FString>& Args)
 	// Join string
 	FString Cmd = "vget ";
 	uint32 NumArgs = Args.Num();
+	if (NumArgs == 0) return;
+
 	for (uint32 ArgIndex = 0; ArgIndex < NumArgs-1; ArgIndex++)
 	{
 		Cmd += Args[ArgIndex] + " ";
@@ -70,6 +72,8 @@ void FConsoleHelper::VSet(const TArray<FString>& Args)
 {
 	FString Cmd = "vset ";
 	uint32 NumArgs = Args.Num();
+	if (NumArgs == 0) return; 
+
 	for (uint32 ArgIndex = 0; ArgIndex < NumArgs-1; ArgIndex++)
 	{
 		Cmd += Args[ArgIndex] + " ";
