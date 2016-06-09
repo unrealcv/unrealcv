@@ -1,4 +1,0 @@
-import os
-EnginePath = '/home/qiuwch/workspace/UnrealEngine'
-UATScript = os.path.join(EnginePath, 'Engine/Build/BatchFiles/RunUAT.sh')
-
