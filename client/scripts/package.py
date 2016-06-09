@@ -11,7 +11,7 @@ def package_linux(conf, projectfile):
     os.system(cmd)
 
 def package_mac(conf, projectfile):
-    cmd = '{UATScript} BuildCookRun -project={projectfile} -archivedirectory={outputfolder} -noP4 -platform=Mac -clientconfig=Development -serverconfig=Development -cook -allmaps -build -stage -pak -archive -verbose'.format(
+    cmd = '{UATScript} BuildCookRun -project={projectfile} -archivedirectory={outputfolder} -noP4 -platform=Mac -clientconfig=Development -serverconfig=Development -cook -allmaps -build -stage -pak -archive'.format(
         projectfile = projectfile,
         UATScript = conf['UATScript'],
         outputfolder = conf['OutputFolder'],
