@@ -1,7 +1,8 @@
 # Config of faster rcnn
 import sys, os
 sys.path.append('..')
-from ue4cv import *
+#from ue4cv import *
+import ue4cv
 
 # RCNN config
 rcnn_path = '/home/qiuwch/workspace/py-faster-rcnn'
@@ -31,20 +32,21 @@ def init_caffe(): # TODO: parse args into here
     for i in xrange(2):
         _, _ = D.im_detect(net, im)
 
-def plot_image(image, boxes, scores):
+def plot_image(image, boxes=None, scores=None):
     ax.cla() # Clear axis
     ax.imshow(image, aspect='equal')
 
-    CONF_THRESH = 0.8
-    NMS_THRESH = 0.3
-    for cls_ind, cls in enumerate(D.CLASSES[1:]):
-        cls_ind += 1 # Skip background
-        cls_boxes = boxes[:, 4*cls_ind:4*(cls_ind+1)]
-        cls_scores = scores[:, cls_ind]
-        dets = np.hstack((cls_boxes, cls_scores[:,np.newaxis])).astype(np.float32)
-        keep = D.nms(dets, NMS_THRESH)
-        dets = dets[keep, :]
-        plot_bb(image, cls, dets, thresh=CONF_THRESH)
+    if boxes != None and scores != None:
+        CONF_THRESH = 0.8
+        NMS_THRESH = 0.3
+        for cls_ind, cls in enumerate(D.CLASSES[1:]):
+            cls_ind += 1 # Skip background
+            cls_boxes = boxes[:, 4*cls_ind:4*(cls_ind+1)]
+            cls_scores = scores[:, cls_ind]
+            dets = np.hstack((cls_boxes, cls_scores[:,np.newaxis])).astype(np.float32)
+            keep = D.nms(dets, NMS_THRESH)
+            dets = dets[keep, :]
+            plot_bb(image, cls, dets, thresh=CONF_THRESH)
 
     fig.canvas.draw()
 
@@ -65,6 +67,9 @@ def plot_bb(im, class_name, dets, thresh=0.5):
         , fontsize=14, color='white')
 
 def process_image(filename):
+    if not net:
+        init_caffe() # Caffe needs to be started in this thread, otherwise GIL will make it very slow
+
     print 'Process image: %s' % filename
 
     if not os.path.isfile(filename):
@@ -81,13 +86,12 @@ def process_image(filename):
 
     show_img = image[:,:, (2,1,0)] # Reorder to RGB
     plot_image(show_img, boxes, scores)
+    # plot_image(show_img)
 
 
 # def message_handler(message):
 #     # This is a different thread
 #     filename = message
-#     if not net:
-#         init_caffe() # Caffe needs to be started in this thread, otherwise GIL will make it very slow
 #
 #     print repr(message)
 #     lines = message.split('\n')
