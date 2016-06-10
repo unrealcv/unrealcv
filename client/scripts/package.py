@@ -35,8 +35,10 @@ def package_win(conf, projectfile):
 platform = sys.platform
 if platform == 'Win64' or platform == 'cygwin':
     package = package_win
-if platform == 'Linux':
+
+if platform == 'Linux' or platform == 'linux2':
     package = package_linux
+
 if platform == 'darwin':
     package = package_mac
 
