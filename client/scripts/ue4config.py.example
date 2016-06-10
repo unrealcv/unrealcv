@@ -1,9 +1,10 @@
 import os
-EnginePath = '~/workspace/UnrealEngine/'
-UATScript = os.path.join(EnginePath, 'Engine/Build/BatchFiles/RunUAT.sh')
+# EnginePath = '/Users/Shared/UnrealEngine/4.12'
+EnginePath = 'D:/Epic Games/4.12'
+UATScript = os.path.join(EnginePath, 'Engine/Build/BatchFiles/RunUAT.bat')
 
 conf = {
     'EnginePath': EnginePath,
     'UATScript': UATScript,
-    'OutputFolder': '~/AutoPackaging',
+    'OutputFolder': 'D:/AutoPackaging',
 }
