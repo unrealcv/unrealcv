@@ -16,6 +16,7 @@ def package_mac(conf, projectfile):
         UATScript = conf['UATScript'],
         outputfolder = conf['OutputFolder'],
     )
+    print cmd
     os.system(cmd)
 
 def package_win(conf, projectfile):
