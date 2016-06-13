@@ -7,7 +7,7 @@ Provides functions to interact with games built using Unreal Engine.
 >>> (HOST, PORT) = ('localhost', 9000)
 >>> client = unrealcv.Client((HOST, PORT))
 '''
-import ctypes, struct, threading, socket, re, sys, time, logging
+import ctypes, struct, threading, socket, re, time, logging
 _L = logging.getLogger(__name__)
 # _L.addHandler(logging.NullHandler()) # Let client to decide how to do logging
 _L.addHandler(logging.StreamHandler())
@@ -16,7 +16,7 @@ _L.setLevel(logging.INFO)
 
 fmt = 'I'
 
-class SocketMessage:
+class SocketMessage(object):
     '''
     Define the format of a message. This class is defined similar to the class FNFSMessageHeader in UnrealEngine4, but without CRC check.
     The magic number is from Unreal implementation
@@ -35,14 +35,14 @@ class SocketMessage:
         # rbufsize = -1 # From SocketServer.py
         rbufsize = 0
         rfile = socket.makefile('rb', rbufsize)
-        _L.debug('read raw_magic %s' % threading.current_thread().name)
+        _L.debug('read raw_magic %s', threading.current_thread().name)
         try:
             raw_magic = rfile.read(4) # socket is disconnected or invalid
         except Exception as e:
             _L.debug('Fail to read raw_magic, %s', e)
             raw_magic = None
 
-        _L.debug('read raw_magic %s done: %s' % (threading.current_thread().name, repr(raw_magic)))
+        _L.debug('read raw_magic %s done: %s', threading.current_thread().name, repr(raw_magic))
         if not raw_magic: # nothing to read
             # _L.debug('socket disconnect')
             return None
@@ -59,7 +59,7 @@ class SocketMessage:
         raw_payload_size = rfile.read(4)
         # print 'Receive raw payload size: %d, %s' % (len(raw_payload_size), raw_payload_size)
         payload_size = struct.unpack('I', raw_payload_size)[0]
-        _L.debug('Receive payload size %d' % payload_size)
+        _L.debug('Receive payload size %d', payload_size)
 
         # if the message is incomplete, should wait until all the data received
         payload = ""
@@ -105,13 +105,15 @@ class SocketMessage:
             wfile.close() # Close file object, not close the socket
             return True
         except Exception as e:
-            _L.error('Fail to send message %s' % e)
+            _L.error('Fail to send message %s', e)
             return False
 
-class BaseClient:
+class BaseClient(object):
     '''
     BaseClient send message out and receiving message in a seperate thread.
-    After calling the `send` function, only True or False will be returned to indicate whether the operation was successful. If you are trying to send a request and get a response, consider using `Client` instead.
+    After calling the `send` function, only True or False will be returned
+    to indicate whether the operation was successful.
+    If you are trying to send a request and get a response, consider using `Client` instead.
     This class adds message framing on top of TCP
     '''
     def __init__(self, endpoint, message_handler):
@@ -140,7 +142,7 @@ class BaseClient:
                 s.connect(self.endpoint)
                 self.socket = s
                 _L.debug('BaseClient: wait for connection confirm')
-                
+
                 self.wait_connected.clear()
                 isset = self.wait_connected.wait(timeout)
                 assert(isset != None)
@@ -148,14 +150,14 @@ class BaseClient:
                     return
                 else:
                     self.socket = None
-                    _L.error('Can not connect to %s, timeout after %d seconds' % (self.endpoint, timeout))
+                    _L.error('Can not connect to %s, timeout after %d seconds', self.endpoint, timeout)
                 # only assign self.socket to connected socket
                 # so it is safe to use self.socket != None to check connection status
                 # This does not neccessarily mean connection successful, might be closed by server
                 # Unless explicitly to tell the server to accept new socket
 
             except Exception as e:
-                _L.error('Can not connect to %s' % str(self.endpoint))
+                _L.error('Can not connect to %s', str(self.endpoint))
                 _L.error("Error %s", e)
                 self.socket = None
 
@@ -164,7 +166,7 @@ class BaseClient:
 
     def disconnect(self):
         if self.isconnected():
-            _L.debug("BaseClient, request disconnect from server in %s" % threading.current_thread().name)
+            _L.debug("BaseClient, request disconnect from server in %s", threading.current_thread().name)
 
             self.socket.shutdown(socket.SHUT_RD)
             # Because socket is on read in __receiving thread, need to call shutdown to force it to close
@@ -179,7 +181,7 @@ class BaseClient:
         Call self.message_handler if got a message
         Also check whether client is still connected
         '''
-        _L.debug('BaseClient start receiving in %s' % threading.current_thread().name)
+        _L.debug('BaseClient start receiving in %s', threading.current_thread().name)
         while (1):
             if self.isconnected():
                 # Only this thread is allowed to read from socket, otherwise need lock to avoid competing
@@ -190,7 +192,7 @@ class BaseClient:
                     continue
 
                 if message.startswith('connected'):
-                    _L.info('Got connection confirm: %s' % repr(message))
+                    _L.info('Got connection confirm: %s', repr(message))
                     self.wait_connected.set()
                     # self.wait_connected.clear()
                     continue
@@ -198,21 +200,21 @@ class BaseClient:
                 if self.message_handler:
                     self.message_handler(message)
                 else:
-                    _L.error('No message handler for raw message %s' % message)
+                    _L.error('No message handler for raw message %s', message)
 
     def send(self, message):
         '''
         Send message out, return whether the message was successfully sent
         '''
         if self.isconnected():
-            _L.debug('BaseClient: Send message %s' % self.socket)
+            _L.debug('BaseClient: Send message %s', self.socket)
             SocketMessage.WrapAndSendPayload(self.socket, message)
             return True
         else:
             _L.error('Fail to send message, client is not connected')
             return False
 
-class Client:
+class Client(object):
     '''
     Client can be used to send request to a game and get response
     Currently only one client is allowed at a time
@@ -235,7 +237,7 @@ class Client:
                 self.message_handler(raw_message)
             else:
                 # Instead of just dropping this message, give a verbose notice
-                _L.error('No message handler to handle message %s' % raw_message)
+                _L.error('No message handler to handle message %s', raw_message)
 
     def __init__(self, endpoint, message_handler=None):
         self.raw_message_regexp = re.compile('(\d{1,8}):(.*)')
@@ -269,7 +271,7 @@ class Client:
         >>> response = client.request('vget /camera/0/view')
         """
         raw_message = '%d:%s' % (self.message_id, message)
-        _L.debug('Request: %s' % raw_message)
+        _L.debug('Request: %s', raw_message)
         if not self.message_client.send(raw_message):
             return None
         # Timeout is required
@@ -282,7 +284,7 @@ class Client:
         if isset:
             return self.response
         else:
-            _L.error('Can not receive a response from server, timeout after %d seconds' % timeout)
+            _L.error('Can not receive a response from server, timeout after %d seconds', timeout)
             return None
 
 (HOST, PORT) = ('localhost', 9000)

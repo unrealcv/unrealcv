@@ -29,7 +29,7 @@ def init_caffe(): # TODO: parse args into here
 
     # Warmup on a dummy image
     im = 128 * np.ones((300, 500, 3), dtype = np.uint8)
-    for i in xrange(2):
+    for _ in xrange(2):
         _, _ = D.im_detect(net, im)
 
 def plot_image(image, boxes=None, scores=None):
@@ -46,11 +46,11 @@ def plot_image(image, boxes=None, scores=None):
             dets = np.hstack((cls_boxes, cls_scores[:,np.newaxis])).astype(np.float32)
             keep = D.nms(dets, NMS_THRESH)
             dets = dets[keep, :]
-            plot_bb(image, cls, dets, thresh=CONF_THRESH)
+            plot_bb(cls, dets, thresh=CONF_THRESH)
 
     fig.canvas.draw()
 
-def plot_bb(im, class_name, dets, thresh=0.5):
+def plot_bb(class_name, dets, thresh=0.5):
     inds = np.where(dets[:, -1] >= thresh)[0] #
     if len(inds) == 0:
         return
@@ -101,7 +101,6 @@ def process_image(filename):
 def onclick(event):
     image = ue4cv.client.request('vget /camera/0/lit')
     process_image(image)
-    pass
 
 if __name__ == '__main__':
     image = np.zeros((300, 300))

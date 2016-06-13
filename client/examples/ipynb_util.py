@@ -1,11 +1,10 @@
-import os, sys, time
+import os, sys, time, re
 import numpy as np
+import matplotlib.pyplot as plt
+
 sys.path.append('..')
 import ue4cv
 
-import matplotlib.pyplot as plt
-import numpy as np
-import re, time
 
 class Timer(object):
     def __init__(self, name=None):
@@ -19,7 +18,7 @@ class Timer(object):
             print '[%s]' % self.name,
         print 'Elapsed: %s' % (time.time() - self.tstart)
 
-class Namedict:
+class Namedict(object):
     def __init__(self, **kwargs):
         self.dic = kwargs
         self.__dict__.update(self.dic)
@@ -57,7 +56,6 @@ def render_frame(client, pos):
     cmd = 'vset /camera/0/rotation %.3f %.3f %.3f' % (rot[0], rot[1], rot[2])
     response = client.request(cmd)
     assert response == 'ok'
-    files = []
     f = Namedict(
         lit = client.request('vget /camera/0/lit'),
         depth = client.request('vget /camera/0/depth'),
@@ -67,7 +65,7 @@ def render_frame(client, pos):
     return f
 
 # Get the color of each object
-class Color:
+class Color(object):
     regexp = re.compile('\(R=(.*),G=(.*),B=(.*),A=(.*)\)')
     def __init__(self, color_str):
         self.color_str = color_str
@@ -88,7 +86,7 @@ def plot_rendered_frame(f):
 
 def plot_color(color, title):
     im = np.zeros((100, 100, 4))
-    red = np.array([1.0, 0, 0, 1.0])
+    # red = np.array([1.0, 0, 0, 1.0])
     color_array = np.array([color.R, color.G, color.B, color.A]) / 255.0 # repmat
     im = im + color_array
     print title, color
@@ -125,7 +123,6 @@ def get_color_mapping(client, object_list=None):
     Get the color mapping of this scene
     '''
     # Get object list
-    import time
     if not object_list:
         object_list = client.request('vget /objects').split(' ')
     # Get the color mapping for each object
@@ -134,7 +131,7 @@ def get_color_mapping(client, object_list=None):
         color_mapping[objname] = Color(client.request('vget /object/%s/color' % objname))
     return color_mapping
 
-class ObjectInstanceMap:
+class ObjectInstanceMap(object):
     def __init__(self, color_object_mask, color_mapping):
         '''
         color_object_mask, in which each object is labeled with a unique color
@@ -187,11 +184,11 @@ class ObjectInstanceMap:
 
         dict_instance_mask = {}
         dict_instance_color = {}
-        id = 0
+        object_id = 0
 
         counted_region = np.zeros(object_mask.shape[0:2], dtype=bool)
         while (~counted_region).sum() != 0:
-            id += 1
+            object_id += 1
             # Count how many unique objects in this scene?
             remaining_pixels = object_mask[~counted_region]
             instance_color = remaining_pixels[0,:]
@@ -199,7 +196,7 @@ class ObjectInstanceMap:
             instance_mask = (object_mask == instance_color).all(axis=2)
             counted_region += instance_mask
 
-            object_name = 'object%d' % id
+            object_name = 'object%d' % object_id
             dict_instance_mask[object_name] = instance_mask
             dict_instance_color[object_name] = instance_color * 255
         return [dict_instance_mask, dict_instance_color]
@@ -214,7 +211,7 @@ if __name__ == '__main__':
 
     objects = ['WallPiece1_22', 'SM_Shelving_6', 'SM_Couch_1seat_5', 'SM_Frame_39', 'SM_Shelving_7', 'SM_Shelving_8']
     with Timer():
-        # color_mapping = get_color_mapping(ue4cv.client)
-        color_mapping = get_selected_color_mapping(ue4cv.client)
+        color_mapping = get_color_mapping(ue4cv.client, objects)
+        # color_mapping = get_selected_color_mapping(ue4cv.client)
     object_instance_map = ObjectInstanceMap(color_object_mask, color_mapping)
     object_instance_map.check_coverage()

@@ -1,4 +1,4 @@
-import os, math, sys, argparse, zipfile
+import math, sys, argparse, zipfile
 import boto
 from filechunkio import FileChunkIO
 from ue4config import conf
@@ -15,7 +15,7 @@ def platform_name():
 # bucket_name = 'unrealcv-scene'
 bucket_name = 'unreal-scene'
 
-def zip(srcfiles, srcroot, dst):
+def zipfiles(srcfiles, srcroot, dst):
     # zf = zipfile.ZipFile("%s.zip" % (dst), "w", zipfile.ZIP_DEFLATED)
     print 'zip file'
     zf = zipfile.ZipFile("%s" % (dst), "w", zipfile.ZIP_DEFLATED)
@@ -47,7 +47,7 @@ def zip(srcfiles, srcroot, dst):
 
 def upload(bucket_name, filename):
     # From http://boto.cloudhackers.com/en/latest/s3_tut.html
-    from boto.s3.connection import S3Connection
+    # from boto.s3.connection import S3Connection
     S3_ACCESS_KEY = os.environ['AWS_ACCESS_KEY_ID']
     S3_SECRET_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
     # conn = S3Connection(S3_ACCESS_KEY, S3_SECRET_KEY)
@@ -76,9 +76,9 @@ def upload(bucket_name, filename):
     for i in range(chunk_count):
         print 'Uploading chunk %d/%d' % (i, chunk_count)
         offset = chunk_size * i
-        bytes = min(chunk_size, source_size - offset)
+        bytes_to_send = min(chunk_size, source_size - offset)
         with FileChunkIO(source_path, 'r', offset=offset,
-                             bytes=bytes) as fp:
+                             bytes=bytes_to_send) as fp:
             mp.upload_part_from_file(fp, part_num=i + 1)
 
     # Finish the upload
@@ -110,7 +110,7 @@ if __name__ == '__main__':
 
     [files, output_folder, zipfilename] = getfiles_win(project_file)
 
-    zip(files, output_folder, zipfilename)
+    zipfiles(files, output_folder, zipfilename)
     upload(bucket_name, zipfilename)
 
 
