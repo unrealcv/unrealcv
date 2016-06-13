@@ -1,7 +1,8 @@
 # Check whether the rendering result is as expected.
 from common_conf import *
-import time, os, ipdb
-import matplotlib.pyplot as plt
+import time, os
+import ue4cv
+# import matplotlib.pyplot as plt
 
 def message_handler(message):
     # Ignore message from server
@@ -67,19 +68,43 @@ def check_id(image_id):
     rendered_filename = render_frame(client, camera_pos)
     time.sleep(1) # TODO: Remove this sleep time
 
-    check_image_difference(reference_filename, rendered_filename)
+    # check_image_difference(reference_filename, rendered_filename)
+
+def load_gt_files():
+    '''
+    Load a list of correctly rendered images and compare with images just rendered
+    '''
+    filename = os.path.join(datafolder, 'camera_info_basename.txt')
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+    # Parse camera location and rotation from file
+    camera_pos = []
+    for line_id in range(len(lines)):
+        line = lines[line_id].strip() # Remove \n at the end
+        if line_id % 3 == 0: # filename
+            filename = line
+        elif line_id % 3 == 1: # location
+            location = [float(v) for v in line.split(' ')]
+        elif line_id % 3 == 2: # Rotation
+            rotation = [float(v) for v in line.split(' ')]
+            camera_pos.append((filename, location, rotation))
+    return camera_pos
 
 def test_correctness(client):
     # Load a list of camera location
     global filelist
-    filelist = get_filelist(os.path.join(datafolder, 'camera_info_basename.txt'))
+    gt_files = load_gt_files()
+
+    for (filename, location, rotation) in gt_files:
+        rendered_filename = render_frame(client, [location, rotation])
+
 
     # Check the difference in an interactive mode
-    figs = [plt.figure(fig_id) for fig_id in range(3)]
-    [fig.canvas.mpl_connect('key_press_event', press) for fig in figs]
-    check_id(0)
-    plt.show()
+    # figs = [plt.figure(fig_id) for fig_id in range(3)]
+    # [fig.canvas.mpl_connect('key_press_event', press) for fig in figs]
+    # check_id(0)
+    # plt.show()
 
 if __name__ == '__main__':
-    client = Client((HOST, PORT), message_handler)
+    client = ue4cv.client
     test_correctness(client)
