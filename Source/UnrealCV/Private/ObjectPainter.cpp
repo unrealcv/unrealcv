@@ -7,6 +7,7 @@
 static TMap<uint8, uint8> DecodeColorValue; // Convert Encoded Color to Display Color, for numerical issue
 
 // Do Gamma correction
+/* This is a homebrew version of convert color. Use the mapping function from Unreal Engine instead
 void BuildDecodeColorValue(float InvGamma)
 {
 	DecodeColorValue.Empty();
@@ -42,7 +43,9 @@ bool GetDisplayValue(uint8 InEncodedValue, uint8& OutDisplayValue, float InvGamm
 		return false;
 	}
 }
+*/
 
+// Utility function to generate color map
 int32 GetChannelValue(uint32 Index)
 {
 	static int32 Values[256] = { 0 };
@@ -199,11 +202,13 @@ TMap<FString, AActor*>& FObjectPainter::GetObjectsMapping()
 bool FObjectPainter::PaintRandomColors()
 {
 	FSceneViewport* SceneViewport = FUE4CVServer::Get().GetPawn()->GetWorld()->GetGameViewport()->GetGameViewport();
+	/*
 	float Gamma = SceneViewport->GetDisplayGamma();
 	check(Gamma != 0);
 	if (Gamma == 0) Gamma = 1;
 	float InvGamma = 1 / Gamma;
 	BuildDecodeColorValue(InvGamma);
+	*/
 	// Iterate over all actors
 	// ULevel* Level = GetLevel();
 

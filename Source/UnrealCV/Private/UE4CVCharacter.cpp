@@ -8,11 +8,9 @@
 #include "ImageUtils.h"
 #include "UnrealCV.h"
 
-// Sets default values
 AUE4CVCharacter::AUE4CVCharacter()
 {
-
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Pending tasks in UE4CVServer will be processed in Tick(), so bCanEverTick needs to be enabled
 	PrimaryActorTick.bCanEverTick = true;
 }
 
@@ -21,46 +19,14 @@ void AUE4CVCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	FUE4CVServer::Get().Init(this);
-	// Server = new FUE4CVServer(this);
-	// Server->Start();
-	/*
-	FViewMode::Get().SetWorld(this->GetWorld());
-	FObjectPainter::Get().SetLevel(this->GetLevel());
-	FObjectPainter::Get().PaintRandomColors();
-
-	Commands = new UE4CVCommands(this, &CommandDispatcher);
-	Server = new FUE4CVServer(&CommandDispatcher);
-	Server->Start();
-	NetworkManager = Server->NetworkManager; // I need this to show information on screen.
-
-	ConsoleOutputDevice = new FConsoleOutputDevice(GetWorld()->GetGameViewport()->ViewportConsole); 
-	// TODO: Check the pointers
-	// Register commands to UE console
-	ConsoleHelper = new FConsoleHelper(&CommandDispatcher, ConsoleOutputDevice);
-	*/
 }
-
-/*
-void AUE4CVCharacter::TakeScreenShot()
-{
-	FExecStatus ExecStatus = FExecStatus::OK();
-	FCallbackDelegate CallbackDelegate;
-	CallbackDelegate.BindLambda([this](FExecStatus ExecStatus)
-	{
-		FExecStatus ExecStatusCombine = ExecStatus;
-		ExecStatusCombine += CommandDispatcher.Exec("vget /camera/0/location");
-		ExecStatusCombine += CommandDispatcher.Exec("vget /camera/0/rotation");
-		Server->SendClientMessage(ExecStatusCombine.GetMessage());
-	});
-	CommandDispatcher.ExecAsync("vget /camera/0/view", CallbackDelegate);
-}
-*/
 
 // Called every frame
 void AUE4CVCharacter::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 	FUE4CVServer::Get().ProcessPendingRequest();
+	// Send camera info for every movement, can be potentially useful for recording movie
 	/*
 	FExecStatus ExecStatus = FUE4CVServer::Get().CommandDispatcher->Exec("vget /camera/0/location");
 	ExecStatus += FUE4CVServer::Get().CommandDispatcher->Exec("vget /camera/0/rotation");
@@ -69,6 +35,7 @@ void AUE4CVCharacter::Tick( float DeltaTime )
 }
 
 // Called to bind functionality to input
+// Input configuration is following the default of FirstPersonShooter game
 void AUE4CVCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 {
 	Super::SetupPlayerInputComponent(InputComponent);
@@ -103,7 +70,8 @@ void AUE4CVCharacter::MoveRight(float Value)
 
 void AUE4CVCharacter::OnFire()
 {
-	// TakeScreenShot();
-	// UE_LOG(LogTemp, Warning, TEXT("Fire"));
+	// Send a message to notify client an event just happened
+	FUE4CVServer::Get().SendClientMessage("clicked");
+	UE_LOG(LogTemp, Warning, TEXT("Mouse Clicked"));
 }
 
