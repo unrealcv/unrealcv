@@ -117,7 +117,7 @@ class TestCommands(unittest.TestCase):
         tasks = []
         modes = ['depth', 'lit', 'unlit', 'normal', 'object_mask']
         for mode in modes:
-            tasks.append(['vset /mode/%s' % mode, 'ok']) # TODO: Change it to vset /mode modename
+            tasks.append(['vset /mode %s' % mode, 'ok'])
             tasks.append(['vget /mode', mode])
 
         run_tasks(self, ue4cv.client, tasks)
@@ -156,7 +156,7 @@ if __name__ == '__main__':
         'test_set_rotation',
         'test_set_location',
         'test_location_limit',
-        'test_set_port',
+        # 'test_set_port', # Not stable yet
     ]
     suite = unittest.TestSuite(map(TestCommands, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

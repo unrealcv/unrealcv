@@ -1,85 +1,89 @@
 # Check whether the rendering result is as expected.
 from common_conf import *
 import time, os, ipdb
+import ue4cv
 import matplotlib.pyplot as plt
 
-def message_handler(message):
-    # Ignore message from server
-    return
+datafolder = 'correctness_test'
 
 def render_frame(client, pos):
     loc = pos[0] # location
     rot = pos[1] # rotation
     cmd = 'vset /camera/0/location %.3f %.3f %.3f' % (loc[0], loc[1], loc[2])
     response = client.request(cmd)
-    assert response == 'ok'
+    assert response == 'ok', response
     cmd = 'vset /camera/0/rotation %.3f %.3f %.3f' % (rot[0], rot[1], rot[2])
     response = client.request(cmd)
-    assert response == 'ok'
+    assert response == 'ok', response
     files = []
-    cmd = 'vget /camera/0/image'
-    return client.request(cmd)
+    # time.sleep(5)
+    time.sleep(5)
+    modes = ['lit', 'unlit', 'depth', 'object_mask']
+    f = dict()
+    for mode in modes:
+        cmd = 'vget /camera/0/%s' % mode
+        f[mode] = client.request(cmd)
+    return f
 
-def check_image_difference(reference_filename, rendered_filename):
-    print reference_filename
-    print rendered_filename
-    im1 = plt.imread(reference_filename)
-    im2 = plt.imread(rendered_filename)
-    imdiff = abs(im1[:,:,0:3] - im2[:,:,0:3]) # Do not substract alpha
-    assert((im1[:,:,3] == im2[:,:,3]).all())
-    # imdiff
-    print im1.shape
-    print im2.shape
-    print imdiff.shape
+def load_gt_files():
+    '''
+    Load a list of correctly rendered images and compare with images just rendered
+    '''
+    filename = os.path.join(datafolder, 'camera_info_basename.txt')
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+    # Parse camera location and rotation from file
+    camera_pos = []
+    for line_id in range(len(lines)):
+        line = lines[line_id].strip() # Remove \n at the end
+        if line_id % 3 == 0: # filename
+            filename = os.path.join('correctness_test', line)
+        elif line_id % 3 == 1: # location
+            location = [float(v) for v in line.split(' ')]
+        elif line_id % 3 == 2: # Rotation
+            rotation = [float(v) for v in line.split(' ')]
+            camera_pos.append((filename, location, rotation))
+    return camera_pos
 
-    fig1 = plt.figure(0)
-    plt.imshow(im1)
-    fig2 = plt.figure(1)
-    plt.imshow(im2)
-    fig3 = plt.figure(2)
-    plt.imshow(imdiff)
-    plt.set_cmap('hot')
-    plt.tight_layout()
-    [fig.canvas.draw() for fig in [fig1, fig2, fig3]]
-    # [ax.axis('off') for ax in [ax1, ax2, ax3]]
+def subplot_image(index, im):
+    import matplotlib.pyplot as plt
+    if isinstance(im, str):
+        im = plt.imread(im)
+    plt.subplot(index)
+    plt.imshow(im)
+    plt.axis('off')
 
-image_id = 0
-filelist = None
-datafolder = 'correctness_test'
-
-def press(event):
-    global image_id
-    if event.key == 'j':
-        image_id -= 1
-    elif event.key == 'k':
-        image_id += 1
-    else:
-        return
-
-    image_id = image_id % len(filelist)
-    check_id(image_id)
-
-def check_id(image_id):
-    fileinfo = filelist[image_id]
-    reference_filename = os.path.join(datafolder, fileinfo[0])
-    camera_pos = fileinfo[1:]
-
-    rendered_filename = render_frame(client, camera_pos)
-    time.sleep(1) # TODO: Remove this sleep time
-
-    check_image_difference(reference_filename, rendered_filename)
+def plot_sidebyside(im1, im2):
+    import matplotlib.pyplot as plt
+    subplot_image(121, im1)
+    subplot_image(122, im2)
+    plt.show()
 
 def test_correctness(client):
     # Load a list of camera location
-    global filelist
-    filelist = get_filelist(os.path.join(datafolder, 'camera_info_basename.txt'))
+    gt_files = load_gt_files()
+    # gt_files = [gt_files[0]]
 
-    # Check the difference in an interactive mode
-    figs = [plt.figure(fig_id) for fig_id in range(3)]
-    [fig.canvas.mpl_connect('key_press_event', press) for fig in figs]
-    check_id(0)
-    plt.show()
+    for (filename, location, rotation) in gt_files:
+        f = render_frame(client, [location, rotation])
+        rendered_filename = f['lit']
+
+        # plot_sidebyside(filename, rendered_filename)
+        diff = diff_with_refimage(filename, rendered_filename)
+        print diff.sum()
+        # Set an emprical threshold to check the rendering correctness
+
+def diff_with_refimage(im1, im2):
+    if isinstance(im1, str):
+        im1 = plt.imread(im1)
+    if isinstance(im2, str):
+        im2 = plt.imread(im2)
+
+    # diff = abs(im1 - im2) # Only need to care the absolute value
+    imdiff = abs(im1[:,:,0:3] - im2[:,:,0:3]) # Do not substract alpha
+    return imdiff
 
 if __name__ == '__main__':
-    client = Client((HOST, PORT), message_handler)
+    client = ue4cv.client
+    client.connect()
     test_correctness(client)
