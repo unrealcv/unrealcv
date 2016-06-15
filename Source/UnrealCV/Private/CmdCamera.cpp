@@ -263,8 +263,8 @@ FExecStatus FCameraCommandHandler::GetCameraView(const TArray<FString>& Args)
 		{
 			Filename = Args[1];
 		}
-		// const FString Dir = FPlatformProcess::BaseDir(); // TODO: Change this to screen capture folder
-		const FString Dir = FPaths::ScreenShotDir();
+		const FString Dir = FPlatformProcess::BaseDir(); // TODO: Change this to screen capture folder
+		// const FString Dir = FPaths::ScreenShotDir();
 		FullFilename = FPaths::Combine(*Dir, *Filename);
 
 		return this->GetCameraViewAsyncQuery(FullFilename);
