@@ -325,6 +325,7 @@ bool UNetworkManager::SendMessage(const FString& Message)
 		TArray<uint8> Payload;
 		BinaryArrayFromString(Message, Payload);
 
+		UE_LOG(LogTemp, Warning, TEXT("Send connection confirm '%s' to client"), *Message);
 		FSocketMessageHeader::WrapAndSendPayload(Payload, ConnectionSocket);
 		return true;
 	}
