@@ -36,22 +36,6 @@ void FCameraCommandHandler::RegisterCommands()
 
 	Cmd = FDispatcherDelegate::CreateRaw(&FViewMode::Get(), &FViewMode::GetMode);
 	CommandDispatcher->BindCommand("vget /mode", Cmd, "Get mode");
-	/*
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraImage);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/image", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraDepth);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/depth", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraObjectMask);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/object_mask", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraNormal);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/normal", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraBaseColor);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/base_color", Cmd, "Get snapshot from camera"); // Take a screenshot and return filename
-	*/
 }
 
 FExecStatus FCameraCommandHandler::SetCameraLocation(const TArray<FString>& Args)

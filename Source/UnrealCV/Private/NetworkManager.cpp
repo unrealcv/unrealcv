@@ -6,26 +6,6 @@
 #include "Networking.h"
 #include <string>
 
-/*
-class FMessageService : public FRunnable
-{
-public:
-	FMessageService()
-	{
-		Thread = FRunnableThread::Create(this, TEXT("FMessageService"), 8 * 1024, TPri_Normal);
-	}
-
-	~FMessageService()
-	{
-		if (Thread != nullptr)
-		{
-			Thread->Kill(true);
-			delete Thread;
-		}
-	}
-};
-*/
-
 uint32 FSocketMessageHeader::DefaultMagic = 0x9E2B83C1;
 
 bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, FSocket* Socket)
@@ -55,18 +35,7 @@ bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
 	{
 		// uint32 PendingDataSize;
 		// bool Status = Socket->HasPendingData(PendingDataSize);
-		/*
-		if (!Status)
-		{
-			return false;
-		}// Operation failed
-		if (PendingDataSize == 0)
-		{
-			continue;
-		}
-		*/
-
-		// if PendingDataSize != 0
+		// status = PendingDataSize != 0
 		int32 NumRead = 0;
 		bool RecvStatus = Socket->Recv(Result + Offset, ExpectedSize, NumRead);
 		// bool RecvStatus = Socket->Recv(Result + Offset, ExpectedSize, NumRead, ESocketReceiveFlags::WaitAll);
@@ -85,7 +54,6 @@ bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
 
 		if (NumRead == -1) 
 		// -1 means error happen, but not sure what the error is, in windows WSAGetLastError can get the real error
-		// HasPendingData already eliminate the error of not having data
 		{
 			ESocketErrors LastError = ISocketSubsystem::Get()->GetLastErrorCode();
 			if (LastError == ESocketErrors::SE_EWOULDBLOCK)
@@ -140,7 +108,6 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 	OutPayload.Seek(PayloadOffset);
 	if (!SocketReceiveAll(Socket, OutPayload.GetData() + PayloadOffset, PayloadSize))
 	{
-		// UE_LOG(LogTemp, Error, TEXT("Unable to read full payload"));
 		UE_LOG(LogTemp, Error, TEXT("Unable to read full payload, Socket disconnected."));
 		return false;
 	}
@@ -164,7 +131,8 @@ void BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray
 
 	// const TArray<TCHAR>& CharArray = Message.GetCharArray();
 	// OutBinaryArray.Append(CharArray);
-	// This can work, but work add tailing \0 also behavior is not well defined.
+	// This can work, but will add tailing \0 also behavior is not well defined.
+
 	OutBinaryArray.Append((UTF8CHAR*)Convert.Get(), Convert.Length());
 }
 
@@ -195,8 +163,9 @@ bool UNetworkManager::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoin
 			bool RecvStatus = ClientSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), Read);
 
 			// if (!RecvStatus) // The connection is broken
-			if (Read == 0) // RecvStatus == true if Read >= 0, this is used to determine client disconnection
-				// -1 means no data, 0 means disconnected
+			if (Read == 0) 
+			// RecvStatus == true if Read >= 0, this is used to determine client disconnection
+			// -1 means no data, 0 means disconnected
 			{
 				ConnectionSocket = NULL; // Use this to determine whether client is connected
 				return false;
@@ -210,9 +179,10 @@ bool UNetworkManager::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoin
 	return false;
 }
 
-/** Start message service in listening thread
-	* TODO: Start a new background thread to receive message
-	*/
+/** 
+  * Start message service in listening thread
+  * TODO: Start a new background thread to receive message
+  */
 bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
 	if (!this->ConnectionSocket)

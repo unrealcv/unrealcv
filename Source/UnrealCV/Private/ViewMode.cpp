@@ -30,10 +30,8 @@ void FViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 	UGameViewportClient* Viewport = World->GetGameViewport();
 	ApplyViewMode(EViewModeIndex::VMI_VisualizeBuffer, true, Viewport->EngineShowFlags); // This did more than just SetVisualizeBuffer(true);
 
-	// bPostProcessing = true;
 	// From ShowFlags.cpp
 	Viewport->EngineShowFlags.SetPostProcessing(true);
-	// Viewport->EngineShowFlags.SetPostProcessing(false);
 	// Viewport->EngineShowFlags.SetMaterials(false);
 	Viewport->EngineShowFlags.SetMaterials(true);
 	Viewport->EngineShowFlags.SetVisualizeBuffer(true);
@@ -114,7 +112,6 @@ void FViewMode::DebugMode()
 	UGameViewportClient* GameViewportClient = World->GetGameViewport();
 	FSceneViewport* SceneViewport = GameViewportClient->GetGameViewport();
 	float DisplayGamma = SceneViewport->GetDisplayGamma();
-	// World->GetGameViewport()->
 }
 
 void FViewMode::Object()
@@ -202,8 +199,5 @@ FExecStatus FViewMode::SetMode(const TArray<FString>& Args) // Check input argum
 FExecStatus FViewMode::GetMode(const TArray<FString>& Args) // Check input arguments
 {
 	UE_LOG(LogTemp, Warning, TEXT("Run GetMode, The mode is %s"), *CurrentViewMode);
-	// How to send message back. Need the conversation id.
-	// Send message back
-	// Complex information will be saved to file
 	return FExecStatus::OK(CurrentViewMode);
 }

@@ -35,10 +35,7 @@ FExecStatus FPromise::CheckStatus()
 }
 
 // DECLARE_DELEGATE_OneParam(FDispatcherDelegate, const TArray< FString >&);
-// FExecStatus FExecStatus::Pending = FExecStatus("pending");
-// FExecStatus FExecStatus::OK = FExecStatus("ok"); // The status should start with ok or error for client to understand
 FExecStatus FExecStatus::InvalidArgument = FExecStatus(FExecStatusType::Error, "Argument Invalid");
-// FExecStatus FExecStatus::Error = FExecStatus("error");
 
 FPromise& FExecStatus::GetPromise()
 { 
@@ -99,16 +96,6 @@ FExecStatus::FExecStatus(FExecStatusType InExecStatusType, FString InMessage)
 {
 	ExecStatusType = InExecStatusType;
 	MessageBody = InMessage;
-	/*
-	if (InMessage != "")
-	{ 
-		Message = InMessage;
-	}
-	else
-	{
-		Message = "error Message can not be empty";
-	}
-	*/
 }
 
 FExecStatus::~FExecStatus()
