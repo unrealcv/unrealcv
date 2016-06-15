@@ -43,6 +43,8 @@ void FViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 	//Viewport->EngineShowFlags.DynamicShadows = 0;
 	//Viewport->EngineShowFlags.GlobalIllumination = 0;
 	//Viewport->EngineShowFlags.ScreenSpaceReflections = 0;
+
+	// ToneMapper needs to be disabled
 	Viewport->EngineShowFlags.SetTonemapper(false);
 	Viewport->EngineShowFlags.TemporalAA = 1;
 
@@ -90,6 +92,8 @@ void FViewMode::Lit()
 	Viewport->EngineShowFlags.SetMaterials(true);
 	Viewport->EngineShowFlags.SetLighting(true);
 	Viewport->EngineShowFlags.SetPostProcessing(true);
+	// ToneMapper needs to be enabled, or the screen will be very dark
+	Viewport->EngineShowFlags.SetTonemapper(true);
 }
 
 void FViewMode::Unlit()
@@ -136,6 +140,7 @@ void FViewMode::Object()
 	Viewport->EngineShowFlags.SetVertexColors(true);
 	Viewport->EngineShowFlags.SetPostProcessing(false);
 	Viewport->EngineShowFlags.SetHMDDistortion(false);
+	Viewport->EngineShowFlags.SetTonemapper(false); // This won't take effect here
 
 	GVertexColorViewMode = EVertexColorViewMode::Color;
 }
