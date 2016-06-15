@@ -1,5 +1,5 @@
 # Config of faster rcnn
-import sys, os
+import sys, os, logging
 sys.path.append('..')
 #from ue4cv import *
 import ue4cv
@@ -89,32 +89,34 @@ def process_image(filename):
     # plot_image(show_img)
 
 
-# def message_handler(message):
-#     # This is a different thread
-#     filename = message
-#
-#     print repr(message)
-#     lines = message.split('\n')
-#     if lines:
-#         process_image(lines[0])
+def message_handler(message):
+    print 'Got server message %s' % repr(message)
+    if message == 'clicked':
+        onclick(None)
 
 def onclick(event):
     image = ue4cv.client.request('vget /camera/0/lit')
     process_image(image)
 
 if __name__ == '__main__':
-    image = np.zeros((300, 300))
+    _L = logging.getLogger('ue4cv')
+    _L.setLevel(logging.DEBUG)
 
-    # client = Client((HOST, PORT), message_handler)
+    ue4cv.client.message_handler = message_handler
     ue4cv.client.connect()
 
-    # Initialize the matplotlib
-    fig, ax = plt.subplots()
-    fig.canvas.mpl_connect('button_press_event', onclick)
+    if not ue4cv.client.isconnected():
+        print 'UnrealCV server is not running. Run the game downloaded from http://unrealcv.github.io first.'
+    else:
+        # Initialize the matplotlib
+        fig, ax = plt.subplots()
+        fig.canvas.mpl_connect('button_press_event', onclick)
 
-    ax.imshow(image)
-    plt.axis('off')
-    plt.tight_layout()
-    plt.show()
+        # Show an empty image
+        image = np.zeros((300, 300))
+        ax.imshow(image)
+        plt.axis('off')
+        plt.tight_layout()
+        plt.show()
 
-    # client.wait() # Wait forever
+    ue4cv.client.disconnect()

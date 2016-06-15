@@ -117,14 +117,14 @@ class BaseClient(object):
     If you are trying to send a request and get a response, consider using `Client` instead.
     This class adds message framing on top of TCP
     '''
-    def __init__(self, endpoint, message_handler):
+    def __init__(self, endpoint, raw_message_handler):
         '''
         Parameters:
         endpoint: a tuple (ip, port)
         message_handler: a function defined as `def message_handler(msg)` to handle incoming message, msg is a string
         '''
         self.endpoint = endpoint
-        self.message_handler = message_handler
+        self.raw_message_handler = raw_message_handler
         self.socket = None # if socket == None, means client is not connected
         self.wait_connected = threading.Event()
 
@@ -132,6 +132,7 @@ class BaseClient(object):
         receiving_thread = threading.Thread(target = self.__receiving)
         receiving_thread.setDaemon(1)
         receiving_thread.start()
+
 
     def connect(self, timeout = 1):
         '''
@@ -187,6 +188,7 @@ class BaseClient(object):
             if self.isconnected():
                 # Only this thread is allowed to read from socket, otherwise need lock to avoid competing
                 message = SocketMessage.ReceivePayload(self.socket)
+                _L.debug('Got server raw message %s', message)
                 if not message:
                     _L.debug('BaseClient: remote disconnected, no more message')
                     self.socket = None
@@ -198,8 +200,8 @@ class BaseClient(object):
                     # self.wait_connected.clear()
                     continue
 
-                if self.message_handler:
-                    self.message_handler(message)
+                if self.raw_message_handler:
+                    self.raw_message_handler(message) # will block this thread
                 else:
                     _L.error('No message handler for raw message %s', message)
 
