@@ -10,6 +10,7 @@ Provides functions to interact with games built using Unreal Engine.
 import ctypes, struct, threading, socket, re, time, logging
 _L = logging.getLogger(__name__)
 # _L.addHandler(logging.NullHandler()) # Let client to decide how to do logging
+_L.handlers = []
 _L.addHandler(logging.StreamHandler())
 _L.propagate = False
 _L.setLevel(logging.INFO)
@@ -145,12 +146,12 @@ class BaseClient(object):
 
                 self.wait_connected.clear()
                 isset = self.wait_connected.wait(timeout)
-                assert(isset != None)
+                assert(isset != None) # in python prior to 2.7 wait will return None
                 if isset:
                     return
                 else:
                     self.socket = None
-                    _L.error('Can not connect to %s, timeout after %d seconds', self.endpoint, timeout)
+                    _L.error('Socket is created, but can not get connection confirm from %s, timeout after %d seconds', self.endpoint, timeout)
                 # only assign self.socket to connected socket
                 # so it is safe to use self.socket != None to check connection status
                 # This does not neccessarily mean connection successful, might be closed by server
