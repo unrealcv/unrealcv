@@ -8,6 +8,10 @@ Provides functions to interact with games built using Unreal Engine.
 >>> client = unrealcv.Client((HOST, PORT))
 '''
 import ctypes, struct, threading, socket, re, time, logging
+try:
+    from Queue import Queue
+except:
+    from queue import Queue # for Python 3
 _L = logging.getLogger(__name__)
 # _L.addHandler(logging.NullHandler()) # Let client to decide how to do logging
 _L.handlers = []
@@ -239,7 +243,9 @@ class Client(object):
                 assert(False)
         else:
             if self.message_handler:
-                self.message_handler(raw_message)
+                def do_callback():
+                    self.message_handler(raw_message)
+                self.queue.put(do_callback)
             else:
                 # Instead of just dropping this message, give a verbose notice
                 _L.error('No message handler to handle message %s', raw_message)
@@ -255,6 +261,17 @@ class Client(object):
         self.isconnected = self.message_client.isconnected
         self.connect = self.message_client.connect
         self.disconnect = self.message_client.disconnect
+
+        self.queue = Queue()
+        self.main_thread = threading.Thread(target = self.worker)
+        self.main_thread.setDaemon(1)
+        self.main_thread.start()
+
+    def worker(self):
+        while True:
+            task = self.queue.get()
+            task()
+            self.queue.task_done()
 
     def request(self, message, timeout=5):
         """
@@ -275,10 +292,18 @@ class Client(object):
         >>> client.connect()
         >>> response = client.request('vget /camera/0/view')
         """
-        raw_message = '%d:%s' % (self.message_id, message)
-        _L.debug('Request: %s', raw_message)
-        if not self.message_client.send(raw_message):
-            return None
+        def do_request():
+            raw_message = '%d:%s' % (self.message_id, message)
+            _L.debug('Request: %s', raw_message)
+            if not self.message_client.send(raw_message):
+                return None
+
+        # request can only be sent in the main thread, do not support multi-thread submitting request together
+        if threading.current_thread().name == self.main_thread.name:
+            do_request()
+        else:
+            self.queue.put(do_request)
+
         # Timeout is required
         # see: https://bugs.python.org/issue8844
         self.wait_response.clear() # This is important
