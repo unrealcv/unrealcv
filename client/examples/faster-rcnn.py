@@ -35,6 +35,7 @@ def init_caffe(): # TODO: parse args into here
 def plot_image(image, boxes=None, scores=None):
     ax.cla() # Clear axis
     ax.imshow(image, aspect='equal')
+    ax.axis('off')
 
     if boxes != None and scores != None:
         CONF_THRESH = 0.8
@@ -92,15 +93,12 @@ def process_image(filename):
 def message_handler(message):
     print 'Got server message %s' % repr(message)
     if message == 'clicked':
-        onclick(None)
-
-def onclick(event):
-    image = ue4cv.client.request('vget /camera/0/lit')
-    process_image(image)
+        image = ue4cv.client.request('vget /camera/0/lit')
+        process_image(image)
 
 if __name__ == '__main__':
     _L = logging.getLogger('ue4cv')
-    _L.setLevel(logging.DEBUG)
+    _L.setLevel(logging.ERROR)
 
     ue4cv.client.message_handler = message_handler
     ue4cv.client.connect()
@@ -110,7 +108,6 @@ if __name__ == '__main__':
     else:
         # Initialize the matplotlib
         fig, ax = plt.subplots()
-        fig.canvas.mpl_connect('button_press_event', onclick)
 
         # Show an empty image
         image = np.zeros((300, 300))
