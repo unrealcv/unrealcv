@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 sys.path.append('..')
 import ue4cv
 
-
 class Timer(object):
     def __init__(self, name=None):
         self.name = name
@@ -19,6 +18,8 @@ class Timer(object):
         print 'Elapsed: %s' % (time.time() - self.tstart)
 
 class Namedict(object):
+    # d = Namedict(a=1, b=2)
+    # d.a
     def __init__(self, **kwargs):
         self.dic = kwargs
         self.__dict__.update(self.dic)
@@ -28,8 +29,6 @@ class Namedict(object):
 
     def __str__(self):
         return str(self.dic)
-# d = namedict(a=1, b=2)
-# d.a
 
 def read_camera_info(filename):
     with open(filename) as f:
@@ -39,7 +38,7 @@ def read_camera_info(filename):
     for line_id in range(len(lines)):
         line = lines[line_id].strip() # Remove \n at the end
         if line_id % 3 == 0: # filename
-            pass
+            pass # ignore this line
         elif line_id % 3 == 1: # location
             location = [float(v) for v in line.split(' ')]
         elif line_id % 3 == 2: # Rotation
@@ -97,9 +96,7 @@ def subplot_image(sub_index, image):
     plt.axis('off')
 
 def plot_image_with_mask(image, mask):
-    '''
-    Mask is a binary matrix, only mask==1 will be plotted
-    '''
+    ''' Mask is a binary matrix, only mask==1 will be plotted '''
     if isinstance(image, str):
         image = imread(image)
     subplot_image(121, image)
@@ -123,41 +120,7 @@ def get_color_mapping(client, object_list):
         color_mapping[objname] = Color(client.request('vget /object/%s/color' % objname))
     return color_mapping
 
-class ObjectInstanceMap(object):
-    def print_object_size(self):
-        '''
-        Print the size of each object
-        '''
-        for object_name in self.dic_object_mask.keys():
-            print object_name, self.dic_object_mask[object_name].sum()
-
-    def count_object_instance(object_mask_filename):
-        object_mask = imread(object_mask_filename)
-        plt.rcParams['figure.figsize'] = (8.0, 8.0)
-        plt.imshow(object_mask)
-        plt.axis('off')
-
-        dict_instance_mask = {}
-        dict_instance_color = {}
-        object_id = 0
-
-        counted_region = np.zeros(object_mask.shape[0:2], dtype=bool)
-        while (~counted_region).sum() != 0:
-            object_id += 1
-            # Count how many unique objects in this scene?
-            remaining_pixels = object_mask[~counted_region]
-            instance_color = remaining_pixels[0,:]
-
-            instance_mask = (object_mask == instance_color).all(axis=2)
-            counted_region += instance_mask
-
-            object_name = 'object%d' % object_id
-            dict_instance_mask[object_name] = instance_mask
-            dict_instance_color[object_name] = instance_color * 255
-        return [dict_instance_mask, dict_instance_color]
-
-def generate_objtype(scene_objects):
-    # generate_objtype(scene_objects)
+def generate_objectcatetory_json(scene_objects):
     # Use http://www.jsoneditoronline.org/ to clean the json
     # http://jsonformat.com/#jsondataurllabel
     ''' Get object category from object name, with some manual editing '''
@@ -190,9 +153,7 @@ def compute_instance_mask(object_mask, color_mapping, objects):
 
 
 def check_coverage(dic_instance_mask):
-    '''
-    Check the portion of labeled image
-    '''
+    ''' Check the portion of labeled image '''
     marked_region = None
     for object_name in dic_instance_mask.keys():
         instance_mask = dic_instance_mask[object_name]
@@ -219,18 +180,3 @@ def get_category_mask(category):
     if mask is None:
         print 'Error: the mask is empty'
     return mask
-
-if __name__ == '__main__':
-    ue4cv.client.connect()
-
-    camera_pos = read_camera_info('./realistic_rendering_camera_info.txt')
-    pos = camera_pos[1]
-    f = render_frame(ue4cv.client, pos)
-    color_object_mask = imread(f.object_mask)
-
-    objects = ['WallPiece1_22', 'SM_Shelving_6', 'SM_Couch_1seat_5', 'SM_Frame_39', 'SM_Shelving_7', 'SM_Shelving_8']
-    with Timer():
-        color_mapping = get_color_mapping(ue4cv.client, objects)
-        # color_mapping = get_selected_color_mapping(ue4cv.client)
-    object_instance_map = ObjectInstanceMap(color_object_mask, color_mapping)
-    object_instance_map.check_coverage()
