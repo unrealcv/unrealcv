@@ -8,10 +8,16 @@ Provides functions to interact with games built using Unreal Engine.
 >>> client = unrealcv.Client((HOST, PORT))
 '''
 import ctypes, struct, threading, socket, re, time, logging
+try:
+    from Queue import Queue
+except:
+    from queue import Queue # for Python 3
 _L = logging.getLogger(__name__)
 # _L.addHandler(logging.NullHandler()) # Let client to decide how to do logging
 _L.handlers = []
-_L.addHandler(logging.StreamHandler())
+h = logging.StreamHandler()
+h.setFormatter(logging.Formatter('%(levelname)s:%(module)s:%(lineno)d:%(message)s'))
+_L.addHandler(h)
 _L.propagate = False
 _L.setLevel(logging.INFO)
 
@@ -117,14 +123,14 @@ class BaseClient(object):
     If you are trying to send a request and get a response, consider using `Client` instead.
     This class adds message framing on top of TCP
     '''
-    def __init__(self, endpoint, message_handler):
+    def __init__(self, endpoint, raw_message_handler):
         '''
         Parameters:
         endpoint: a tuple (ip, port)
         message_handler: a function defined as `def message_handler(msg)` to handle incoming message, msg is a string
         '''
         self.endpoint = endpoint
-        self.message_handler = message_handler
+        self.raw_message_handler = raw_message_handler
         self.socket = None # if socket == None, means client is not connected
         self.wait_connected = threading.Event()
 
@@ -132,6 +138,7 @@ class BaseClient(object):
         receiving_thread = threading.Thread(target = self.__receiving)
         receiving_thread.setDaemon(1)
         receiving_thread.start()
+
 
     def connect(self, timeout = 1):
         '''
@@ -151,7 +158,7 @@ class BaseClient(object):
                     return
                 else:
                     self.socket = None
-                    _L.error('Socket is created, but can not get connection confirm from %s, timeout after %d seconds', self.endpoint, timeout)
+                    _L.error('Socket is created, but can not get connection confirm from %s, timeout after %.2f seconds', self.endpoint, timeout)
                 # only assign self.socket to connected socket
                 # so it is safe to use self.socket != None to check connection status
                 # This does not neccessarily mean connection successful, might be closed by server
@@ -187,6 +194,7 @@ class BaseClient(object):
             if self.isconnected():
                 # Only this thread is allowed to read from socket, otherwise need lock to avoid competing
                 message = SocketMessage.ReceivePayload(self.socket)
+                _L.debug('Got server raw message %s', message)
                 if not message:
                     _L.debug('BaseClient: remote disconnected, no more message')
                     self.socket = None
@@ -198,8 +206,8 @@ class BaseClient(object):
                     # self.wait_connected.clear()
                     continue
 
-                if self.message_handler:
-                    self.message_handler(message)
+                if self.raw_message_handler:
+                    self.raw_message_handler(message) # will block this thread
                 else:
                     _L.error('No message handler for raw message %s', message)
 
@@ -235,7 +243,9 @@ class Client(object):
                 assert(False)
         else:
             if self.message_handler:
-                self.message_handler(raw_message)
+                def do_callback():
+                    self.message_handler(raw_message)
+                self.queue.put(do_callback)
             else:
                 # Instead of just dropping this message, give a verbose notice
                 _L.error('No message handler to handle message %s', raw_message)
@@ -251,6 +261,17 @@ class Client(object):
         self.isconnected = self.message_client.isconnected
         self.connect = self.message_client.connect
         self.disconnect = self.message_client.disconnect
+
+        self.queue = Queue()
+        self.main_thread = threading.Thread(target = self.worker)
+        self.main_thread.setDaemon(1)
+        self.main_thread.start()
+
+    def worker(self):
+        while True:
+            task = self.queue.get()
+            task()
+            self.queue.task_done()
 
     def request(self, message, timeout=5):
         """
@@ -271,10 +292,18 @@ class Client(object):
         >>> client.connect()
         >>> response = client.request('vget /camera/0/view')
         """
-        raw_message = '%d:%s' % (self.message_id, message)
-        _L.debug('Request: %s', raw_message)
-        if not self.message_client.send(raw_message):
-            return None
+        def do_request():
+            raw_message = '%d:%s' % (self.message_id, message)
+            _L.debug('Request: %s', raw_message)
+            if not self.message_client.send(raw_message):
+                return None
+
+        # request can only be sent in the main thread, do not support multi-thread submitting request together
+        if threading.current_thread().name == self.main_thread.name:
+            do_request()
+        else:
+            self.queue.put(do_request)
+
         # Timeout is required
         # see: https://bugs.python.org/issue8844
         self.wait_response.clear() # This is important
@@ -285,7 +314,7 @@ class Client(object):
         if isset:
             return self.response
         else:
-            _L.error('Can not receive a response from server, timeout after %d seconds', timeout)
+            _L.error('Can not receive a response from server, timeout after %.2f seconds', timeout)
             return None
 
 (HOST, PORT) = ('localhost', 9000)
