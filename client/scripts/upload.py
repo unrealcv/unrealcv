@@ -2,15 +2,8 @@ import math, sys, argparse, zipfile
 import boto
 from filechunkio import FileChunkIO
 from ue4config import conf
+from ue4util import *
 
-def platform_name():
-    platform = sys.platform
-    names = {
-        'cygwin': 'win',
-        'win32': 'win',
-        'win64': 'win',
-        }
-    return names[platform]
 
 # bucket_name = 'unrealcv-scene'
 bucket_name = 'unreal-scene'
@@ -85,7 +78,7 @@ def upload(bucket_name, filename):
     mp.complete_upload()
 
 def getfiles_win(uproject):
-    project_name = os.path.basename(uproject).replace('.uproject', '')
+    project_name = getprojectname(uproject)
     output_folder = os.path.join(conf['OutputFolder'], 'WindowsNoEditor')
     files = [
         os.path.join(output_folder, '%s.exe' % project_name),
