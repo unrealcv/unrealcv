@@ -1,4 +1,5 @@
 import os, sys, argparse
+from ue4util import *
 from ue4config import conf
 
 # Automatically package game content
@@ -43,9 +44,29 @@ if platform == 'Linux' or platform == 'linux2':
 if platform == 'darwin':
     package = package_mac
 
-def save_version_info():
+def save_version_info(conf, project_file):
     ''' Save the version info of UnrealCV plugin and the game for easier issue tracking'''
-    pass
+    project_name = getprojectname(project_file)
+
+    project_folder = os.path.dirname(project_file)
+    plugin_folder = os.path.join(project_folder, 'Plugins', 'unrealcv')
+
+    plugin_version = os.popen('git -C %s rev-parse --short HEAD' % plugin_folder).read().strip()
+    assert(len(plugin_version) == 7)
+    project_version = os.popen('git -C %s rev-parse --short HEAD' % project_folder).read().strip()
+    assert(len(project_version) == 7)
+
+    info_filename = os.path.join(conf['OutputFolder'], project_name)
+    info = '''
+    Project         : {project_name}
+    Project Version : {project_version}
+    Plugin Version  : {plugin_version}
+    '''.format(project_name=project_name, project_version=project_version, plugin_version=plugin_version)
+    with open(info_filename, 'w') as info_file:
+        info_file.write(info)
+
+    print plugin_version
+    print project_version
     # git rev-parse --short HEAD
 
 if __name__ == '__main__':
@@ -54,4 +75,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     project_file = os.path.abspath(args.project_file).replace('/drives/d/', 'D:/').replace('/home/mobaxterm/d/', 'D:/')
-    package(conf, project_file)
+    # package(conf, project_file)
+    save_version_info(conf, project_file)
