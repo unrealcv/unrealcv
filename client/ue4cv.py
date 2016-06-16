@@ -11,7 +11,9 @@ import ctypes, struct, threading, socket, re, time, logging
 _L = logging.getLogger(__name__)
 # _L.addHandler(logging.NullHandler()) # Let client to decide how to do logging
 _L.handlers = []
-_L.addHandler(logging.StreamHandler())
+h = logging.StreamHandler()
+h.setFormatter(logging.Formatter('%(levelname)s:%(module)s:%(lineno)d:%(message)s'))
+_L.addHandler(h)
 _L.propagate = False
 _L.setLevel(logging.INFO)
 
@@ -152,7 +154,7 @@ class BaseClient(object):
                     return
                 else:
                     self.socket = None
-                    _L.error('Socket is created, but can not get connection confirm from %s, timeout after %d seconds', self.endpoint, timeout)
+                    _L.error('Socket is created, but can not get connection confirm from %s, timeout after %.2f seconds', self.endpoint, timeout)
                 # only assign self.socket to connected socket
                 # so it is safe to use self.socket != None to check connection status
                 # This does not neccessarily mean connection successful, might be closed by server
@@ -287,7 +289,7 @@ class Client(object):
         if isset:
             return self.response
         else:
-            _L.error('Can not receive a response from server, timeout after %d seconds', timeout)
+            _L.error('Can not receive a response from server, timeout after %.2f seconds', timeout)
             return None
 
 (HOST, PORT) = ('localhost', 9000)
