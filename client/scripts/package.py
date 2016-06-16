@@ -43,6 +43,11 @@ if platform == 'Linux' or platform == 'linux2':
 if platform == 'darwin':
     package = package_mac
 
+def save_version_info():
+    ''' Save the version info of UnrealCV plugin and the game for easier issue tracking'''
+    pass
+    # git rev-parse --short HEAD
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('project_file')

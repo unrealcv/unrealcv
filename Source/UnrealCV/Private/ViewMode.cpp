@@ -94,6 +94,9 @@ void FViewMode::Lit()
 	Viewport->EngineShowFlags.SetPostProcessing(true);
 	// ToneMapper needs to be enabled, or the screen will be very dark
 	Viewport->EngineShowFlags.SetTonemapper(true);
+	// TemporalAA needs to be disabled, otherwise the previous frame might contaminate current frame.
+	// Check: https://answers.unrealengine.com/questions/436060/low-quality-screenshot-after-setting-the-actor-pos.html for detail
+	Viewport->EngineShowFlags.SetTemporalAA(false);
 }
 
 void FViewMode::Unlit()
@@ -103,10 +106,9 @@ void FViewMode::Unlit()
 	ApplyViewMode(VMI_Unlit, true, Viewport->EngineShowFlags);
 	Viewport->EngineShowFlags.SetMaterials(false);
 	Viewport->EngineShowFlags.SetVertexColors(false);
-	Viewport->EngineShowFlags.LightFunctions = 0;
-	Viewport->EngineShowFlags.DynamicShadows = 0;
+	Viewport->EngineShowFlags.SetLightFunctions(false);
 	Viewport->EngineShowFlags.SetLighting(false);
-	Viewport->EngineShowFlags.AtmosphericFog = 0;
+	Viewport->EngineShowFlags.SetAtmosphericFog(false);
 }
 
 void FViewMode::DebugMode()
