@@ -46,7 +46,8 @@ void FViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 
 	// ToneMapper needs to be disabled
 	Viewport->EngineShowFlags.SetTonemapper(false);
-	Viewport->EngineShowFlags.TemporalAA = 1;
+	// TemporalAA needs to be disabled, or it will contaminate the following frame
+	Viewport->EngineShowFlags.SetTemporalAA(false);
 
 	// A complete list can be found from Engine/Config/BaseEngine.ini, Engine.BufferVisualizationMaterials
 	// TODO: BaseColor is weird, check BUG.
