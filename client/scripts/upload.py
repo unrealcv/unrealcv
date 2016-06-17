@@ -5,8 +5,7 @@ from ue4config import conf
 from ue4util import *
 
 
-# bucket_name = 'unrealcv-scene'
-bucket_name = 'unreal-scene'
+bucket_name = 'unrealcv-scene'
 
 # Even empty folder needs to be preserved
 def get_all_files(files):
@@ -29,33 +28,11 @@ def get_all_files(files):
 
 
 def zipfiles(srcfiles, srcroot, dst):
-    # zf = zipfile.ZipFile("%s.zip" % (dst), "w", zipfile.ZIP_DEFLATED)
     print 'zip file'
     zf = zipfile.ZipFile("%s" % (dst), "w", zipfile.ZIP_DEFLATED)
-    # abs_src = os.path.abspath(src)
-    # abs_src_folder = os.path.dirname(abs_src)
+
     srcroot = os.path.abspath(srcroot)
-    # for srcfile in srcfiles:
-    #     srcfile = os.path.abspath(srcfile)
-    #
-    #     if os.path.isfile(srcfile):
-    #         arcname = srcfile[len(srcroot) + 1:]
-    #         print 'zipping %s as %s' % (srcfile,
-    #                                     arcname)
-    #         zf.write(srcfile, arcname)
-    #
-    #     elif os.path.isdir(srcfile):
-    #         for dirname, subdirs, files in os.walk(srcfile):
-    #             for filename in files:
-    #                 absname = os.path.abspath(os.path.join(dirname, filename))
-    #                 # arcname = absname[len(abs_src) + 1:]
-    #                 arcname = absname[len(srcroot) + 1:]
-    #                 print 'zipping %s as %s' % (os.path.join(dirname, filename),
-    #                                             arcname)
-    #                 zf.write(absname, arcname)
-    #
-    #     else:
-    #         print 'File %s is not found' % srcfile
+
     for srcfile in srcfiles:
         arcname = srcfile[len(srcroot) + 1:]
         print 'zipping %s as %s' % (srcfile,
@@ -74,8 +51,8 @@ def upload(bucket_name, filename):
     print S3_SECRET_KEY
 
     # Connect to S3
-    # c = boto.connect_s3(host='s3-ap-northeast-1.amazonaws.com')
-    c = boto.connect_s3(host='s3-us-west-1.amazonaws.com')
+    c = boto.connect_s3(host='s3-ap-northeast-1.amazonaws.com')
+    # c = boto.connect_s3(host='s3-us-west-1.amazonaws.com')
     b = c.get_bucket(bucket_name)
 
     # Get file info
@@ -181,6 +158,6 @@ if __name__ == '__main__':
             print f
         print 'Start zipping files to %s' % zipfilename
         zipfiles(all_files, zip_root_folder, zipfilename)
-        #
+
         print 'Start uploading file %s' % zipfilename
-        # upload(bucket_name, zipfilename)
+        upload(bucket_name, zipfilename)
