@@ -1,4 +1,4 @@
-from test_dev_server import MessageServer
+from dev_server import MessageServer
 import logging
 L = logging.getLogger('ue4cv')
 L.setLevel(logging.DEBUG)
