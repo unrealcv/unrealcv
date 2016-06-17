@@ -1,4 +1,4 @@
-import math, sys, argparse, zipfile
+import math, sys, argparse, zipfile, json
 import boto
 from filechunkio import FileChunkIO
 from ue4config import conf
@@ -77,20 +77,54 @@ def upload(bucket_name, filename):
     # Finish the upload
     mp.complete_upload()
 
-def getfiles_win(uproject):
-    project_name = getprojectname(uproject)
-    output_folder = os.path.join(conf['OutputFolder'], 'WindowsNoEditor')
+def get_files_win(project_name):
+    output_folder = get_output_root_folder()
     files = [
         os.path.join(output_folder, '%s.exe' % project_name),
         os.path.join(output_folder, '%s/' % project_name),
         os.path.join(output_folder, 'Engine/'),
+        get_project_infofile(project_name),
     ]
 
     files = [v.replace('D:/', '/drives/d/') for v in files]
-    output_folder = output_folder.replace('D:/', '/drives/d/')
-    zipfilename = '%s-%s.zip' % (project_name.lower(), platform_name().lower())
+    # output_folder = output_folder.replace('D:/', '/drives/d/')
 
-    return [files, output_folder, zipfilename]
+    return files
+
+def get_files_mac(project_name):
+    output_folder = get_output_root_folder()
+    files = [
+        os.path.join(output_folder, '%s.app' % project_name),
+        get_project_infofile(project_name),
+    ]
+
+    return files
+
+def get_files_linux(project_name):
+    pass
+
+def check_files_ok(files):
+    isok = True
+    for file in files:
+        if os.path.isfile(file) or os.path.isdir(file):
+            continue
+        else:
+            print 'File %s not exist, stop packaging' % file
+            isok = False
+    return isok
+
+def get_zipfilename_from_infofile(infofile):
+    with open(infofile, 'r') as f:
+        info = json.load(f)
+        print info
+    return '{project_name}-{platform}-{project_version}-{plugin_version}.zip'.format(**info)
+
+
+get_files = platform_function(
+    mac = get_files_mac,
+    win = get_files_win,
+    linux = get_files_linux,
+)
 
 if __name__ == '__main__':
     # From argparse
@@ -101,23 +135,18 @@ if __name__ == '__main__':
 
     project_file = os.path.abspath(args.project_file).replace('/drives/d/', 'D:/').replace('/home/mobaxterm/d/', 'D:/')
 
-    [files, output_folder, zipfilename] = getfiles_win(project_file)
+    project_name = get_project_name(project_file)
+    files = get_files(project_name)
 
-    zipfiles(files, output_folder, zipfilename)
-    upload(bucket_name, zipfilename)
+    if check_files_ok(files):
+        platform_name = get_platform_name()
+        info_filename = get_project_infofile(project_name)
 
+        zipfilename = get_zipfilename_from_infofile(info_filename)
+        zip_root_folder = get_output_root_folder()
 
-# if __name__ == '__main__':
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument('projectfolder')
-#
-#     args = parser.parse_args()
-#     projectfolder = args.projectfolder
-#     if projectfolder.endswith('.app'):
-#         zipfilename = projectfolder.replace('.app', '.zip')
-#         print 'Zip folder %s to %s' % (projectfolder, zipfilename)
-#         zip(projectfolder , zipfilename)
-#         print 'Upload zip file %s' % zipfilename
-#         upload(bucket_name, zipfilename)
-#     else:
-#         print 'The project folder is invalid'
+        print 'Start zipping files to %s' % zipfilename
+        zipfiles(files, zip_root_folder, zipfilename)
+
+        print 'Start uploading file %s' % zipfilename
+        upload(bucket_name, zipfilename)
