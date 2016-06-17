@@ -17,19 +17,6 @@ class Timer(object):
             print '[%s]' % self.name,
         print 'Elapsed: %s' % (time.time() - self.tstart)
 
-class Namedict(object):
-    # d = Namedict(a=1, b=2)
-    # d.a
-    def __init__(self, **kwargs):
-        self.dic = kwargs
-        self.__dict__.update(self.dic)
-
-    def __repr__(self):
-        return str(self.dic)
-
-    def __str__(self):
-        return str(self.dic)
-
 def read_camera_info(filename):
     with open(filename) as f:
         lines = f.readlines()
@@ -59,7 +46,7 @@ def render_frame(client, cam_pose=None):
         response = client.request(cmd)
         assert response == 'ok'
 
-    f = Namedict(
+    f = dict(
         lit = client.request('vget /camera/0/lit'),
         depth = client.request('vget /camera/0/depth'),
         object_mask = client.request('vget /camera/0/object_mask'),
