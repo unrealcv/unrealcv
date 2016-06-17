@@ -8,6 +8,26 @@ from ue4util import *
 # bucket_name = 'unrealcv-scene'
 bucket_name = 'unreal-scene'
 
+# Even empty folder needs to be preserved
+def get_all_files(files):
+    all_files = []
+    for path in files:
+        # if os.path.isfile(path):
+        all_files.append(path)
+
+        if os.path.isdir(path):
+            for dirname, subdirs, files in os.walk(path):
+                print files, subdirs
+                for filename in files:
+                    all_files.append(os.path.join(dirname, filename))
+
+                for subdir in subdirs:
+                    all_files.append(os.path.join(dirname, subdir))
+
+    return [os.path.abspath(v) for v in all_files]
+
+
+
 def zipfiles(srcfiles, srcroot, dst):
     # zf = zipfile.ZipFile("%s.zip" % (dst), "w", zipfile.ZIP_DEFLATED)
     print 'zip file'
@@ -15,27 +35,33 @@ def zipfiles(srcfiles, srcroot, dst):
     # abs_src = os.path.abspath(src)
     # abs_src_folder = os.path.dirname(abs_src)
     srcroot = os.path.abspath(srcroot)
+    # for srcfile in srcfiles:
+    #     srcfile = os.path.abspath(srcfile)
+    #
+    #     if os.path.isfile(srcfile):
+    #         arcname = srcfile[len(srcroot) + 1:]
+    #         print 'zipping %s as %s' % (srcfile,
+    #                                     arcname)
+    #         zf.write(srcfile, arcname)
+    #
+    #     elif os.path.isdir(srcfile):
+    #         for dirname, subdirs, files in os.walk(srcfile):
+    #             for filename in files:
+    #                 absname = os.path.abspath(os.path.join(dirname, filename))
+    #                 # arcname = absname[len(abs_src) + 1:]
+    #                 arcname = absname[len(srcroot) + 1:]
+    #                 print 'zipping %s as %s' % (os.path.join(dirname, filename),
+    #                                             arcname)
+    #                 zf.write(absname, arcname)
+    #
+    #     else:
+    #         print 'File %s is not found' % srcfile
     for srcfile in srcfiles:
-        srcfile = os.path.abspath(srcfile)
+        arcname = srcfile[len(srcroot) + 1:]
+        print 'zipping %s as %s' % (srcfile,
+                                    arcname)
+        zf.write(srcfile, arcname)
 
-        if os.path.isfile(srcfile):
-            arcname = srcfile[len(srcroot) + 1:]
-            print 'zipping %s as %s' % (srcfile,
-                                        arcname)
-            zf.write(srcfile, arcname)
-
-        elif os.path.isdir(srcfile):
-            for dirname, subdirs, files in os.walk(srcfile):
-                for filename in files:
-                    absname = os.path.abspath(os.path.join(dirname, filename))
-                    # arcname = absname[len(abs_src) + 1:]
-                    arcname = absname[len(srcroot) + 1:]
-                    print 'zipping %s as %s' % (os.path.join(dirname, filename),
-                                                arcname)
-                    zf.write(absname, arcname)
-
-        else:
-            print 'File %s is not found' % srcfile
     zf.close()
 
 def upload(bucket_name, filename):
@@ -136,17 +162,25 @@ if __name__ == '__main__':
     project_file = os.path.abspath(args.project_file).replace('/drives/d/', 'D:/').replace('/home/mobaxterm/d/', 'D:/')
 
     project_name = get_project_name(project_file)
+    print 'Files to upload'
     files = get_files(project_name)
+    for f in files:
+        print f
 
     if check_files_ok(files):
         platform_name = get_platform_name()
+        print 'Project info'
         info_filename = get_project_infofile(project_name)
 
         zipfilename = get_zipfilename_from_infofile(info_filename)
         zip_root_folder = get_output_root_folder()
 
+        print 'Expanded file list'
+        all_files = get_all_files(files)
+        for f in all_files:
+            print f
         print 'Start zipping files to %s' % zipfilename
-        zipfiles(files, zip_root_folder, zipfilename)
-
+        zipfiles(all_files, zip_root_folder, zipfilename)
+        #
         print 'Start uploading file %s' % zipfilename
-        upload(bucket_name, zipfilename)
+        # upload(bucket_name, zipfilename)
