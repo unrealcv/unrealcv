@@ -16,7 +16,6 @@ def get_all_files(files):
 
         if os.path.isdir(path):
             for dirname, subdirs, files in os.walk(path):
-                print files, subdirs
                 for filename in files:
                     all_files.append(os.path.join(dirname, filename))
 
@@ -104,7 +103,13 @@ def get_files_mac(project_name):
     return files
 
 def get_files_linux(project_name):
-    pass
+    output_folder = get_output_root_folder()
+    files = [
+        os.path.join(output_folder, 'Engine/'),
+        os.path.join(output_folder, project_name),
+        get_project_infofile(project_name),
+    ]
+    return files
 
 def check_files_ok(files):
     isok = True
