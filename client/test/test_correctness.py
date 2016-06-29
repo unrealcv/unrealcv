@@ -1,35 +1,35 @@
 # Check whether the rendering result is as expected.
 from common_conf import *
-import time, os, ipdb
+import time, os
 import ue4cv
 import matplotlib.pyplot as plt
 
 datafolder = 'correctness_test'
+timeout = 10
 
 def render_frame(client, pos):
     loc = pos[0] # location
     rot = pos[1] # rotation
     cmd = 'vset /camera/0/location %.3f %.3f %.3f' % (loc[0], loc[1], loc[2])
-    response = client.request(cmd)
+    response = client.request(cmd, timeout=timeout)
     assert response == 'ok', response
     cmd = 'vset /camera/0/rotation %.3f %.3f %.3f' % (rot[0], rot[1], rot[2])
-    response = client.request(cmd)
+    response = client.request(cmd, timeout=timeout)
     assert response == 'ok', response
     files = []
-    # time.sleep(5)
-    time.sleep(5)
-    modes = ['lit', 'unlit', 'depth', 'object_mask']
+    time.sleep(0)
+    # modes = ['lit', 'unlit', 'depth', 'object_mask']
+    modes = ['lit']
     f = dict()
     for mode in modes:
         cmd = 'vget /camera/0/%s' % mode
-        f[mode] = client.request(cmd)
+        f[mode] = client.request(cmd, timeout=timeout)
     return f
 
-def load_gt_files():
+def load_gt_files(filename):
     '''
     Load a list of correctly rendered images and compare with images just rendered
     '''
-    filename = os.path.join(datafolder, 'camera_info_basename.txt')
     with open(filename, 'r') as f:
         lines = f.readlines()
     # Parse camera location and rotation from file
@@ -61,16 +61,22 @@ def plot_sidebyside(im1, im2):
 
 def test_correctness(client):
     # Load a list of camera location
-    gt_files = load_gt_files()
+    # filename = os.path.join(datafolder, 'camera_info_basename.txt')
+    filename = os.path.join(datafolder, 'fix_factor_basename.txt')
+    gt_files = load_gt_files(filename)
+    gt_files = gt_files * 1
     # gt_files = [gt_files[0]]
 
     for (filename, location, rotation) in gt_files:
-        f = render_frame(client, [location, rotation])
-        rendered_filename = f['lit']
+        # for i in range(10): # Repeat this
+            # print 'Trial, ', i
+            f = render_frame(client, [location, rotation])
+            rendered_filename = f['lit']
+            print 'rendered: ', rendered_filename
 
-        # plot_sidebyside(filename, rendered_filename)
-        diff = diff_with_refimage(filename, rendered_filename)
-        print diff.sum()
+            # plot_sidebyside(filename, rendered_filename)
+            # diff = diff_with_refimage(filename, rendered_filename)
+            # print diff.sum()
         # Set an emprical threshold to check the rendering correctness
 
 def diff_with_refimage(im1, im2):
