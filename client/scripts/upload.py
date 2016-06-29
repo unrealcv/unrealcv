@@ -30,8 +30,6 @@ def zipfiles(srcfiles, srcroot, dst):
     print 'zip file'
     zf = zipfile.ZipFile("%s" % (dst), "w", zipfile.ZIP_DEFLATED)
 
-    srcroot = os.path.abspath(srcroot)
-
     for srcfile in srcfiles:
         arcname = srcfile[len(srcroot) + 1:]
         print 'zipping %s as %s' % (srcfile,
@@ -140,8 +138,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('project_file')
     args = parser.parse_args()
-
-    project_file = os.path.abspath(args.project_file).replace('/drives/d/', 'D:/').replace('/home/mobaxterm/d/', 'D:/')
+    project_file = args.project_file
 
     project_name = get_project_name(project_file)
     print 'Files to upload'
@@ -159,9 +156,14 @@ if __name__ == '__main__':
 
         print 'Expanded file list'
         all_files = get_all_files(files)
+
+        if sys.platform == 'cygwin':
+            all_files = [cygwinpath_to_winpath(f) for f in all_files]
+
         for f in all_files:
             print f
-        print 'Start zipping files to %s' % zipfilename
+
+        print 'Start zipping files to %s, Zip root folder is %s' % (zipfilename, zip_root_folder)
         zipfiles(all_files, zip_root_folder, zipfilename)
 
         print 'Start uploading file %s' % zipfilename

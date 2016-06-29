@@ -87,7 +87,9 @@ if __name__ == '__main__':
     parser.add_argument('project_file')
     args = parser.parse_args()
 
-    project_file = os.path.abspath(args.project_file).replace('/drives/d/', 'D:/').replace('/home/mobaxterm/d/', 'D:/')
+    project_file = os.path.abspath(args.project_file)
+    if sys.platform == 'cygwin':
+        project_file = cygwinpath_to_winpath(project_file)
 
     if save_version_info(conf, project_file):
         package(conf, project_file)

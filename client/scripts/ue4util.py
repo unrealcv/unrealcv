@@ -29,6 +29,9 @@ def get_project_infofile(project_name):
     info_filename = os.path.join(get_output_root_folder(), '%s-info.txt' % project_name)
     return info_filename
 
+def cygwinpath_to_winpath(path):
+    return path.replace('/drives/d/', 'D:/').replace('/drives/c/', 'C:/')
+
 def get_output_root_folder():
     ue4buildtype = {
         'mac': 'MacNoEditor',
@@ -41,4 +44,5 @@ def get_output_root_folder():
     else:
         buildtype = ue4buildtype[platform_name]
         output_root_folder = os.path.join(conf['OutputFolder'], buildtype)
+
         return output_root_folder
