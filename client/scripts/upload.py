@@ -1,41 +1,41 @@
-import math, sys, argparse, zipfile
+import math, sys, argparse, zipfile, json
 import boto
 from filechunkio import FileChunkIO
 from ue4config import conf
 from ue4util import *
 
 
-# bucket_name = 'unrealcv-scene'
-bucket_name = 'unreal-scene'
+bucket_name = 'unrealcv-scene'
+
+# Even empty folder needs to be preserved
+def get_all_files(files):
+    all_files = []
+    for path in files:
+        # if os.path.isfile(path):
+        all_files.append(path)
+
+        if os.path.isdir(path):
+            for dirname, subdirs, files in os.walk(path):
+                for filename in files:
+                    all_files.append(os.path.join(dirname, filename))
+
+                for subdir in subdirs:
+                    all_files.append(os.path.join(dirname, subdir))
+
+    return [os.path.abspath(v) for v in all_files]
+
+
 
 def zipfiles(srcfiles, srcroot, dst):
-    # zf = zipfile.ZipFile("%s.zip" % (dst), "w", zipfile.ZIP_DEFLATED)
     print 'zip file'
     zf = zipfile.ZipFile("%s" % (dst), "w", zipfile.ZIP_DEFLATED)
-    # abs_src = os.path.abspath(src)
-    # abs_src_folder = os.path.dirname(abs_src)
-    srcroot = os.path.abspath(srcroot)
+
     for srcfile in srcfiles:
-        srcfile = os.path.abspath(srcfile)
+        arcname = srcfile[len(srcroot) + 1:]
+        print 'zipping %s as %s' % (srcfile,
+                                    arcname)
+        zf.write(srcfile, arcname)
 
-        if os.path.isfile(srcfile):
-            arcname = srcfile[len(srcroot) + 1:]
-            print 'zipping %s as %s' % (srcfile,
-                                        arcname)
-            zf.write(srcfile, arcname)
-
-        elif os.path.isdir(srcfile):
-            for dirname, subdirs, files in os.walk(srcfile):
-                for filename in files:
-                    absname = os.path.abspath(os.path.join(dirname, filename))
-                    # arcname = absname[len(abs_src) + 1:]
-                    arcname = absname[len(srcroot) + 1:]
-                    print 'zipping %s as %s' % (os.path.join(dirname, filename),
-                                                arcname)
-                    zf.write(absname, arcname)
-
-        else:
-            print 'File %s is not found' % srcfile
     zf.close()
 
 def upload(bucket_name, filename):
@@ -48,8 +48,8 @@ def upload(bucket_name, filename):
     print S3_SECRET_KEY
 
     # Connect to S3
-    # c = boto.connect_s3(host='s3-ap-northeast-1.amazonaws.com')
-    c = boto.connect_s3(host='s3-us-west-1.amazonaws.com')
+    c = boto.connect_s3(host='s3-ap-northeast-1.amazonaws.com')
+    # c = boto.connect_s3(host='s3-us-west-1.amazonaws.com')
     b = c.get_bucket(bucket_name)
 
     # Get file info
@@ -77,20 +77,60 @@ def upload(bucket_name, filename):
     # Finish the upload
     mp.complete_upload()
 
-def getfiles_win(uproject):
-    project_name = getprojectname(uproject)
-    output_folder = os.path.join(conf['OutputFolder'], 'WindowsNoEditor')
+def get_files_win(project_name):
+    output_folder = get_output_root_folder()
     files = [
         os.path.join(output_folder, '%s.exe' % project_name),
         os.path.join(output_folder, '%s/' % project_name),
         os.path.join(output_folder, 'Engine/'),
+        get_project_infofile(project_name),
     ]
 
     files = [v.replace('D:/', '/drives/d/') for v in files]
-    output_folder = output_folder.replace('D:/', '/drives/d/')
-    zipfilename = '%s-%s.zip' % (project_name.lower(), platform_name().lower())
+    # output_folder = output_folder.replace('D:/', '/drives/d/')
 
-    return [files, output_folder, zipfilename]
+    return files
+
+def get_files_mac(project_name):
+    output_folder = get_output_root_folder()
+    files = [
+        os.path.join(output_folder, '%s.app' % project_name),
+        get_project_infofile(project_name),
+    ]
+
+    return files
+
+def get_files_linux(project_name):
+    output_folder = get_output_root_folder()
+    files = [
+        os.path.join(output_folder, 'Engine/'),
+        os.path.join(output_folder, project_name),
+        get_project_infofile(project_name),
+    ]
+    return files
+
+def check_files_ok(files):
+    isok = True
+    for file in files:
+        if os.path.isfile(file) or os.path.isdir(file):
+            continue
+        else:
+            print 'File %s not exist, stop packaging' % file
+            isok = False
+    return isok
+
+def get_zipfilename_from_infofile(infofile):
+    with open(infofile, 'r') as f:
+        info = json.load(f)
+        print info
+    return '{project_name}-{platform}-{project_version}-{plugin_version}.zip'.format(**info)
+
+
+get_files = platform_function(
+    mac = get_files_mac,
+    win = get_files_win,
+    linux = get_files_linux,
+)
 
 if __name__ == '__main__':
     # From argparse
@@ -98,26 +138,33 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('project_file')
     args = parser.parse_args()
+    project_file = args.project_file
 
-    project_file = os.path.abspath(args.project_file).replace('/drives/d/', 'D:/').replace('/home/mobaxterm/d/', 'D:/')
+    project_name = get_project_name(project_file)
+    print 'Files to upload'
+    files = get_files(project_name)
+    for f in files:
+        print f
 
-    [files, output_folder, zipfilename] = getfiles_win(project_file)
+    if check_files_ok(files):
+        platform_name = get_platform_name()
+        print 'Project info'
+        info_filename = get_project_infofile(project_name)
 
-    zipfiles(files, output_folder, zipfilename)
-    upload(bucket_name, zipfilename)
+        zipfilename = get_zipfilename_from_infofile(info_filename)
+        zip_root_folder = get_output_root_folder()
 
+        print 'Expanded file list'
+        all_files = get_all_files(files)
 
-# if __name__ == '__main__':
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument('projectfolder')
-#
-#     args = parser.parse_args()
-#     projectfolder = args.projectfolder
-#     if projectfolder.endswith('.app'):
-#         zipfilename = projectfolder.replace('.app', '.zip')
-#         print 'Zip folder %s to %s' % (projectfolder, zipfilename)
-#         zip(projectfolder , zipfilename)
-#         print 'Upload zip file %s' % zipfilename
-#         upload(bucket_name, zipfilename)
-#     else:
-#         print 'The project folder is invalid'
+        if sys.platform == 'cygwin':
+            all_files = [cygwinpath_to_winpath(f) for f in all_files]
+
+        for f in all_files:
+            print f
+
+        print 'Start zipping files to %s, Zip root folder is %s' % (zipfilename, zip_root_folder)
+        zipfiles(all_files, zip_root_folder, zipfilename)
+
+        print 'Start uploading file %s' % zipfilename
+        upload(bucket_name, zipfilename)

@@ -24,6 +24,7 @@ class TestUE4CVClient(unittest.TestCase):
     Use python dummy server to test the robustness of ue4cv.Client, Pass the test of DevServer first
     '''
     num_random_trial = 10
+    num_release_trial = 10
 
     @classmethod
     def setUpClass(cls):
