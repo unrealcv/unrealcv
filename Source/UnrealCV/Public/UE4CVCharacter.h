@@ -36,14 +36,4 @@ public:
 	void OnFire();
 
 	void NotifyClient(FString Message);
-
-	// void TakeScreenShot();
-
-
-protected:
-private:
-
-	FExecStatus BindAxisWrapper(const TArray<FString>& Args);
-
-
 };

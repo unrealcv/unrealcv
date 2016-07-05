@@ -74,4 +74,3 @@ void AUE4CVCharacter::OnFire()
 	FUE4CVServer::Get().SendClientMessage("clicked");
 	UE_LOG(LogTemp, Warning, TEXT("Mouse Clicked"));
 }
-
