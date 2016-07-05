@@ -367,3 +367,17 @@ void FObjectPainter::SetLevel(ULevel* InLevel)
 {
 	Level = InLevel;
 }
+
+AActor* FObjectPainter::GetObject(FString ObjectName)
+{
+	/** Return the pointer of an object, return NULL if object not found */
+	auto ObjectsMapping = GetObjectsMapping();
+	if (ObjectsMapping.Contains(ObjectName))
+	{
+		return ObjectsMapping[ObjectName];
+	}
+	else
+	{
+		return NULL;
+	}
+}
