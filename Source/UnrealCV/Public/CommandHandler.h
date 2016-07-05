@@ -33,6 +33,9 @@ public:
 	FExecStatus GetObjectName(const TArray<FString>& Args);
 
 	FExecStatus CurrentObjectHandler(const TArray<FString>& Args);
+
+	/** Get the location of an object */
+	FExecStatus GetObjectLocation(const TArray<FString>& Args);
 };
 
 class FCameraCommandHandler : public FCommandHandler
@@ -62,6 +65,9 @@ public:
 
 	/** Get camera image with a given mode */
 	FExecStatus GetCameraViewMode(const TArray<FString>& Args);
+
+	/** Get camera project matrix */
+	FExecStatus GetCameraProjMatrix(const TArray<FString>& Args);
 };
 
 class FPluginCommandHandler : public FCommandHandler
