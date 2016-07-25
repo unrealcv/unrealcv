@@ -45,13 +45,23 @@ def upload_s3(bucket_name, filename):
     mp.complete_upload()
 
 def upload_scp(filename):
-    import scp, os
+    import os, paramiko
     scp_conf = conf['scp']
-    client = scp.Client(host = scp_conf['host'], user = scp_conf['user'], password = scp_conf['password'])
+
+    ssh = paramiko.SSHClient()
+    ssh.load_host_keys(os.path.expanduser(os.path.join('~', '.ssh', 'known_hosts')))
+    ssh.connect(scp_conf['host'], username = scp_conf['user'], password = scp_conf['password'])
+
+    sftp = ssh.open_sftp()
+
+    # client = scp.Client(host = scp_conf['host'], user = scp_conf['user'], password = scp_conf['password'])
     basefilename = os.path.basename(filename)
     remote_filename = os.path.join(scp_conf['rootdir'], basefilename)
     print 'Try to do scp %s %s' % (filename, remote_filename)
-    client.transfer(filename, remote_filename)
+    # client.transfer(filename, remote_filename)
+    sftp.put(filename, remote_filename)
+    sftp.close()
+    ssh.close()
 
 if __name__ == '__main__':
     upload_scp("pyupload.py")
