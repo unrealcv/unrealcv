@@ -31,10 +31,16 @@ public:
 private:
 	/** Store which URI handler */
 	TMap<FString, FDispatcherDelegate> UriMapping;
+
+	/** The complete list of binded URI, the order of adding is preserved */
+	TArray<FString> UriList;
+
 	/** Store help message */
 	TMap<FString, FString> UriDescription; // Contains help message 
+
 	/** Store the definition of an alias */
 	TMap<FString, TArray<FString> > AliasMapping;
+
 	/** Store the regular expression for each type */
 	TMap<FString, FString> TypeRegexp; // Define regular expression for type
 
