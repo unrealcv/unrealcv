@@ -102,6 +102,7 @@ bool FCommandDispatcher::FormatUri(const FString& RawUri, FString& UriRexexp)
 			if (Ch == ']')
 			{
 				UE_LOG(LogTemp, Error, TEXT("Unexpected ] in %d"), Index);
+				check(false);
 				return false;
 			}
 			// else
@@ -113,6 +114,7 @@ bool FCommandDispatcher::FormatUri(const FString& RawUri, FString& UriRexexp)
 			if (Ch == '[')
 			{
 				UE_LOG(LogTemp, Error, TEXT("Unexpected [ in %d"), Index);
+				check(false);
 				return false;
 			}
 			if (Ch == ']')
@@ -127,6 +129,7 @@ bool FCommandDispatcher::FormatUri(const FString& RawUri, FString& UriRexexp)
 				else
 				{
 					UE_LOG(LogTemp, Error, TEXT("Unknown type specifier "));
+					check(false);
 					return false;
 				}
 			}
@@ -139,21 +142,22 @@ bool FCommandDispatcher::FormatUri(const FString& RawUri, FString& UriRexexp)
 	if (TypeSpecifier != "")
 	{
 		UE_LOG(LogTemp, Error, TEXT("Not all [ are closed by ]"));
+		check(false);
 		return false;
 	}
 	UriRexexp = Uri + "[ ]*$"; // Make sure no more parameters
 	return true;
 }
 
-bool FCommandDispatcher::BindCommand(const FString& RawUriTemplate, const FDispatcherDelegate& Command, const FString& Description) // Parse URI
+bool FCommandDispatcher::BindCommand(const FString& ReadableUriTemplate, const FDispatcherDelegate& Command, const FString& Description) // Parse URI
 {
 	// TODO: Build a tree structure to boost performance
 	// TODO: The order should matter
 
 	FString UriTemplate;
-	if (!FormatUri(RawUriTemplate, UriTemplate))
+	if (!FormatUri(ReadableUriTemplate, UriTemplate))
 	{
-		UE_LOG(LogTemp, Error, TEXT("The UriTemplate %s is malformat"), *RawUriTemplate);
+		UE_LOG(LogTemp, Error, TEXT("The UriTemplate %s is malformat"), *ReadableUriTemplate);
 		check(false);
 		return false;
 	}
@@ -163,7 +167,8 @@ bool FCommandDispatcher::BindCommand(const FString& RawUriTemplate, const FDispa
 		UE_LOG(LogTemp, Warning, TEXT("The UriTemplate %s already exist, overwrited."), *UriTemplate);
 	}
 	UriMapping.Emplace(UriTemplate, Command);
-	UriDescription.Emplace(RawUriTemplate, Description);
+	UriDescription.Emplace(ReadableUriTemplate, Description);
+	UriList.AddUnique(UriTemplate);
 	return true;
 }
 
@@ -240,10 +245,19 @@ FExecStatus FCommandDispatcher::Exec(const FString Uri)
 {
 	check(IsInGameThread());
 	TArray<FString> Args; // Get args from URI
-	for (auto& Elem : UriMapping)
+
+	// The newly added command should overwrite previous one.
+	// for (auto& Elem : UriMapping)
+
+	// Iterate the UriList in the reverse order
+	for (int UriIndex = UriList.Num() - 1; UriIndex >= 0; UriIndex--)
 	{
-		FRegexPattern Pattern = FRegexPattern(Elem.Key);
-		FDispatcherDelegate& Cmd = Elem.Value;
+		// FRegexPattern Pattern = FRegexPattern(Elem.Key);
+		FString Key = UriList[UriIndex];
+		FRegexPattern Pattern = FRegexPattern(Key);
+
+		// FDispatcherDelegate& Cmd = Elem.Value;
+		FDispatcherDelegate& Cmd = UriMapping[Key];
 		
 		FRegexMatcher Matcher(Pattern, Uri);
 		if (Matcher.FindNext())
