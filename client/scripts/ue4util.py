@@ -30,7 +30,15 @@ def get_project_infofile(project_name):
     return info_filename
 
 def cygwinpath_to_winpath(path):
-    return path.replace('/drives/d/', 'D:/').replace('/drives/c/', 'C:/')
+    path_mapping = {
+        "/drives/d/": "D:/",
+        "/drives/c/": "C:/",
+        "/home/mobaxterm/d/": "D:/",
+    }
+    for (k, v) in path_mapping.iteritems():
+        path = path.replace(k, v)
+    # return path.replace('/drives/d/', 'D:/').replace('/drives/c/', 'C:/')
+    return path
 
 def get_output_root_folder():
     ue4buildtype = {
