@@ -9,7 +9,7 @@
 
 UCLASS()
 // TODO: Make this programmable with blueprint
-class AUE4CVCharacter : public ACharacter
+class UNREALCV_API AUE4CVCharacter : public ACharacter
 {
 	GENERATED_BODY()
 

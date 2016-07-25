@@ -5,5 +5,6 @@
 #include "NetworkManager.h"
 #include "UE4CVCommands.h"
 #include "UE4CVServer.h"
+#include "UE4CVCharacter.h"
 #include "ViewMode.h"
 #include "ObjectPainter.h"
