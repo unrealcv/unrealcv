@@ -39,6 +39,9 @@ void FCameraCommandHandler::RegisterCommands()
 
 	Cmd = FDispatcherDelegate::CreateRaw(&FViewMode::Get(), &FViewMode::GetMode);
 	CommandDispatcher->BindCommand("vget /mode", Cmd, "Get mode");
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetBuffer);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/buffer", Cmd, "Get buffer of this camera");
 }
 
 FExecStatus FCameraCommandHandler::GetCameraProjMatrix(const TArray<FString>& Args)
@@ -236,6 +239,13 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 		FString CameraId = Args[0];
 		FString ViewMode = Args[1];
 
+		// TODO: Disable buffer visualization 
+		static IConsoleVariable* ICVar1 = IConsoleManager::Get().FindConsoleVariable(TEXT("r.BufferVisualizationDumpFrames"));
+		// r.BufferVisualizationDumpFramesAsHDR
+		ICVar1->Set(0, ECVF_SetByCode);
+		static IConsoleVariable* ICVar2 = IConsoleManager::Get().FindConsoleVariable(TEXT("r.BufferVisualizationDumpFramesAsHDR"));
+		ICVar2->Set(0, ECVF_SetByCode);
+
 		/*
 		TArray<FString> Args1;
 		Args1.Add(ViewMode);
@@ -285,4 +295,47 @@ FExecStatus FCameraCommandHandler::GetCameraView(const TArray<FString>& Args)
 		return this->GetCameraViewAsyncQuery(FullFilename);
 	}
 	return FExecStatus::InvalidArgument;
+}
+
+FExecStatus FCameraCommandHandler::GetBuffer(const TArray<FString>& Args)
+{
+	// Initialize console variables.
+	static IConsoleVariable* ICVar1 = IConsoleManager::Get().FindConsoleVariable(TEXT("r.BufferVisualizationDumpFrames"));
+	// r.BufferVisualizationDumpFramesAsHDR
+	ICVar1->Set(1, ECVF_SetByCode);
+	static IConsoleVariable* ICVar2 = IConsoleManager::Get().FindConsoleVariable(TEXT("r.BufferVisualizationDumpFramesAsHDR"));
+	ICVar2->Set(1, ECVF_SetByCode);
+	
+	
+	/*
+	FHighResScreenshotConfig Config = GetHighResScreenshotConfig();
+	Config.bCaptureHDR = true;
+	Config.bDumpBufferVisualizationTargets = true;
+	*/
+
+	// UGameViewportClient* GameViewportClient = this->GetWorld()->GetGameViewport();
+	// GameViewportClient->EngineShowFlags.VisualizeBuffer = true;
+
+	GIsHighResScreenshot = true;
+
+	/*
+	FString ViewMode = "SceneDepth";
+	static IConsoleVariable* ICVar = IConsoleManager::Get().FindConsoleVariable(FBufferVisualizationData::GetVisualizationTargetConsoleCommandName());
+	if (ICVar)
+	{
+		ICVar->Set(*ViewMode, ECVF_SetByCode); // TODO: Should wait here for a moment.
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("The BufferVisualization is not correctly configured."));
+	}
+	*/
+
+	// Get the viewport
+	// FSceneViewport* SceneViewport = this->GetWorld()->GetGameViewport()->GetGameViewport();
+	// SceneViewport->TakeHighResScreenShot();
+
+	// OnFire();
+	// return FExecStatus::InvalidArgument;
+	return FExecStatus::OK();
 }

@@ -68,6 +68,9 @@ public:
 
 	/** Get camera project matrix */
 	FExecStatus GetCameraProjMatrix(const TArray<FString>& Args);
+
+	/** Get HDR buffer visualization */
+	FExecStatus GetBuffer(const TArray<FString>& Args);
 };
 
 class FPluginCommandHandler : public FCommandHandler
