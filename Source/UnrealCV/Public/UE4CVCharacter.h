@@ -9,7 +9,7 @@
 
 UCLASS()
 // TODO: Make this programmable with blueprint
-class AUE4CVCharacter : public ACharacter
+class UNREALCV_API AUE4CVCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -36,14 +36,4 @@ public:
 	void OnFire();
 
 	void NotifyClient(FString Message);
-
-	// void TakeScreenShot();
-
-
-protected:
-private:
-
-	FExecStatus BindAxisWrapper(const TArray<FString>& Args);
-
-
 };

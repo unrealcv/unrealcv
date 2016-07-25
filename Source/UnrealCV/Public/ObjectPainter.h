@@ -38,4 +38,7 @@ public:
 
 	/** Functions to support CommandDispatcher */
 	FExecStatus SetActorColor(FString ObjectName, FColor Color);
+
+	/** Get a pointor to an object */
+	AActor* GetObject(FString ObjectName);
 };

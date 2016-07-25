@@ -25,11 +25,15 @@ void FCameraCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraView);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/view [str]", Cmd, "Get snapshot from camera, the second parameter is optional"); // Take a screenshot and return filename
 
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraProjMatrix);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/proj_matrix", Cmd, "Get projection matrix");
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraViewMode);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/[str]", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraViewMode);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/[str] [str]", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
+
 
 	Cmd = FDispatcherDelegate::CreateRaw(&FViewMode::Get(), &FViewMode::SetMode);
 	CommandDispatcher->BindCommand("vset /mode [str]", Cmd, "Set mode"); // Better to check the correctness at compile time
@@ -38,14 +42,26 @@ void FCameraCommandHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vget /mode", Cmd, "Get mode");
 }
 
+FExecStatus FCameraCommandHandler::GetCameraProjMatrix(const TArray<FString>& Args)
+{
+	// FMatrix& ProjMatrix = FSceneView::ViewProjectionMatrix;
+	// this->Character->GetWorld()->GetGameViewport()->Viewport->
+	// this->Character
+	return FExecStatus::InvalidArgument;
+}
+
 FExecStatus FCameraCommandHandler::SetCameraLocation(const TArray<FString>& Args)
 {
+	/** The API for Character, Pawn and Actor are different */
 	if (Args.Num() == 4) // ID, X, Y, Z
 	{
 		int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
 		float X = FCString::Atof(*Args[1]), Y = FCString::Atof(*Args[2]), Z = FCString::Atof(*Args[3]);
 		FVector Location = FVector(X, Y, Z);
-		Character->SetActorLocation(Location);
+
+		bool Sweep = false;
+		// if sweep is true, the object can not move through another object
+		bool Success = Character->SetActorLocation(Location, Sweep, NULL, ETeleportType::TeleportPhysics);
 
 		return FExecStatus::OK();
 	}

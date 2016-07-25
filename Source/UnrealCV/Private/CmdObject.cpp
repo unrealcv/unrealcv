@@ -22,6 +22,9 @@ void FObjectCommandHandler::RegisterCommands()
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectName);
 	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/name"), Cmd, "Get object name");
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectLocation);
+	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/location"), Cmd, "Get object location");
 }
 
 FExecStatus FObjectCommandHandler::GetObjects(const TArray<FString>& Args)
@@ -123,5 +126,23 @@ FExecStatus FObjectCommandHandler::CurrentObjectHandler(const TArray<FString>& A
 			return FExecStatus::Error("Can not find current object");
 		}
 	}
+	return FExecStatus::InvalidArgument;
+}
+
+FExecStatus FObjectCommandHandler::GetObjectLocation(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		FString ObjectName = Args[0];
+		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
+		if (Object == NULL)
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Can not find object %s"), *ObjectName));
+		}
+
+		FVector Location = Object->GetActorLocation();
+		return FExecStatus::OK(FString::Printf(TEXT("%.2f %.2f %.2f"), Location.X, Location.Y, Location.Z));
+	}
+
 	return FExecStatus::InvalidArgument;
 }
