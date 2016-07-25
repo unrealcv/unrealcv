@@ -1,5 +1,5 @@
 import os, sys, argparse, json
-from ue4util import *
+import ue4util
 from ue4config import conf
 
 # Automatically package game content
@@ -34,7 +34,8 @@ def package_win(conf, projectfile):
     windows_cmd = 'cmd /C start "" "package.bat"'
     os.system(windows_cmd)
 
-package = platform_function(
+# package is a platform_function, which means it will have different behavior for different platform
+package = ue4util.platform_function(
     win = package_win,
     mac = package_mac,
     linux = package_linux
@@ -51,7 +52,7 @@ def is_dirty(git_repo):
 
 def save_version_info(conf, project_file):
     ''' Save the version info of UnrealCV plugin and the game for easier issue tracking'''
-    project_name = get_project_name(project_file)
+    project_name = ue4util.get_project_name(project_file)
 
     project_folder = os.path.dirname(project_file)
     plugin_folder = os.path.join(project_folder, 'Plugins', 'unrealcv')
@@ -71,9 +72,9 @@ def save_version_info(conf, project_file):
         project_name = project_name,
         project_version = project_version,
         plugin_version = plugin_version,
-        platform = get_platform_name(),
+        platform = ue4util.get_platform_name(),
     )
-    info_filename = get_project_infofile(project_name)
+    info_filename = ue4util.get_project_infofile(project_name)
     with open(info_filename, 'w') as f:
         json.dump(info, f, indent = 4)
     print 'Save project info to file %s' % info_filename
@@ -89,7 +90,7 @@ if __name__ == '__main__':
 
     project_file = os.path.abspath(args.project_file)
     if sys.platform == 'cygwin':
-        project_file = cygwinpath_to_winpath(project_file)
+        project_file = ue4util.cygwinpath_to_winpath(project_file)
 
     if save_version_info(conf, project_file):
         package(conf, project_file)
