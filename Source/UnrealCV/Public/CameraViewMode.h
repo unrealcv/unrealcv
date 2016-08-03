@@ -5,12 +5,13 @@
 /**
  * Define different ViewModes of the scene
  */
-class UNREALCV_API FViewMode
+class UNREALCV_API FCameraViewMode
 {
 public:
-	static FViewMode& Get();
-	~FViewMode();
+	static FCameraViewMode& Get();
+	~FCameraViewMode();
 	void Depth();
+	void DepthWorldUnits();
 	void Normal();
 	void Lit();
 	void Unlit();
@@ -23,7 +24,7 @@ public:
 	void SetWorld(UWorld* InWorld) { World = InWorld; }
 private:
 	void SetCurrentBufferVisualizationMode(FString ViewMode);
-	FViewMode();
+	FCameraViewMode();
 	UWorld* World;
 	FString CurrentViewMode;
 };

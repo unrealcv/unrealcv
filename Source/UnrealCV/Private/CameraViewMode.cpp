@@ -12,19 +12,19 @@
 		IConsoleManager::Get().RegisterConsoleCommand(TEXT(COMMAND), TEXT(DESC), \
 			FConsoleCommandWithWorldDelegate::CreateStatic(DELEGATE), ECVF_Default);
 
-FViewMode::FViewMode() : World(NULL), CurrentViewMode("lit") {}
+FCameraViewMode::FCameraViewMode() : World(NULL), CurrentViewMode("lit") {}
 
-FViewMode::~FViewMode() {}
+FCameraViewMode::~FCameraViewMode() {}
 
-FViewMode& FViewMode::Get()
+FCameraViewMode& FCameraViewMode::Get()
 {
-	static FViewMode Singleton;
+	static FCameraViewMode Singleton;
 	return Singleton;
 }
 
 
 
-void FViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
+void FCameraViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 {
 	check(World);
 	UGameViewportClient* Viewport = World->GetGameViewport();
@@ -70,22 +70,28 @@ void FViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 }
 
 /* Define console commands */
-void FViewMode::Depth()
+void FCameraViewMode::DepthWorldUnits()
+{
+	SetCurrentBufferVisualizationMode(TEXT("SceneDepthWorldUnits"));
+}
+
+/* Define console commands */
+void FCameraViewMode::Depth()
 {
 	SetCurrentBufferVisualizationMode(TEXT("SceneDepth"));
 }
 
-void FViewMode::Normal()
+void FCameraViewMode::Normal()
 {
 	SetCurrentBufferVisualizationMode(TEXT("WorldNormal"));
 }
 
-void FViewMode::BaseColor()
+void FCameraViewMode::BaseColor()
 {
 	SetCurrentBufferVisualizationMode(TEXT("BaseColor"));
 }
 
-void FViewMode::Lit()
+void FCameraViewMode::Lit()
 {
 	check(World);
 	auto Viewport = World->GetGameViewport();
@@ -100,7 +106,7 @@ void FViewMode::Lit()
 	Viewport->EngineShowFlags.SetTemporalAA(false);
 }
 
-void FViewMode::Unlit()
+void FCameraViewMode::Unlit()
 {
 	check(World);
 	auto Viewport = World->GetGameViewport();
@@ -112,7 +118,7 @@ void FViewMode::Unlit()
 	Viewport->EngineShowFlags.SetAtmosphericFog(false);
 }
 
-void FViewMode::DebugMode()
+void FCameraViewMode::DebugMode()
 {
 	// float DisplayGamma = FRenderTarget::GetDisplayGamma();
 	// GetDisplayGamma();
@@ -121,7 +127,7 @@ void FViewMode::DebugMode()
 	float DisplayGamma = SceneViewport->GetDisplayGamma();
 }
 
-void FViewMode::Object()
+void FCameraViewMode::Object()
 {
 	check(World);
 
@@ -149,7 +155,7 @@ void FViewMode::Object()
 }
 
 
-FExecStatus FViewMode::SetMode(const TArray<FString>& Args) // Check input arguments
+FExecStatus FCameraViewMode::SetMode(const TArray<FString>& Args) // Check input arguments
 {
 	UE_LOG(LogTemp, Warning, TEXT("Run SetMode %s"), *Args[0]);
 
@@ -161,6 +167,10 @@ FExecStatus FViewMode::SetMode(const TArray<FString>& Args) // Check input argum
 		if (ViewMode == "depth")
 		{
 			Depth();
+		}
+		else if (ViewMode == "depth1")
+		{
+			DepthWorldUnits();
 		}
 		else if (ViewMode == "normal")
 		{
@@ -204,7 +214,7 @@ FExecStatus FViewMode::SetMode(const TArray<FString>& Args) // Check input argum
 }
 
 
-FExecStatus FViewMode::GetMode(const TArray<FString>& Args) // Check input arguments
+FExecStatus FCameraViewMode::GetMode(const TArray<FString>& Args) // Check input arguments
 {
 	UE_LOG(LogTemp, Warning, TEXT("Run GetMode, The mode is %s"), *CurrentViewMode);
 	return FExecStatus::OK(CurrentViewMode);
