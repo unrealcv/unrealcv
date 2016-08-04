@@ -71,6 +71,11 @@ public:
 
 	/** Get HDR buffer visualization */
 	FExecStatus GetBuffer(const TArray<FString>& Args);
+
+	/** Get HDR from the scene */
+	FExecStatus GetCameraHDR(const TArray<FString>& Args);
+
+	FExecStatus GetCameraDepth(const TArray<FString>& Args);
 };
 
 class FPluginCommandHandler : public FCommandHandler
