@@ -12,7 +12,7 @@ bool FUE4CVServer::Init(APawn* InCharacter)
 	// TODO: Check the pointers
 	FObjectPainter::Get().PaintRandomColors();
 
-	FViewMode::Get().SetWorld(InCharacter->GetWorld());
+	FCameraViewMode::Get().SetWorld(InCharacter->GetWorld());
 
 	CommandDispatcher = new FCommandDispatcher();
 	UE4CVCommands* Commands = new UE4CVCommands(InCharacter, CommandDispatcher);

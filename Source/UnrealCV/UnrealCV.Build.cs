@@ -1,4 +1,5 @@
 // Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
+using System.IO;
 
 namespace UnrealBuildTool.Rules
 {
@@ -6,18 +7,34 @@ namespace UnrealBuildTool.Rules
 	{
 		public UnrealCV(TargetInfo Target)
 		{
-			PublicIncludePaths.AddRange(
+            // This is tricky from https://answers.unrealengine.com/questions/258689/how-to-include-private-header-files-of-other-modul.html
+            // string EnginePath = Path.GetFullPath(BuildConfiguration.RelativeEnginePath);
+            // string RuntimePath = EnginePath + "Source/Runtime/";
+            // string RenderPrivatePath = EnginePath + "Source/Runtime/Renderer/Private";
+
+            /*
+            PublicIncludePaths.AddRange(
 				new string[] {
 					// ... add public include paths required here ...
+                    "Renderer"
 				}
 				);
+            PublicIncludePaths.AddRange(
+                new string[]
+                {
+                    EnginePath + "Source/Runtime/Renderer/Private",
+                    EnginePath + "Source/Runtime/Renderer/Private/CompositionLighting",
+                    EnginePath + "Source/Runtime/Renderer/Private/PostProcess",
+                }
+                );
+                */
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
 				}
 				);
 
-            PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "RenderCore", "Networking", "Sockets", "Slate"});
+            PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "RenderCore", "Networking", "Sockets", "Slate", "ImageWrapper"});
             /*
 			PublicDependencyModuleNames.AddRange(
 				new string[]
@@ -33,6 +50,7 @@ namespace UnrealBuildTool.Rules
 				new string[]
 				{
 					// ... add private dependencies that you statically link with here ...
+                    // "Renderer"
 				}
 				);
 
@@ -40,6 +58,7 @@ namespace UnrealBuildTool.Rules
 				new string[]
 				{
 					// ... add any modules that your module loads dynamically here ...
+                    "Renderer"
 				}
 				);
 		}
