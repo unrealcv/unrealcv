@@ -5,7 +5,7 @@
 #include "ImageUtils.h"
 #include "ImageWrapper.h"
 
-void InitCameraArray()
+void FCameraCommandHandler::InitCameraArray()
 {
 
 }
