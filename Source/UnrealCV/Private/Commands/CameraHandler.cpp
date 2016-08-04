@@ -1,17 +1,46 @@
 // #include "RealisticRendering.h"
 #include "UnrealCVPrivate.h"
-#include "CommandHandler.h"
+#include "CameraHandler.h"
 #include "ViewMode.h"
 #include "ImageUtils.h"
 #include "ImageWrapper.h"
+#include "GTCapturer.h"
 
+/**
+  * Where to put cameras
+  * For each camera in the scene, attach SceneCaptureComponent2D to it
+  * So that ground truth can be generated
+  */
 void FCameraCommandHandler::InitCameraArray()
 {
+	// TODO: Only support one camera at the beginning
+	static TArray<FString>* SupportedModes = nullptr;
+	if (SupportedModes == nullptr) // TODO: Get supported modes array from GTCapturer
+	{
+		SupportedModes = new TArray<FString>();
+		SupportedModes->Add(TEXT("depth"));
+		// SupportedModes->Add(TEXT("normal"));
+	}
 
+	for (auto Mode : *SupportedModes)
+	{
+		UGTCapturer* Capturer = UGTCapturer::Create(this->Character, Mode);
+		this->GTCapturers.Add(Mode, Capturer);
+	}
+}
+
+FString FCameraCommandHandler::GenerateFilename()
+{
+	static uint32 NumCaptured = 0;
+	NumCaptured++;
+	FString Filename = FString::Printf(TEXT("%08d.png"), NumCaptured);
+	return Filename;
 }
 
 void FCameraCommandHandler::RegisterCommands()
 {
+	InitCameraArray();
+
 	FDispatcherDelegate Cmd;
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraViewMode);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/[str]", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
@@ -42,6 +71,9 @@ void FCameraCommandHandler::RegisterCommands()
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraDepth);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/depth [str]", Cmd, "Get depth from camera, the second parameter is filename");
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraDepth);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/depth", Cmd, "Get depth from camera");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraProjMatrix);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/proj_matrix", Cmd, "Get projection matrix");
@@ -276,7 +308,7 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 		FString CameraId = Args[0];
 		FString ViewMode = Args[1];
 
-		// TODO: Disable buffer visualization 
+		// TODO: Disable buffer visualization
 		static IConsoleVariable* ICVar1 = IConsoleManager::Get().FindConsoleVariable(TEXT("r.BufferVisualizationDumpFrames"));
 		// r.BufferVisualizationDumpFramesAsHDR
 		ICVar1->Set(0, ECVF_SetByCode);
@@ -313,13 +345,11 @@ FExecStatus FCameraCommandHandler::GetCameraView(const TArray<FString>& Args)
 	if (Args.Num() <= 2)
 	{
 		int32 CameraId = FCString::Atoi(*Args[0]);
-		static uint32 NumCaptured = 0;
 
 		FString FullFilename, Filename;
 		if (Args.Num() == 1)
 		{
-			NumCaptured++;
-			Filename = FString::Printf(TEXT("%04d.png"), NumCaptured);
+			Filename = GenerateFilename();
 		}
 		if (Args.Num() == 2)
 		{
@@ -329,8 +359,8 @@ FExecStatus FCameraCommandHandler::GetCameraView(const TArray<FString>& Args)
 		// const FString Dir = FPaths::ScreenShotDir();
 		FullFilename = FPaths::Combine(*Dir, *Filename);
 
-		// return this->GetCameraViewAsyncQuery(FullFilename);
-		return this->GetCameraViewSync(FullFilename);
+		return this->GetCameraViewAsyncQuery(FullFilename);
+		// return this->GetCameraViewSync(FullFilename);
 	}
 	return FExecStatus::InvalidArgument;
 }
@@ -343,8 +373,8 @@ FExecStatus FCameraCommandHandler::GetBuffer(const TArray<FString>& Args)
 	ICVar1->Set(1, ECVF_SetByCode);
 	static IConsoleVariable* ICVar2 = IConsoleManager::Get().FindConsoleVariable(TEXT("r.BufferVisualizationDumpFramesAsHDR"));
 	ICVar2->Set(1, ECVF_SetByCode);
-	
-	
+
+
 	/*
 	FHighResScreenshotConfig Config = GetHighResScreenshotConfig();
 	Config.bCaptureHDR = true;
@@ -385,7 +415,22 @@ FExecStatus FCameraCommandHandler::GetCameraHDR(const TArray<FString>& Args)
 
 FExecStatus FCameraCommandHandler::GetCameraDepth(const TArray<FString>& Args)
 {
-	return FExecStatus::OK();
+	if (Args.Num() <= 2)
+	{
+		FString CameraId = Args[0];
+		FString Filename;
+		if (Args.Num() == 1)
+		{
+			Filename = GenerateFilename();
+		}
+		if (Args.Num() == 2)
+		{
+			Filename = Args[1];
+		}
+		GTCapturers.FindRef(TEXT("depth"))->Capture(*Filename);
+		return FExecStatus::Pending();
+	}
+	return FExecStatus::InvalidArgument;
 }
 
 /*
@@ -411,7 +456,7 @@ FExecStatus FCameraCommandHandler::GetCameraHDR(const TArray<FString>& Args)
 		FullFilename = FPaths::Combine(*Dir, *Filename);
 
 		// USceneCaptureComponent2D* CaptureComponent =  CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("CaptureComponent"));
-		// See: SceneCapture2D.h:19 
+		// See: SceneCapture2D.h:19
 		// DEPRECATED_FORGAME(4.6, "CaptureComponent2D should not be accessed directly, please use GetCaptureComponent2D() function instead. CaptureComponent2D will soon be private and your code will not compile.")
 		USceneCaptureComponent2D* CaptureComponent = NewObject<USceneCaptureComponent2D>();
 		CaptureComponent->TextureTarget = NewObject<UTextureRenderTarget2D>();
@@ -429,7 +474,7 @@ FExecStatus FCameraCommandHandler::GetCameraHDR(const TArray<FString>& Args)
 		TArray<FColor> Image;
 		Image.AddZeroed(Width * Height);
 
-		
+
 		// This is for png
 		auto Data = Image.GetData();
 		auto Size = Image.GetAllocatedSize();
