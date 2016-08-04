@@ -55,7 +55,8 @@ UMaterial* LoadMaterial(FString InModeName = TEXT(""))
 	{ 
 		// MaterialPathMap = NewObject<TMap<FString, FString> >();
 		MaterialPathMap = new TMap<FString, FString>();
-		MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/Game/SceneDepth.SceneDepth'"));
+		MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepth.SceneDepth'"));
+		// MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/Game/SceneDepth.SceneDepth'"));
 	}
 
 	static TMap<FString, UMaterial*>* StaticMaterialMap = nullptr;
