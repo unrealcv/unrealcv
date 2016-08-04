@@ -2,11 +2,12 @@
 
 // #include "RealisticRendering.h"
 #include "UnrealCVPrivate.h"
-#include "ViewMode.h"
+#include "CameraViewMode.h"
 #include "BufferVisualizationData.h"
 #include "CommandDispatcher.h"
 #include "Async.h"
 #include "SceneViewport.h"
+#include "ViewMode.h"
 
 #define REG_VIEW(COMMAND, DESC, DELEGATE) \
 		IConsoleManager::Get().RegisterConsoleCommand(TEXT(COMMAND), TEXT(DESC), \
@@ -78,7 +79,10 @@ void FCameraViewMode::DepthWorldUnits()
 /* Define console commands */
 void FCameraViewMode::Depth()
 {
-	SetCurrentBufferVisualizationMode(TEXT("SceneDepth"));
+	// SetCurrentBufferVisualizationMode(TEXT("SceneDepth"));
+	UGameViewportClient* Viewport = World->GetGameViewport();
+	FViewMode ViewMode(Viewport->EngineShowFlags);
+	ViewMode.VisDepth();
 }
 
 void FCameraViewMode::Normal()
