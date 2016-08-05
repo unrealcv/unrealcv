@@ -428,7 +428,6 @@ FExecStatus FCameraCommandHandler::GetCameraHDR(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
-
 FExecStatus FCameraCommandHandler::GetCameraDepth(const TArray<FString>& Args)
 {
 	if (Args.Num() <= 2)
