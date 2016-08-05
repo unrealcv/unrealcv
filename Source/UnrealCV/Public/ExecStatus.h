@@ -23,6 +23,7 @@ enum FExecStatusType
 	Error,
 	// Support async task
 	Pending,
+	AsyncQuery,
 };
 
 /**

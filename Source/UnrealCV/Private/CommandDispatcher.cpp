@@ -46,7 +46,7 @@ private:
 				FPromise Promise;
 				PendingPromise.Peek(Promise);
 				FExecStatus ExecStatus = Promise.CheckStatus();
-				if (ExecStatus != FExecStatusType::Pending)
+				if (ExecStatus != FExecStatusType::Pending) // Job is finished
 				{
 					// This needs to be sent back to game thread
 					AsyncTask(ENamedThreads::GameThread, [this, ExecStatus]() {
@@ -229,7 +229,7 @@ void FCommandDispatcher::ExecAsync(const FString Uri, const FCallbackDelegate Ca
 	// If there are unfinished tasks, new async task will be pushed into a queue.
 	// so even FAsyncWatcher::Get().IsActive(), you can still keep executing more async tasks
 	FExecStatus ExecStatus = Exec(Uri);
-	if (ExecStatus == FExecStatusType::Pending)
+	if (ExecStatus == FExecStatusType::AsyncQuery) // This is an async task
 	{
 		FAsyncWatcher::Get().Wait(ExecStatus.GetPromise(), Callback); 
 	}
