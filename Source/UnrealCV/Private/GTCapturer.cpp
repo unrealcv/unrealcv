@@ -105,6 +105,7 @@ UGTCapturer* UGTCapturer::Create(APawn* InPawn, FString Mode)
 	if (Material) // For ground truth visualization
 	{
 		CaptureComponent->PostProcessSettings.AddBlendable(Material, 1);
+		CaptureComponent->ShowFlags.SetTonemapper(false);
 	}
 	else // For rendered images
 	{
