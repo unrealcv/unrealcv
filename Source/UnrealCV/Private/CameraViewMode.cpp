@@ -107,7 +107,8 @@ void FCameraViewMode::Lit()
 	Viewport->EngineShowFlags.SetTonemapper(true);
 	// TemporalAA needs to be disabled, otherwise the previous frame might contaminate current frame.
 	// Check: https://answers.unrealengine.com/questions/436060/low-quality-screenshot-after-setting-the-actor-pos.html for detail
-	Viewport->EngineShowFlags.SetTemporalAA(false);
+	// Viewport->EngineShowFlags.SetTemporalAA(false);
+	Viewport->EngineShowFlags.SetTemporalAA(true);
 }
 
 void FCameraViewMode::Unlit()
