@@ -19,6 +19,7 @@ void FCameraCommandHandler::InitCameraArray()
 	{
 		SupportedModes = new TArray<FString>();
 		SupportedModes->Add(TEXT("depth"));
+		SupportedModes->Add(TEXT("")); // This is lit
 		// SupportedModes->Add(TEXT("normal"));
 	}
 
@@ -74,6 +75,12 @@ void FCameraCommandHandler::RegisterCommands()
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraDepth);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/depth", Cmd, "Get depth from camera");
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraLit);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/lit [str]", Cmd, "Get depth from camera");
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraLit);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/lit", Cmd, "Get depth from camera");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraProjMatrix);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/proj_matrix", Cmd, "Get projection matrix");
@@ -413,6 +420,12 @@ FExecStatus FCameraCommandHandler::GetCameraHDR(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
+FString GetDiskFilename(FString Filename)
+{
+	FString DiskFilename = IFileManager::Get().GetFilenameOnDisk(*Filename); // This is important
+	return DiskFilename;
+}
+
 FExecStatus FCameraCommandHandler::GetCameraDepth(const TArray<FString>& Args)
 {
 	if (Args.Num() <= 2)
@@ -427,11 +440,65 @@ FExecStatus FCameraCommandHandler::GetCameraDepth(const TArray<FString>& Args)
 		{
 			Filename = Args[1];
 		}
-		GTCapturers.FindRef(TEXT("depth"))->Capture(*Filename);
-		return FExecStatus::Pending();
+		UGTCapturer* GTCapturer = GTCapturers.FindRef(TEXT("depth"));
+		GTCapturer->Capture(*Filename);
+
+		// TODO: Check IsPending is problematic.
+		FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([Filename, GTCapturer]()
+		{
+			if (GTCapturer->IsPending())
+			{
+				return FExecStatus::Pending();
+			}
+			else
+			{
+				
+				return FExecStatus::OK(GetDiskFilename(Filename));
+			}
+
+		});
+		return FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
 	}
 	return FExecStatus::InvalidArgument;
 }
+
+
+FExecStatus FCameraCommandHandler::GetCameraLit(const TArray<FString>& Args)
+{
+	if (Args.Num() <= 2)
+	{
+		FString CameraId = Args[0];
+		FString Filename;
+		if (Args.Num() == 1)
+		{
+			Filename = GenerateFilename();
+		}
+		if (Args.Num() == 2)
+		{
+			Filename = Args[1];
+		}
+		UGTCapturer* GTCapturer = GTCapturers.FindRef(TEXT(""));
+		GTCapturer->Capture(*Filename);
+
+		// TODO: Check IsPending is problematic.
+		FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([Filename, GTCapturer]()
+		{
+			if (GTCapturer->IsPending())
+			{
+				return FExecStatus::Pending();
+			}
+			else
+			{
+				
+				return FExecStatus::OK(GetDiskFilename(Filename));
+			}
+
+		});
+		return FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
+	}
+	return FExecStatus::InvalidArgument;
+}
+
 
 /*
 FExecStatus FCameraCommandHandler::GetCameraHDR(const TArray<FString>& Args)
