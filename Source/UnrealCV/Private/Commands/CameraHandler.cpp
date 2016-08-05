@@ -353,7 +353,7 @@ FExecStatus FCameraCommandHandler::GetCameraView(const TArray<FString>& Args)
 	{
 		int32 CameraId = FCString::Atoi(*Args[0]);
 
-		FString FullFilename, Filename;
+		FString Filename;
 		if (Args.Num() == 1)
 		{
 			Filename = GenerateFilename();
@@ -362,10 +362,8 @@ FExecStatus FCameraCommandHandler::GetCameraView(const TArray<FString>& Args)
 		{
 			Filename = Args[1];
 		}
-		const FString Dir = FPlatformProcess::BaseDir(); // TODO: Change this to screen capture folder
-		// const FString Dir = FPaths::ScreenShotDir();
-		FullFilename = FPaths::Combine(*Dir, *Filename);
 
+		FString FullFilename = GetDiskFilename(Filename);
 		return this->GetCameraViewAsyncQuery(FullFilename);
 		// return this->GetCameraViewSync(FullFilename);
 	}
@@ -422,7 +420,11 @@ FExecStatus FCameraCommandHandler::GetCameraHDR(const TArray<FString>& Args)
 
 FString GetDiskFilename(FString Filename)
 {
-	FString DiskFilename = IFileManager::Get().GetFilenameOnDisk(*Filename); // This is important
+	const FString Dir = FPlatformProcess::BaseDir(); // TODO: Change this to screen capture folder
+	// const FString Dir = FPaths::ScreenShotDir();
+	FString FullFilename = FPaths::Combine(*Dir, *Filename);
+
+	FString DiskFilename = IFileManager::Get().GetFilenameOnDisk(*FullFilename); // This is important
 	return DiskFilename;
 }
 
@@ -452,7 +454,7 @@ FExecStatus FCameraCommandHandler::GetCameraDepth(const TArray<FString>& Args)
 			}
 			else
 			{
-				
+
 				return FExecStatus::OK(GetDiskFilename(Filename));
 			}
 
@@ -489,7 +491,7 @@ FExecStatus FCameraCommandHandler::GetCameraLit(const TArray<FString>& Args)
 			}
 			else
 			{
-				
+
 				return FExecStatus::OK(GetDiskFilename(Filename));
 			}
 
