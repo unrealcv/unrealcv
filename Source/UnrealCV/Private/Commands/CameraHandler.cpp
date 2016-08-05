@@ -6,6 +6,16 @@
 #include "ImageWrapper.h"
 #include "GTCapturer.h"
 
+FString GetDiskFilename(FString Filename)
+{
+	const FString Dir = FPlatformProcess::BaseDir(); // TODO: Change this to screen capture folder
+	// const FString Dir = FPaths::ScreenShotDir();
+	FString FullFilename = FPaths::Combine(*Dir, *Filename);
+
+	FString DiskFilename = IFileManager::Get().GetFilenameOnDisk(*FullFilename); // This is important
+	return DiskFilename;
+}
+
 /**
   * Where to put cameras
   * For each camera in the scene, attach SceneCaptureComponent2D to it
@@ -353,7 +363,7 @@ FExecStatus FCameraCommandHandler::GetCameraView(const TArray<FString>& Args)
 	{
 		int32 CameraId = FCString::Atoi(*Args[0]);
 
-		FString FullFilename, Filename;
+		FString Filename;
 		if (Args.Num() == 1)
 		{
 			Filename = GenerateFilename();
@@ -362,10 +372,8 @@ FExecStatus FCameraCommandHandler::GetCameraView(const TArray<FString>& Args)
 		{
 			Filename = Args[1];
 		}
-		const FString Dir = FPlatformProcess::BaseDir(); // TODO: Change this to screen capture folder
-		// const FString Dir = FPaths::ScreenShotDir();
-		FullFilename = FPaths::Combine(*Dir, *Filename);
 
+		FString FullFilename = GetDiskFilename(Filename);
 		return this->GetCameraViewAsyncQuery(FullFilename);
 		// return this->GetCameraViewSync(FullFilename);
 	}
@@ -420,11 +428,6 @@ FExecStatus FCameraCommandHandler::GetCameraHDR(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
-FString GetDiskFilename(FString Filename)
-{
-	FString DiskFilename = IFileManager::Get().GetFilenameOnDisk(*Filename); // This is important
-	return DiskFilename;
-}
 
 FExecStatus FCameraCommandHandler::GetCameraDepth(const TArray<FString>& Args)
 {
@@ -452,7 +455,7 @@ FExecStatus FCameraCommandHandler::GetCameraDepth(const TArray<FString>& Args)
 			}
 			else
 			{
-				
+
 				return FExecStatus::OK(GetDiskFilename(Filename));
 			}
 
@@ -489,7 +492,7 @@ FExecStatus FCameraCommandHandler::GetCameraLit(const TArray<FString>& Args)
 			}
 			else
 			{
-				
+
 				return FExecStatus::OK(GetDiskFilename(Filename));
 			}
 
