@@ -78,6 +78,7 @@ UMaterial* LoadMaterial(FString InModeName = TEXT(""))
 	if (InModeName == TEXT("")) return nullptr;
 
 	UMaterial* Material = StaticMaterialMap->FindRef(InModeName);
+	check(Material);
 	if (Material == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Can not recognize visualization mode %s"), *InModeName);
@@ -93,18 +94,32 @@ UGTCapturer* UGTCapturer::Create(APawn* InPawn, FString Mode)
 	GTCapturer->AddToRoot();
 
 	// DEPRECATED_FORGAME(4.6, "CaptureComponent2D should not be accessed directly, please use GetCaptureComponent2D() function instead. CaptureComponent2D will soon be private and your code will not compile.")
-	GTCapturer->CaptureComponent = NewObject<USceneCaptureComponent2D>(); 
+	USceneCaptureComponent2D* CaptureComponent = NewObject<USceneCaptureComponent2D>(); 
+	GTCapturer->CaptureComponent = CaptureComponent;
+		
 	// CaptureComponent needs to be attached to somewhere immediately, otherwise it will be gc-ed
-	GTCapturer->CaptureComponent->AttachTo(InPawn->GetRootComponent());
-	InitCaptureComponent(GTCapturer->CaptureComponent);
-
-	GTCapturer->bIsTicking = true;
+	CaptureComponent->AttachTo(InPawn->GetRootComponent());
+	InitCaptureComponent(CaptureComponent);
 
 	UMaterial* Material = LoadMaterial(Mode);
-	check(Material);
-	if (Material)
+	if (Material) // For ground truth visualization
 	{
-		GTCapturer->CaptureComponent->PostProcessSettings.AddBlendable(Material, 1);
+		CaptureComponent->PostProcessSettings.AddBlendable(Material, 1);
+	}
+	else // For rendered images
+	{
+		FEngineShowFlags& ShowFlags = CaptureComponent->ShowFlags;
+
+		ApplyViewMode(VMI_Lit, true, ShowFlags);
+		ShowFlags.SetMaterials(true);
+		ShowFlags.SetLighting(true);
+		ShowFlags.SetPostProcessing(true);
+		// ToneMapper needs to be enabled, or the screen will be very dark
+		ShowFlags.SetTonemapper(true);
+		// TemporalAA needs to be disabled, otherwise the previous frame might contaminate current frame.
+		// Check: https://answers.unrealengine.com/questions/436060/low-quality-screenshot-after-setting-the-actor-pos.html for detail
+		// Viewport->EngineShowFlags.SetTemporalAA(false);
+		ShowFlags.SetTemporalAA(true);
 	}
 	return GTCapturer;
 }
@@ -123,9 +138,10 @@ UGTCapturer::UGTCapturer()
 
 bool UGTCapturer::Capture(FString InFilename)
 {
-	if (!bIsTicking)
+	if (!bIsPending) // TODO: Use a filename queue to replace this flag.
 	{
-		bIsTicking = true;
+		FlushRenderingCommands();
+		bIsPending = true;
 		this->Filename = InFilename;
 		return true;
 	}
@@ -139,6 +155,7 @@ bool UGTCapturer::Capture(FString InFilename)
 
 void UGTCapturer::Tick(float DeltaTime) // This tick function should be called by the scene instead of been 
 {
+	// Update rotation of each frame
 	// from ab237f46dc0eee40263acbacbe938312eb0dffbb:CameraComponent.cpp:232
 	const APawn* OwningPawn = this->Pawn;
 	const AController* OwningController = OwningPawn ? OwningPawn->GetController() : nullptr;
@@ -151,20 +168,23 @@ void UGTCapturer::Tick(float DeltaTime) // This tick function should be called b
 		}
 	}
 
-	FString LowerCaseFilename = this->Filename.ToLower();
-	if (LowerCaseFilename.EndsWith("png"))
+	if (bIsPending)
 	{
-		SavePng(CaptureComponent->TextureTarget, this->Filename);
-	}
-	else if (LowerCaseFilename.EndsWith("exr"))
-	{
-		SaveExr(CaptureComponent->TextureTarget, this->Filename);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Unrecognized image file extension %s"), *LowerCaseFilename);
-	}
-	// TODO: Run a callback when these operations finished.
+		FString LowerCaseFilename = this->Filename.ToLower();
+		if (LowerCaseFilename.EndsWith("png"))
+		{
+			SavePng(CaptureComponent->TextureTarget, this->Filename);
+		}
+		else if (LowerCaseFilename.EndsWith("exr"))
+		{
+			SaveExr(CaptureComponent->TextureTarget, this->Filename);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Unrecognized image file extension %s"), *LowerCaseFilename);
+		}
+		// TODO: Run a callback when these operations finished.
 
-	bIsTicking = false; // Only tick once.
+		bIsPending = false; // Only tick once.
+	}
 }

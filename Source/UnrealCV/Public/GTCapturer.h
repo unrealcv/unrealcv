@@ -33,11 +33,16 @@ public:
 	{
 		RETURN_QUICK_DECLARE_CYCLE_STAT(UGTCapturer, STATGROUP_Tickables);
 	}
+	bool IsPending()
+	{
+		return bIsPending;
+	}
 
 	bool Capture(FString Filename);
 
 private:
-	bool bIsTicking;
+	const bool bIsTicking = true;
+	bool bIsPending = false;
 
 	USceneCaptureComponent2D* CaptureComponent;
 	FString Filename;
