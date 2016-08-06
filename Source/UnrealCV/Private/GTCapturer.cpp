@@ -9,11 +9,7 @@ void InitCaptureComponent(USceneCaptureComponent2D* CaptureComponent)
 
 	CaptureComponent->TextureTarget = NewObject<UTextureRenderTarget2D>();
 	CaptureComponent->TextureTarget->InitAutoFormat(640, 480); // TODO: Update this later
-	// CaptureComponent->TextureTarget->TargetGamma = 2.2;
-	// CaptureComponent->TextureTarget->TargetGamma = 1 / 2.2;
-	// CaptureComponent->TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
-	// CaptureComponent->TextureTarget->TargetGamma = 1;
-	// CaptureComponent->TextureTarget->TargetGamma = 2.2;
+	// GEngine->GetDisplayGamma(), the default gamma is 2.2
 	CaptureComponent->TextureTarget->TargetGamma = 1;
 	
 	CaptureComponent->RegisterComponentWithWorld(GWorld); // What happened for this?
@@ -59,12 +55,9 @@ UMaterial* LoadMaterial(FString InModeName = TEXT(""))
 	static TMap<FString, FString>* MaterialPathMap = nullptr;
 	if (MaterialPathMap == nullptr)
 	{ 
-		// MaterialPathMap = NewObject<TMap<FString, FString> >();
 		MaterialPathMap = new TMap<FString, FString>();
-		// MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepth.SceneDepth'"));
+		MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepth.SceneDepth'"));
 		MaterialPathMap->Add(TEXT("debug"), TEXT("Material'/UnrealCV/debug.debug'"));
-		MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/debug.debug'"));
-		// MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/Game/SceneDepth.SceneDepth'"));
 	}
 
 	static TMap<FString, UMaterial*>* StaticMaterialMap = nullptr;
@@ -75,7 +68,7 @@ UMaterial* LoadMaterial(FString InModeName = TEXT(""))
 		{
 			FString ModeName = Elem.Key;
 			FString MaterialPath = Elem.Value;
-			static ConstructorHelpers::FObjectFinder<UMaterial> Material(*MaterialPath); // ConsturctorHelpers is only available for UObject.
+			ConstructorHelpers::FObjectFinder<UMaterial> Material(*MaterialPath); // ConsturctorHelpers is only available for UObject.
 
 			if (Material.Object != NULL)
 			{
@@ -118,7 +111,7 @@ UGTCapturer* UGTCapturer::Create(APawn* InPawn, FString Mode)
 		ShowFlags.SetPostProcessing(true);
 		ShowFlags.SetTonemapper(true);
 
-		// ToneMapper needs to be enabled, or the screen will be very dark
+		// ToneMapper needs to be enabled, otherwise the screen will be very dark
 		// TemporalAA needs to be disabled, otherwise the previous frame might contaminate current frame.
 		// Check: https://answers.unrealengine.com/questions/436060/low-quality-screenshot-after-setting-the-actor-pos.html for detail
 		// Viewport->EngineShowFlags.SetTemporalAA(false);
