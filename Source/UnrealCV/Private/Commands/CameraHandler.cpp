@@ -7,6 +7,16 @@
 #include "GTCapturer.h"
 #include "PlayerViewMode.h"
 
+FString GetDiskFilename(FString Filename)
+{
+	const FString Dir = FPlatformProcess::BaseDir(); // TODO: Change this to screen capture folder
+	// const FString Dir = FPaths::ScreenShotDir();
+	FString FullFilename = FPaths::Combine(*Dir, *Filename);
+
+	FString DiskFilename = IFileManager::Get().GetFilenameOnDisk(*FullFilename); // This is important
+	return DiskFilename;
+}
+
 /**
   * Where to put cameras
   * For each camera in the scene, attach SceneCaptureComponent2D to it
@@ -343,7 +353,7 @@ FExecStatus FCameraCommandHandler::GetCameraScreenshot(const TArray<FString>& Ar
 	{
 		int32 CameraId = FCString::Atoi(*Args[0]);
 
-		FString FullFilename, Filename;
+		FString Filename;
 		if (Args.Num() == 1)
 		{
 			Filename = GenerateFilename();
@@ -352,10 +362,8 @@ FExecStatus FCameraCommandHandler::GetCameraScreenshot(const TArray<FString>& Ar
 		{
 			Filename = Args[1];
 		}
-		const FString Dir = FPlatformProcess::BaseDir(); // TODO: Change this to screen capture folder
-		// const FString Dir = FPaths::ScreenShotDir();
-		FullFilename = FPaths::Combine(*Dir, *Filename);
 
+		FString FullFilename = GetDiskFilename(Filename);
 		return this->GetCameraViewAsyncQuery(FullFilename);
 		// return this->GetCameraViewSync(FullFilename);
 	}
