@@ -1,6 +1,7 @@
 #include "UnrealCVPrivate.h"
 #include "GTCapturer.h"
 #include "ImageWrapper.h"
+#include "ViewMode.h"
 
 void InitCaptureComponent(USceneCaptureComponent2D* CaptureComponent)
 {
@@ -54,7 +55,8 @@ UMaterial* UGTCapturer::GetMaterial(FString InModeName = TEXT(""))
 	if (MaterialPathMap == nullptr)
 	{
 		MaterialPathMap = new TMap<FString, FString>();
-		MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepth.SceneDepth'"));
+		// MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepth.SceneDepth'"));
+		MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepth1.SceneDepth1'"));
 		MaterialPathMap->Add(TEXT("debug"), TEXT("Material'/UnrealCV/debug.debug'"));
 	}
 
@@ -103,6 +105,7 @@ UGTCapturer* UGTCapturer::Create(APawn* InPawn, FString Mode)
 	{
 		FEngineShowFlags& ShowFlags = CaptureComponent->ShowFlags;
 		FViewMode::Lit(CaptureComponent->ShowFlags);
+		CaptureComponent->TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
 	}
 	else if (Mode == "object_mask") // For object mask
 	{
@@ -111,9 +114,16 @@ UGTCapturer* UGTCapturer::Create(APawn* InPawn, FString Mode)
 	else
 	{
 		check(Material);
-		FViewMode::PostProcess(CaptureComponent->ShowFlags);
+		// FViewMode::PostProcess(CaptureComponent->ShowFlags);
 		// GEngine->GetDisplayGamma(), the default gamma is 2.2
-		CaptureComponent->TextureTarget->TargetGamma = 2.2;
+		// CaptureComponent->TextureTarget->TargetGamma = 2.2;
+
+		// FViewMode::Lit(CaptureComponent->ShowFlags);
+		// CaptureComponent->ShowFlags.DisableAdvancedFeatures();
+		CaptureComponent->ShowFlags = FEngineShowFlags(EShowFlagInitMode::ESFIM_All0);
+		FViewMode::PostProcess(CaptureComponent->ShowFlags);
+
+		CaptureComponent->TextureTarget->TargetGamma = 1;
 		CaptureComponent->PostProcessSettings.AddBlendable(Material, 1);
 	}
 	return GTCapturer;

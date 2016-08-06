@@ -53,6 +53,15 @@ void FViewMode::BufferVisualization(FEngineShowFlags& ShowFlags)
 
 void FViewMode::PostProcess(FEngineShowFlags& ShowFlags)
 {
+	ShowFlags.Rendering = true;
+	ShowFlags.PostProcessing = true;
+	ShowFlags.PostProcessMaterial = true;
+	ShowFlags.StaticMeshes = true;
+
+	/*
+	// Set all flags to false, only enable useful flags.
+	
+
 	ApplyViewMode(EViewModeIndex::VMI_VisualizeBuffer, true, ShowFlags); // This did more than just SetVisualizeBuffer(true);
 	// EngineShowFlagOverride()
 
@@ -74,6 +83,7 @@ void FViewMode::PostProcess(FEngineShowFlags& ShowFlags)
 	ShowFlags.SetTonemapper(false);
 	// TemporalAA needs to be disabled, or it will contaminate the following frame
 	ShowFlags.SetTemporalAA(false);
+	*/
 }
 
 void FViewMode::VertexColor(FEngineShowFlags& ShowFlags)
