@@ -28,27 +28,6 @@ FCameraViewMode& FCameraViewMode::Get()
 void FCameraViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 {
 	check(World);
-	UGameViewportClient* Viewport = World->GetGameViewport();
-	ApplyViewMode(EViewModeIndex::VMI_VisualizeBuffer, true, Viewport->EngineShowFlags); // This did more than just SetVisualizeBuffer(true);
-
-	// From ShowFlags.cpp
-	Viewport->EngineShowFlags.SetPostProcessing(true);
-	// Viewport->EngineShowFlags.SetMaterials(false);
-	Viewport->EngineShowFlags.SetMaterials(true);
-	Viewport->EngineShowFlags.SetVisualizeBuffer(true);
-
-
-	//Viewport->EngineShowFlags.AmbientOcclusion = 0;
-	//Viewport->EngineShowFlags.ScreenSpaceAO = 0;
-	//Viewport->EngineShowFlags.Decals = 0;
-	//Viewport->EngineShowFlags.DynamicShadows = 0;
-	//Viewport->EngineShowFlags.GlobalIllumination = 0;
-	//Viewport->EngineShowFlags.ScreenSpaceReflections = 0;
-
-	// ToneMapper needs to be disabled
-	Viewport->EngineShowFlags.SetTonemapper(false);
-	// TemporalAA needs to be disabled, or it will contaminate the following frame
-	Viewport->EngineShowFlags.SetTemporalAA(false);
 
 	// A complete list can be found from Engine/Config/BaseEngine.ini, Engine.BufferVisualizationMaterials
 	// TODO: BaseColor is weird, check BUG.
@@ -70,23 +49,24 @@ void FCameraViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 	// The ICVar can only be set in GameThread, the CommandDispatcher already enforce this requirement.
 }
 
-/* Define console commands */
 void FCameraViewMode::DepthWorldUnits()
 {
+	UGameViewportClient* Viewport = GWorld->GetGameViewport();
+	FViewMode::BufferVisualization(Viewport->EngineShowFlags);
 	SetCurrentBufferVisualizationMode(TEXT("SceneDepthWorldUnits"));
 }
 
-/* Define console commands */
 void FCameraViewMode::Depth()
 {
-	// SetCurrentBufferVisualizationMode(TEXT("SceneDepth"));
-	UGameViewportClient* Viewport = World->GetGameViewport();
-	FViewMode ViewMode(Viewport->EngineShowFlags);
-	ViewMode.VisDepth();
+	UGameViewportClient* Viewport = GWorld->GetGameViewport();
+	FViewMode::BufferVisualization(Viewport->EngineShowFlags);
+	SetCurrentBufferVisualizationMode(TEXT("SceneDepth"));
 }
 
 void FCameraViewMode::Normal()
 {
+	UGameViewportClient* Viewport = GWorld->GetGameViewport();
+	FViewMode::BufferVisualization(Viewport->EngineShowFlags);
 	SetCurrentBufferVisualizationMode(TEXT("WorldNormal"));
 }
 
@@ -99,28 +79,14 @@ void FCameraViewMode::Lit()
 {
 	check(World);
 	auto Viewport = World->GetGameViewport();
-	ApplyViewMode(VMI_Lit, true, Viewport->EngineShowFlags);
-	Viewport->EngineShowFlags.SetMaterials(true);
-	Viewport->EngineShowFlags.SetLighting(true);
-	Viewport->EngineShowFlags.SetPostProcessing(true);
-	// ToneMapper needs to be enabled, or the screen will be very dark
-	Viewport->EngineShowFlags.SetTonemapper(true);
-	// TemporalAA needs to be disabled, otherwise the previous frame might contaminate current frame.
-	// Check: https://answers.unrealengine.com/questions/436060/low-quality-screenshot-after-setting-the-actor-pos.html for detail
-	// Viewport->EngineShowFlags.SetTemporalAA(false);
-	Viewport->EngineShowFlags.SetTemporalAA(true);
+	FViewMode::Lit(Viewport->EngineShowFlags);
 }
 
 void FCameraViewMode::Unlit()
 {
 	check(World);
 	auto Viewport = World->GetGameViewport();
-	ApplyViewMode(VMI_Unlit, true, Viewport->EngineShowFlags);
-	Viewport->EngineShowFlags.SetMaterials(false);
-	Viewport->EngineShowFlags.SetVertexColors(false);
-	Viewport->EngineShowFlags.SetLightFunctions(false);
-	Viewport->EngineShowFlags.SetLighting(false);
-	Viewport->EngineShowFlags.SetAtmosphericFog(false);
+	FViewMode::Unlit(Viewport->EngineShowFlags);
 }
 
 void FCameraViewMode::DebugMode()
@@ -137,26 +103,7 @@ void FCameraViewMode::Object()
 	check(World);
 
 	auto Viewport = World->GetGameViewport();
-	/* This is from ShowFlags.cpp and not working, give it up.
-	Viewport->EngineShowFlags.SetLighting(false);
-	Viewport->EngineShowFlags.LightFunctions = 0;
-	Viewport->EngineShowFlags.SetPostProcessing(false);
-	Viewport->EngineShowFlags.AtmosphericFog = 0;
-	Viewport->EngineShowFlags.DynamicShadows = 0;
-	*/
-	ApplyViewMode(VMI_Lit, true, Viewport->EngineShowFlags);
-	// Need to toggle this view mode
-	// Viewport->EngineShowFlags.SetMaterials(true);
-
-	Viewport->EngineShowFlags.SetMaterials(false);
-	Viewport->EngineShowFlags.SetLighting(false);
-	Viewport->EngineShowFlags.SetBSPTriangles(true);
-	Viewport->EngineShowFlags.SetVertexColors(true);
-	Viewport->EngineShowFlags.SetPostProcessing(false);
-	Viewport->EngineShowFlags.SetHMDDistortion(false);
-	Viewport->EngineShowFlags.SetTonemapper(false); // This won't take effect here
-
-	GVertexColorViewMode = EVertexColorViewMode::Color;
+	FViewMode::VertexColor(Viewport->EngineShowFlags);
 }
 
 
