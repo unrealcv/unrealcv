@@ -14,8 +14,6 @@ public:
 
 	TMap<FString, UGTCapturer*> GTCapturers; // TODO: Support multi-camera
 
-	FString GenerateFilename();
-
 	/** vget /camera/location */
 	FExecStatus GetCameraLocation(const TArray<FString>& Args);
 	/** vset /camera/location */
@@ -43,8 +41,8 @@ public:
 	FExecStatus GetBuffer(const TArray<FString>& Args);
 
 	/** Get HDR from the scene */
-	FExecStatus GetCameraHDR(const TArray<FString>& Args);
+	// FExecStatus GetCameraHDR(const TArray<FString>& Args);
 
-	FExecStatus GetCameraDepth(const TArray<FString>& Args);
-	FExecStatus GetCameraLit(const TArray<FString>& Args);
+	// FExecStatus GetCameraDepth(const TArray<FString>& Args);
+	// FExecStatus GetCameraLit(const TArray<FString>& Args);
 };

@@ -14,12 +14,15 @@
 void FCameraCommandHandler::InitCameraArray()
 {
 	// TODO: Only support one camera at the beginning
+	// TODO: Make this automatic from material loader.
 	static TArray<FString>* SupportedModes = nullptr;
 	if (SupportedModes == nullptr) // TODO: Get supported modes array from GTCapturer
 	{
 		SupportedModes = new TArray<FString>();
+		SupportedModes->Add(TEXT("debug"));
 		SupportedModes->Add(TEXT("depth"));
-		SupportedModes->Add(TEXT("")); // This is lit
+		SupportedModes->Add(TEXT("object_mask"));
+		SupportedModes->Add(TEXT("lit")); // This is lit
 		// SupportedModes->Add(TEXT("normal"));
 	}
 
@@ -30,12 +33,18 @@ void FCameraCommandHandler::InitCameraArray()
 	}
 }
 
-FString FCameraCommandHandler::GenerateFilename()
+FString GenerateFilename()
 {
 	static uint32 NumCaptured = 0;
 	NumCaptured++;
 	FString Filename = FString::Printf(TEXT("%08d.png"), NumCaptured);
 	return Filename;
+}
+
+FString GetDiskFilename(FString Filename)
+{
+	FString DiskFilename = IFileManager::Get().GetFilenameOnDisk(*Filename); // This is important
+	return DiskFilename;
 }
 
 void FCameraCommandHandler::RegisterCommands()
@@ -67,6 +76,7 @@ void FCameraCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraView);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/view [str]", Cmd, "Get snapshot from camera, the second parameter is optional"); // Take a screenshot and return filename
 
+	/*
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraHDR);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/hdr", Cmd, "Get hdr capture from camera, the second parameter is optional"); // Take a screenshot and return filename
 
@@ -75,12 +85,15 @@ void FCameraCommandHandler::RegisterCommands()
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraDepth);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/depth", Cmd, "Get depth from camera");
+	*/
 
+	/*
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraLit);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/lit [str]", Cmd, "Get depth from camera");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraLit);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/lit", Cmd, "Get depth from camera");
+	*/
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraProjMatrix);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/proj_matrix", Cmd, "Get projection matrix");
@@ -315,34 +328,48 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 		FString CameraId = Args[0];
 		FString ViewMode = Args[1];
 
+		/*
 		// TODO: Disable buffer visualization
 		static IConsoleVariable* ICVar1 = IConsoleManager::Get().FindConsoleVariable(TEXT("r.BufferVisualizationDumpFrames"));
 		// r.BufferVisualizationDumpFramesAsHDR
 		ICVar1->Set(0, ECVF_SetByCode);
 		static IConsoleVariable* ICVar2 = IConsoleManager::Get().FindConsoleVariable(TEXT("r.BufferVisualizationDumpFramesAsHDR"));
 		ICVar2->Set(0, ECVF_SetByCode);
-
-		/*
-		TArray<FString> Args1;
-		Args1.Add(ViewMode);
-		FViewMode::Get().SetMode(Args1);
 		*/
-		// Use command dispatcher is more universal
-		FExecStatus ExecStatus = CommandDispatcher->Exec(FString::Printf(TEXT("vset /mode %s"), *ViewMode));
-		if (ExecStatus != FExecStatusType::OK)
-		{
-			return ExecStatus;
-		}
 
-		TArray<FString> Args2;
-		Args2.Add(CameraId);
+
+		// Use command dispatcher is more universal
+		// FExecStatus ExecStatus = CommandDispatcher->Exec(FString::Printf(TEXT("vset /mode %s"), *ViewMode));
+
+		FString Filename;
 		if (Args.Num() == 3)
 		{
-			FString Fullfilename = Args[2];
-			Args2.Add(Fullfilename);
+			Filename = Args[2];
 		}
-		ExecStatus = GetCameraView(Args2);
-		return ExecStatus;
+		else
+		{
+			Filename = GenerateFilename();
+		}
+		UGTCapturer* GTCapturer = GTCapturers.FindRef(ViewMode);
+		if (GTCapturer == nullptr)
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Can not support mode %s"), *ViewMode));
+		}
+		GTCapturer->Capture(*Filename);
+
+		// TODO: Check IsPending is problematic.
+		FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([Filename, GTCapturer]()
+		{
+			if (GTCapturer->IsPending())
+			{
+				return FExecStatus::Pending();
+			}
+			else
+			{
+				return FExecStatus::OK(GetDiskFilename(Filename));
+			}
+		});
+		return FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
 	}
 	return FExecStatus::InvalidArgument;
 }
@@ -415,17 +442,14 @@ FExecStatus FCameraCommandHandler::GetBuffer(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
+/*
 FExecStatus FCameraCommandHandler::GetCameraHDR(const TArray<FString>& Args)
 {
 	return FExecStatus::OK();
 }
+*/
 
-FString GetDiskFilename(FString Filename)
-{
-	FString DiskFilename = IFileManager::Get().GetFilenameOnDisk(*Filename); // This is important
-	return DiskFilename;
-}
-
+/*
 FExecStatus FCameraCommandHandler::GetCameraDepth(const TArray<FString>& Args)
 {
 	if (Args.Num() <= 2)
@@ -461,8 +485,9 @@ FExecStatus FCameraCommandHandler::GetCameraDepth(const TArray<FString>& Args)
 	}
 	return FExecStatus::InvalidArgument;
 }
+*/
 
-
+/*
 FExecStatus FCameraCommandHandler::GetCameraLit(const TArray<FString>& Args)
 {
 	if (Args.Num() <= 2)
@@ -489,7 +514,6 @@ FExecStatus FCameraCommandHandler::GetCameraLit(const TArray<FString>& Args)
 			}
 			else
 			{
-				
 				return FExecStatus::OK(GetDiskFilename(Filename));
 			}
 
@@ -498,7 +522,7 @@ FExecStatus FCameraCommandHandler::GetCameraLit(const TArray<FString>& Args)
 	}
 	return FExecStatus::InvalidArgument;
 }
-
+*/
 
 /*
 FExecStatus FCameraCommandHandler::GetCameraHDR(const TArray<FString>& Args)

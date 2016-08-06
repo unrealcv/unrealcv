@@ -9,6 +9,12 @@ void InitCaptureComponent(USceneCaptureComponent2D* CaptureComponent)
 
 	CaptureComponent->TextureTarget = NewObject<UTextureRenderTarget2D>();
 	CaptureComponent->TextureTarget->InitAutoFormat(640, 480); // TODO: Update this later
+	// CaptureComponent->TextureTarget->TargetGamma = 2.2;
+	// CaptureComponent->TextureTarget->TargetGamma = 1 / 2.2;
+	// CaptureComponent->TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
+	// CaptureComponent->TextureTarget->TargetGamma = 1;
+	// CaptureComponent->TextureTarget->TargetGamma = 2.2;
+	CaptureComponent->TextureTarget->TargetGamma = 1;
 	
 	CaptureComponent->RegisterComponentWithWorld(GWorld); // What happened for this?
 	// CaptureComponent->AddToRoot(); This is not necessary since it has been attached to the Pawn.
@@ -55,7 +61,9 @@ UMaterial* LoadMaterial(FString InModeName = TEXT(""))
 	{ 
 		// MaterialPathMap = NewObject<TMap<FString, FString> >();
 		MaterialPathMap = new TMap<FString, FString>();
-		MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepth.SceneDepth'"));
+		// MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepth.SceneDepth'"));
+		MaterialPathMap->Add(TEXT("debug"), TEXT("Material'/UnrealCV/debug.debug'"));
+		MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/debug.debug'"));
 		// MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/Game/SceneDepth.SceneDepth'"));
 	}
 
@@ -75,10 +83,8 @@ UMaterial* LoadMaterial(FString InModeName = TEXT(""))
 			}
 		}
 	}
-	if (InModeName == TEXT("")) return nullptr;
 
 	UMaterial* Material = StaticMaterialMap->FindRef(InModeName);
-	check(Material);
 	if (Material == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Can not recognize visualization mode %s"), *InModeName);
@@ -102,12 +108,7 @@ UGTCapturer* UGTCapturer::Create(APawn* InPawn, FString Mode)
 	InitCaptureComponent(CaptureComponent);
 
 	UMaterial* Material = LoadMaterial(Mode);
-	if (Material) // For ground truth visualization
-	{
-		CaptureComponent->PostProcessSettings.AddBlendable(Material, 1);
-		CaptureComponent->ShowFlags.SetTonemapper(false);
-	}
-	else // For rendered images
+	if (Mode == "lit") // For rendered images
 	{
 		FEngineShowFlags& ShowFlags = CaptureComponent->ShowFlags;
 
@@ -115,12 +116,35 @@ UGTCapturer* UGTCapturer::Create(APawn* InPawn, FString Mode)
 		ShowFlags.SetMaterials(true);
 		ShowFlags.SetLighting(true);
 		ShowFlags.SetPostProcessing(true);
-		// ToneMapper needs to be enabled, or the screen will be very dark
 		ShowFlags.SetTonemapper(true);
+
+		// ToneMapper needs to be enabled, or the screen will be very dark
 		// TemporalAA needs to be disabled, otherwise the previous frame might contaminate current frame.
 		// Check: https://answers.unrealengine.com/questions/436060/low-quality-screenshot-after-setting-the-actor-pos.html for detail
 		// Viewport->EngineShowFlags.SetTemporalAA(false);
 		ShowFlags.SetTemporalAA(true);
+	}
+	else if (Mode == "object_mask") // For object mask
+	{ 
+		FEngineShowFlags& ShowFlags = CaptureComponent->ShowFlags;
+		ShowFlags.SetVertexColors(true);
+		ShowFlags.SetTonemapper(false);
+
+		ShowFlags.SetMaterials(false);
+		ShowFlags.SetLighting(false);
+		ShowFlags.SetBSPTriangles(true);
+		ShowFlags.SetVertexColors(true);
+		ShowFlags.SetPostProcessing(false);
+		ShowFlags.SetHMDDistortion(false);
+		ShowFlags.SetTonemapper(false); // This won't take effect here
+
+		GVertexColorViewMode = EVertexColorViewMode::Color;
+	}
+	else 
+	{
+		check(Material);
+		CaptureComponent->PostProcessSettings.AddBlendable(Material, 1);
+		CaptureComponent->ShowFlags.SetTonemapper(false);
 	}
 	return GTCapturer;
 }
