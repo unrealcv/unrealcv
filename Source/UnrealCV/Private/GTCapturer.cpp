@@ -4,14 +4,12 @@
 
 void InitCaptureComponent(USceneCaptureComponent2D* CaptureComponent)
 {
-	// Can not use ESceneCaptureSource::SCS_SceneColorHDR, this option will disable post-processing 
+	// Can not use ESceneCaptureSource::SCS_SceneColorHDR, this option will disable post-processing
 	CaptureComponent->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 
 	CaptureComponent->TextureTarget = NewObject<UTextureRenderTarget2D>();
 	CaptureComponent->TextureTarget->InitAutoFormat(640, 480); // TODO: Update this later
-	// GEngine->GetDisplayGamma(), the default gamma is 2.2
-	CaptureComponent->TextureTarget->TargetGamma = 1;
-	
+
 	CaptureComponent->RegisterComponentWithWorld(GWorld); // What happened for this?
 	// CaptureComponent->AddToRoot(); This is not necessary since it has been attached to the Pawn.
 }
@@ -49,12 +47,12 @@ void SavePng(UTextureRenderTarget2D* RenderTarget, FString Filename)
 	FFileHelper::SaveArrayToFile(HDRData, *Filename);
 }
 
-UMaterial* LoadMaterial(FString InModeName = TEXT(""))
+UMaterial* UGTCapturer::GetMaterial(FString InModeName = TEXT(""))
 {
 	// Load material for visualization
 	static TMap<FString, FString>* MaterialPathMap = nullptr;
 	if (MaterialPathMap == nullptr)
-	{ 
+	{
 		MaterialPathMap = new TMap<FString, FString>();
 		MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepth.SceneDepth'"));
 		MaterialPathMap->Add(TEXT("debug"), TEXT("Material'/UnrealCV/debug.debug'"));
@@ -93,58 +91,37 @@ UGTCapturer* UGTCapturer::Create(APawn* InPawn, FString Mode)
 	GTCapturer->AddToRoot();
 
 	// DEPRECATED_FORGAME(4.6, "CaptureComponent2D should not be accessed directly, please use GetCaptureComponent2D() function instead. CaptureComponent2D will soon be private and your code will not compile.")
-	USceneCaptureComponent2D* CaptureComponent = NewObject<USceneCaptureComponent2D>(); 
+	USceneCaptureComponent2D* CaptureComponent = NewObject<USceneCaptureComponent2D>();
 	GTCapturer->CaptureComponent = CaptureComponent;
-		
+
 	// CaptureComponent needs to be attached to somewhere immediately, otherwise it will be gc-ed
 	CaptureComponent->AttachTo(InPawn->GetRootComponent());
 	InitCaptureComponent(CaptureComponent);
 
-	UMaterial* Material = LoadMaterial(Mode);
+	UMaterial* Material = GetMaterial(Mode);
 	if (Mode == "lit") // For rendered images
 	{
 		FEngineShowFlags& ShowFlags = CaptureComponent->ShowFlags;
-
-		ApplyViewMode(VMI_Lit, true, ShowFlags);
-		ShowFlags.SetMaterials(true);
-		ShowFlags.SetLighting(true);
-		ShowFlags.SetPostProcessing(true);
-		ShowFlags.SetTonemapper(true);
-
-		// ToneMapper needs to be enabled, otherwise the screen will be very dark
-		// TemporalAA needs to be disabled, otherwise the previous frame might contaminate current frame.
-		// Check: https://answers.unrealengine.com/questions/436060/low-quality-screenshot-after-setting-the-actor-pos.html for detail
-		// Viewport->EngineShowFlags.SetTemporalAA(false);
-		ShowFlags.SetTemporalAA(true);
+		FViewMode::Lit(CaptureComponent->ShowFlags);
 	}
 	else if (Mode == "object_mask") // For object mask
-	{ 
-		FEngineShowFlags& ShowFlags = CaptureComponent->ShowFlags;
-		ShowFlags.SetVertexColors(true);
-		ShowFlags.SetTonemapper(false);
-
-		ShowFlags.SetMaterials(false);
-		ShowFlags.SetLighting(false);
-		ShowFlags.SetBSPTriangles(true);
-		ShowFlags.SetVertexColors(true);
-		ShowFlags.SetPostProcessing(false);
-		ShowFlags.SetHMDDistortion(false);
-		ShowFlags.SetTonemapper(false); // This won't take effect here
-
-		GVertexColorViewMode = EVertexColorViewMode::Color;
+	{
+		FViewMode::VertexColor(CaptureComponent->ShowFlags);
 	}
-	else 
+	else
 	{
 		check(Material);
+		FViewMode::PostProcess(CaptureComponent->ShowFlags);
+		// GEngine->GetDisplayGamma(), the default gamma is 2.2
+		CaptureComponent->TextureTarget->TargetGamma = 2.2;
 		CaptureComponent->PostProcessSettings.AddBlendable(Material, 1);
-		CaptureComponent->ShowFlags.SetTonemapper(false);
 	}
 	return GTCapturer;
 }
 
 UGTCapturer::UGTCapturer()
 {
-	LoadMaterial();
+	GetMaterial(); // Initialize the TMap
 	// bIsTicking = false;
 
 	// Create USceneCaptureComponent2D
@@ -171,7 +148,7 @@ bool UGTCapturer::Capture(FString InFilename)
 	// TODO: only enable USceneComponentCapture2D's rendering flag, when I require it to do so.
 }
 
-void UGTCapturer::Tick(float DeltaTime) // This tick function should be called by the scene instead of been 
+void UGTCapturer::Tick(float DeltaTime) // This tick function should be called by the scene instead of been
 {
 	// Update rotation of each frame
 	// from ab237f46dc0eee40263acbacbe938312eb0dffbb:CameraComponent.cpp:232

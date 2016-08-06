@@ -18,7 +18,7 @@ void FViewMode::Lit(FEngineShowFlags& ShowFlags)
 	ShowFlags.SetMaterials(true);
 	ShowFlags.SetLighting(true);
 	ShowFlags.SetPostProcessing(true);
-	// ToneMapper needs to be enabled, or the screen will be very dark
+	// ToneMapper needs to be enabled, otherwise the screen will be very dark
 	ShowFlags.SetTonemapper(true);
 	// TemporalAA needs to be disabled, otherwise the previous frame might contaminate current frame.
 	// Check: https://answers.unrealengine.com/questions/436060/low-quality-screenshot-after-setting-the-actor-pos.html for detail
@@ -36,6 +36,31 @@ void FViewMode::BufferVisualization(FEngineShowFlags& ShowFlags)
 	// EngineShowFlags.SetMaterials(false);
 	ShowFlags.SetMaterials(true);
 	ShowFlags.SetVisualizeBuffer(true);
+
+
+	//Viewport->EngineShowFlags.AmbientOcclusion = 0;
+	//Viewport->EngineShowFlags.ScreenSpaceAO = 0;
+	//Viewport->EngineShowFlags.Decals = 0;
+	//Viewport->EngineShowFlags.DynamicShadows = 0;
+	//Viewport->EngineShowFlags.GlobalIllumination = 0;
+	//Viewport->EngineShowFlags.ScreenSpaceReflections = 0;
+
+	// ToneMapper needs to be disabled
+	ShowFlags.SetTonemapper(false);
+	// TemporalAA needs to be disabled, or it will contaminate the following frame
+	ShowFlags.SetTemporalAA(false);
+}
+
+void FViewMode::PostProcess(FEngineShowFlags& ShowFlags)
+{
+	ApplyViewMode(EViewModeIndex::VMI_VisualizeBuffer, true, ShowFlags); // This did more than just SetVisualizeBuffer(true);
+	// EngineShowFlagOverride()
+
+	// From ShowFlags.cpp
+	ShowFlags.SetPostProcessing(true);
+	// EngineShowFlags.SetMaterials(false);
+	ShowFlags.SetMaterials(true);
+	ShowFlags.SetVisualizeBuffer(false);
 
 
 	//Viewport->EngineShowFlags.AmbientOcclusion = 0;
@@ -75,5 +100,3 @@ void FViewMode::Unlit(FEngineShowFlags& ShowFlags)
 	ShowFlags.SetLighting(false);
 	ShowFlags.SetAtmosphericFog(false);
 }
-
-

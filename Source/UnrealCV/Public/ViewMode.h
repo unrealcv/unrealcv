@@ -20,4 +20,6 @@ public:
 	static void VertexColor(FEngineShowFlags& ShowFlags);
 
 	static void Unlit(FEngineShowFlags& ShowFlags);
+
+	static void PostProcess(FEngineShowFlags& ShowFlags);
 };

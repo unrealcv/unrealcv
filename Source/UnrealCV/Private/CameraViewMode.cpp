@@ -8,10 +8,13 @@
 #include "Async.h"
 #include "SceneViewport.h"
 #include "ViewMode.h"
+#include "GTCapturer.h"
 
 #define REG_VIEW(COMMAND, DESC, DELEGATE) \
 		IConsoleManager::Get().RegisterConsoleCommand(TEXT(COMMAND), TEXT(DESC), \
 			FConsoleCommandWithWorldDelegate::CreateStatic(DELEGATE), ECVF_Default);
+
+DECLARE_DELEGATE(ViewModeFunc)
 
 FCameraViewMode::FCameraViewMode() : World(NULL), CurrentViewMode("lit") {}
 
@@ -96,6 +99,19 @@ void FCameraViewMode::DebugMode()
 	UGameViewportClient* GameViewportClient = World->GetGameViewport();
 	FSceneViewport* SceneViewport = GameViewportClient->GetGameViewport();
 	float DisplayGamma = SceneViewport->GetDisplayGamma();
+
+
+	static APostProcessVolume* PostProcessVolume;
+	if (PostProcessVolume == nullptr)
+	{
+		PostProcessVolume = GWorld->SpawnActor<APostProcessVolume>();
+		// PostProcessVolume = NewObject<APostProcessVolume>();
+		// PostProcessVolume->AddToRoot();
+		PostProcessVolume->bUnbound = true;
+		// PostProcessVolume->RegisterAllComponents();
+	}
+	UMaterial* Material = UGTCapturer::GetMaterial("debug");
+	PostProcessVolume->AddOrUpdateBlendable(Material);
 }
 
 void FCameraViewMode::Object()
@@ -106,58 +122,43 @@ void FCameraViewMode::Object()
 	FViewMode::VertexColor(Viewport->EngineShowFlags);
 }
 
-
 FExecStatus FCameraViewMode::SetMode(const TArray<FString>& Args) // Check input arguments
 {
 	UE_LOG(LogTemp, Warning, TEXT("Run SetMode %s"), *Args[0]);
 
+	static TMap<FString, ViewModeFunc>* ViewModeHandlers;
+
+	if (ViewModeHandlers == nullptr)
+	{
+		ViewModeHandlers = new TMap<FString, ViewModeFunc>();
+		ViewModeHandlers->Add(TEXT("depth"), ViewModeFunc::CreateRaw(this, &FCameraViewMode::Depth));
+		ViewModeHandlers->Add(TEXT("normal"), ViewModeFunc::CreateRaw(this, &FCameraViewMode::Normal));
+		ViewModeHandlers->Add(TEXT("object_mask"), ViewModeFunc::CreateRaw(this, &FCameraViewMode::Object));
+		ViewModeHandlers->Add(TEXT("lit"), ViewModeFunc::CreateRaw(this, &FCameraViewMode::Lit));
+		ViewModeHandlers->Add(TEXT("unlit"), ViewModeFunc::CreateRaw(this, &FCameraViewMode::Unlit));
+		ViewModeHandlers->Add(TEXT("base_color"), ViewModeFunc::CreateRaw(this, &FCameraViewMode::BaseColor));
+		ViewModeHandlers->Add(TEXT("debug"), ViewModeFunc::CreateRaw(this, &FCameraViewMode::DebugMode));
+	}
+
 	// Check args
 	if (Args.Num() == 1)
 	{
+
 		FString ViewMode = Args[0].ToLower();
 		bool bSuccess = true;
-		if (ViewMode == "depth")
+
+		ViewModeFunc* Func = ViewModeHandlers->Find(ViewMode);
+		if (Func)
 		{
-			Depth();
-		}
-		else if (ViewMode == "depth1")
-		{
-			DepthWorldUnits();
-		}
-		else if (ViewMode == "normal")
-		{
-			Normal();
-		}
-		else if (ViewMode == "object_mask")
-		{
-			Object();
-		}
-		else if (ViewMode == "lit")
-		{
-			Lit();
-		}
-		else if (ViewMode == "unlit")
-		{
-			Unlit();
-		}
-		else if (ViewMode == "base_color")
-		{
-			BaseColor();
-		}
-		else if (ViewMode == "debug")
-		{
-			DebugMode();
+			Func->Execute();
+			CurrentViewMode = ViewMode;
+			return FExecStatus::OK();
 		}
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Unrecognized ViewMode %s"), *ViewMode);
 			bSuccess = false;
 			return FExecStatus::Error(FString::Printf(TEXT("Can not set ViewMode to %s"), *ViewMode));
-		}
-		if (bSuccess)
-		{
-			CurrentViewMode = ViewMode;
-			return FExecStatus::OK();
 		}
 	}
 	// Send successful message back
