@@ -5,6 +5,7 @@
 #include "ImageUtils.h"
 #include "ImageWrapper.h"
 #include "GTCapturer.h"
+#include "PlayerViewMode.h"
 
 /**
   * Where to put cameras
@@ -73,10 +74,10 @@ void FCameraCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraProjMatrix);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/proj_matrix", Cmd, "Get projection matrix");
 
-	Cmd = FDispatcherDelegate::CreateRaw(&FCameraViewMode::Get(), &FCameraViewMode::SetMode);
+	Cmd = FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::SetMode);
 	CommandDispatcher->BindCommand("vset /mode [str]", Cmd, "Set mode"); // Better to check the correctness at compile time
 
-	Cmd = FDispatcherDelegate::CreateRaw(&FCameraViewMode::Get(), &FCameraViewMode::GetMode);
+	Cmd = FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::GetMode);
 	CommandDispatcher->BindCommand("vget /mode", Cmd, "Get mode");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetBuffer);

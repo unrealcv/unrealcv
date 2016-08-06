@@ -2,7 +2,7 @@
 
 // #include "RealisticRendering.h"
 #include "UnrealCVPrivate.h"
-#include "CameraViewMode.h"
+#include "PlayerViewMode.h"
 #include "BufferVisualizationData.h"
 #include "CommandDispatcher.h"
 #include "Async.h"
@@ -16,19 +16,27 @@
 
 DECLARE_DELEGATE(ViewModeFunc)
 
-FCameraViewMode::FCameraViewMode() : World(NULL), CurrentViewMode("lit") {}
+FPlayerViewMode::FPlayerViewMode() : World(NULL), CurrentViewMode("lit") {
+	// static APostProcessVolume* PostProcessVolume;
+	if (PostProcessVolume == nullptr)
+	{
+		PostProcessVolume = GWorld->SpawnActor<APostProcessVolume>();
+		// PostProcessVolume = NewObject<APostProcessVolume>();
+		// PostProcessVolume->AddToRoot();
+		PostProcessVolume->bUnbound = true;
+		// PostProcessVolume->RegisterAllComponents();
+	}
+}
 
-FCameraViewMode::~FCameraViewMode() {}
+FPlayerViewMode::~FPlayerViewMode() {}
 
-FCameraViewMode& FCameraViewMode::Get()
+FPlayerViewMode& FPlayerViewMode::Get()
 {
-	static FCameraViewMode Singleton;
+	static FPlayerViewMode Singleton;
 	return Singleton;
 }
 
-
-
-void FCameraViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
+void FPlayerViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 {
 	check(World);
 
@@ -52,47 +60,53 @@ void FCameraViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 	// The ICVar can only be set in GameThread, the CommandDispatcher already enforce this requirement.
 }
 
-void FCameraViewMode::DepthWorldUnits()
+void FPlayerViewMode::DepthWorldUnits()
 {
 	UGameViewportClient* Viewport = GWorld->GetGameViewport();
 	FViewMode::BufferVisualization(Viewport->EngineShowFlags);
 	SetCurrentBufferVisualizationMode(TEXT("SceneDepthWorldUnits"));
 }
 
-void FCameraViewMode::Depth()
+void FPlayerViewMode::Depth()
 {
 	UGameViewportClient* Viewport = GWorld->GetGameViewport();
 	FViewMode::BufferVisualization(Viewport->EngineShowFlags);
 	SetCurrentBufferVisualizationMode(TEXT("SceneDepth"));
 }
 
-void FCameraViewMode::Normal()
+void FPlayerViewMode::Normal()
 {
 	UGameViewportClient* Viewport = GWorld->GetGameViewport();
 	FViewMode::BufferVisualization(Viewport->EngineShowFlags);
 	SetCurrentBufferVisualizationMode(TEXT("WorldNormal"));
 }
 
-void FCameraViewMode::BaseColor()
+void FPlayerViewMode::BaseColor()
 {
 	SetCurrentBufferVisualizationMode(TEXT("BaseColor"));
 }
 
-void FCameraViewMode::Lit()
+void FPlayerViewMode::Lit()
 {
 	check(World);
+	this->ClearPostProcess();
 	auto Viewport = World->GetGameViewport();
 	FViewMode::Lit(Viewport->EngineShowFlags);
 }
 
-void FCameraViewMode::Unlit()
+void FPlayerViewMode::Unlit()
 {
 	check(World);
 	auto Viewport = World->GetGameViewport();
 	FViewMode::Unlit(Viewport->EngineShowFlags);
 }
 
-void FCameraViewMode::DebugMode()
+void FPlayerViewMode::ClearPostProcess()
+{
+	this->PostProcessVolume->BlendWeight = 0;
+}
+
+void FPlayerViewMode::DebugMode()
 {
 	// float DisplayGamma = FRenderTarget::GetDisplayGamma();
 	// GetDisplayGamma();
@@ -101,20 +115,28 @@ void FCameraViewMode::DebugMode()
 	float DisplayGamma = SceneViewport->GetDisplayGamma();
 
 
-	static APostProcessVolume* PostProcessVolume;
-	if (PostProcessVolume == nullptr)
-	{
-		PostProcessVolume = GWorld->SpawnActor<APostProcessVolume>();
-		// PostProcessVolume = NewObject<APostProcessVolume>();
-		// PostProcessVolume->AddToRoot();
-		PostProcessVolume->bUnbound = true;
-		// PostProcessVolume->RegisterAllComponents();
-	}
+	GameViewportClient->EngineShowFlags = FEngineShowFlags(EShowFlagInitMode::ESFIM_All0);
+	FViewMode::PostProcess(GameViewportClient->EngineShowFlags);
+	// GameViewportClient->EngineShowFlags.VisualizeBuffer = true;
+
 	UMaterial* Material = UGTCapturer::GetMaterial("debug");
 	PostProcessVolume->AddOrUpdateBlendable(Material);
+	PostProcessVolume->BlendWeight = 1;
+	/*
+	FEngineShowFlags& ShowFlags = GameViewportClient->EngineShowFlags;
+	// ShowFlags = FEngineShowFlags(EShowFlagInitMode::ESFIM_All0);
+
+	// FViewMode::Lit(CaptureComponent->ShowFlags);
+	// CaptureComponent->ShowFlags.DisableAdvancedFeatures();
+	ShowFlags.Rendering = true;
+	ShowFlags.PostProcessing = true;
+	ShowFlags.PostProcessMaterial = true;
+	ShowFlags.StaticMeshes = true;
+
+	*/
 }
 
-void FCameraViewMode::Object()
+void FPlayerViewMode::Object()
 {
 	check(World);
 
@@ -122,7 +144,7 @@ void FCameraViewMode::Object()
 	FViewMode::VertexColor(Viewport->EngineShowFlags);
 }
 
-FExecStatus FCameraViewMode::SetMode(const TArray<FString>& Args) // Check input arguments
+FExecStatus FPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input arguments
 {
 	UE_LOG(LogTemp, Warning, TEXT("Run SetMode %s"), *Args[0]);
 
@@ -131,13 +153,13 @@ FExecStatus FCameraViewMode::SetMode(const TArray<FString>& Args) // Check input
 	if (ViewModeHandlers == nullptr)
 	{
 		ViewModeHandlers = new TMap<FString, ViewModeFunc>();
-		ViewModeHandlers->Add(TEXT("depth"), ViewModeFunc::CreateRaw(this, &FCameraViewMode::Depth));
-		ViewModeHandlers->Add(TEXT("normal"), ViewModeFunc::CreateRaw(this, &FCameraViewMode::Normal));
-		ViewModeHandlers->Add(TEXT("object_mask"), ViewModeFunc::CreateRaw(this, &FCameraViewMode::Object));
-		ViewModeHandlers->Add(TEXT("lit"), ViewModeFunc::CreateRaw(this, &FCameraViewMode::Lit));
-		ViewModeHandlers->Add(TEXT("unlit"), ViewModeFunc::CreateRaw(this, &FCameraViewMode::Unlit));
-		ViewModeHandlers->Add(TEXT("base_color"), ViewModeFunc::CreateRaw(this, &FCameraViewMode::BaseColor));
-		ViewModeHandlers->Add(TEXT("debug"), ViewModeFunc::CreateRaw(this, &FCameraViewMode::DebugMode));
+		ViewModeHandlers->Add(TEXT("depth"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::Depth));
+		ViewModeHandlers->Add(TEXT("normal"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::Normal));
+		ViewModeHandlers->Add(TEXT("object_mask"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::Object));
+		ViewModeHandlers->Add(TEXT("lit"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::Lit));
+		ViewModeHandlers->Add(TEXT("unlit"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::Unlit));
+		ViewModeHandlers->Add(TEXT("base_color"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::BaseColor));
+		ViewModeHandlers->Add(TEXT("debug"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::DebugMode));
 	}
 
 	// Check args
@@ -167,7 +189,7 @@ FExecStatus FCameraViewMode::SetMode(const TArray<FString>& Args) // Check input
 }
 
 
-FExecStatus FCameraViewMode::GetMode(const TArray<FString>& Args) // Check input arguments
+FExecStatus FPlayerViewMode::GetMode(const TArray<FString>& Args) // Check input arguments
 {
 	UE_LOG(LogTemp, Warning, TEXT("Run GetMode, The mode is %s"), *CurrentViewMode);
 	return FExecStatus::OK(CurrentViewMode);
