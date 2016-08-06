@@ -5,6 +5,7 @@
 #include "ImageUtils.h"
 #include "ImageWrapper.h"
 #include "GTCapturer.h"
+#include "PlayerViewMode.h"
 
 /**
   * Where to put cameras
@@ -70,38 +71,13 @@ void FCameraCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::SetCameraRotation);
 	CommandDispatcher->BindCommand("vset /camera/[uint]/rotation [float] [float] [float]", Cmd, "Set camera rotation");
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraView);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/view", Cmd, "Get snapshot from camera, the second parameter is optional"); // Take a screenshot and return filename
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraView);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/view [str]", Cmd, "Get snapshot from camera, the second parameter is optional"); // Take a screenshot and return filename
-
-	/*
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraHDR);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/hdr", Cmd, "Get hdr capture from camera, the second parameter is optional"); // Take a screenshot and return filename
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraDepth);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/depth [str]", Cmd, "Get depth from camera, the second parameter is filename");
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraDepth);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/depth", Cmd, "Get depth from camera");
-	*/
-
-	/*
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraLit);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/lit [str]", Cmd, "Get depth from camera");
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraLit);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/lit", Cmd, "Get depth from camera");
-	*/
-
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraProjMatrix);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/proj_matrix", Cmd, "Get projection matrix");
 
-	Cmd = FDispatcherDelegate::CreateRaw(&FCameraViewMode::Get(), &FCameraViewMode::SetMode);
+	Cmd = FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::SetMode);
 	CommandDispatcher->BindCommand("vset /mode [str]", Cmd, "Set mode"); // Better to check the correctness at compile time
 
-	Cmd = FDispatcherDelegate::CreateRaw(&FCameraViewMode::Get(), &FCameraViewMode::GetMode);
+	Cmd = FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::GetMode);
 	CommandDispatcher->BindCommand("vget /mode", Cmd, "Get mode");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetBuffer);
@@ -328,19 +304,6 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 		FString CameraId = Args[0];
 		FString ViewMode = Args[1];
 
-		/*
-		// TODO: Disable buffer visualization
-		static IConsoleVariable* ICVar1 = IConsoleManager::Get().FindConsoleVariable(TEXT("r.BufferVisualizationDumpFrames"));
-		// r.BufferVisualizationDumpFramesAsHDR
-		ICVar1->Set(0, ECVF_SetByCode);
-		static IConsoleVariable* ICVar2 = IConsoleManager::Get().FindConsoleVariable(TEXT("r.BufferVisualizationDumpFramesAsHDR"));
-		ICVar2->Set(0, ECVF_SetByCode);
-		*/
-
-
-		// Use command dispatcher is more universal
-		// FExecStatus ExecStatus = CommandDispatcher->Exec(FString::Printf(TEXT("vset /mode %s"), *ViewMode));
-
 		FString Filename;
 		if (Args.Num() == 3)
 		{
@@ -374,7 +337,7 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 	return FExecStatus::InvalidArgument;
 }
 
-FExecStatus FCameraCommandHandler::GetCameraView(const TArray<FString>& Args)
+FExecStatus FCameraCommandHandler::GetCameraScreenshot(const TArray<FString>& Args)
 {
 	if (Args.Num() <= 2)
 	{
@@ -408,182 +371,16 @@ FExecStatus FCameraCommandHandler::GetBuffer(const TArray<FString>& Args)
 	static IConsoleVariable* ICVar2 = IConsoleManager::Get().FindConsoleVariable(TEXT("r.BufferVisualizationDumpFramesAsHDR"));
 	ICVar2->Set(1, ECVF_SetByCode);
 
-
 	/*
 	FHighResScreenshotConfig Config = GetHighResScreenshotConfig();
 	Config.bCaptureHDR = true;
 	Config.bDumpBufferVisualizationTargets = true;
 	*/
 
-	// UGameViewportClient* GameViewportClient = this->GetWorld()->GetGameViewport();
-	// GameViewportClient->EngineShowFlags.VisualizeBuffer = true;
-
 	GIsHighResScreenshot = true;
-
-	/*
-	FString ViewMode = "SceneDepth";
-	static IConsoleVariable* ICVar = IConsoleManager::Get().FindConsoleVariable(FBufferVisualizationData::GetVisualizationTargetConsoleCommandName());
-	if (ICVar)
-	{
-		ICVar->Set(*ViewMode, ECVF_SetByCode); // TODO: Should wait here for a moment.
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("The BufferVisualization is not correctly configured."));
-	}
-	*/
 
 	// Get the viewport
 	// FSceneViewport* SceneViewport = this->GetWorld()->GetGameViewport()->GetGameViewport();
 	// SceneViewport->TakeHighResScreenShot();
-
-	// OnFire();
-	// return FExecStatus::InvalidArgument;
 	return FExecStatus::OK();
 }
-
-/*
-FExecStatus FCameraCommandHandler::GetCameraHDR(const TArray<FString>& Args)
-{
-	return FExecStatus::OK();
-}
-*/
-
-/*
-FExecStatus FCameraCommandHandler::GetCameraDepth(const TArray<FString>& Args)
-{
-	if (Args.Num() <= 2)
-	{
-		FString CameraId = Args[0];
-		FString Filename;
-		if (Args.Num() == 1)
-		{
-			Filename = GenerateFilename();
-		}
-		if (Args.Num() == 2)
-		{
-			Filename = Args[1];
-		}
-		UGTCapturer* GTCapturer = GTCapturers.FindRef(TEXT("depth"));
-		GTCapturer->Capture(*Filename);
-
-		// TODO: Check IsPending is problematic.
-		FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([Filename, GTCapturer]()
-		{
-			if (GTCapturer->IsPending())
-			{
-				return FExecStatus::Pending();
-			}
-			else
-			{
-				
-				return FExecStatus::OK(GetDiskFilename(Filename));
-			}
-
-		});
-		return FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
-	}
-	return FExecStatus::InvalidArgument;
-}
-*/
-
-/*
-FExecStatus FCameraCommandHandler::GetCameraLit(const TArray<FString>& Args)
-{
-	if (Args.Num() <= 2)
-	{
-		FString CameraId = Args[0];
-		FString Filename;
-		if (Args.Num() == 1)
-		{
-			Filename = GenerateFilename();
-		}
-		if (Args.Num() == 2)
-		{
-			Filename = Args[1];
-		}
-		UGTCapturer* GTCapturer = GTCapturers.FindRef(TEXT(""));
-		GTCapturer->Capture(*Filename);
-
-		// TODO: Check IsPending is problematic.
-		FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([Filename, GTCapturer]()
-		{
-			if (GTCapturer->IsPending())
-			{
-				return FExecStatus::Pending();
-			}
-			else
-			{
-				return FExecStatus::OK(GetDiskFilename(Filename));
-			}
-
-		});
-		return FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
-	}
-	return FExecStatus::InvalidArgument;
-}
-*/
-
-/*
-FExecStatus FCameraCommandHandler::GetCameraHDR(const TArray<FString>& Args)
-{
-	if (Args.Num() <= 2)
-	{
-		int32 CameraId = FCString::Atoi(*Args[0]);
-		static uint32 NumCaptured = 0;
-
-		FString FullFilename, Filename;
-		if (Args.Num() == 1)
-		{
-			NumCaptured++;
-			Filename = FString::Printf(TEXT("%04d.exr"), NumCaptured);
-		}
-		if (Args.Num() == 2)
-		{
-			Filename = Args[1];
-		}
-		const FString Dir = FPlatformProcess::BaseDir(); // TODO: Change this to screen capture folder
-		// const FString Dir = FPaths::ScreenShotDir();
-		FullFilename = FPaths::Combine(*Dir, *Filename);
-
-		// USceneCaptureComponent2D* CaptureComponent =  CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("CaptureComponent"));
-		// See: SceneCapture2D.h:19
-		// DEPRECATED_FORGAME(4.6, "CaptureComponent2D should not be accessed directly, please use GetCaptureComponent2D() function instead. CaptureComponent2D will soon be private and your code will not compile.")
-		USceneCaptureComponent2D* CaptureComponent = NewObject<USceneCaptureComponent2D>();
-		CaptureComponent->TextureTarget = NewObject<UTextureRenderTarget2D>();
-		// Check: SceneCaptureRendering.cpp
-		// CaptureComponent->TextureTarget
-
-		CaptureComponent->RegisterComponentWithWorld(GWorld);
-		CaptureComponent->AddToRoot();
-
-		IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
-		IImageWrapperPtr ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG);
-
-
-		int Width = 640, Height = 480;
-		TArray<FColor> Image;
-		Image.AddZeroed(Width * Height);
-
-
-		// This is for png
-		auto Data = Image.GetData();
-		auto Size = Image.GetAllocatedSize();
-
-		// According to ab237f46dc0eee40263acbacbe938312eb0dffbb/LevelTick.cpp:1341, need to wait tick of the scene, then the RenderTarget will be filled.
-
-		FlushRenderingCommands();
-		// Read SurfaceData
-		// SCOPE_CYCLE_COUNTER, to evaluate performance
-		FTextureRenderTargetResource* RenderTarget = CaptureComponent->TextureTarget->GameThread_GetRenderTargetResource();
-		RenderTarget->ReadPixels(Image);
-
-
-		ImageWrapper->SetRaw(Data, Size, Width, Height, ERGBFormat::BGRA, 8);
-		const TArray<uint8>& PngData = ImageWrapper->GetCompressed(100);
-		FFileHelper::SaveArrayToFile(PngData, *FullFilename);
-
-	}
-	return FExecStatus::InvalidArgument;
-}
-*/

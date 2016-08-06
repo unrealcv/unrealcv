@@ -19,6 +19,8 @@ public:
 	/** If Mode = "", Save normal image */
 	static UGTCapturer* Create(APawn* Pawn, FString Mode=TEXT(""));
 
+	static UMaterial* GetMaterial(FString ModeName);
+
 	virtual void Tick(float DeltaTime) override; // TODO
 
 	virtual bool IsTickable() const // whether this object will be ticked?

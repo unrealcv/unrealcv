@@ -7,6 +7,5 @@
 #include "UE4CVServer.h"
 #include "UE4CVCharacter.h"
 #include "UE4CVPawn.h"
-#include "CameraViewMode.h"
 #include "ObjectPainter.h"
 #include "ViewMode.h"

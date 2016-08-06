@@ -23,7 +23,7 @@ public:
 	/** vset /camera/rotation */
 	FExecStatus	SetCameraRotation(const TArray<FString>& Args);
 	/** vget /camera/view */
-	FExecStatus GetCameraView(const TArray<FString>& Args);
+	FExecStatus GetCameraScreenshot(const TArray<FString>& Args);
 
 	/** Deprecated: Get camera view in a sync way, can not work in standalone mode */
 	FExecStatus GetCameraViewSync(const FString& Fullfilename);

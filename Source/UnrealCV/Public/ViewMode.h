@@ -1,24 +1,25 @@
 #pragma once
 #include "Engine.h"
 
+/**
+ * A helper class to set EngineShowFlags
+ */
 class UNREALCV_API FViewMode
 {
 public:
-	FViewMode(FEngineShowFlags& InShowFlags) : ShowFlags(InShowFlags)
-	{
-	}
+	static void VisDepth(FEngineShowFlags& ShowFlags);
 
-	void VisDepth();
+	static void Depth(FEngineShowFlags& ShowFlags);
 
-	void Depth();
+	static void Normal(FEngineShowFlags& ShowFlags);
 
-	/*
-	void Normal();
+	static void Lit(FEngineShowFlags& ShowFlags);
 
-	void Lit();
-	*/
-private:
-	FEngineShowFlags& ShowFlags;
+	static void BufferVisualization(FEngineShowFlags& ShowFlags);
 
-	void SetCurrentBufferVisualizationMode(FString ViewMode);
+	static void VertexColor(FEngineShowFlags& ShowFlags);
+
+	static void Unlit(FEngineShowFlags& ShowFlags);
+
+	static void PostProcess(FEngineShowFlags& ShowFlags);
 };
