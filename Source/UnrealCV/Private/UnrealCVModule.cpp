@@ -1,6 +1,6 @@
 #include "UnrealCVPrivate.h"
 
-class FUnrealCVPlugin : public IUnrealCVPlugin
+class FUnrealCVPlugin : public IModuleInterface
 {
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
