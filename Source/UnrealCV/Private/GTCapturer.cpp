@@ -89,8 +89,12 @@ UGTCapturer* UGTCapturer::Create(APawn* InPawn, FString Mode)
 {
 	UGTCapturer* GTCapturer = NewObject<UGTCapturer>();
 
-	GTCapturer->Pawn = InPawn;
-	GTCapturer->AddToRoot();
+	GTCapturer->bIsActive = true;
+	// check(GTCapturer->IsComponentTickEnabled() == true);
+	GTCapturer->Pawn = InPawn; // This GTCapturer should depend on the Pawn and be released together with the Pawn.
+	GTCapturer->AttachTo(InPawn->GetRootComponent());
+	// GTCapturer->AddToRoot();
+	GTCapturer->RegisterComponentWithWorld(GWorld);
 
 	// DEPRECATED_FORGAME(4.6, "CaptureComponent2D should not be accessed directly, please use GetCaptureComponent2D() function instead. CaptureComponent2D will soon be private and your code will not compile.")
 	USceneCaptureComponent2D* CaptureComponent = NewObject<USceneCaptureComponent2D>();
@@ -132,6 +136,7 @@ UGTCapturer* UGTCapturer::Create(APawn* InPawn, FString Mode)
 UGTCapturer::UGTCapturer()
 {
 	GetMaterial(); // Initialize the TMap
+	PrimaryComponentTick.bCanEverTick = true;
 	// bIsTicking = false;
 
 	// Create USceneCaptureComponent2D
@@ -158,10 +163,12 @@ bool UGTCapturer::Capture(FString InFilename)
 	// TODO: only enable USceneComponentCapture2D's rendering flag, when I require it to do so.
 }
 
-void UGTCapturer::Tick(float DeltaTime) // This tick function should be called by the scene instead of been
+void UGTCapturer::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+// void UGTCapturer::Tick(float DeltaTime) // This tick function should be called by the scene instead of been
 {
 	// Update rotation of each frame
 	// from ab237f46dc0eee40263acbacbe938312eb0dffbb:CameraComponent.cpp:232
+	check(this->Pawn); // this GTCapturer should be released, if the Pawn is deleted.
 	const APawn* OwningPawn = this->Pawn;
 	const AController* OwningController = OwningPawn ? OwningPawn->GetController() : nullptr;
 	if (OwningController && OwningController->IsLocalPlayerController())

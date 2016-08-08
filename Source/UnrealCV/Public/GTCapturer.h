@@ -6,7 +6,7 @@
  * This class needs to be tickable to update the rotation of the USceneCaptureComponent2D 
  */
 UCLASS()
-class UNREALCV_API UGTCapturer : public UObject, public FTickableGameObject
+class UNREALCV_API UGTCapturer : public USceneComponent // , public FTickableGameObject
 {
 	GENERATED_BODY()
 private:
@@ -21,8 +21,10 @@ public:
 
 	static UMaterial* GetMaterial(FString ModeName);
 
-	virtual void Tick(float DeltaTime) override; // TODO
+	// virtual void Tick(float DeltaTime) override; // TODO
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override; // TODO
 
+	/*
 	virtual bool IsTickable() const // whether this object will be ticked?
 	{
 		return bIsTicking;
@@ -35,6 +37,7 @@ public:
 	{
 		RETURN_QUICK_DECLARE_CYCLE_STAT(UGTCapturer, STATGROUP_Tickables);
 	}
+	*/
 	bool IsPending()
 	{
 		return bIsPending;
