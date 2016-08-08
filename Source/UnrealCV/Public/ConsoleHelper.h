@@ -7,16 +7,18 @@
 /**
  * Helper class to bind UnrealCV commands to Unreal Engine console
  */
-class UNREALCV_API FConsoleHelper
+class FConsoleHelper
 {
 public:
-	FConsoleHelper(FCommandDispatcher* CommandDispatcher, FConsoleOutputDevice* ConsoleOutputDevice);
-	~FConsoleHelper();
+	// FConsoleHelper(FCommandDispatcher* CommandDispatcher);
+	static FConsoleHelper& Get();
+	void SetCommandDispatcher(FCommandDispatcher* CommandDispatcher);
 
 private:
+	FConsoleHelper();
 	/** The exec result of CommandDispatcher will be written to FConsoleOutputDevice */
 	FConsoleOutputDevice* ConsoleOutputDevice;
-	
+
 	/** The command from UE4 console will be sent to CommandDispatcher for execution */
 	FCommandDispatcher* CommandDispatcher;
 

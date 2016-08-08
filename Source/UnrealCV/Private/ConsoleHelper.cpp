@@ -4,10 +4,9 @@
 #include "UnrealCVPrivate.h"
 #include "ConsoleHelper.h"
 
-FConsoleHelper::FConsoleHelper(FCommandDispatcher* InCommandDispatcher, FConsoleOutputDevice* InConsoleOutputDevice)
+FConsoleHelper::FConsoleHelper()
 {
-	this->CommandDispatcher = InCommandDispatcher;
-	this->ConsoleOutputDevice = InConsoleOutputDevice;
+	this->ConsoleOutputDevice = new FConsoleOutputDevice(GWorld->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
 	// Add Unreal Console Support
 	IConsoleObject* VGetCmd = IConsoleManager::Get().RegisterConsoleCommand(
 		TEXT("vget"),
@@ -28,12 +27,23 @@ FConsoleHelper::FConsoleHelper(FCommandDispatcher* InCommandDispatcher, FConsole
 		);
 }
 
-FConsoleHelper::~FConsoleHelper()
+FConsoleHelper& FConsoleHelper::Get()
 {
+	static FConsoleHelper Singleton;
+	return Singleton;
+}
+
+void FConsoleHelper::SetCommandDispatcher(FCommandDispatcher* InCommandDispatcher)
+{
+	this->CommandDispatcher = InCommandDispatcher;
 }
 
 void FConsoleHelper::VRun(const TArray<FString>& Args)
 {
+	if (CommandDispatcher == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("CommandDispatcher not set"));
+	}
 	// Provide support to alias
 	if (Args.Num() == 1)
 	{
@@ -50,6 +60,10 @@ void FConsoleHelper::VRun(const TArray<FString>& Args)
 
 void FConsoleHelper::VGet(const TArray<FString>& Args)
 {
+	if (CommandDispatcher == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("CommandDispatcher not set"));
+	}
 	// TODO: Is there any way to know which command trigger this handler?
 	// Join string
 	FString Cmd = "vget ";
@@ -70,19 +84,22 @@ void FConsoleHelper::VGet(const TArray<FString>& Args)
 
 void FConsoleHelper::VSet(const TArray<FString>& Args)
 {
+	if (CommandDispatcher == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("CommandDispatcher not set"));
+	}
 	FString Cmd = "vset ";
 	uint32 NumArgs = Args.Num();
-	if (NumArgs == 0) return; 
+	if (NumArgs == 0) return;
 
 	for (uint32 ArgIndex = 0; ArgIndex < NumArgs-1; ArgIndex++)
 	{
 		Cmd += Args[ArgIndex] + " ";
 	}
-	Cmd += Args[NumArgs-1]; 
+	Cmd += Args[NumArgs-1];
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
 	// Output result to the console
 	UE_LOG(LogTemp, Warning, TEXT("vset helper function, the real command is %s"), *Cmd);
 	UE_LOG(LogTemp, Warning, TEXT("%s"), *ExecStatus.GetMessage());
 	ConsoleOutputDevice->Log(ExecStatus.GetMessage());
 }
-
