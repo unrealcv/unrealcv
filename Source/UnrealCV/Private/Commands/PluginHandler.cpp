@@ -1,5 +1,5 @@
 #include "UnrealCVPrivate.h"
-#include "CommandHandler.h"
+#include "PluginHandler.h"
 #include "UE4CVServer.h"
 
 void FPluginCommandHandler::RegisterCommands()
