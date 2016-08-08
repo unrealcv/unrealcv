@@ -52,11 +52,6 @@ FString GenerateFilename()
 	return Filename;
 }
 
-FString GetDiskFilename(FString Filename)
-{
-	FString DiskFilename = IFileManager::Get().GetFilenameOnDisk(*Filename); // This is important
-	return DiskFilename;
-}
 
 void FCameraCommandHandler::RegisterCommands()
 {
