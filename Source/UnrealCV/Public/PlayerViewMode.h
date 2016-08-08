@@ -21,11 +21,9 @@ public:
 	void DebugMode();
 	FExecStatus SetMode(const TArray<FString>& Args); // Check input arguments
 	FExecStatus GetMode(const TArray<FString>& Args);
-	void SetWorld(UWorld* InWorld) { World = InWorld; }
 private:
 	void SetCurrentBufferVisualizationMode(FString ViewMode);
 	FPlayerViewMode();
-	UWorld* World;
 	FString CurrentViewMode;
 	APostProcessVolume* PostProcessVolume = nullptr;
 	void ClearPostProcess();

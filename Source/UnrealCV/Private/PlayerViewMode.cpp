@@ -10,13 +10,9 @@
 #include "ViewMode.h"
 #include "GTCapturer.h"
 
-#define REG_VIEW(COMMAND, DESC, DELEGATE) \
-		IConsoleManager::Get().RegisterConsoleCommand(TEXT(COMMAND), TEXT(DESC), \
-			FConsoleCommandWithWorldDelegate::CreateStatic(DELEGATE), ECVF_Default);
-
 DECLARE_DELEGATE(ViewModeFunc)
 
-FPlayerViewMode::FPlayerViewMode() : World(NULL), CurrentViewMode("lit") {
+FPlayerViewMode::FPlayerViewMode() : CurrentViewMode("lit") {
 	// static APostProcessVolume* PostProcessVolume;
 	if (PostProcessVolume == nullptr)
 	{
@@ -38,8 +34,6 @@ FPlayerViewMode& FPlayerViewMode::Get()
 
 void FPlayerViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 {
-	check(World);
-
 	// A complete list can be found from Engine/Config/BaseEngine.ini, Engine.BufferVisualizationMaterials
 	// TODO: BaseColor is weird, check BUG.
 	// No matter in which thread, ICVar needs to be set in the GameThread
@@ -88,16 +82,14 @@ void FPlayerViewMode::BaseColor()
 
 void FPlayerViewMode::Lit()
 {
-	check(World);
 	this->ClearPostProcess();
-	auto Viewport = World->GetGameViewport();
+	auto Viewport = GWorld->GetGameViewport();
 	FViewMode::Lit(Viewport->EngineShowFlags);
 }
 
 void FPlayerViewMode::Unlit()
 {
-	check(World);
-	auto Viewport = World->GetGameViewport();
+	auto Viewport = GWorld->GetGameViewport();
 	FViewMode::Unlit(Viewport->EngineShowFlags);
 }
 
@@ -110,7 +102,7 @@ void FPlayerViewMode::DebugMode()
 {
 	// float DisplayGamma = FRenderTarget::GetDisplayGamma();
 	// GetDisplayGamma();
-	UGameViewportClient* GameViewportClient = World->GetGameViewport();
+	UGameViewportClient* GameViewportClient = GWorld->GetGameViewport();
 	FSceneViewport* SceneViewport = GameViewportClient->GetGameViewport();
 	float DisplayGamma = SceneViewport->GetDisplayGamma();
 
@@ -138,9 +130,9 @@ void FPlayerViewMode::DebugMode()
 
 void FPlayerViewMode::Object()
 {
-	check(World);
+	check(GWorld);
 
-	auto Viewport = World->GetGameViewport();
+	auto Viewport = GWorld->GetGameViewport();
 	FViewMode::VertexColor(Viewport->EngineShowFlags);
 }
 
