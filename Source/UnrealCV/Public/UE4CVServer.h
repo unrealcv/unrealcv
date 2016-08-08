@@ -21,9 +21,9 @@ public:
 	FPendingTask(FPromise InPromise, uint32 InRequestId) : Promise(InPromise), RequestId(InRequestId), Active(true) {}
 	FPendingTask() : Active(false) {}
 	FExecStatus CheckStatus() { return Promise.CheckStatus();  }
-	bool Active;
 	FPromise Promise;
 	uint32 RequestId;
+	bool Active;
 };
 
 /**

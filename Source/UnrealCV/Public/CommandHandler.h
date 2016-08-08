@@ -10,8 +10,8 @@ public:
 	virtual void RegisterCommands() {};
 	virtual ~FCommandHandler() {};
 protected:
-	FCommandDispatcher* CommandDispatcher;
 	APawn* Character;
+	FCommandDispatcher* CommandDispatcher;
 };
 
 class FObjectCommandHandler : public FCommandHandler
