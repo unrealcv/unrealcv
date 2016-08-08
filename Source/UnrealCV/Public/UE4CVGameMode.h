@@ -32,8 +32,8 @@ public:
 };
 
 /**
-  * UE4CVCharacter acts like a walking human
-  */
+ * UE4CVCharacter acts like a walking human
+ */
 UCLASS()
 class UNREALCV_API AUE4CVCharacter : public ACharacter
 {
