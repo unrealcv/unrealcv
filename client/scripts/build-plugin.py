@@ -1,16 +1,21 @@
-import os
-UnrealEnginePath='~/workspace/UnrealEngine/Engine'
+import os, sys
+from ue4config import conf
+import ue4util
 
-UATScript = os.path.expanduser(os.path.join(UnrealEnginePath, 'Build/BatchFiles/RunUAT.sh'))
-if not os.path.isfile(UATScript):
-    print('Can not find Automation Script of UE4 %s' % UATScript)
+UAT_script = conf['UATScript']
+if not os.path.isfile(UAT_script):
+    print('Can not find Automation Script of UE4 %s' % UAT_script)
     print('Please set UnrealEnginePath correctly first')
-
 else:
+    plugin_file = os.path.abspath('../../UnrealCV.uplugin')
+    if sys.platform == 'cygwin':
+        plugin_file = ue4util.cygwinpath_to_winpath(plugin_file)
 
-    FullPluginFile = os.path.abspath('UnrealCV.uplugin')
-    output_folder = os.path.abspath('./Build')
+    output_folder = os.path.abspath('./build')
+    if sys.platform == 'cygwin':
+        output_folder = ue4util.cygwinpath_to_winpath(output_folder)
 
-    cmd = '%s BuildPlugin -plugin=%s -package=%s -rocket' % (UATScript, FullPluginFile)
+    cmd = '%s BuildPlugin -plugin=%s -package=%s -rocket' % (UAT_script, plugin_file, output_folder)
+    cmd.replace(' ', '\ ')
     print(cmd)
     os.system(cmd)
