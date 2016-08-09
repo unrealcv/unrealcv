@@ -55,7 +55,7 @@ void FViewMode::PostProcess(FEngineShowFlags& ShowFlags)
 {
 	ShowFlags.Rendering = true;
 	ShowFlags.PostProcessing = true;
-	ShowFlags.PostProcessMaterial = true;
+	// ShowFlags.PostProcessMaterial = true;
 	ShowFlags.StaticMeshes = true;
 
 	/*
