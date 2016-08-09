@@ -10,7 +10,6 @@ IMPLEMENT_MODULE(FUnrealCVPlugin, UnrealCV)
 
 void FUnrealCVPlugin::StartupModule()
 {
-	FUE4CVServer::Get().Start();
 }
 
 void FUnrealCVPlugin::ShutdownModule()

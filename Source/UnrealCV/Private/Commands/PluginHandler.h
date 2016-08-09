@@ -4,8 +4,7 @@
 class FPluginCommandHandler : public FCommandHandler
 {
 public:
-	FPluginCommandHandler(APawn* InCharacter, FCommandDispatcher* InCommandDispatcher)
-	: FCommandHandler(InCharacter, InCommandDispatcher)
+	FPluginCommandHandler(FCommandDispatcher* InCommandDispatcher) : FCommandHandler(InCommandDispatcher)
 	{}
 	void RegisterCommands();
 

@@ -8,7 +8,7 @@
 #include "Async.h"
 #include "SceneViewport.h"
 #include "ViewMode.h"
-#include "GTCapturer.h"
+#include "GTCaptureComponent.h"
 
 DECLARE_DELEGATE(ViewModeFunc)
 
@@ -111,7 +111,7 @@ void FPlayerViewMode::DebugMode()
 	FViewMode::PostProcess(GameViewportClient->EngineShowFlags);
 	// GameViewportClient->EngineShowFlags.VisualizeBuffer = true;
 
-	UMaterial* Material = UGTCapturer::GetMaterial("debug");
+	UMaterial* Material = UGTCaptureComponent::GetMaterial("debug");
 	PostProcessVolume->AddOrUpdateBlendable(Material);
 	PostProcessVolume->BlendWeight = 1;
 	/*

@@ -17,13 +17,12 @@ bool FUE4CVServer::Init()
 	FObjectPainter::Get().PaintRandomColors();
 
 	CommandDispatcher = new FCommandDispatcher();
-	UE4CVCommands* Commands = new UE4CVCommands(Pawn, CommandDispatcher);
+	UE4CVCommands* Commands = new UE4CVCommands(CommandDispatcher);
 	// Register a set of commands to the command dispatcher
 
 	FConsoleHelper::Get().SetCommandDispatcher(CommandDispatcher);
 
-	// return NetworkManager->Start();
-	return true;;
+	return this->Start();
 }
 
 APawn* FUE4CVServer::GetPawn()

@@ -4,8 +4,9 @@
 #include "ViewMode.h"
 #include "ImageUtils.h"
 #include "ImageWrapper.h"
-#include "GTCapturer.h"
+#include "GTCaptureComponent.h"
 #include "PlayerViewMode.h"
+#include "UE4CVServer.h"
 
 FString GetDiskFilename(FString Filename)
 {
@@ -48,7 +49,7 @@ void FCameraCommandHandler::InitCameraArray()
 
 	for (auto Mode : *SupportedModes)
 	{
-		UGTCapturer* Capturer = UGTCapturer::Create(this->Character, Mode);
+		UGTCaptureComponent* Capturer = UGTCaptureComponent::Create(FUE4CVServer::Get().GetPawn(), Mode);
 		this->GTCapturers.Add(Mode, Capturer);
 	}
 }
@@ -109,7 +110,7 @@ FExecStatus FCameraCommandHandler::SetCameraLocation(const TArray<FString>& Args
 
 		bool Sweep = false;
 		// if sweep is true, the object can not move through another object
-		bool Success = Character->SetActorLocation(Location, Sweep, NULL, ETeleportType::TeleportPhysics);
+		bool Success = FUE4CVServer::Get().GetPawn()->SetActorLocation(Location, Sweep, NULL, ETeleportType::TeleportPhysics);
 
 		return FExecStatus::OK();
 	}
@@ -123,7 +124,8 @@ FExecStatus FCameraCommandHandler::SetCameraRotation(const TArray<FString>& Args
 		int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
 		float Pitch = FCString::Atof(*Args[1]), Yaw = FCString::Atof(*Args[2]), Roll = FCString::Atof(*Args[3]);
 		FRotator Rotator = FRotator(Pitch, Yaw, Roll);
-		AController* Controller = Character->GetController();
+		APawn* Pawn = FUE4CVServer::Get().GetPawn();
+		AController* Controller = Pawn->GetController();
 		Controller->ClientSetRotation(Rotator); // Teleport action
 		// SetActorRotation(Rotator);  // This is not working
 
@@ -138,7 +140,8 @@ FExecStatus FCameraCommandHandler::GetCameraRotation(const TArray<FString>& Args
 	{
 		int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
 		// FRotator CameraRotation = this->Character->GetActorRotation();  // We need the rotation of the controller
-		FRotator CameraRotation = Character->GetControlRotation();
+		APawn* Pawn = FUE4CVServer::Get().GetPawn();
+		FRotator CameraRotation = Pawn->GetControlRotation();
 		FString Message = FString::Printf(TEXT("%.3f %.3f %.3f"), CameraRotation.Pitch, CameraRotation.Yaw, CameraRotation.Roll);
 
 		return FExecStatus::OK(Message);
@@ -151,7 +154,8 @@ FExecStatus FCameraCommandHandler::GetCameraLocation(const TArray<FString>& Args
 	if (Args.Num() == 1)
 	{
 		int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
-		FVector CameraLocation = Character->GetActorLocation();
+		APawn* Pawn = FUE4CVServer::Get().GetPawn();
+		FVector CameraLocation = Pawn->GetActorLocation();
 		FString Message = FString::Printf(TEXT("%.3f %.3f %.3f"), CameraLocation.X, CameraLocation.Y, CameraLocation.Z);
 
 		return FExecStatus::OK(Message);
@@ -212,7 +216,7 @@ FExecStatus FCameraCommandHandler::GetCameraViewSync(const FString& FullFilename
 	// This can only work within editor
 	// Reimplement a GameViewportClient is required according to the discussion from here
 	// https://forums.unrealengine.com/showthread.php?50857-FViewPort-ReadPixels-crash-while-play-on-quot-standalone-Game-quot-mode
-	UGameViewportClient* ViewportClient = Character->GetWorld()->GetGameViewport();
+	UGameViewportClient* ViewportClient = GWorld->GetGameViewport();
 	if (DoCaptureScreen(ViewportClient, FullFilename))
 	{
 		return FExecStatus::OK(FullFilename);
@@ -319,7 +323,7 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 		{
 			Filename = GenerateSeqFilename();
 		}
-		UGTCapturer* GTCapturer = GTCapturers.FindRef(ViewMode);
+		UGTCaptureComponent* GTCapturer = GTCapturers.FindRef(ViewMode);
 		if (GTCapturer == nullptr)
 		{
 			return FExecStatus::Error(FString::Printf(TEXT("Can not support mode %s"), *ViewMode));

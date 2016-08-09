@@ -10,8 +10,6 @@
 class UNREALCV_API UE4CVCommands
 {
 private:
-	/** Store a Character pointer, so a command can control the character */
-	APawn* Character;
 	/** Store a FCommandDispatcher pointer, so a command can invoke other commands */
 	FCommandDispatcher* CommandDispatcher;
 	/** Register commands to a CommandDispatcher */
@@ -20,6 +18,6 @@ private:
 	TArray<FCommandHandler*> CommandHandlers;
 
 public:
-	UE4CVCommands(APawn* MyCharacter, FCommandDispatcher* InCommandDispatcher);
+	UE4CVCommands(FCommandDispatcher* InCommandDispatcher);
 	~UE4CVCommands();
 };

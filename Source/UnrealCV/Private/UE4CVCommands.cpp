@@ -7,9 +7,8 @@
 #include "ObjectPainter.h"
 #include "CommandHandler.h"
 
-UE4CVCommands::UE4CVCommands(APawn* InCharacter, FCommandDispatcher* InCommandDispatcher)
+UE4CVCommands::UE4CVCommands(FCommandDispatcher* InCommandDispatcher)
 {
-	this->Character = InCharacter;
 	this->CommandDispatcher = InCommandDispatcher;
 	this->RegisterCommands();
 }
@@ -26,9 +25,9 @@ void UE4CVCommands::RegisterCommands()
 {
 	if (CommandHandlers.Num() != 0) return;
 	// Need to keep the reference
-	CommandHandlers.Add(new FObjectCommandHandler(Character, CommandDispatcher));
-	CommandHandlers.Add(new FCameraCommandHandler(Character, CommandDispatcher));
-	CommandHandlers.Add(new FPluginCommandHandler(Character, CommandDispatcher));
+	CommandHandlers.Add(new FObjectCommandHandler(CommandDispatcher));
+	CommandHandlers.Add(new FCameraCommandHandler(CommandDispatcher));
+	CommandHandlers.Add(new FPluginCommandHandler(CommandDispatcher));
 
 	for (FCommandHandler* Handler : CommandHandlers)
 	{

@@ -1,18 +1,17 @@
 #pragma once
 #include "CommandHandler.h"
-#include "GTCapturer.h"
+#include "GTCaptureComponent.h"
 
 class FCameraCommandHandler : public FCommandHandler
 {
 public:
-	FCameraCommandHandler(APawn* InCharacter, FCommandDispatcher* InCommandDispatcher)
-	: FCommandHandler(InCharacter, InCommandDispatcher)
+	FCameraCommandHandler(FCommandDispatcher* InCommandDispatcher) : FCommandHandler(InCommandDispatcher)
 	{}
 	void RegisterCommands();
 
 	void InitCameraArray();
 
-	TMap<FString, UGTCapturer*> GTCapturers; // TODO: Support multi-camera
+	TMap<FString, UGTCaptureComponent*> GTCapturers; // TODO: Support multi-camera
 
 	/** vget /camera/location */
 	FExecStatus GetCameraLocation(const TArray<FString>& Args);
