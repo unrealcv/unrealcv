@@ -15,7 +15,7 @@ else:
     if sys.platform == 'cygwin':
         output_folder = ue4util.cygwinpath_to_winpath(output_folder)
 
+    UAT_script = UAT_script.replace(' ', '\ ')
     cmd = '%s BuildPlugin -plugin=%s -package=%s -rocket' % (UAT_script, plugin_file, output_folder)
-    cmd.replace(' ', '\ ')
     print(cmd)
     os.system(cmd)
