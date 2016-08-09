@@ -1,23 +1,23 @@
 #pragma once
-#include "GTCapturer.generated.h"
+#include "GTCaptureComponent.generated.h"
 
 /**
  * Use USceneCaptureComponent2D to export information from the scene.
  * This class needs to be tickable to update the rotation of the USceneCaptureComponent2D 
  */
 UCLASS()
-class UNREALCV_API UGTCapturer : public USceneComponent // , public FTickableGameObject
+class UNREALCV_API UGTCaptureComponent : public USceneComponent // , public FTickableGameObject
 {
 	GENERATED_BODY()
 private:
-	UGTCapturer();
+	UGTCaptureComponent();
 	APawn* Pawn;
 
 public:
 	// UGTCapturer(APawn* Pawn);
 
 	/** If Mode = "", Save normal image */
-	static UGTCapturer* Create(APawn* Pawn, FString Mode=TEXT(""));
+	static UGTCaptureComponent* Create(APawn* Pawn, FString Mode=TEXT(""));
 
 	static UMaterial* GetMaterial(FString ModeName);
 

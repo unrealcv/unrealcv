@@ -1,5 +1,5 @@
 #include "UnrealCVPrivate.h"
-#include "GTCapturer.h"
+#include "GTCaptureComponent.h"
 #include "ImageWrapper.h"
 #include "ViewMode.h"
 
@@ -48,7 +48,7 @@ void SavePng(UTextureRenderTarget2D* RenderTarget, FString Filename)
 	FFileHelper::SaveArrayToFile(HDRData, *Filename);
 }
 
-UMaterial* UGTCapturer::GetMaterial(FString InModeName = TEXT(""))
+UMaterial* UGTCaptureComponent::GetMaterial(FString InModeName = TEXT(""))
 {
 	// Load material for visualization
 	static TMap<FString, FString>* MaterialPathMap = nullptr;
@@ -85,9 +85,9 @@ UMaterial* UGTCapturer::GetMaterial(FString InModeName = TEXT(""))
 	return Material;
 }
 
-UGTCapturer* UGTCapturer::Create(APawn* InPawn, FString Mode)
+UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, FString Mode)
 {
-	UGTCapturer* GTCapturer = NewObject<UGTCapturer>();
+	UGTCaptureComponent* GTCapturer = NewObject<UGTCaptureComponent>();
 
 	GTCapturer->bIsActive = true;
 	// check(GTCapturer->IsComponentTickEnabled() == true);
@@ -133,7 +133,7 @@ UGTCapturer* UGTCapturer::Create(APawn* InPawn, FString Mode)
 	return GTCapturer;
 }
 
-UGTCapturer::UGTCapturer()
+UGTCaptureComponent::UGTCaptureComponent()
 {
 	GetMaterial(); // Initialize the TMap
 	PrimaryComponentTick.bCanEverTick = true;
@@ -146,7 +146,7 @@ UGTCapturer::UGTCapturer()
 
 // Each GTCapturer can serve as one camera of the scene
 
-bool UGTCapturer::Capture(FString InFilename)
+bool UGTCaptureComponent::Capture(FString InFilename)
 {
 	if (!bIsPending) // TODO: Use a filename queue to replace this flag.
 	{
@@ -163,8 +163,8 @@ bool UGTCapturer::Capture(FString InFilename)
 	// TODO: only enable USceneComponentCapture2D's rendering flag, when I require it to do so.
 }
 
-void UGTCapturer::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-// void UGTCapturer::Tick(float DeltaTime) // This tick function should be called by the scene instead of been
+void UGTCaptureComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+// void UGTCaptureComponent::Tick(float DeltaTime) // This tick function should be called by the scene instead of been
 {
 	// Update rotation of each frame
 	// from ab237f46dc0eee40263acbacbe938312eb0dffbb:CameraComponent.cpp:232
