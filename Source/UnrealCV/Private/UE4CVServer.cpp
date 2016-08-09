@@ -4,24 +4,26 @@
 #include "UE4CVServer.h"
 #include "UnrealCV.h"
 
-bool FUE4CVServer::Init(APawn* InCharacter)
+bool FUE4CVServer::Init()
 {
-	this->Pawn = InCharacter;
+	APlayerController* PlayerController = GWorld->GetFirstPlayerController();
+	check(PlayerController);
+	APawn* Pawn = PlayerController->GetPawn();
+	check(Pawn);
+	this->Pawn = Pawn;
 
-	FObjectPainter::Get().SetLevel(InCharacter->GetLevel());
+	FObjectPainter::Get().SetLevel(Pawn->GetLevel());
 	// TODO: Check the pointers
 	FObjectPainter::Get().PaintRandomColors();
 
-	FPlayerViewMode::Get().SetWorld(InCharacter->GetWorld());
-
 	CommandDispatcher = new FCommandDispatcher();
-	UE4CVCommands* Commands = new UE4CVCommands(InCharacter, CommandDispatcher);
+	UE4CVCommands* Commands = new UE4CVCommands(Pawn, CommandDispatcher);
 	// Register a set of commands to the command dispatcher
 
-	FConsoleOutputDevice* ConsoleOutputDevice = new FConsoleOutputDevice(InCharacter->GetWorld()->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
-	FConsoleHelper* ConsoleHelper = new FConsoleHelper(CommandDispatcher, ConsoleOutputDevice);
+	FConsoleHelper::Get().SetCommandDispatcher(CommandDispatcher);
 
-	return NetworkManager->Start();
+	// return NetworkManager->Start();
+	return true;;
 }
 
 APawn* FUE4CVServer::GetPawn()
@@ -70,8 +72,8 @@ void FUE4CVServer::ProcessPendingRequest()
 
 bool FUE4CVServer::Start()
 {
-	NetworkManager->Start();
-	return true;
+	bIsTicking = true;
+	return NetworkManager->Start();
 }
 
 void FUE4CVServer::HandleRawMessage(const FString& InRawMessage)
@@ -103,4 +105,3 @@ void FUE4CVServer::SendClientMessage(FString Message)
 	// TODO: Do not use game thread to send message.
 	NetworkManager->SendMessage(Message);
 }
-

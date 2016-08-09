@@ -17,6 +17,15 @@ FString GetDiskFilename(FString Filename)
 	return DiskFilename;
 }
 
+FString GenerateSeqFilename()
+{
+	static uint32 NumCaptured = 0;
+	NumCaptured++;
+	FString Filename = FString::Printf(TEXT("%08d.png"), NumCaptured);
+	return Filename;
+}
+
+
 /**
   * Where to put cameras
   * For each camera in the scene, attach SceneCaptureComponent2D to it
@@ -42,14 +51,6 @@ void FCameraCommandHandler::InitCameraArray()
 		UGTCapturer* Capturer = UGTCapturer::Create(this->Character, Mode);
 		this->GTCapturers.Add(Mode, Capturer);
 	}
-}
-
-FString GenerateFilename()
-{
-	static uint32 NumCaptured = 0;
-	NumCaptured++;
-	FString Filename = FString::Printf(TEXT("%08d.png"), NumCaptured);
-	return Filename;
 }
 
 
@@ -316,7 +317,7 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 		}
 		else
 		{
-			Filename = GenerateFilename();
+			Filename = GenerateSeqFilename();
 		}
 		UGTCapturer* GTCapturer = GTCapturers.FindRef(ViewMode);
 		if (GTCapturer == nullptr)
@@ -351,7 +352,7 @@ FExecStatus FCameraCommandHandler::GetCameraScreenshot(const TArray<FString>& Ar
 		FString Filename;
 		if (Args.Num() == 1)
 		{
-			Filename = GenerateFilename();
+			Filename = GenerateSeqFilename();
 		}
 		if (Args.Num() == 2)
 		{

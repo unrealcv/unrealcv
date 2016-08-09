@@ -11,6 +11,7 @@ AUE4CVGameMode::AUE4CVGameMode()
 	DefaultPawnClass = AUE4CVPawn::StaticClass();
 }
 
+// TODO: Remove the requirement of modifying pawn
 /**
   * UE4CVCharacter acts like a walking human
   */
@@ -22,13 +23,13 @@ AUE4CVCharacter::AUE4CVCharacter()
 void AUE4CVCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	FUE4CVServer::Get().Init(this);
+	// FUE4CVServer::Get().Init();
 }
 
 void AUE4CVCharacter::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
-	FUE4CVServer::Get().ProcessPendingRequest();
+	// FUE4CVServer::Get().ProcessPendingRequest();
 }
 
 void AUE4CVCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
@@ -84,13 +85,13 @@ AUE4CVPawn::AUE4CVPawn()
 void AUE4CVPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	FUE4CVServer::Get().Init(this);
+	// FUE4CVServer::Get().Init(); // Should not do all the initialization during begin play
 }
 
 void AUE4CVPawn::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
-	FUE4CVServer::Get().ProcessPendingRequest();
+	// FUE4CVServer::Get().ProcessPendingRequest();
 }
 
 void AUE4CVPawn::SetupPlayerInputComponent(class UInputComponent* InputComponent)
