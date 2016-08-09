@@ -15,21 +15,10 @@ public:
 	uint32 RequestId;
 };
 
-class FPendingTask
-{
-public:
-	FPendingTask(FPromise InPromise, uint32 InRequestId) : Promise(InPromise), RequestId(InRequestId), Active(true) {}
-	FPendingTask() : Active(false) {}
-	FExecStatus CheckStatus() { return Promise.CheckStatus();  }
-	FPromise Promise;
-	uint32 RequestId;
-	bool Active;
-};
-
 /**
- * UnrealCV server to interact with python/MATLAB client
+ * UnrealCV server to interact with external programs
  */
-class UNREALCV_API FUE4CVServer
+class UNREALCV_API FUE4CVServer : public FTickableGameObject
 {
 public:
 	~FUE4CVServer();
@@ -47,7 +36,7 @@ public:
 	UNetworkManager* NetworkManager;
 
 	/** Initialize the server with the game pawn */
-	bool Init(APawn* InCharacter);
+	bool Init();
 
 	/** Get the singleton */
 	static FUE4CVServer& Get();
@@ -57,9 +46,32 @@ public:
 
 	/** Return the Pawn of this game */
 	APawn* GetPawn();
+
+	/** Implement ticking function of UE4CVServer itself */
+	virtual void Tick(float DeltaTime) override
+	{
+		ProcessPendingRequest();
+	}
+
+	virtual bool IsTickable() const{
+		return bIsTicking;
+	}
+
+	virtual bool IsTickableWhenPaused() const
+	{
+		return bIsTicking;
+	}
+
+	virtual TStatId GetStatId() const
+	{
+		RETURN_QUICK_DECLARE_CYCLE_STAT( FUE4CVServer, STATGROUP_Tickables );
+	}
+
 private:
 	/** The Pawn of the Game */
 	APawn* Pawn;
+
+	bool bIsTicking = false;
 
 	/** Construct a server */
 	FUE4CVServer();
