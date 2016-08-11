@@ -3,6 +3,13 @@
 #include "ImageWrapper.h"
 #include "ViewMode.h"
 
+DECLARE_CYCLE_STAT(TEXT("SaveExr"), STAT_SaveExr, STATGROUP_UnrealCV);
+DECLARE_CYCLE_STAT(TEXT("SavePng"), STAT_SavePng, STATGROUP_UnrealCV);
+DECLARE_CYCLE_STAT(TEXT("SaveFile"), STAT_SaveFile, STATGROUP_UnrealCV);
+DECLARE_CYCLE_STAT(TEXT("ReadPixels"), STAT_ReadPixels, STATGROUP_UnrealCV);
+DECLARE_CYCLE_STAT(TEXT("ImageWrapper"), STAT_ImageWrapper, STATGROUP_UnrealCV);
+DECLARE_CYCLE_STAT(TEXT("GetResource"), STAT_GetResource, STATGROUP_UnrealCV);
+
 void InitCaptureComponent(USceneCaptureComponent2D* CaptureComponent)
 {
 	// Can not use ESceneCaptureSource::SCS_SceneColorHDR, this option will disable post-processing
@@ -18,6 +25,7 @@ void InitCaptureComponent(USceneCaptureComponent2D* CaptureComponent)
 
 void SaveExr(UTextureRenderTarget2D* RenderTarget, FString Filename)
 {
+	SCOPE_CYCLE_COUNTER(STAT_SaveExr)
 	int32 Width = RenderTarget->SizeX, Height = RenderTarget->SizeY;
 	TArray<FFloat16Color> FloatImage;
 	FloatImage.AddZeroed(Width * Height);
@@ -29,23 +37,40 @@ void SaveExr(UTextureRenderTarget2D* RenderTarget, FString Filename)
 
 	ImageWrapper->SetRaw(FloatImage.GetData(), FloatImage.GetAllocatedSize(), Width, Height, ERGBFormat::RGBA, 16);
 	const TArray<uint8>& PngData = ImageWrapper->GetCompressed(ImageCompression::Uncompressed);
-	FFileHelper::SaveArrayToFile(PngData, *Filename);
+	{
+		SCOPE_CYCLE_COUNTER(STAT_SaveFile);
+		FFileHelper::SaveArrayToFile(PngData, *Filename);
+	}
 }
 
 void SavePng(UTextureRenderTarget2D* RenderTarget, FString Filename)
 {
-	int32 Width = RenderTarget->SizeX, Height = RenderTarget->SizeY;
-	TArray<FColor> Image;
-	Image.AddZeroed(Width * Height);
-	FTextureRenderTargetResource* RenderTargetResource = RenderTarget->GameThread_GetRenderTargetResource();
-	RenderTargetResource->ReadPixels(Image);
-
-	IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
-	IImageWrapperPtr ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG);
-
-	ImageWrapper->SetRaw(Image.GetData(), Image.GetAllocatedSize(), Width, Height, ERGBFormat::BGRA, 8);
-	const TArray<uint8>& HDRData = ImageWrapper->GetCompressed(ImageCompression::Uncompressed);
-	FFileHelper::SaveArrayToFile(HDRData, *Filename);
+	SCOPE_CYCLE_COUNTER(STAT_SavePng);
+	static IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
+	static IImageWrapperPtr ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG);
+	{
+		int32 Width = RenderTarget->SizeX, Height = RenderTarget->SizeY;
+		TArray<FColor> Image;
+		FTextureRenderTargetResource* RenderTargetResource;
+		Image.AddZeroed(Width * Height);
+		{
+			SCOPE_CYCLE_COUNTER(STAT_GetResource);
+			RenderTargetResource = RenderTarget->GameThread_GetRenderTargetResource();
+		}
+		{
+			SCOPE_CYCLE_COUNTER(STAT_ReadPixels);
+			RenderTargetResource->ReadPixels(Image);
+		}
+		{
+			SCOPE_CYCLE_COUNTER(STAT_ImageWrapper);
+			ImageWrapper->SetRaw(Image.GetData(), Image.GetAllocatedSize(), Width, Height, ERGBFormat::BGRA, 8);
+		}
+		const TArray<uint8>& ImgData = ImageWrapper->GetCompressed(ImageCompression::Uncompressed);
+		{
+			SCOPE_CYCLE_COUNTER(STAT_SaveFile);
+			FFileHelper::SaveArrayToFile(ImgData, *Filename);
+		}
+	}
 }
 
 UMaterial* UGTCaptureComponent::GetMaterial(FString InModeName = TEXT(""))
