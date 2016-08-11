@@ -2,6 +2,12 @@
 #include "CommandHandler.h"
 #include "GTCaptureComponent.h"
 
+class FScreenCapture
+{
+public:
+	static FExecStatus GetCameraViewAsyncQuery(const FString& FullFilename);
+};
+
 class FCameraCommandHandler : public FCommandHandler
 {
 public:
@@ -24,11 +30,6 @@ public:
 	/** vget /camera/view */
 	FExecStatus GetCameraScreenshot(const TArray<FString>& Args);
 
-	/** Deprecated: Get camera view in a sync way, can not work in standalone mode */
-	FExecStatus GetCameraViewSync(const FString& Fullfilename);
-	/** Get camera view in async way, the return FExecStaus is in pending status and need to check the promise to get result */
-	FExecStatus GetCameraViewAsyncQuery(const FString& Fullfilename);
-	// FExecStatus GetCameraViewAsyncCallback(const FString& Fullfilename);
 
 	/** Get camera image with a given mode */
 	FExecStatus GetCameraViewMode(const TArray<FString>& Args);
