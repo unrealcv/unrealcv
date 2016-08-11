@@ -24,13 +24,18 @@ FExecStatus& FExecStatus::operator+=(const FExecStatus& Src)
 
 FPromise::FPromise()
 {
+	bIsValid = false;
 }
 
-FPromise::FPromise(FPromiseDelegate InPromiseDelegate) : PromiseDelegate(InPromiseDelegate) {}
+FPromise::FPromise(FPromiseDelegate InPromiseDelegate) : PromiseDelegate(InPromiseDelegate) 
+{
+	bIsValid = true;
+}
 
 FExecStatus FPromise::CheckStatus()
 {
 	check(this);
+	check(PromiseDelegate.IsBound());
 	return PromiseDelegate.Execute();
 }
 

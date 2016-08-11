@@ -9,8 +9,10 @@ DECLARE_DELEGATE_RetVal(FExecStatus, FPromiseDelegate); // Check task status
 class FPromise 
 {
 private:
+	/** The method to check whether this promise is alreay completed */
 	FPromiseDelegate PromiseDelegate;
 public:
+	bool bIsValid;
 	FPromise();
 	FPromise(FPromiseDelegate InPromiseDelegate);
 	/** Use PromiseDelegate to check whether the task already completed */
