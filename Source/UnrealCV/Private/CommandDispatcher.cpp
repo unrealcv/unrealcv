@@ -4,11 +4,14 @@
 #include "Regex.h"
 #include "CommandDispatcher.h"
 
+
+DECLARE_CYCLE_STAT(TEXT("WaitAsync"), STAT_WaitAsync, STATGROUP_UnrealCV);
 class FAsyncWatcher : public FRunnable
 {
 public:
 	void Wait(FPromise InPromise, FCallbackDelegate InCompletedCallback) // Need to open a new thread. Can not wait on the original thread
 	{
+		check(InPromise.bIsValid);
 		this->PendingPromise.Enqueue(InPromise);
 		this->PendingCompletedCallback.Enqueue(InCompletedCallback);
 	}
@@ -43,17 +46,19 @@ private:
 		{
 			while (IsActive())
 			{
+				SCOPE_CYCLE_COUNTER(STAT_WaitAsync);
 				FPromise Promise;
 				PendingPromise.Peek(Promise);
 				FExecStatus ExecStatus = Promise.CheckStatus();
 				if (ExecStatus != FExecStatusType::Pending) // Job is finished
 				{
+					FPromise CompletedPromise;
+					FCallbackDelegate CompletedCallback;
+					PendingPromise.Dequeue(CompletedPromise); // Dequeue in the same thread
+					PendingCompletedCallback.Dequeue(CompletedCallback);
+
 					// This needs to be sent back to game thread
-					AsyncTask(ENamedThreads::GameThread, [this, ExecStatus]() {
-						FPromise FinishedPromise;
-						FCallbackDelegate CompletedCallback;
-						PendingPromise.Dequeue(FinishedPromise);
-						PendingCompletedCallback.Dequeue(CompletedCallback);
+					AsyncTask(ENamedThreads::GameThread, [CompletedCallback, ExecStatus]() {
 						CompletedCallback.ExecuteIfBound(ExecStatus);
 						// CompletedCallback.Unbind();
 					});
