@@ -23,6 +23,8 @@ public:
 	FExecStatus GetCameraLocation(const TArray<FString>& Args);
 	/** vset /camera/location */
 	FExecStatus	SetCameraLocation(const TArray<FString>& Args);
+	/** vset /camera/moveto */
+	FExecStatus	MoveTo(const TArray<FString>& Args);
 	/** vget /camera/rotation */
 	FExecStatus GetCameraRotation(const TArray<FString>& Args);
 	/** vset /camera/rotation */

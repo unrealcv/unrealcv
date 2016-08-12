@@ -75,6 +75,9 @@ void FCameraCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::SetCameraLocation);
 	CommandDispatcher->BindCommand("vset /camera/[uint]/location [float] [float] [float]", Cmd, "Set camera location");
 
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::MoveTo);
+	CommandDispatcher->BindCommand("vset /camera/[uint]/moveto [float] [float] [float]", Cmd, "Set camera location");
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::SetCameraRotation);
 	CommandDispatcher->BindCommand("vset /camera/[uint]/rotation [float] [float] [float]", Cmd, "Set camera rotation");
 
@@ -99,6 +102,25 @@ FExecStatus FCameraCommandHandler::GetCameraProjMatrix(const TArray<FString>& Ar
 	return FExecStatus::InvalidArgument;
 }
 
+FExecStatus FCameraCommandHandler::MoveTo(const TArray<FString>& Args)
+{
+	/** The API for Character, Pawn and Actor are different */
+	if (Args.Num() == 4) // ID, X, Y, Z
+	{
+		int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
+		float X = FCString::Atof(*Args[1]), Y = FCString::Atof(*Args[2]), Z = FCString::Atof(*Args[3]);
+		FVector Location = FVector(X, Y, Z);
+
+		bool Sweep = true;
+		// if sweep is true, the object can not move through another object
+		// Check invalid location and move back a bit.
+		bool Success = FUE4CVServer::Get().GetPawn()->SetActorLocation(Location, Sweep, NULL, ETeleportType::TeleportPhysics);
+
+		return FExecStatus::OK();
+	}
+	return FExecStatus::InvalidArgument;
+}
+
 FExecStatus FCameraCommandHandler::SetCameraLocation(const TArray<FString>& Args)
 {
 	/** The API for Character, Pawn and Actor are different */
@@ -110,6 +132,7 @@ FExecStatus FCameraCommandHandler::SetCameraLocation(const TArray<FString>& Args
 
 		bool Sweep = false;
 		// if sweep is true, the object can not move through another object
+		// Check invalid location and move back a bit.
 		bool Success = FUE4CVServer::Get().GetPawn()->SetActorLocation(Location, Sweep, NULL, ETeleportType::TeleportPhysics);
 
 		return FExecStatus::OK();
@@ -185,7 +208,7 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 		{
 			return FExecStatus::Error(FString::Printf(TEXT("Can not support mode %s"), *ViewMode));
 		}
-		GTCapturer->Capture(*Filename);
+		GTCapturer->Capture(*Filename); // Due to sandbox implementation of UE4, it is not possible to specify an absolute path directly.
 
 		// TODO: Check IsPending is problematic.
 		FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([Filename, GTCapturer]()
