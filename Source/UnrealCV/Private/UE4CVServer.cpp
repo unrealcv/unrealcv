@@ -4,7 +4,7 @@
 #include "UE4CVServer.h"
 #include "UnrealCV.h"
 
-bool FUE4CVServer::Init()
+void FUE4CVServer::BeginPlay()
 {
 	APlayerController* PlayerController = GWorld->GetFirstPlayerController();
 	check(PlayerController);
@@ -12,18 +12,11 @@ bool FUE4CVServer::Init()
 	check(Pawn);
 	this->Pawn = Pawn;
 
-	FObjectPainter::Get().SetLevel(Pawn->GetLevel());
-	// TODO: Check the pointers
-	FObjectPainter::Get().PaintRandomColors();
 
-	CommandDispatcher = new FCommandDispatcher();
-	UE4CVCommands* Commands = new UE4CVCommands(CommandDispatcher);
-	// Register a set of commands to the command dispatcher
-
-	FConsoleHelper::Get().SetCommandDispatcher(CommandDispatcher);
-
-	return this->Start();
+	bIsTicking = true;
+	NetworkManager->Start();
 }
+
 
 APawn* FUE4CVServer::GetPawn()
 {
@@ -42,6 +35,22 @@ FUE4CVServer::FUE4CVServer()
 	NetworkManager = NewObject<UNetworkManager>();
 	NetworkManager->AddToRoot(); // Avoid GC
 	NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::HandleRawMessage);
+
+	CommandDispatcher = new FCommandDispatcher();
+	FConsoleHelper::Get().SetCommandDispatcher(CommandDispatcher);
+
+	FObjectPainter::Get().SetLevel(Pawn->GetLevel());
+	// TODO: Check the pointers
+	FObjectPainter::Get().PaintRandomColors();
+
+	CommandHandlers.Add(new FObjectCommandHandler(CommandDispatcher));
+	CommandHandlers.Add(new FCameraCommandHandler(CommandDispatcher));
+	CommandHandlers.Add(new FPluginCommandHandler(CommandDispatcher));
+
+	for (FCommandHandler* Handler : CommandHandlers)
+	{
+		Handler->RegisterCommands();
+	}
 }
 
 FUE4CVServer::~FUE4CVServer()
@@ -67,12 +76,6 @@ void FUE4CVServer::ProcessPendingRequest()
 		});
 		CommandDispatcher->ExecAsync(Request.Message, CallbackDelegate);
 	}
-}
-
-bool FUE4CVServer::Start()
-{
-	bIsTicking = true;
-	return NetworkManager->Start();
 }
 
 void FUE4CVServer::HandleRawMessage(const FString& InRawMessage)

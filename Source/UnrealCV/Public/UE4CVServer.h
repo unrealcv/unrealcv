@@ -23,20 +23,14 @@ class UNREALCV_API FUE4CVServer : public FTickableGameObject
 public:
 	~FUE4CVServer();
 
-	/** Start the server */
-	bool Start();
+	/** Will be invoked when BeginPlay event happen */
+	void BeginPlay();
 
 	/** Send a string message to connected clients */
 	void SendClientMessage(FString Message);
 
-	/** Process pending requests in a tick */
-	void ProcessPendingRequest();
-
 	/** The underlying class to handle network connection, ip and port are configured here */
 	UNetworkManager* NetworkManager;
-
-	/** Initialize the server with the game pawn */
-	bool Init();
 
 	/** Get the singleton */
 	static FUE4CVServer& Get();
@@ -68,6 +62,11 @@ public:
 	}
 
 private:
+	TArray<FCommandHandler*> CommandHandlers;
+
+	/** Process pending requests in a tick */
+	void ProcessPendingRequest();
+
 	/** The Pawn of the Game */
 	APawn* Pawn;
 

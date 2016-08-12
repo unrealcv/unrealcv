@@ -3,7 +3,6 @@
 #include "ConsoleHelper.h"
 #include "ExecStatus.h"
 #include "NetworkManager.h"
-#include "UE4CVCommands.h"
 #include "UE4CVServer.h"
 #include "ObjectPainter.h"
 #include "ViewMode.h"

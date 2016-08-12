@@ -23,7 +23,7 @@ AUE4CVCharacter::AUE4CVCharacter()
 void AUE4CVCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	FUE4CVServer::Get().Init();
+	FUE4CVServer::Get().BeginPlay();
 }
 
 void AUE4CVCharacter::Tick( float DeltaTime )
@@ -79,13 +79,13 @@ AUE4CVPawn::AUE4CVPawn()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	this->CollisionComponent->SetSphereRadius(1.0f);
+	// this->CollisionComponent->SetSphereRadius(1.0f);
 }
 
 void AUE4CVPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	FUE4CVServer::Get().Init(); // Should not do all the initialization during begin play
+	FUE4CVServer::Get().BeginPlay(); // Should not do all the initialization during begin play
 }
 
 void AUE4CVPawn::Tick( float DeltaTime )
