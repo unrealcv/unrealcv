@@ -14,7 +14,7 @@ public:
 		return Singleton;
 	};
 
-	UGTCaptureComponent* FCameraManager::GetCamera(int32 CameraId);
+	UGTCaptureComponent* GetCamera(int32 CameraId);
 	void AttachGTCaptureComponentToCamera(APawn* Pawn);
 	TArray<UGTCaptureComponent*> GetCameraList();
 };
