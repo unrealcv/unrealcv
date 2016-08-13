@@ -10,6 +10,7 @@ IMPLEMENT_MODULE(FUnrealCVPlugin, UnrealCV)
 
 void FUnrealCVPlugin::StartupModule()
 {
+	FUE4CVServer::Get().RegisterCommandHandlers();
 }
 
 void FUnrealCVPlugin::ShutdownModule()

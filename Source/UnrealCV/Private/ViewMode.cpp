@@ -22,8 +22,9 @@ void FViewMode::Lit(FEngineShowFlags& ShowFlags)
 	ShowFlags.SetTonemapper(true);
 	// TemporalAA needs to be disabled, otherwise the previous frame might contaminate current frame.
 	// Check: https://answers.unrealengine.com/questions/436060/low-quality-screenshot-after-setting-the-actor-pos.html for detail
-	// Viewport->EngineShowFlags.SetTemporalAA(false);
+
 	ShowFlags.SetTemporalAA(true);
+	ShowFlags.SetEyeAdaptation(false); // Eye adaption is a slow temporal procedure, not useful for image capture
 }
 
 void FViewMode::BufferVisualization(FEngineShowFlags& ShowFlags)
@@ -58,6 +59,7 @@ void FViewMode::PostProcess(FEngineShowFlags& ShowFlags)
 	// ShowFlags.PostProcessMaterial = true;
 	ShowFlags.SetPostProcessMaterial(true);
 	ShowFlags.StaticMeshes = true;
+	// ShowFlags.SetVertexColors(true);
 
 	/*
 	// Set all flags to false, only enable useful flags.
@@ -91,6 +93,7 @@ void FViewMode::VertexColor(FEngineShowFlags& ShowFlags)
 {
 	ApplyViewMode(VMI_Lit, true, ShowFlags);
 
+	// From MeshPaintEdMode.cpp:2942
 	ShowFlags.SetMaterials(false);
 	ShowFlags.SetLighting(false);
 	ShowFlags.SetBSPTriangles(true);

@@ -12,7 +12,12 @@
 
 DECLARE_DELEGATE(ViewModeFunc)
 
-FPlayerViewMode::FPlayerViewMode() : CurrentViewMode("lit") {
+FPlayerViewMode::FPlayerViewMode() : CurrentViewMode("lit") 
+{
+}
+
+void FPlayerViewMode::CreatePostProcessVolume()
+{
 	// static APostProcessVolume* PostProcessVolume;
 	if (PostProcessVolume == nullptr)
 	{
