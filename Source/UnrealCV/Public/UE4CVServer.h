@@ -2,9 +2,25 @@
 
 #pragma once
 
+#include "CommandHandler.h"
 #include "CommandDispatcher.h"
-#include "NetworkManager.h"
+#include "TcpServer.h"
 
+class FAsyncRecord
+{
+public:
+	bool bIsCompleted;
+	static TArray<FAsyncRecord*> Records; // Tracking all async task in the system
+	static FAsyncRecord* Create()
+	{
+		FAsyncRecord* Record = new FAsyncRecord();
+		return Record;
+	}
+	void Destory()
+	{
+		delete this;
+	}
+};
 
 class FRequest
 {
@@ -61,6 +77,7 @@ public:
 		RETURN_QUICK_DECLARE_CYCLE_STAT( FUE4CVServer, STATGROUP_Tickables );
 	}
 
+	void RegisterCommandHandlers();
 private:
 	TArray<FCommandHandler*> CommandHandlers;
 

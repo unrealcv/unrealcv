@@ -21,6 +21,7 @@ public:
 	void DebugMode();
 	FExecStatus SetMode(const TArray<FString>& Args); // Check input arguments
 	FExecStatus GetMode(const TArray<FString>& Args);
+	void CreatePostProcessVolume();
 private:
 	void SetCurrentBufferVisualizationMode(FString ViewMode);
 	FPlayerViewMode();
