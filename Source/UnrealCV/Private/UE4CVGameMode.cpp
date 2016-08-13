@@ -79,6 +79,7 @@ AUE4CVPawn::AUE4CVPawn()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	this->bHidden = true;
 	// this->CollisionComponent->SetSphereRadius(1.0f);
 }
 
@@ -92,6 +93,8 @@ void AUE4CVPawn::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 	// FUE4CVServer::Get().ProcessPendingRequest();
+	FRotator ControlRotation = this->Controller->GetControlRotation();
+	this->SetActorRotation(ControlRotation);
 }
 
 void AUE4CVPawn::SetupPlayerInputComponent(class UInputComponent* InputComponent)
