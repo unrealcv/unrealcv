@@ -1,5 +1,17 @@
 #pragma once
+#include "UE4CVServer.h"
 #include "GTCaptureComponent.generated.h"
+
+struct FGTCaptureTask
+{
+	FString Mode;
+	FString Filename;
+	FAsyncRecord* AsyncRecord;
+	uint64 CurrentFrame;
+	FGTCaptureTask() {}
+	FGTCaptureTask(FString InMode, FString InFilename, uint64 InCurrentFrame, FAsyncRecord* InAsyncRecord) :
+		Mode(InMode), Filename(InFilename), CurrentFrame(InCurrentFrame), AsyncRecord(InAsyncRecord) {}
+};
 
 /**
  * Use USceneCaptureComponent2D to export information from the scene.
@@ -14,41 +26,17 @@ private:
 	APawn* Pawn;
 
 public:
-	// UGTCapturer(APawn* Pawn);
-
-	/** If Mode = "", Save normal image */
-	static UGTCaptureComponent* Create(APawn* Pawn, FString Mode=TEXT(""));
+	static UGTCaptureComponent* Create(APawn* Pawn, TArray<FString> Modes);
 
 	static UMaterial* GetMaterial(FString ModeName);
 
 	// virtual void Tick(float DeltaTime) override; // TODO
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override; // TODO
 
-	/*
-	virtual bool IsTickable() const // whether this object will be ticked?
-	{
-		return bIsTicking;
-	}
-	virtual bool IsTickableWhenPaused() const
-	{
-		return bIsTicking;
-	}
-	virtual TStatId GetStatId() const
-	{
-		RETURN_QUICK_DECLARE_CYCLE_STAT(UGTCapturer, STATGROUP_Tickables);
-	}
-	*/
-	bool IsPending()
-	{
-		return bIsPending;
-	}
-
-	bool Capture(FString Filename);
-
+	FAsyncRecord* Capture(FString Mode, FString Filename);
 private:
 	const bool bIsTicking = true;
-	bool bIsPending = false;
 
-	USceneCaptureComponent2D* CaptureComponent;
-	FString Filename;
+	TQueue<FGTCaptureTask, EQueueMode::Spsc> PendingTasks;
+	TMap<FString, USceneCaptureComponent2D*> CaptureComponents;
 };

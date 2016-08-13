@@ -25,6 +25,8 @@ void InitCaptureComponent(USceneCaptureComponent2D* CaptureComponent)
 
 void SaveExr(UTextureRenderTarget2D* RenderTarget, FString Filename)
 {
+	FlushRenderingCommands(); // Wait until rendering finished.
+
 	SCOPE_CYCLE_COUNTER(STAT_SaveExr)
 	int32 Width = RenderTarget->SizeX, Height = RenderTarget->SizeY;
 	TArray<FFloat16Color> FloatImage;
@@ -45,6 +47,7 @@ void SaveExr(UTextureRenderTarget2D* RenderTarget, FString Filename)
 
 void SavePng(UTextureRenderTarget2D* RenderTarget, FString Filename)
 {
+	FlushRenderingCommands(); // Wait until rendering finished.
 	SCOPE_CYCLE_COUNTER(STAT_SavePng);
 	static IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
 	static IImageWrapperPtr ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG);
@@ -83,6 +86,7 @@ UMaterial* UGTCaptureComponent::GetMaterial(FString InModeName = TEXT(""))
 		// MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepth.SceneDepth'"));
 		MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepth1.SceneDepth1'"));
 		MaterialPathMap->Add(TEXT("debug"), TEXT("Material'/UnrealCV/debug.debug'"));
+		MaterialPathMap->Add(TEXT("object_mask"), TEXT("Material'/UnrealCV/objectmask.VertexColorMaterial'"));
 	}
 
 	static TMap<FString, UMaterial*>* StaticMaterialMap = nullptr;
@@ -110,7 +114,7 @@ UMaterial* UGTCaptureComponent::GetMaterial(FString InModeName = TEXT(""))
 	return Material;
 }
 
-UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, FString Mode)
+UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, TArray<FString> Modes)
 {
 	UGTCaptureComponent* GTCapturer = NewObject<UGTCaptureComponent>();
 
@@ -121,39 +125,46 @@ UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, FString Mode)
 	// GTCapturer->AddToRoot();
 	GTCapturer->RegisterComponentWithWorld(GWorld);
 
-	// DEPRECATED_FORGAME(4.6, "CaptureComponent2D should not be accessed directly, please use GetCaptureComponent2D() function instead. CaptureComponent2D will soon be private and your code will not compile.")
-	USceneCaptureComponent2D* CaptureComponent = NewObject<USceneCaptureComponent2D>();
-	GTCapturer->CaptureComponent = CaptureComponent;
-
-	// CaptureComponent needs to be attached to somewhere immediately, otherwise it will be gc-ed
-	CaptureComponent->AttachTo(InPawn->GetRootComponent());
-	InitCaptureComponent(CaptureComponent);
-
-	UMaterial* Material = GetMaterial(Mode);
-	if (Mode == "lit") // For rendered images
+	for (FString Mode : Modes)
 	{
-		FEngineShowFlags& ShowFlags = CaptureComponent->ShowFlags;
-		FViewMode::Lit(CaptureComponent->ShowFlags);
-		CaptureComponent->TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
-	}
-	else if (Mode == "object_mask") // For object mask
-	{
-		FViewMode::VertexColor(CaptureComponent->ShowFlags);
-	}
-	else
-	{
-		check(Material);
-		// FViewMode::PostProcess(CaptureComponent->ShowFlags);
-		// GEngine->GetDisplayGamma(), the default gamma is 2.2
-		// CaptureComponent->TextureTarget->TargetGamma = 2.2;
+		// DEPRECATED_FORGAME(4.6, "CaptureComponent2D should not be accessed directly, please use GetCaptureComponent2D() function instead. CaptureComponent2D will soon be private and your code will not compile.")
+		USceneCaptureComponent2D* CaptureComponent = NewObject<USceneCaptureComponent2D>();
+		CaptureComponent->bIsActive = false; // Disable it by default for performance consideration
+		GTCapturer->CaptureComponents.Add(Mode, CaptureComponent);
 
-		// FViewMode::Lit(CaptureComponent->ShowFlags);
-		// CaptureComponent->ShowFlags.DisableAdvancedFeatures();
-		CaptureComponent->ShowFlags = FEngineShowFlags(EShowFlagInitMode::ESFIM_All0);
-		FViewMode::PostProcess(CaptureComponent->ShowFlags);
+		// CaptureComponent needs to be attached to somewhere immediately, otherwise it will be gc-ed
+		CaptureComponent->AttachTo(GTCapturer);
+		InitCaptureComponent(CaptureComponent);
 
-		CaptureComponent->TextureTarget->TargetGamma = 1;
-		CaptureComponent->PostProcessSettings.AddBlendable(Material, 1);
+		UMaterial* Material = GetMaterial(Mode);
+		if (Mode == "lit") // For rendered images
+		{
+			FEngineShowFlags& ShowFlags = CaptureComponent->ShowFlags;
+			FViewMode::Lit(CaptureComponent->ShowFlags);
+			CaptureComponent->TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
+		}
+		/*
+		else if (Mode == "object_mask") // For object mask
+		{
+			FViewMode::VertexColor(CaptureComponent->ShowFlags);
+		}
+		*/
+		else
+		{
+			check(Material);
+			// FViewMode::PostProcess(CaptureComponent->ShowFlags);
+			// GEngine->GetDisplayGamma(), the default gamma is 2.2
+			// CaptureComponent->TextureTarget->TargetGamma = 2.2;
+
+			// FViewMode::Lit(CaptureComponent->ShowFlags);
+			// CaptureComponent->ShowFlags.DisableAdvancedFeatures();
+			CaptureComponent->ShowFlags = FEngineShowFlags(EShowFlagInitMode::ESFIM_All0);
+			FViewMode::PostProcess(CaptureComponent->ShowFlags);
+
+			CaptureComponent->TextureTarget->TargetGamma = 1;
+			CaptureComponent->PostProcessSettings.AddBlendable(Material, 1);
+			// Instead of switching post-process materials, we create several SceneCaptureComponent, so that we can capture different GT within the same frame.
+		}
 	}
 	return GTCapturer;
 }
@@ -171,26 +182,31 @@ UGTCaptureComponent::UGTCaptureComponent()
 
 // Each GTCapturer can serve as one camera of the scene
 
-bool UGTCaptureComponent::Capture(FString InFilename)
+FAsyncRecord* UGTCaptureComponent::Capture(FString Mode, FString InFilename)
 {
-	if (!bIsPending) // TODO: Use a filename queue to replace this flag.
+	// Flush location and rotation
+	
+	USceneCaptureComponent2D* CaptureComponent = CaptureComponents.FindRef(Mode);
+	if (CaptureComponent == nullptr)
+		return nullptr;
+
+	const FRotator PawnViewRotation = Pawn->GetViewRotation();
+	if (!PawnViewRotation.Equals(CaptureComponent->GetComponentRotation()))
 	{
-		FlushRenderingCommands();
-		bIsPending = true;
-		this->Filename = InFilename;
-		return true;
+		CaptureComponent->SetWorldRotation(PawnViewRotation);
 	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("A capture command is still pending."));
-		return false;
-	}
-	// TODO: only enable USceneComponentCapture2D's rendering flag, when I require it to do so.
+
+	FAsyncRecord* AsyncRecord = FAsyncRecord::Create();
+	FGTCaptureTask GTCaptureTask = FGTCaptureTask(Mode, InFilename, GFrameCounter, AsyncRecord);
+	this->PendingTasks.Enqueue(GTCaptureTask);
+	return AsyncRecord;
 }
 
 void UGTCaptureComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 // void UGTCaptureComponent::Tick(float DeltaTime) // This tick function should be called by the scene instead of been
 {
+	// Render pixels out in the next tick. To allow time to render images out.
+
 	// Update rotation of each frame
 	// from ab237f46dc0eee40263acbacbe938312eb0dffbb:CameraComponent.cpp:232
 	check(this->Pawn); // this GTCapturer should be released, if the Pawn is deleted.
@@ -199,29 +215,48 @@ void UGTCaptureComponent::TickComponent(float DeltaTime, enum ELevelTick TickTyp
 	if (OwningController && OwningController->IsLocalPlayerController())
 	{
 		const FRotator PawnViewRotation = OwningPawn->GetViewRotation();
-		if (!PawnViewRotation.Equals(CaptureComponent->GetComponentRotation()))
+		for (auto Elem : CaptureComponents)
 		{
-			CaptureComponent->SetWorldRotation(PawnViewRotation);
+			USceneCaptureComponent2D* CaptureComponent = Elem.Value;
+			if (!PawnViewRotation.Equals(CaptureComponent->GetComponentRotation()))
+			{
+				CaptureComponent->SetWorldRotation(PawnViewRotation);
+			}
 		}
 	}
 
-	if (bIsPending)
-	{
-		FString LowerCaseFilename = this->Filename.ToLower();
-		if (LowerCaseFilename.EndsWith("png"))
-		{
-			SavePng(CaptureComponent->TextureTarget, this->Filename);
+	while (!PendingTasks.IsEmpty())
+	{ 
+		FGTCaptureTask Task;
+		PendingTasks.Peek(Task);
+		uint64 CurrentFrame = GFrameCounter;
+		if (!(CurrentFrame > Task.CurrentFrame + 10)) // TODO: This is not an elegant solution, fix it later.
+		{ // Wait for the rendering thread to catch up game thread.
+			break;
 		}
-		else if (LowerCaseFilename.EndsWith("exr"))
+
+		PendingTasks.Dequeue(Task);
+		USceneCaptureComponent2D* CaptureComponent = this->CaptureComponents.FindRef(Task.Mode);
+		if (CaptureComponent == nullptr)
 		{
-			SaveExr(CaptureComponent->TextureTarget, this->Filename);
+			UE_LOG(LogTemp, Warning, TEXT("Unrecognized capture mode %s"), *Task.Mode);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Unrecognized image file extension %s"), *LowerCaseFilename);
+			FString LowerCaseFilename = Task.Filename.ToLower();
+			if (LowerCaseFilename.EndsWith("png"))
+			{
+				SavePng(CaptureComponent->TextureTarget, Task.Filename);
+			}
+			else if (LowerCaseFilename.EndsWith("exr"))
+			{
+				SaveExr(CaptureComponent->TextureTarget, Task.Filename);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Unrecognized image file extension %s"), *LowerCaseFilename);
+			}
 		}
-		// TODO: Run a callback when these operations finished.
-
-		bIsPending = false; // Only tick once.
+		Task.AsyncRecord->bIsCompleted = true;
 	}
 }

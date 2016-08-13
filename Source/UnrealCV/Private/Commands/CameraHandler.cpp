@@ -26,45 +26,17 @@ FString GenerateSeqFilename()
 	return Filename;
 }
 
-
-/**
-  * Where to put cameras
-  * For each camera in the scene, attach SceneCaptureComponent2D to it
-  * So that ground truth can be generated
-  */
-void FCameraCommandHandler::InitCameraArray()
-{
-	// TODO: Only support one camera at the beginning
-	// TODO: Make this automatic from material loader.
-	static TArray<FString>* SupportedModes = nullptr;
-	if (SupportedModes == nullptr) // TODO: Get supported modes array from GTCapturer
-	{
-		SupportedModes = new TArray<FString>();
-		SupportedModes->Add(TEXT("debug"));
-		SupportedModes->Add(TEXT("depth"));
-		SupportedModes->Add(TEXT("object_mask"));
-		SupportedModes->Add(TEXT("lit")); // This is lit
-		// SupportedModes->Add(TEXT("normal"));
-	}
-
-	for (auto Mode : *SupportedModes)
-	{
-		UGTCaptureComponent* Capturer = UGTCaptureComponent::Create(FUE4CVServer::Get().GetPawn(), Mode);
-		this->GTCapturers.Add(Mode, Capturer);
-	}
-}
-
-
 void FCameraCommandHandler::RegisterCommands()
 {
-	InitCameraArray();
-
 	FDispatcherDelegate Cmd;
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraViewMode);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/[str]", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraViewMode);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/[str] [str]", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetScreenshot);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/screenshot", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraLocation);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/location", Cmd, "Get camera location");
@@ -85,10 +57,10 @@ void FCameraCommandHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vget /camera/[uint]/proj_matrix", Cmd, "Get projection matrix");
 
 	Cmd = FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::SetMode);
-	CommandDispatcher->BindCommand("vset /mode [str]", Cmd, "Set mode"); // Better to check the correctness at compile time
+	CommandDispatcher->BindCommand("vset /viewmode [str]", Cmd, "Set mode"); // Better to check the correctness at compile time
 
 	Cmd = FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::GetMode);
-	CommandDispatcher->BindCommand("vget /mode", Cmd, "Get mode");
+	CommandDispatcher->BindCommand("vget /viewmode", Cmd, "Get mode");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetBuffer);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/buffer", Cmd, "Get buffer of this camera");
@@ -133,7 +105,10 @@ FExecStatus FCameraCommandHandler::SetCameraLocation(const TArray<FString>& Args
 		bool Sweep = false;
 		// if sweep is true, the object can not move through another object
 		// Check invalid location and move back a bit.
+
+		FlushRenderingCommands(); // TODO: Faster implementation?
 		bool Success = FUE4CVServer::Get().GetPawn()->SetActorLocation(Location, Sweep, NULL, ETeleportType::TeleportPhysics);
+		FlushRenderingCommands();
 
 		return FExecStatus::OK();
 	}
@@ -149,7 +124,9 @@ FExecStatus FCameraCommandHandler::SetCameraRotation(const TArray<FString>& Args
 		FRotator Rotator = FRotator(Pitch, Yaw, Roll);
 		APawn* Pawn = FUE4CVServer::Get().GetPawn();
 		AController* Controller = Pawn->GetController();
+		FlushRenderingCommands();
 		Controller->ClientSetRotation(Rotator); // Teleport action
+		FlushRenderingCommands();
 		// SetActorRotation(Rotator);  // This is not working
 
 		return FExecStatus::OK();
@@ -191,7 +168,7 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 {
 	if (Args.Num() <= 3) // The first is camera id, the second is ViewMode
 	{
-		FString CameraId = Args[0];
+		int32 CameraId = FCString::Atoi(*Args[0]);
 		FString ViewMode = Args[1];
 
 		FString Filename;
@@ -203,23 +180,30 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 		{
 			Filename = GenerateSeqFilename();
 		}
-		UGTCaptureComponent* GTCapturer = GTCapturers.FindRef(ViewMode);
+
+		UGTCaptureComponent* GTCapturer = FCameraManager::Get().GetCamera(CameraId);
 		if (GTCapturer == nullptr)
 		{
-			return FExecStatus::Error(FString::Printf(TEXT("Can not support mode %s"), *ViewMode));
+			return FExecStatus::Error(FString::Printf(TEXT("Invalid camera id %d"), CameraId));
 		}
-		GTCapturer->Capture(*Filename); // Due to sandbox implementation of UE4, it is not possible to specify an absolute path directly.
+
+		FAsyncRecord* AsyncRecord = GTCapturer->Capture(*ViewMode, *Filename); // Due to sandbox implementation of UE4, it is not possible to specify an absolute path directly.
+		if (AsyncRecord == nullptr)
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Unrecognized capture mode %s"), *ViewMode));
+		}
 
 		// TODO: Check IsPending is problematic.
-		FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([Filename, GTCapturer]()
+		FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([Filename, AsyncRecord]()
 		{
-			if (GTCapturer->IsPending())
+			if (AsyncRecord->bIsCompleted)
 			{
-				return FExecStatus::Pending();
+				AsyncRecord->Destory();
+				return FExecStatus::OK(GetDiskFilename(Filename));
 			}
 			else
 			{
-				return FExecStatus::OK(GetDiskFilename(Filename));
+				return FExecStatus::Pending();
 			}
 		});
 		return FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
@@ -227,7 +211,7 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 	return FExecStatus::InvalidArgument;
 }
 
-FExecStatus FCameraCommandHandler::GetCameraScreenshot(const TArray<FString>& Args)
+FExecStatus FCameraCommandHandler::GetScreenshot(const TArray<FString>& Args)
 {
 	if (Args.Num() <= 2)
 	{

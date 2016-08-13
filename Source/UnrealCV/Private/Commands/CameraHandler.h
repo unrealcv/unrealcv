@@ -15,10 +15,6 @@ public:
 	{}
 	void RegisterCommands();
 
-	void InitCameraArray();
-
-	TMap<FString, UGTCaptureComponent*> GTCapturers; // TODO: Support multi-camera
-
 	/** vget /camera/location */
 	FExecStatus GetCameraLocation(const TArray<FString>& Args);
 	/** vset /camera/location */
@@ -30,7 +26,7 @@ public:
 	/** vset /camera/rotation */
 	FExecStatus	SetCameraRotation(const TArray<FString>& Args);
 	/** vget /camera/view */
-	FExecStatus GetCameraScreenshot(const TArray<FString>& Args);
+	FExecStatus GetScreenshot(const TArray<FString>& Args);
 
 
 	/** Get camera image with a given mode */
