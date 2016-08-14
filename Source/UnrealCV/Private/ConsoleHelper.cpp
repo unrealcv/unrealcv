@@ -6,7 +6,6 @@
 
 FConsoleHelper::FConsoleHelper()
 {
-	this->ConsoleOutputDevice = new FConsoleOutputDevice(GWorld->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
 	// Add Unreal Console Support
 	IConsoleObject* VGetCmd = IConsoleManager::Get().RegisterConsoleCommand(
 		TEXT("vget"),
@@ -35,7 +34,12 @@ FConsoleHelper& FConsoleHelper::Get()
 
 void FConsoleHelper::SetCommandDispatcher(FCommandDispatcher* InCommandDispatcher)
 {
-	this->CommandDispatcher = InCommandDispatcher;
+	CommandDispatcher = InCommandDispatcher;
+}
+
+void FConsoleHelper::RegisterConsole()
+{
+	ConsoleOutputDevice = new FConsoleOutputDevice(GWorld->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
 }
 
 void FConsoleHelper::VRun(const TArray<FString>& Args)

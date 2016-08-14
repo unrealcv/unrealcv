@@ -15,6 +15,8 @@ void FCameraManager::AttachGTCaptureComponentToCamera(APawn* Pawn)
 	SupportedModes.Add(TEXT("depth"));
 	SupportedModes.Add(TEXT("object_mask"));
 	SupportedModes.Add(TEXT("lit")); // This is lit
+	SupportedModes.Add(TEXT("normal")); // This is lit
+	// TODO: Get the list from GTCaptureComponent
 
 	UGTCaptureComponent* Capturer = UGTCaptureComponent::Create(Pawn, SupportedModes);
 	CaptureComponentList.Add(Capturer);

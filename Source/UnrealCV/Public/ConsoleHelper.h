@@ -13,6 +13,7 @@ public:
 	// FConsoleHelper(FCommandDispatcher* CommandDispatcher);
 	static FConsoleHelper& Get();
 	void SetCommandDispatcher(FCommandDispatcher* CommandDispatcher);
+	void RegisterConsole();
 
 private:
 	FConsoleHelper();

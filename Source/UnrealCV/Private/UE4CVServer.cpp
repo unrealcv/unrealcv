@@ -8,7 +8,7 @@
 void FUE4CVServer::BeginPlay()
 {
 	// This should be done after the world is initialized.
-	FConsoleHelper::Get().SetCommandDispatcher(CommandDispatcher);
+	FConsoleHelper::Get().RegisterConsole();
 	
 	APlayerController* PlayerController = GWorld->GetFirstPlayerController();
 	check(PlayerController);
@@ -21,6 +21,7 @@ void FUE4CVServer::BeginPlay()
 	FObjectPainter::Get().PaintRandomColors();
 
 	FCameraManager::Get().AttachGTCaptureComponentToCamera(Pawn);
+
 	FPlayerViewMode::Get().CreatePostProcessVolume();
 	FPlayerViewMode::Get().Lit();
 
@@ -71,6 +72,7 @@ FUE4CVServer::FUE4CVServer()
 	// Code defined here should not use FUE4CVServer::Get();
 	NetworkManager = NewObject<UNetworkManager>();
 	CommandDispatcher = new FCommandDispatcher();
+	FConsoleHelper::Get().SetCommandDispatcher(CommandDispatcher);
 
 	NetworkManager->AddToRoot(); // Avoid GC
 	NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::HandleRawMessage);
