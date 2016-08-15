@@ -18,15 +18,13 @@ FPlayerViewMode::FPlayerViewMode() : CurrentViewMode("lit")
 
 void FPlayerViewMode::CreatePostProcessVolume()
 {
-	// static APostProcessVolume* PostProcessVolume;
-	if (PostProcessVolume == nullptr)
+	if (PostProcessVolume != nullptr)
 	{
-		PostProcessVolume = GWorld->SpawnActor<APostProcessVolume>();
-		// PostProcessVolume = NewObject<APostProcessVolume>();
-		// PostProcessVolume->AddToRoot();
-		PostProcessVolume->bUnbound = true;
-		// PostProcessVolume->RegisterAllComponents();
+		// PostProcessVolume->Destroy();
+		// TODO: Check how to release resource correctly
 	}
+	PostProcessVolume = GWorld->SpawnActor<APostProcessVolume>();
+	PostProcessVolume->bUnbound = true;
 }
 
 FPlayerViewMode::~FPlayerViewMode() {}
@@ -50,13 +48,13 @@ void FPlayerViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 	if (ICVar)
 	{
 		ICVar->Set(*ViewMode, ECVF_SetByCode); // TODO: Should wait here for a moment.
+		// AsyncTask(ENamedThreads::GameThread, [ViewMode]() {}); // & means capture by reference
+		// The ICVar can only be set in GameThread, the CommandDispatcher already enforce this requirement.
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("The BufferVisualization is not correctly configured."));
 	}
-	// AsyncTask(ENamedThreads::GameThread, [ViewMode]() {}); // & means capture by reference
-	// The ICVar can only be set in GameThread, the CommandDispatcher already enforce this requirement.
 }
 
 void FPlayerViewMode::DepthWorldUnits()
@@ -68,16 +66,12 @@ void FPlayerViewMode::DepthWorldUnits()
 
 void FPlayerViewMode::Depth()
 {
-	UGameViewportClient* Viewport = GWorld->GetGameViewport();
-	FViewMode::BufferVisualization(Viewport->EngineShowFlags);
-	SetCurrentBufferVisualizationMode(TEXT("SceneDepth"));
+	this->ApplyPostProcess("vis_depth");
 }
 
 void FPlayerViewMode::Normal()
 {
-	UGameViewportClient* Viewport = GWorld->GetGameViewport();
-	FViewMode::BufferVisualization(Viewport->EngineShowFlags);
-	SetCurrentBufferVisualizationMode(TEXT("WorldNormal"));
+	this->ApplyPostProcess("normal");
 }
 
 void FPlayerViewMode::BaseColor()
@@ -103,42 +97,31 @@ void FPlayerViewMode::ClearPostProcess()
 	this->PostProcessVolume->BlendWeight = 0;
 }
 
-void FPlayerViewMode::DebugMode()
+void FPlayerViewMode::ApplyPostProcess(FString ModeName)
 {
-	// float DisplayGamma = FRenderTarget::GetDisplayGamma();
-	// GetDisplayGamma();
 	UGameViewportClient* GameViewportClient = GWorld->GetGameViewport();
 	FSceneViewport* SceneViewport = GameViewportClient->GetGameViewport();
-	float DisplayGamma = SceneViewport->GetDisplayGamma();
 
-
-	GameViewportClient->EngineShowFlags = FEngineShowFlags(EShowFlagInitMode::ESFIM_All0);
 	FViewMode::PostProcess(GameViewportClient->EngineShowFlags);
-	// GameViewportClient->EngineShowFlags.VisualizeBuffer = true;
 
-	UMaterial* Material = UGTCaptureComponent::GetMaterial("debug");
-	PostProcessVolume->AddOrUpdateBlendable(Material);
+	UMaterial* Material = UGTCaptureComponent::GetMaterial(ModeName);
+	PostProcessVolume->Settings.WeightedBlendables.Array.Empty();
+
+	// PostProcessVolume->AddOrUpdateBlendable(Material);
+	PostProcessVolume->Settings.AddBlendable(Material, 1);
 	PostProcessVolume->BlendWeight = 1;
-	/*
-	FEngineShowFlags& ShowFlags = GameViewportClient->EngineShowFlags;
-	// ShowFlags = FEngineShowFlags(EShowFlagInitMode::ESFIM_All0);
+}
 
-	// FViewMode::Lit(CaptureComponent->ShowFlags);
-	// CaptureComponent->ShowFlags.DisableAdvancedFeatures();
-	ShowFlags.Rendering = true;
-	ShowFlags.PostProcessing = true;
-	ShowFlags.PostProcessMaterial = true;
-	ShowFlags.StaticMeshes = true;
-
-	*/
+void FPlayerViewMode::DebugMode()
+{
+	ApplyPostProcess("debug");
 }
 
 void FPlayerViewMode::Object()
 {
-	check(GWorld);
-
 	auto Viewport = GWorld->GetGameViewport();
 	FViewMode::VertexColor(Viewport->EngineShowFlags);
+	// ApplyPostProcess("object_mask");
 }
 
 FExecStatus FPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input arguments
@@ -153,10 +136,12 @@ FExecStatus FPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input
 		ViewModeHandlers->Add(TEXT("depth"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::Depth));
 		ViewModeHandlers->Add(TEXT("normal"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::Normal));
 		ViewModeHandlers->Add(TEXT("object_mask"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::Object));
+		// ViewModeHandlers->Add(TEXT("vertex_color"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::VertexColor));
 		ViewModeHandlers->Add(TEXT("lit"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::Lit));
 		ViewModeHandlers->Add(TEXT("unlit"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::Unlit));
 		ViewModeHandlers->Add(TEXT("base_color"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::BaseColor));
 		ViewModeHandlers->Add(TEXT("debug"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::DebugMode));
+		ViewModeHandlers->Add(TEXT("wireframe"), ViewModeFunc::CreateLambda([]() { FViewMode::Wireframe(GWorld->GetGameViewport()->EngineShowFlags);  }));
 	}
 
 	// Check args
@@ -188,6 +173,5 @@ FExecStatus FPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input
 
 FExecStatus FPlayerViewMode::GetMode(const TArray<FString>& Args) // Check input arguments
 {
-	UE_LOG(LogTemp, Warning, TEXT("Run GetMode, The mode is %s"), *CurrentViewMode);
 	return FExecStatus::OK(CurrentViewMode);
 }

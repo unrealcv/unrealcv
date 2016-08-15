@@ -17,11 +17,13 @@ public:
 	void Unlit();
 	void Object();
 	void BaseColor();
+	void VertexColor();
 	/** The ShowFlags of this mode will be set within debugger */
 	void DebugMode();
 	FExecStatus SetMode(const TArray<FString>& Args); // Check input arguments
 	FExecStatus GetMode(const TArray<FString>& Args);
 	void CreatePostProcessVolume();
+	void ApplyPostProcess(FString ModeName);
 private:
 	void SetCurrentBufferVisualizationMode(FString ViewMode);
 	FPlayerViewMode();
