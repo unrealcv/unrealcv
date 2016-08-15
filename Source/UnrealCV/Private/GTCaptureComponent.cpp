@@ -16,10 +16,12 @@ void InitCaptureComponent(USceneCaptureComponent2D* CaptureComponent)
 	CaptureComponent->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 
 	CaptureComponent->TextureTarget = NewObject<UTextureRenderTarget2D>();
-	// CaptureComponent->TextureTarget->InitAutoFormat(640, 480); // TODO: Update this later
+	CaptureComponent->TextureTarget->InitAutoFormat(640, 480); // TODO: Update this later
 
+	/*
 	UGameViewportClient* GameViewportClient = GWorld->GetGameViewport();
 	CaptureComponent->TextureTarget->InitAutoFormat(GameViewportClient->Viewport->GetSizeXY().X,  GameViewportClient->Viewport->GetSizeXY().Y); // TODO: Update this later
+	*/
 
 	CaptureComponent->RegisterComponentWithWorld(GWorld); // What happened for this?
 	// CaptureComponent->AddToRoot(); This is not necessary since it has been attached to the Pawn.
