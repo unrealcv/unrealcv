@@ -11,12 +11,16 @@ void FCameraManager::AttachGTCaptureComponentToCamera(APawn* Pawn)
 	// TODO: Only support one camera at the beginning
 	// TODO: Make this automatic from material loader.
 	TArray<FString> SupportedModes;
-	SupportedModes.Add(TEXT("debug"));
-	SupportedModes.Add(TEXT("depth"));
-	SupportedModes.Add(TEXT("object_mask"));
 	SupportedModes.Add(TEXT("lit")); // This is lit
-	SupportedModes.Add(TEXT("normal")); // This is lit
+	SupportedModes.Add(TEXT("depth"));
+	SupportedModes.Add(TEXT("debug"));
+	SupportedModes.Add(TEXT("object_mask"));
+	SupportedModes.Add(TEXT("normal")); 
+	SupportedModes.Add(TEXT("wireframe"));
+	SupportedModes.Add(TEXT("default")); 
 	// TODO: Get the list from GTCaptureComponent
+
+	CaptureComponentList.Empty();
 
 	UGTCaptureComponent* Capturer = UGTCaptureComponent::Create(Pawn, SupportedModes);
 	CaptureComponentList.Add(Capturer);

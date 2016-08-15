@@ -106,9 +106,7 @@ FExecStatus FCameraCommandHandler::SetCameraLocation(const TArray<FString>& Args
 		// if sweep is true, the object can not move through another object
 		// Check invalid location and move back a bit.
 
-		FlushRenderingCommands(); // TODO: Faster implementation?
 		bool Success = FUE4CVServer::Get().GetPawn()->SetActorLocation(Location, Sweep, NULL, ETeleportType::TeleportPhysics);
-		FlushRenderingCommands();
 
 		return FExecStatus::OK();
 	}
@@ -124,9 +122,7 @@ FExecStatus FCameraCommandHandler::SetCameraRotation(const TArray<FString>& Args
 		FRotator Rotator = FRotator(Pitch, Yaw, Roll);
 		APawn* Pawn = FUE4CVServer::Get().GetPawn();
 		AController* Controller = Pawn->GetController();
-		FlushRenderingCommands();
 		Controller->ClientSetRotation(Rotator); // Teleport action
-		FlushRenderingCommands();
 		// SetActorRotation(Rotator);  // This is not working
 
 		return FExecStatus::OK();
