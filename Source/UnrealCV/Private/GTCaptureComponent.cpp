@@ -16,7 +16,10 @@ void InitCaptureComponent(USceneCaptureComponent2D* CaptureComponent)
 	CaptureComponent->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 
 	CaptureComponent->TextureTarget = NewObject<UTextureRenderTarget2D>();
-	CaptureComponent->TextureTarget->InitAutoFormat(640, 480); // TODO: Update this later
+	// CaptureComponent->TextureTarget->InitAutoFormat(640, 480); // TODO: Update this later
+
+	UGameViewportClient* GameViewportClient = GWorld->GetGameViewport();
+	CaptureComponent->TextureTarget->InitAutoFormat(GameViewportClient->Viewport->GetSizeXY().X,  GameViewportClient->Viewport->GetSizeXY().Y); // TODO: Update this later
 
 	CaptureComponent->RegisterComponentWithWorld(GWorld); // What happened for this?
 	// CaptureComponent->AddToRoot(); This is not necessary since it has been attached to the Pawn.
@@ -25,8 +28,6 @@ void InitCaptureComponent(USceneCaptureComponent2D* CaptureComponent)
 
 void SaveExr(UTextureRenderTarget2D* RenderTarget, FString Filename)
 {
-	FlushRenderingCommands(); // Wait until rendering finished.
-
 	SCOPE_CYCLE_COUNTER(STAT_SaveExr)
 	int32 Width = RenderTarget->SizeX, Height = RenderTarget->SizeY;
 	TArray<FFloat16Color> FloatImage;
@@ -47,7 +48,6 @@ void SaveExr(UTextureRenderTarget2D* RenderTarget, FString Filename)
 
 void SavePng(UTextureRenderTarget2D* RenderTarget, FString Filename)
 {
-	FlushRenderingCommands(); // Wait until rendering finished.
 	SCOPE_CYCLE_COUNTER(STAT_SavePng);
 	static IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
 	static IImageWrapperPtr ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG);
@@ -62,7 +62,10 @@ void SavePng(UTextureRenderTarget2D* RenderTarget, FString Filename)
 		}
 		{
 			SCOPE_CYCLE_COUNTER(STAT_ReadPixels);
-			RenderTargetResource->ReadPixels(Image);
+			FReadSurfaceDataFlags ReadSurfaceDataFlags;
+			ReadSurfaceDataFlags.SetLinearToGamma(false); // This is super important to disable this!
+			// Instead of using this flag, we will set the gamma to the correct value directly
+			RenderTargetResource->ReadPixels(Image, ReadSurfaceDataFlags);
 		}
 		{
 			SCOPE_CYCLE_COUNTER(STAT_ImageWrapper);
@@ -83,10 +86,11 @@ UMaterial* UGTCaptureComponent::GetMaterial(FString InModeName = TEXT(""))
 	if (MaterialPathMap == nullptr)
 	{
 		MaterialPathMap = new TMap<FString, FString>();
-		// MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepth.SceneDepth'"));
-		MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepth1.SceneDepth1'"));
+		MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepthWorldUnits.SceneDepthWorldUnits'"));
+		MaterialPathMap->Add(TEXT("vis_depth"), TEXT("Material'/UnrealCV/SceneDepth.SceneDepth'"));
 		MaterialPathMap->Add(TEXT("debug"), TEXT("Material'/UnrealCV/debug.debug'"));
-		MaterialPathMap->Add(TEXT("object_mask"), TEXT("Material'/UnrealCV/objectmask.VertexColorMaterial'"));
+		// MaterialPathMap->Add(TEXT("object_mask"), TEXT("Material'/UnrealCV/VertexColorMaterial.VertexColorMaterial'"));
+		MaterialPathMap->Add(TEXT("normal"), TEXT("Material'/UnrealCV/WorldNormal.WorldNormal'"));
 	}
 
 	static TMap<FString, UMaterial*>* StaticMaterialMap = nullptr;
@@ -139,31 +143,36 @@ UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, TArray<FString> 
 		UMaterial* Material = GetMaterial(Mode);
 		if (Mode == "lit") // For rendered images
 		{
-			FEngineShowFlags& ShowFlags = CaptureComponent->ShowFlags;
 			FViewMode::Lit(CaptureComponent->ShowFlags);
 			CaptureComponent->TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
+			// float DisplayGamma = SceneViewport->GetDisplayGamma();
 		}
-		/*
-		else if (Mode == "object_mask") // For object mask
+		else if (Mode == "default")
 		{
-			FViewMode::VertexColor(CaptureComponent->ShowFlags);
+			continue;
 		}
-		*/
-		else
+		else // for ground truth
 		{
-			check(Material);
-			// FViewMode::PostProcess(CaptureComponent->ShowFlags);
-			// GEngine->GetDisplayGamma(), the default gamma is 2.2
-			// CaptureComponent->TextureTarget->TargetGamma = 2.2;
-
-			// FViewMode::Lit(CaptureComponent->ShowFlags);
-			// CaptureComponent->ShowFlags.DisableAdvancedFeatures();
-			CaptureComponent->ShowFlags = FEngineShowFlags(EShowFlagInitMode::ESFIM_All0);
-			FViewMode::PostProcess(CaptureComponent->ShowFlags);
-
 			CaptureComponent->TextureTarget->TargetGamma = 1;
-			CaptureComponent->PostProcessSettings.AddBlendable(Material, 1);
-			// Instead of switching post-process materials, we create several SceneCaptureComponent, so that we can capture different GT within the same frame.
+			if (Mode == "object_mask") // For object mask
+			{
+				FViewMode::Lit(CaptureComponent->ShowFlags);
+				FViewMode::VertexColor(CaptureComponent->ShowFlags);
+			}
+			else if (Mode == "wireframe") // For object mask
+			{
+				FViewMode::Wireframe(CaptureComponent->ShowFlags);
+			}
+			else
+			{
+				check(Material);
+				// GEngine->GetDisplayGamma(), the default gamma is 2.2
+				// CaptureComponent->TextureTarget->TargetGamma = 2.2;
+				FViewMode::PostProcess(CaptureComponent->ShowFlags);
+
+				CaptureComponent->PostProcessSettings.AddBlendable(Material, 1);
+				// Instead of switching post-process materials, we create several SceneCaptureComponent, so that we can capture different GT within the same frame.
+			}
 		}
 	}
 	return GTCapturer;
@@ -186,6 +195,7 @@ FAsyncRecord* UGTCaptureComponent::Capture(FString Mode, FString InFilename)
 {
 	// Flush location and rotation
 	
+	check(CaptureComponents.Num() != 0);
 	USceneCaptureComponent2D* CaptureComponent = CaptureComponents.FindRef(Mode);
 	if (CaptureComponent == nullptr)
 		return nullptr;
@@ -199,6 +209,7 @@ FAsyncRecord* UGTCaptureComponent::Capture(FString Mode, FString InFilename)
 	FAsyncRecord* AsyncRecord = FAsyncRecord::Create();
 	FGTCaptureTask GTCaptureTask = FGTCaptureTask(Mode, InFilename, GFrameCounter, AsyncRecord);
 	this->PendingTasks.Enqueue(GTCaptureTask);
+
 	return AsyncRecord;
 }
 
@@ -230,7 +241,9 @@ void UGTCaptureComponent::TickComponent(float DeltaTime, enum ELevelTick TickTyp
 		FGTCaptureTask Task;
 		PendingTasks.Peek(Task);
 		uint64 CurrentFrame = GFrameCounter;
-		if (!(CurrentFrame > Task.CurrentFrame + 10)) // TODO: This is not an elegant solution, fix it later.
+		
+		int32 SkipFrame = 1;
+		if (!(CurrentFrame > Task.CurrentFrame + SkipFrame)) // TODO: This is not an elegant solution, fix it later.
 		{ // Wait for the rendering thread to catch up game thread.
 			break;
 		}
