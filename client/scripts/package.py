@@ -6,7 +6,6 @@ import gitutil
 UATScriptTemplate = '{UATScript} BuildCookRun -project={ProjectFile} -archivedirectory={OutputFolder} -noP4 -platform={Platform} -clientconfig=Development -serverconfig=Development -cook -allmaps -build -stage -pak -archive'
 
 UATParams = dict(
-    ProjectFile = projectfile,
     UATScript = conf['UATScript'],
     OutputFolder = conf['OutputFolder'],
 )
@@ -14,16 +13,19 @@ UATParams = dict(
 # Automatically package game content
 def package_linux(conf, projectfile):
     UATParams['Platform'] = 'Linux'
+    UATParams['ProjectFile'] = projectfile
     cmd = UATScriptTemplate.format(**UATParams)
     os.system(cmd)
 
 def package_mac(conf, projectfile):
     UATParams['Platform'] = 'Mac'
+    UATParams['ProjectFile'] = projectfile
     cmd = UATScriptTemplate.format(**UATParams)
     os.system(cmd)
 
 def package_win(conf, projectfile):
     UATParams['Platform'] = 'Win64'
+    UATParams['ProjectFile'] = projectfile
     cmd = UATScriptTemplate.format(**UATParams)
 
     # windows_cmd = 'cmd /C start "" "D:/Epic Games/4.11/Engine/Build/BatchFiles/RunUAT.bat" BuildCookRun -project=\"D:/Unreal Projects/FlyingCppDefault/FlyingCppDefault.uproject\" -archivedirectory=AutoPackaging -noP4 -platform=Win64 -clientconfig=Development -serverconfig=Development -cook -allmaps -build -stage -pak -archive'
