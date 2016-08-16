@@ -64,4 +64,5 @@ def upload_scp(filename):
     ssh.close()
 
 if __name__ == '__main__':
+    # Run test
     upload_scp("pyupload.py")

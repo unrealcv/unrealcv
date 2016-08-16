@@ -18,14 +18,18 @@ def build_plugin():
         if sys.platform == 'cygwin':
             plugin_file = ue4util.cygwinpath_to_winpath(plugin_file)
 
-        output_folder = os.path.abspath('./unrealcv-%s' % plugin_version)
+        plugin_output_folder = os.path.abspath('./unrealcv-%s' % plugin_version)
         if sys.platform == 'cygwin':
             output_folder = ue4util.cygwinpath_to_winpath(output_folder)
 
         UAT_script = UAT_script.replace(' ', '\ ')
-        cmd = '%s BuildPlugin -plugin=%s -package=%s -rocket' % (UAT_script, plugin_file, output_folder)
+        cmd = '%s BuildPlugin -plugin=%s -package=%s -rocket' % (UAT_script, plugin_file, plugin_output_folder)
         print(cmd)
         os.system(cmd)
+
+        # Clean up intermediate files
+        intermediate_folder = os.path.join(plugin_output_folder, 'intermediate')
+        shutil.rmtree(intermediate_folder)
 
 
 if __name__ == '__main__':
