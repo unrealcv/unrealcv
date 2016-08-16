@@ -35,7 +35,7 @@ def read_camera_info(filename):
 
 def render_frame(client, cam_pose=None):
     ''' If you want to render a frame using current camera position, leave the pos argument to None '''
-    if pos is not None:
+    if cam_pose is not None:
         # Set camera position
         loc = cam_pose[0] # location
         rot = cam_pose[1] # rotation
