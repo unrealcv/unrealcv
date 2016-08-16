@@ -2,6 +2,7 @@ import os, sys
 from ue4config import conf
 import ue4util
 import gitutil
+import shutil
 
 def build_plugin():
     UAT_script = conf['UATScript']
@@ -28,7 +29,7 @@ def build_plugin():
         os.system(cmd)
 
         # Clean up intermediate files
-        intermediate_folder = os.path.join(plugin_output_folder, 'intermediate')
+        intermediate_folder = os.path.join(plugin_output_folder, 'Intermediate')
         shutil.rmtree(intermediate_folder)
 
 
