@@ -4,6 +4,7 @@ import ue4util, gitutil, shutil, uploadutil
 
 plugin_version = gitutil.get_short_version('.')
 plugin_output_folder = os.path.abspath('./unrealcv-%s' % plugin_version)
+plugin_output_folder = ue4util.get_real_path(plugin_output_folder)
 
 def build_plugin():
     UAT_script = ue4config.conf['UATScript']
