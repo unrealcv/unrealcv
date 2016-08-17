@@ -68,7 +68,12 @@ def upload_scp(scp_conf, files, local_root):
         relative_filename = local_filename.replace(local_root, '')
 
         if os.path.isdir(local_filename):
-            sftp.mkdir(os.path.join(remote_root, relative_filename))
+            remote_dir = os.path.join(remote_root, relative_filename)
+            print 'Mkdir remote dir %s' % remote_dir
+            try:
+                sftp.mkdir(remote_dir)
+            except:
+                pass # maybe exist
             continue
         else:
             remote_filename = os.path.join(remote_root, relative_filename)
