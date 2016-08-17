@@ -83,9 +83,7 @@ if __name__ == '__main__':
         print 'Expanded file list'
         all_files = get_all_files(files)
 
-        if sys.platform == 'cygwin':
-            all_files = [cygwinpath_to_winpath(f) for f in all_files]
-
+        all_files = [ue4util.get_real_path(f) for f in all_files]
         for f in all_files:
             print f
 

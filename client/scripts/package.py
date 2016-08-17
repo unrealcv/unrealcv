@@ -82,8 +82,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     project_file = os.path.abspath(args.project_file)
-    if sys.platform == 'cygwin':
-        project_file = ue4util.cygwinpath_to_winpath(project_file)
+    project_file = ue4util.get_real_path(project_file)
 
     if save_version_info(conf, project_file): # Check version info, not really doing anything
         package(conf, project_file)

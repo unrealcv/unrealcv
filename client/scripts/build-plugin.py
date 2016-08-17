@@ -17,8 +17,7 @@ def build_plugin():
             return False
 
         plugin_file = os.path.abspath('../../UnrealCV.uplugin')
-        if sys.platform == 'cygwin':
-            plugin_file = ue4util.cygwinpath_to_winpath(plugin_file)
+        plugin_file = ue4util.get_real_path(plugin_file)
 
         UAT_script = UAT_script.replace(' ', '\ ')
         cmd = '%s BuildPlugin -plugin=%s -package=%s -rocket' % (UAT_script, plugin_file, plugin_output_folder)

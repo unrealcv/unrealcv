@@ -6,6 +6,7 @@ def get_project_name(projectfile):
         print 'Error %s is not a valid project file' % projectfile
     return os.path.basename(projectfile).replace('.uproject', '')
 
+
 def get_platform_name():
     platform = sys.platform
     names = {
@@ -54,3 +55,9 @@ def get_output_root_folder():
         output_root_folder = os.path.join(conf['OutputFolder'], buildtype)
 
         return output_root_folder
+
+def get_real_path(filename):
+    # Convert path in python to real path on the disk, useful for windows
+    if sys.platform == 'cygwin':
+        filename = cygwinpath_to_winpath(filename)
+    return filename
