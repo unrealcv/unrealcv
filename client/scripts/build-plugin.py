@@ -1,8 +1,6 @@
 import os, sys
-from ue4config import conf
-import ue4util
-import gitutil
-import shutil
+import ue4config
+import ue4util, gitutil, shutil
 
 def build_plugin():
     UAT_script = conf['UATScript']
@@ -32,6 +30,17 @@ def build_plugin():
         intermediate_folder = os.path.join(plugin_output_folder, 'Intermediate')
         shutil.rmtree(intermediate_folder)
 
+def output_plugin(output_conf):
+    output_conf['type']
+    upload_handlers = dict(
+        scp = upload_scp,
+        s3 = upload_s3,
+    )
+    pass
 
 if __name__ == '__main__':
-    build_plugin()
+    # build_plugin()
+    output_confs = ue4config.conf['PluginOutput']
+    for conf in output_confs:
+        print conf['type']
+        output_plugin(conf)

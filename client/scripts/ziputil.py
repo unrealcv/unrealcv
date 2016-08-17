@@ -1,11 +1,11 @@
 import os
 
 # Even empty folder needs to be preserved
-def get_all_files(files):
+def get_all_files(files, include_folder=True):
     all_files = []
     for path in files:
-        # if os.path.isfile(path):
-        all_files.append(path)
+        if os.path.isfile(path) or include_folder:
+            all_files.append(path)
 
         if os.path.isdir(path):
             for dirname, subdirs, files in os.walk(path):
@@ -13,7 +13,8 @@ def get_all_files(files):
                     all_files.append(os.path.join(dirname, filename))
 
                 for subdir in subdirs:
-                    all_files.append(os.path.join(dirname, subdir))
+                    if include_folder:
+                        all_files.append(os.path.join(dirname, subdir))
 
     return [os.path.abspath(v) for v in all_files]
 
