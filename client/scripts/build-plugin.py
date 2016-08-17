@@ -3,8 +3,7 @@ import ue4config
 import ue4util, gitutil, shutil, uploadutil
 
 plugin_version = gitutil.get_short_version('.')
-plugin_output_folder = os.path.abspath('./unrealcv-%s' % plugin_version)
-plugin_output_folder = ue4util.get_real_path(plugin_output_folder)
+plugin_output_folder = ue4util.get_real_abspath('./unrealcv-%s' % plugin_version)
 
 def build_plugin():
     UAT_script = ue4config.conf['UATScript']
@@ -13,12 +12,11 @@ def build_plugin():
         print('Please set UnrealEnginePath in ue4config.py correctly first')
         return False
     else:
-        if gitutil.is_dirty(os.path.abspath('.')):
+        if gitutil.is_dirty('.'):
             print 'Error: uncommited changes of this repo exist'
             return False
 
-        plugin_file = os.path.abspath('../../UnrealCV.uplugin')
-        plugin_file = ue4util.get_real_path(plugin_file)
+        plugin_file = ue4util.get_real_abspath('../../UnrealCV.uplugin')
 
         UAT_script = UAT_script.replace(' ', '\ ')
         cmd = '%s BuildPlugin -plugin=%s -package=%s -rocket -targetplatforms=Win64+Linux' % (UAT_script, plugin_file, plugin_output_folder)

@@ -56,8 +56,13 @@ def get_output_root_folder():
 
         return output_root_folder
 
-def get_real_path(filename):
+def get_real_abspath(filename):
     # Convert path in python to real path on the disk, useful for windows
+    if len(filename) >= 3 and filename[1] == ':':
+        pass # skip windows absolute path
+    else:
+        filename = os.path.abspath(filename)
+
     if sys.platform == 'cygwin':
         filename = cygwinpath_to_winpath(filename)
     return filename

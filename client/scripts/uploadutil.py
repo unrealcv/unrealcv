@@ -1,5 +1,6 @@
 from ue4config import conf
 import ziputil
+import ue4util
 # Use python to upload files to server
 
 
@@ -52,7 +53,7 @@ def upload_scp(scp_conf, files, local_root):
     assert(scp_conf['Type'] == 'scp')
 
     absfiles = ziputil.get_all_files(files, include_folder=True)
-    local_root = os.path.abspath(local_root) + '/'
+    local_root = ue4util.get_real_abspath(local_root) + '/'
 
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -66,6 +67,7 @@ def upload_scp(scp_conf, files, local_root):
     # client = scp.Client(host = scp_conf['host'], user = scp_conf['user'], password = scp_conf['password'])
     for local_filename in absfiles:
         relative_filename = local_filename.replace(local_root, '')
+        # print 'local filename: %s, relative filename: %s' % (local_filename, relative_filename)
 
         if os.path.isdir(local_filename):
             remote_dir = os.path.join(remote_root, relative_filename)
@@ -77,7 +79,6 @@ def upload_scp(scp_conf, files, local_root):
             continue
         else:
             remote_filename = os.path.join(remote_root, relative_filename)
-            print remote_filename
             print '%s -> %s' % (local_filename, remote_filename)
             # client.transfer(filename, remote_filename)
             sftp.put(local_filename, remote_filename)

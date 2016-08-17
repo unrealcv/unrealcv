@@ -1,14 +1,19 @@
 import os
+import ue4util
 
 # Even empty folder needs to be preserved
 def get_all_files(files, include_folder=True):
     all_files = []
     for path in files:
+        print 'path: %s' % path
         if os.path.isfile(path) or include_folder:
             all_files.append(path)
 
         if os.path.isdir(path):
             for dirname, subdirs, files in os.walk(path):
+                # print 'dirname: %s' % dirname
+                # print 'subdirs: %s' % subdirs
+                # print 'files: %s' % files
                 for filename in files:
                     all_files.append(os.path.join(dirname, filename))
 
@@ -16,7 +21,7 @@ def get_all_files(files, include_folder=True):
                     if include_folder:
                         all_files.append(os.path.join(dirname, subdir))
 
-    return [os.path.abspath(v) for v in all_files]
+    return [ue4util.get_real_abspath(v) for v in all_files]
 
 def zipfiles(srcfiles, srcroot, dst):
     print 'zip file'

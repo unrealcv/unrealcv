@@ -81,8 +81,7 @@ if __name__ == '__main__':
     parser.add_argument('project_file')
     args = parser.parse_args()
 
-    project_file = os.path.abspath(args.project_file)
-    project_file = ue4util.get_real_path(project_file)
+    project_file = ue4util.get_real_path(args.project_file)
 
     if save_version_info(conf, project_file): # Check version info, not really doing anything
         package(conf, project_file)
