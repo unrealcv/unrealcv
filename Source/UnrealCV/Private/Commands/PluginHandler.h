@@ -4,8 +4,7 @@
 class FPluginCommandHandler : public FCommandHandler
 {
 public:
-	FPluginCommandHandler(APawn* InCharacter, FCommandDispatcher* InCommandDispatcher)
-	: FCommandHandler(InCharacter, InCommandDispatcher)
+	FPluginCommandHandler(FCommandDispatcher* InCommandDispatcher) : FCommandHandler(InCommandDispatcher)
 	{}
 	void RegisterCommands();
 
@@ -14,4 +13,5 @@ public:
 	FExecStatus GetUnrealCVStatus(const TArray<FString>& Args);
 	/** Get the help message of defined commands */
 	FExecStatus GetCommands(const TArray<FString>& Args);
+	FExecStatus Echo(const TArray<FString>& Args);
 };

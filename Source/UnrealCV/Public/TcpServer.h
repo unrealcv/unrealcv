@@ -5,7 +5,7 @@
 #include "Object.h"
 #include "Networking.h"
 #include "NetworkMessage.h"
-#include "NetworkManager.generated.h"
+#include "TcpServer.generated.h"
 
 /**
  * a simplified version from FNFSMessageHeader of UnrealEngine4, without CRC check 

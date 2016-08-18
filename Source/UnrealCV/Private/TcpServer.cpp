@@ -2,7 +2,7 @@
 
 // #include "RealisticRendering.h"
 #include "UnrealCVPrivate.h"
-#include "NetworkManager.h"
+#include "TcpServer.h"
 #include "Networking.h"
 #include <string>
 

@@ -1,5 +1,9 @@
 from ue4config import conf
+import ziputil
+import ue4util
 # Use python to upload files to server
+
+
 def upload_s3(bucket_name, filename):
     '''
     Upload file to Amazon S3 server
@@ -44,24 +48,44 @@ def upload_s3(bucket_name, filename):
     # Finish the upload
     mp.complete_upload()
 
-def upload_scp(filename):
+def upload_scp(scp_conf, files, local_root):
     import os, paramiko
-    scp_conf = conf['scp']
+    assert(scp_conf['Type'] == 'scp')
+
+    absfiles = ziputil.get_all_files(files, include_folder=True)
+    local_root = ue4util.get_real_abspath(local_root) + '/'
 
     ssh = paramiko.SSHClient()
-    ssh.load_host_keys(os.path.expanduser(os.path.join('~', '.ssh', 'known_hosts')))
-    ssh.connect(scp_conf['host'], username = scp_conf['user'], password = scp_conf['password'])
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    # ssh.load_system_host_keys()
+    # ssh.load_host_keys(os.path.expanduser(os.path.join('~', '.ssh', 'known_hosts')))
+    ssh.connect(scp_conf['Host'], username = scp_conf['Username'], password = scp_conf['Password'])
+    remote_root = scp_conf['RemoteRoot']
 
     sftp = ssh.open_sftp()
 
     # client = scp.Client(host = scp_conf['host'], user = scp_conf['user'], password = scp_conf['password'])
-    basefilename = os.path.basename(filename)
-    remote_filename = os.path.join(scp_conf['rootdir'], basefilename)
-    print 'Try to do scp %s %s' % (filename, remote_filename)
-    # client.transfer(filename, remote_filename)
-    sftp.put(filename, remote_filename)
+    for local_filename in absfiles:
+        relative_filename = local_filename.replace(local_root, '')
+        # print 'local filename: %s, relative filename: %s' % (local_filename, relative_filename)
+
+        if os.path.isdir(local_filename):
+            remote_dir = os.path.join(remote_root, relative_filename)
+            print 'Mkdir remote dir %s' % remote_dir
+            try:
+                sftp.mkdir(remote_dir)
+            except:
+                pass # maybe exist
+            continue
+        else:
+            remote_filename = os.path.join(remote_root, relative_filename)
+            print '%s -> %s' % (local_filename, remote_filename)
+            # client.transfer(filename, remote_filename)
+            sftp.put(local_filename, remote_filename)
+
     sftp.close()
     ssh.close()
 
 if __name__ == '__main__':
+    # Run test
     upload_scp("pyupload.py")

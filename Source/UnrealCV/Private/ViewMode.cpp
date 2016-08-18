@@ -2,18 +2,33 @@
 #include "ViewMode.h"
 #include "BufferVisualizationData.h"
 
-void FViewMode::Depth(FEngineShowFlags& ShowFlags)
-{
-	// SetCurrentBufferVisualizationMode(TEXT("SceneDepthWorldUnits"));
-}
+/**
+FViewMode is a helper class to tweak render options. Important options are
+	Tonemapper
+	EyeAdaptation
+	TemporalAA
+	MotionBlur
+	Lighting
+	Bloom
+	ColorGrading
+	GammaCorrection
+	DepthOfField
+	LensFlare
+	Vignette
+*/
 
-void FViewMode::VisDepth(FEngineShowFlags& ShowFlags)
+
+void BasicSetting(FEngineShowFlags& ShowFlags)
 {
-	// SetCurrentBufferVisualizationMode(TEXT("SceneDepth"));
+	ShowFlags = FEngineShowFlags(EShowFlagInitMode::ESFIM_All0);
+	ShowFlags.SetRendering(true);
+	ShowFlags.SetStaticMeshes(true);
 }
 
 void FViewMode::Lit(FEngineShowFlags& ShowFlags)
 {
+	BasicSetting(ShowFlags);
+	ShowFlags = FEngineShowFlags(EShowFlagInitMode::ESFIM_Game);
 	ApplyViewMode(VMI_Lit, true, ShowFlags);
 	ShowFlags.SetMaterials(true);
 	ShowFlags.SetLighting(true);
@@ -22,8 +37,11 @@ void FViewMode::Lit(FEngineShowFlags& ShowFlags)
 	ShowFlags.SetTonemapper(true);
 	// TemporalAA needs to be disabled, otherwise the previous frame might contaminate current frame.
 	// Check: https://answers.unrealengine.com/questions/436060/low-quality-screenshot-after-setting-the-actor-pos.html for detail
-	// Viewport->EngineShowFlags.SetTemporalAA(false);
-	ShowFlags.SetTemporalAA(true);
+
+	// ShowFlags.SetTemporalAA(true);
+	ShowFlags.SetTemporalAA(false);
+	ShowFlags.SetAntiAliasing(true);
+	ShowFlags.SetEyeAdaptation(false); // Eye adaption is a slow temporal procedure, not useful for image capture
 }
 
 void FViewMode::BufferVisualization(FEngineShowFlags& ShowFlags)
@@ -33,63 +51,41 @@ void FViewMode::BufferVisualization(FEngineShowFlags& ShowFlags)
 
 	// From ShowFlags.cpp
 	ShowFlags.SetPostProcessing(true);
-	// EngineShowFlags.SetMaterials(false);
 	ShowFlags.SetMaterials(true);
 	ShowFlags.SetVisualizeBuffer(true);
 
-
-	//Viewport->EngineShowFlags.AmbientOcclusion = 0;
-	//Viewport->EngineShowFlags.ScreenSpaceAO = 0;
-	//Viewport->EngineShowFlags.Decals = 0;
-	//Viewport->EngineShowFlags.DynamicShadows = 0;
-	//Viewport->EngineShowFlags.GlobalIllumination = 0;
-	//Viewport->EngineShowFlags.ScreenSpaceReflections = 0;
-
 	// ToneMapper needs to be disabled
 	ShowFlags.SetTonemapper(false);
 	// TemporalAA needs to be disabled, or it will contaminate the following frame
 	ShowFlags.SetTemporalAA(false);
 }
 
+
+/** ViewMode showing post process */
 void FViewMode::PostProcess(FEngineShowFlags& ShowFlags)
 {
-	ShowFlags.Rendering = true;
-	ShowFlags.PostProcessing = true;
-	ShowFlags.PostProcessMaterial = true;
-	ShowFlags.StaticMeshes = true;
-
-	/*
-	// Set all flags to false, only enable useful flags.
-	
-
-	ApplyViewMode(EViewModeIndex::VMI_VisualizeBuffer, true, ShowFlags); // This did more than just SetVisualizeBuffer(true);
-	// EngineShowFlagOverride()
-
-	// From ShowFlags.cpp
+	BasicSetting(ShowFlags);
+	// These are minimal setting
 	ShowFlags.SetPostProcessing(true);
-	// EngineShowFlags.SetMaterials(false);
-	ShowFlags.SetMaterials(true);
-	ShowFlags.SetVisualizeBuffer(false);
+	ShowFlags.SetPostProcessMaterial(true);
+	// ShowFlags.SetVertexColors(true); // This option will change object material to vertex color material, which don't produce surface normal
 
-
-	//Viewport->EngineShowFlags.AmbientOcclusion = 0;
-	//Viewport->EngineShowFlags.ScreenSpaceAO = 0;
-	//Viewport->EngineShowFlags.Decals = 0;
-	//Viewport->EngineShowFlags.DynamicShadows = 0;
-	//Viewport->EngineShowFlags.GlobalIllumination = 0;
-	//Viewport->EngineShowFlags.ScreenSpaceReflections = 0;
-
-	// ToneMapper needs to be disabled
-	ShowFlags.SetTonemapper(false);
-	// TemporalAA needs to be disabled, or it will contaminate the following frame
-	ShowFlags.SetTemporalAA(false);
-	*/
+	GVertexColorViewMode = EVertexColorViewMode::Color;
 }
+
+void FViewMode::Wireframe(FEngineShowFlags& ShowFlags)
+{
+	// ApplyViewMode(VMI_Wireframe, true, ShowFlags);
+	ShowFlags.SetPostProcessing(true);
+	ShowFlags.SetWireframe(true);
+}
+
 
 void FViewMode::VertexColor(FEngineShowFlags& ShowFlags)
 {
 	ApplyViewMode(VMI_Lit, true, ShowFlags);
 
+	// From MeshPaintEdMode.cpp:2942
 	ShowFlags.SetMaterials(false);
 	ShowFlags.SetLighting(false);
 	ShowFlags.SetBSPTriangles(true);

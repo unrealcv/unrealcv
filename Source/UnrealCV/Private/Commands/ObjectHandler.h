@@ -4,8 +4,7 @@
 class FObjectCommandHandler : public FCommandHandler
 {
 public:
-	FObjectCommandHandler(APawn* InCharacter, FCommandDispatcher* InCommandDispatcher)
-	: FCommandHandler(InCharacter, InCommandDispatcher)
+	FObjectCommandHandler(FCommandDispatcher* InCommandDispatcher) : FCommandHandler(InCommandDispatcher)
 	{}
 	void RegisterCommands();
 

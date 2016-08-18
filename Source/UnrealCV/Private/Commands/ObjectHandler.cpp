@@ -77,15 +77,16 @@ FExecStatus FObjectCommandHandler::CurrentObjectHandler(const TArray<FString>& A
 		// Get the name of current object
 		FHitResult HitResult;
 		// The original version for the shooting game use CameraComponent
-		FVector StartLocation = Character->GetActorLocation();
+		APawn* Pawn = FUE4CVServer::Get().GetPawn();
+		FVector StartLocation = Pawn->GetActorLocation();
 		// FRotator Direction = GetActorRotation();
-		FRotator Direction = Character->GetControlRotation();
+		FRotator Direction = Pawn->GetControlRotation();
 
 		FVector EndLocation = StartLocation + Direction.Vector() * 10000;
 		FCollisionQueryParams QueryParams;
-		QueryParams.AddIgnoredActor(Character);
+		QueryParams.AddIgnoredActor(Pawn);
 
-		APlayerController* PlayerController = Cast<APlayerController>(Character->GetController());
+		APlayerController* PlayerController = Cast<APlayerController>(Pawn->GetController());
 		if (PlayerController != nullptr)
 		{
 			FHitResult TraceResult(ForceInit);
@@ -104,7 +105,7 @@ FExecStatus FObjectCommandHandler::CurrentObjectHandler(const TArray<FString>& A
 		}
 		// TODO: This is not working well.
 
-		if (Character->GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility, QueryParams))
+		if (GWorld->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility, QueryParams))
 		{
 			AActor* HitActor = HitResult.GetActor();
 

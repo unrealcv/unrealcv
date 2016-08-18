@@ -1,16 +1,45 @@
-import os
-UnrealEnginePath='~/workspace/UnrealEngine/Engine'
+import os, sys
+import ue4config
+import ue4util, gitutil, shutil, uploadutil
 
-UATScript = os.path.expanduser(os.path.join(UnrealEnginePath, 'Build/BatchFiles/RunUAT.sh'))
-if not os.path.isfile(UATScript):
-    print('Can not find Automation Script of UE4 %s' % UATScript)
-    print('Please set UnrealEnginePath correctly first')
+plugin_version = gitutil.get_short_version('.')
+plugin_output_folder = ue4util.get_real_abspath('./unrealcv-%s' % plugin_version)
 
-else:
+def build_plugin():
+    UAT_script = ue4config.conf['UATScript']
+    if not os.path.isfile(UAT_script):
+        print('Can not find Automation Script of UE4 %s' % UAT_script)
+        print('Please set UnrealEnginePath in ue4config.py correctly first')
+        return False
+    else:
+        if gitutil.is_dirty('.'):
+            print 'Error: uncommited changes of this repo exist'
+            return False
 
-    FullPluginFile = os.path.abspath('UnrealCV.uplugin')
-    output_folder = os.path.abspath('./Build')
+        plugin_file = ue4util.get_real_abspath('../../UnrealCV.uplugin')
 
-    cmd = '%s BuildPlugin -plugin=%s -package=%s -rocket' % (UATScript, FullPluginFile)
-    print(cmd)
-    os.system(cmd)
+        UAT_script = UAT_script.replace(' ', '\ ')
+        cmd = '%s BuildPlugin -plugin=%s -package=%s -rocket -targetplatforms=Win64+Linux' % (UAT_script, plugin_file, plugin_output_folder)
+        print(cmd)
+        os.system(cmd)
+
+        # Clean up intermediate files
+        intermediate_folder = os.path.join(plugin_output_folder, 'Intermediate')
+        print 'Delete intermediate folder %s' % intermediate_folder
+        shutil.rmtree(intermediate_folder)
+        return True
+
+def output_plugin(output_conf):
+    type = output_conf['Type']
+    upload_handlers = dict(
+        scp = uploadutil.upload_scp,
+        s3 = uploadutil.upload_s3,
+    )
+    upload_handlers[type](output_conf, [plugin_output_folder], '.')
+
+if __name__ == '__main__':
+    if build_plugin():
+        output_confs = ue4config.conf['PluginOutput']
+        for conf in output_confs:
+            print conf['Type']
+            output_plugin(conf)

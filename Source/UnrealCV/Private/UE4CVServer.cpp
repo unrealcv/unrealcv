@@ -2,28 +2,35 @@
 
 #include "UnrealCVPrivate.h"
 #include "UE4CVServer.h"
-#include "UnrealCV.h"
+#include "CameraManager.h"
+#include "PlayerViewMode.h"
 
-bool FUE4CVServer::Init(APawn* InCharacter)
+void FUE4CVServer::BeginPlay()
 {
-	this->Pawn = InCharacter;
+	// This should be done after the world is initialized.
+	FConsoleHelper::Get().RegisterConsole();
+	
+	APlayerController* PlayerController = GWorld->GetFirstPlayerController();
+	check(PlayerController);
+	APawn* Pawn = PlayerController->GetPawn();
+	check(Pawn);
+	this->Pawn = Pawn;
 
-	FObjectPainter::Get().SetLevel(InCharacter->GetLevel());
+	FObjectPainter::Get().SetLevel(Pawn->GetLevel());
 	// TODO: Check the pointers
 	FObjectPainter::Get().PaintRandomColors();
 
-	FPlayerViewMode::Get().SetWorld(InCharacter->GetWorld());
+	FCameraManager::Get().AttachGTCaptureComponentToCamera(Pawn);
 
-	CommandDispatcher = new FCommandDispatcher();
-	UE4CVCommands* Commands = new UE4CVCommands(InCharacter, CommandDispatcher);
-	// Register a set of commands to the command dispatcher
+	FPlayerViewMode::Get().CreatePostProcessVolume();
+	FPlayerViewMode::Get().Lit();
 
-	FConsoleOutputDevice* ConsoleOutputDevice = new FConsoleOutputDevice(InCharacter->GetWorld()->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
-	FConsoleHelper* ConsoleHelper = new FConsoleHelper(CommandDispatcher, ConsoleOutputDevice);
-
-	return NetworkManager->Start();
+	bIsTicking = true;
+	NetworkManager->Start(); // Do not process any request if the game is in the stop mode.
 }
 
+
+/** Only available during game play */
 APawn* FUE4CVServer::GetPawn()
 {
 	check(this->Pawn);
@@ -36,9 +43,37 @@ FUE4CVServer& FUE4CVServer::Get()
 	return Singleton;
 }
 
+/**
+ For UnrealCV server, when a game start:
+ 1. Start a TCPserver.
+ 2. Create a command dispatcher
+ 3. Add command handler to command dispatcher, CameraHandler should be able to access camera
+ 4. Bind command dispatcher to TCPserver
+ 5. Bind command dispatcher to UE4 console
+
+ When a new pawn is created.
+ 1. Update this pawn with GTCaptureComponent
+ */
+
+void FUE4CVServer::RegisterCommandHandlers()
+{
+	// Taken from ctor, because might cause loop-invoke.
+	CommandHandlers.Add(new FObjectCommandHandler(CommandDispatcher));
+	CommandHandlers.Add(new FCameraCommandHandler(CommandDispatcher));
+	CommandHandlers.Add(new FPluginCommandHandler(CommandDispatcher));
+	for (FCommandHandler* Handler : CommandHandlers)
+	{
+		Handler->RegisterCommands();
+	}
+}
+
 FUE4CVServer::FUE4CVServer()
 {
+	// Code defined here should not use FUE4CVServer::Get();
 	NetworkManager = NewObject<UNetworkManager>();
+	CommandDispatcher = new FCommandDispatcher();
+	FConsoleHelper::Get().SetCommandDispatcher(CommandDispatcher);
+
 	NetworkManager->AddToRoot(); // Avoid GC
 	NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::HandleRawMessage);
 }
@@ -48,6 +83,7 @@ FUE4CVServer::~FUE4CVServer()
 	// this->NetworkManager->FinishDestroy(); // TODO: Check is this usage correct?
 }
 
+// Each tick of GameThread.
 void FUE4CVServer::ProcessPendingRequest()
 {
 	while (!PendingRequest.IsEmpty())
@@ -68,12 +104,7 @@ void FUE4CVServer::ProcessPendingRequest()
 	}
 }
 
-bool FUE4CVServer::Start()
-{
-	NetworkManager->Start();
-	return true;
-}
-
+/** Message handler for server */
 void FUE4CVServer::HandleRawMessage(const FString& InRawMessage)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Request: %s"), *InRawMessage);
@@ -103,4 +134,3 @@ void FUE4CVServer::SendClientMessage(FString Message)
 	// TODO: Do not use game thread to send message.
 	NetworkManager->SendMessage(Message);
 }
-

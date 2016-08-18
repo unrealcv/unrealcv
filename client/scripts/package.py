@@ -1,31 +1,33 @@
 import os, sys, argparse, json
 import ue4util
 from ue4config import conf
+import gitutil
+
+UATScriptTemplate = '{UATScript} BuildCookRun -project={ProjectFile} -archivedirectory={OutputFolder} -noP4 -platform={Platform} -clientconfig=Development -serverconfig=Development -cook -allmaps -build -stage -pak -archive'
+
+UATParams = dict(
+    UATScript = conf['UATScript'],
+    OutputFolder = conf['OutputFolder'],
+)
 
 # Automatically package game content
 def package_linux(conf, projectfile):
-    cmd = '{UATScript} BuildCookRun -project={projectfile} -archivedirectory={outputfolder} -noP4 -platform=Linux -clientconfig=Development -serverconfig=Development -cook -allmaps -build -stage -pak -archive'.format(
-        projectfile = projectfile,
-        UATScript = conf['UATScript'],
-        outputfolder = conf['OutputFolder'],
-    )
+    UATParams['Platform'] = 'Linux'
+    UATParams['ProjectFile'] = projectfile
+    cmd = UATScriptTemplate.format(**UATParams)
     os.system(cmd)
 
 def package_mac(conf, projectfile):
-    cmd = '{UATScript} BuildCookRun -project={projectfile} -archivedirectory={outputfolder} -noP4 -platform=Mac -clientconfig=Development -serverconfig=Development -cook -allmaps -build -stage -pak -archive'.format(
-        projectfile = projectfile,
-        UATScript = conf['UATScript'],
-        outputfolder = conf['OutputFolder'],
-    )
-    print cmd
+    UATParams['Platform'] = 'Mac'
+    UATParams['ProjectFile'] = projectfile
+    cmd = UATScriptTemplate.format(**UATParams)
     os.system(cmd)
 
 def package_win(conf, projectfile):
-    cmd = '"{UATScript}" BuildCookRun -project="{projectfile}" -archivedirectory={outputfolder} -noP4 -platform=Win64 -clientconfig=Development -serverconfig=Development -cook -allmaps -build -stage -pak -archive'.format(
-        projectfile = projectfile,
-        UATScript = conf['UATScript'],
-        outputfolder = conf['OutputFolder'],
-    )
+    UATParams['Platform'] = 'Win64'
+    UATParams['ProjectFile'] = projectfile
+    cmd = UATScriptTemplate.format(**UATParams)
+
     # windows_cmd = 'cmd /C start "" "D:/Epic Games/4.11/Engine/Build/BatchFiles/RunUAT.bat" BuildCookRun -project=\"D:/Unreal Projects/FlyingCppDefault/FlyingCppDefault.uproject\" -archivedirectory=AutoPackaging -noP4 -platform=Win64 -clientconfig=Development -serverconfig=Development -cook -allmaps -build -stage -pak -archive'
     # In windows, directly run shell command is a little tricky. Easier to save a bat file first.
     with open('package.bat', 'w') as f:
@@ -41,15 +43,6 @@ package = ue4util.platform_function(
     linux = package_linux
 )
 
-def is_dirty(git_repo):
-    status = os.popen('git -C %s status -s' % git_repo).read().strip()
-    if status != '':
-        print 'Folder %s has uncommited changes' % git_repo
-        print status
-        return True
-    return False
-
-
 def save_version_info(conf, project_file):
     ''' Save the version info of UnrealCV plugin and the game for easier issue tracking'''
     project_name = ue4util.get_project_name(project_file)
@@ -57,15 +50,15 @@ def save_version_info(conf, project_file):
     project_folder = os.path.dirname(project_file)
     plugin_folder = os.path.join(project_folder, 'Plugins', 'unrealcv')
 
-    if is_dirty(project_folder):
+    if gitutil.is_dirty(project_folder):
         return False
 
-    if is_dirty(plugin_folder):
+    if gitutil.is_dirty(plugin_folder):
         return False
 
-    plugin_version = os.popen('git -C %s rev-parse --short HEAD' % plugin_folder).read().strip()
+    plugin_version = gitutil.get_short_version(plugin_folder)
     assert(len(plugin_version) == 7)
-    project_version = os.popen('git -C %s rev-parse --short HEAD' % project_folder).read().strip()
+    project_version = gitutil.get_short_version(project_folder)
     assert(len(project_version) == 7)
 
     info = dict(
@@ -88,10 +81,8 @@ if __name__ == '__main__':
     parser.add_argument('project_file')
     args = parser.parse_args()
 
-    project_file = os.path.abspath(args.project_file)
-    if sys.platform == 'cygwin':
-        project_file = ue4util.cygwinpath_to_winpath(project_file)
+    project_file = ue4util.get_real_path(args.project_file)
 
-    if save_version_info(conf, project_file):
+    if save_version_info(conf, project_file): # Check version info, not really doing anything
         package(conf, project_file)
         save_version_info(conf, project_file) # Save the info file again, in case it is deleted by Unreal Engine script

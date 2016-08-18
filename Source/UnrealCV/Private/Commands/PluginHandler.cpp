@@ -16,6 +16,22 @@ void FPluginCommandHandler::RegisterCommands()
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetCommands);
 	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/help"), Cmd, "Get all available commands");
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::Echo);
+	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/echo [str]"), Cmd, "Echo back all message");
+}
+
+FExecStatus FPluginCommandHandler::Echo(const TArray<FString>& Args)
+{
+	// Async version
+	FString Msg = Args[0];
+	FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([Msg]()
+	{
+		return FExecStatus::OK(Msg);
+	});
+	return FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
+	// Sync version
+	// return FExecStatus::OK(Args[0]);
 }
 
 FExecStatus FPluginCommandHandler::GetPort(const TArray<FString>& Args)

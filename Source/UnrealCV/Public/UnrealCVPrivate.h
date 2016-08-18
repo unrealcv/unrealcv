@@ -8,3 +8,5 @@
 */
 // Precompiled header file for UnrealCV
 #include "Engine.h"
+
+DECLARE_STATS_GROUP(TEXT("UnrealCV"), STATGROUP_UnrealCV, STATCAT_Advanced);
