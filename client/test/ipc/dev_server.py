@@ -3,7 +3,7 @@ import SocketServer, threading, logging
 SocketServer.ThreadingMixIn.daemon_threads = True
 SocketServer.TCPServer.allow_reuse_address = True
 from common_conf import *
-import ue4cv
+import unrealcv
 
 _L = logging.getLogger(__name__)
 _L.setLevel(logging.INFO)
@@ -76,7 +76,7 @@ class MessageTCPHandler(SocketServer.BaseRequestHandler):
                 _L.debug('Reject, only accept one connection')
                 return
             else:
-                ue4cv.SocketMessage.WrapAndSendPayload(self.request, 'connected to Python Message Server')
+                unrealcv.SocketMessage.WrapAndSendPayload(self.request, 'connected to Python Message Server')
                 _L.debug('Accept new connection')
                 MessageTCPHandler.connected = True
                 MessageTCPHandler.socket = self.request
@@ -86,7 +86,7 @@ class MessageTCPHandler(SocketServer.BaseRequestHandler):
         # t.start()
         while 1: # Main loop to receive message
             _L.debug('Server looping in %s' % thread_name)
-            message = ue4cv.SocketMessage.ReceivePayload(self.request)
+            message = unrealcv.SocketMessage.ReceivePayload(self.request)
             _L.debug('Server looping finished in %s' % thread_name)
             if not message:
                 _L.debug('Server release connection in %s' % thread_name)
@@ -94,20 +94,20 @@ class MessageTCPHandler(SocketServer.BaseRequestHandler):
                 MessageTCPHandler.socket = None
                 break
             # SocketMessage.WrapAndSendPayload(self.request, 'reply')
-            ue4cv.SocketMessage.WrapAndSendPayload(self.request, message)
+            unrealcv.SocketMessage.WrapAndSendPayload(self.request, message)
             # SocketMessage.WrapAndSendPayload(self.request, 'got2')
         MessageTCPHandler.connected = False
 
     @classmethod
     def send(cls, message):
         if cls.connected:
-            ue4cv.SocketMessage.WrapAndSendPayload(cls.socket, message)
+            unrealcv.SocketMessage.WrapAndSendPayload(cls.socket, message)
 
 class NULLTCPHandler(SocketServer.BaseRequestHandler):
     def handle(self):
-        ue4cv.SocketMessage.WrapAndSendPayload(self.request, 'connected to Python Null Server')
+        unrealcv.SocketMessage.WrapAndSendPayload(self.request, 'connected to Python Null Server')
         while 1:
-            message = ue4cv.SocketMessage.ReceivePayload(self.request)
+            message = unrealcv.SocketMessage.ReceivePayload(self.request)
             if not message:
                 break
 

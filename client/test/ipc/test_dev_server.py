@@ -1,7 +1,7 @@
 import threading, time, socket, unittest, logging, SocketServer
 from common_conf import *
 from dev_server import MessageServer, MessageTCPHandler
-import ue4cv
+import unrealcv
 _L = logging.getLogger(__name__)
 _L.setLevel(logging.INFO)
 _L.addHandler(logging.NullHandler())
@@ -48,7 +48,7 @@ class TestDevServer(unittest.TestCase):
                 # s.sendall('Hello, world')
                 # data = s.recv(1024)
                 # How to know whether this s is closed by remote?
-                ue4cv.SocketMessage.WrapAndSendPayload(s, 'hello')
+                unrealcv.SocketMessage.WrapAndSendPayload(s, 'hello')
                 s.close() # It will take some time to notify the server
                 time.sleep(0.5) # How long will the server should detect the client side loss
                 self.assertEqual(MessageTCPHandler.connected, False) # Check any client is connected
@@ -58,7 +58,7 @@ class TestDevServer(unittest.TestCase):
 if __name__ == '__main__':
     logging.basicConfig()
     logging.getLogger(__name__).setLevel(logging.ERROR)
-    logging.getLogger('ue4cv').setLevel(logging.CRITICAL)
+    logging.getLogger('unrealcv').setLevel(logging.CRITICAL)
     # unittest.main(verbosity=2)
 
     tests = [

@@ -1,6 +1,6 @@
 import unittest
 from common_conf import *
-import ue4cv
+from unrealcv import client
 from checker import *
 _L = logging.getLogger(__name__)
 
@@ -9,7 +9,7 @@ class TestRealisticRendering(unittest.TestCase):
         '''
         Make sure the object list is the same as expected
         '''
-        response = ue4cv.client.request('vget /objects')
+        response = client.request('vget /objects')
         response = response.strip() # TODO: remove this line
         self.assertTrue(validate_format(response))
 

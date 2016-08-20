@@ -1,6 +1,6 @@
 from dev_server import MessageServer
 import logging
-L = logging.getLogger('ue4cv')
+L = logging.getLogger('unrealcv')
 L.setLevel(logging.DEBUG)
 
 logging.basicConfig()
