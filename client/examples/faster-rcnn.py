@@ -1,8 +1,7 @@
 # Config of faster rcnn
 import sys, os, logging
 sys.path.append('..')
-#from ue4cv import *
-import ue4cv
+from unrealcv import client
 
 # RCNN config
 rcnn_path = '/home/qiuwch/workspace/py-faster-rcnn'
@@ -11,8 +10,6 @@ import demo as D # Use demo.py provided in faster-rcnn
 import numpy as np
 import matplotlib.pyplot as plt
 net = None
-
-HOST, PORT = "localhost", 9000
 
 def init_caffe(): # TODO: parse args into here
     global net
@@ -93,17 +90,17 @@ def process_image(filename):
 def message_handler(message):
     print 'Got server message %s' % repr(message)
     if message == 'clicked':
-        image = ue4cv.client.request('vget /camera/0/lit')
+        image = client.request('vget /camera/0/lit')
         process_image(image)
 
 if __name__ == '__main__':
-    _L = logging.getLogger('ue4cv')
+    _L = logging.getLogger('unrealcv')
     _L.setLevel(logging.ERROR)
 
-    ue4cv.client.message_handler = message_handler
-    ue4cv.client.connect()
+    client.message_handler = message_handler
+    client.connect()
 
-    if not ue4cv.client.isconnected():
+    if not client.isconnected():
         print 'UnrealCV server is not running. Run the game downloaded from http://unrealcv.github.io first.'
     else:
         # Initialize the matplotlib
@@ -116,4 +113,4 @@ if __name__ == '__main__':
         plt.tight_layout()
         plt.show()
 
-    ue4cv.client.disconnect()
+    client.disconnect()
