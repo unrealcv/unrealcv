@@ -1,2 +1,2 @@
 language: python
-script: python client/test/test-unrealcv.py --travis
+script: python client/test-unrealcv.py --travis
