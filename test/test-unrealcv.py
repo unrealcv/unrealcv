@@ -1,6 +1,6 @@
 # TODO: Test robustness, test speed
 import unittest, time, sys, argparse, threading
-sys.path.append('ipc')
+sys.path.append('./test/ipc')
 from common_conf import *
 from test_dev_server import TestDevServer
 from test_client import TestUE4CVClient
