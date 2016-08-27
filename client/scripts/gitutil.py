@@ -3,8 +3,9 @@ import os
 def is_dirty(git_repo):
     '''
     Is there any uncommitted changes
+    git_repo is the abs path
     '''
-    git_repo = os.path.abspath(git_repo)
+    print 'Get commit version of %s' % git_repo
     status = os.popen('git -C %s status -s' % git_repo).read().strip()
     if status != '':
         print 'Folder %s has uncommited changes' % git_repo

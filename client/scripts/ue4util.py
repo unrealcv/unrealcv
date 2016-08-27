@@ -6,13 +6,13 @@ def get_project_name(projectfile):
     return os.path.basename(projectfile).replace('.uproject', '')
 
 def get_platform_name():
-    platform = sys.platform
+    platform = sys.platform # Map from python platform name to ue4 platform name
     names = {
-        'cygwin': 'win',
-        'win32': 'win',
-        'win64': 'win',
-        'linux2': 'linux',
-        'darwin': 'mac',
+        'cygwin': 'Win64', # could be win32 also
+        'win32': 'Win64',
+        'win64': 'Win64',
+        'linux2': 'Linux',
+        'darwin': 'Mac',
         }
     return names[platform]
 
@@ -23,10 +23,6 @@ def platform_function(**kwargs):
     else:
         raise Exception('Function not defined for platform %s' % platform_name)
         return None
-
-def get_project_infofile(project_name, project_output_folder):
-    info_filename = os.path.join(get_output_root_folder(project_output_folder), '%s-info.txt' % project_name)
-    return info_filename
 
 def cygwinpath_to_winpath(path):
     path_mapping = {
@@ -39,22 +35,11 @@ def cygwinpath_to_winpath(path):
     # return path.replace('/drives/d/', 'D:/').replace('/drives/c/', 'C:/')
     return path
 
-def get_output_root_folder(project_output_folder):
-    ue4buildtype = {
-        'mac': 'MacNoEditor',
-        'linux': 'LinuxNoEditor',
-        'win': 'WindowsNoEditor',
-    }
-    platform_name = get_platform_name()
-    if not ue4buildtype.get(platform_name):
-        raise Exception('Platform %s is not supported' % platform_name)
-    else:
-        buildtype = ue4buildtype[platform_name]
-        output_root_folder = os.path.join(project_output_folder, buildtype)
-
-        return output_root_folder
 
 def get_real_abspath(filename):
+    '''
+    Get the correct abs path is tricky, this function is designed to achive that
+    '''
     # Convert path in python to real path on the disk, useful for windows
     if len(filename) >= 3 and filename[1] == ':':
         pass # skip windows absolute path
