@@ -66,3 +66,7 @@ def get_real_abspath(filename):
     if sys.platform == 'cygwin':
         filename = cygwinpath_to_winpath(filename)
     return filename
+
+def run_ue4cmd(cmd):
+    print(cmd)
+    os.system(cmd)

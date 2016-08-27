@@ -20,10 +20,9 @@ def build_plugin():
 
         UAT_script = UAT_script.replace(' ', '\ ')
         cmd = '%s BuildPlugin -plugin=%s -package=%s -rocket -targetplatforms=Win64+Linux' % (UAT_script, plugin_file, plugin_output_folder)
-        print(cmd)
-        os.system(cmd)
+        ue4util.run_ue4cmd(cmd)
 
-        # Clean up intermediate files
+        # Post processing clean up intermediate files
         intermediate_folder = os.path.join(plugin_output_folder, 'Intermediate')
         print 'Delete intermediate folder %s' % intermediate_folder
         shutil.rmtree(intermediate_folder)

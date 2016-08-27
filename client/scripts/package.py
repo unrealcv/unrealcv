@@ -10,38 +10,10 @@ UATParams = dict(
     OutputFolder = conf['OutputFolder'],
 )
 
-# Automatically package game content
-def package_linux(conf, projectfile):
-    UATParams['Platform'] = 'Linux'
-    UATParams['ProjectFile'] = projectfile
+def package(conf, projectfile):
+    Platform = ue4util.get_platform_name()
     cmd = UATScriptTemplate.format(**UATParams)
-    os.system(cmd)
-
-def package_mac(conf, projectfile):
-    UATParams['Platform'] = 'Mac'
-    UATParams['ProjectFile'] = projectfile
-    cmd = UATScriptTemplate.format(**UATParams)
-    os.system(cmd)
-
-def package_win(conf, projectfile):
-    UATParams['Platform'] = 'Win64'
-    UATParams['ProjectFile'] = projectfile
-    cmd = UATScriptTemplate.format(**UATParams)
-
-    # windows_cmd = 'cmd /C start "" "D:/Epic Games/4.11/Engine/Build/BatchFiles/RunUAT.bat" BuildCookRun -project=\"D:/Unreal Projects/FlyingCppDefault/FlyingCppDefault.uproject\" -archivedirectory=AutoPackaging -noP4 -platform=Win64 -clientconfig=Development -serverconfig=Development -cook -allmaps -build -stage -pak -archive'
-    # In windows, directly run shell command is a little tricky. Easier to save a bat file first.
-    with open('package.bat', 'w') as f:
-        f.write(cmd)
-
-    windows_cmd = 'cmd /C start "" "package.bat"'
-    os.system(windows_cmd)
-
-# package is a platform_function, which means it will have different behavior for different platform
-package = ue4util.platform_function(
-    win = package_win,
-    mac = package_mac,
-    linux = package_linux
-)
+    ue4util.run_ue4cmd(cmd)
 
 def save_version_info(conf, project_file):
     ''' Save the version info of UnrealCV plugin and the game for easier issue tracking'''
