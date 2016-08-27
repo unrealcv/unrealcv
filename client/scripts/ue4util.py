@@ -1,11 +1,9 @@
 import os, sys
-from ue4config import conf
 
 def get_project_name(projectfile):
     if not projectfile.endswith('.uproject'):
         print 'Error %s is not a valid project file' % projectfile
     return os.path.basename(projectfile).replace('.uproject', '')
-
 
 def get_platform_name():
     platform = sys.platform
@@ -26,8 +24,8 @@ def platform_function(**kwargs):
         raise Exception('Function not defined for platform %s' % platform_name)
         return None
 
-def get_project_infofile(project_name):
-    info_filename = os.path.join(get_output_root_folder(), '%s-info.txt' % project_name)
+def get_project_infofile(project_name, project_output_folder):
+    info_filename = os.path.join(get_output_root_folder(project_output_folder), '%s-info.txt' % project_name)
     return info_filename
 
 def cygwinpath_to_winpath(path):
@@ -41,7 +39,7 @@ def cygwinpath_to_winpath(path):
     # return path.replace('/drives/d/', 'D:/').replace('/drives/c/', 'C:/')
     return path
 
-def get_output_root_folder():
+def get_output_root_folder(project_output_folder):
     ue4buildtype = {
         'mac': 'MacNoEditor',
         'linux': 'LinuxNoEditor',
@@ -52,7 +50,7 @@ def get_output_root_folder():
         raise Exception('Platform %s is not supported' % platform_name)
     else:
         buildtype = ue4buildtype[platform_name]
-        output_root_folder = os.path.join(conf['OutputFolder'], buildtype)
+        output_root_folder = os.path.join(project_output_folder, buildtype)
 
         return output_root_folder
 
@@ -70,3 +68,7 @@ def get_real_abspath(filename):
 def run_ue4cmd(cmd):
     print(cmd)
     os.system(cmd)
+
+def mkdirp(dir_path):
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)

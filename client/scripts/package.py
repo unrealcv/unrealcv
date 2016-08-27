@@ -1,21 +1,28 @@
+'''
+Package *.uproject and release it to output location defined in ue4config.py
+'''
 import os, sys, argparse, json
 import ue4util
 from ue4config import conf
 import gitutil
 
-UATScriptTemplate = '{UATScript} BuildCookRun -project={ProjectFile} -archivedirectory={OutputFolder} -noP4 -platform={Platform} -clientconfig=Development -serverconfig=Development -cook -allmaps -build -stage -pak -archive'
+def package(project_file, project_output_folder):
+    '''
+    Build project
+    '''
 
-UATParams = dict(
-    UATScript = conf['UATScript'],
-    OutputFolder = conf['OutputFolder'],
-)
+    UATScriptTemplate = '{UATScript} BuildCookRun -project={ProjectFile} -archivedirectory={OutputFolder} -noP4 -platform={Platform} -clientconfig=Development -serverconfig=Development -cook -allmaps -build -stage -pak -archive'
 
-def package(conf, projectfile):
-    Platform = ue4util.get_platform_name()
-    cmd = UATScriptTemplate.format(**UATParams)
+    cmd = UATScriptTemplate.format(
+        UATScript = conf['UATScript'],
+        Platform = ue4util.get_platform_name(),
+        OutputFolder = 'built',
+        ProjectFile = project_file
+        )
+
     ue4util.run_ue4cmd(cmd)
 
-def save_version_info(conf, project_file):
+def save_version_info(project_file, project_output_folder):
     ''' Save the version info of UnrealCV plugin and the game for easier issue tracking'''
     project_name = ue4util.get_project_name(project_file)
 
@@ -29,9 +36,9 @@ def save_version_info(conf, project_file):
         return False
 
     plugin_version = gitutil.get_short_version(plugin_folder)
-    assert(len(plugin_version) == 7)
+    assert(len(plugin_version) == 7 or len(plugin_version) == 0)
     project_version = gitutil.get_short_version(project_folder)
-    assert(len(project_version) == 7)
+    assert(len(project_version) == 7 or len(project_version) == 0)
 
     info = dict(
         project_name = project_name,
@@ -39,22 +46,26 @@ def save_version_info(conf, project_file):
         plugin_version = plugin_version,
         platform = ue4util.get_platform_name(),
     )
-    info_filename = ue4util.get_project_infofile(project_name)
+    info_filename = ue4util.get_project_infofile(project_name, project_output_folder)
+    ue4util.mkdirp(os.path.dirname(info_filename))
+
     with open(info_filename, 'w') as f:
         json.dump(info, f, indent = 4)
+        
     print 'Save project info to file %s' % info_filename
     print json.dumps(info, indent = 4)
 
     return True
-    # git rev-parse --short HEAD
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('project_file')
     args = parser.parse_args()
 
-    project_file = ue4util.get_real_path(args.project_file)
+    project_file = ue4util.get_real_abspath(args.project_file)
+    project_output_folder = './built_project/%s' % ue4util.get_project_name(project_file)
 
-    if save_version_info(conf, project_file): # Check version info, not really doing anything
-        package(conf, project_file)
-        save_version_info(conf, project_file) # Save the info file again, in case it is deleted by Unreal Engine script
+    if save_version_info(project_file, project_output_folder):
+        # Check version info, not really doing anything
+        package(project_file, project_output_folder)
+        save_version_info(project_file, project_output_folder) # Save the info file again, in case it is deleted by Unreal Engine script
