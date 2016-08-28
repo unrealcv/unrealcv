@@ -117,6 +117,9 @@ def zip_project(zipfilename, project_file, project_output_folder):
         all_files = ziputil.get_all_files(files)
         print 'Start zipping files to %s, Zip root folder is %s' % (zipfilename, zip_root_folder)
         ziputil.zipfiles(all_files, zip_root_folder, zipfilename, verbose=False)
+        return True
+    else:
+        return False
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -135,13 +138,12 @@ if __name__ == '__main__':
 
         # zip files
         zipfilename = os.path.join(project_output_folder, get_zipfilename_from_infofile(info_filename))
-        zip_project(zipfilename, project_file, project_output_folder)
-
-        upload_confs = ue4config.conf['ProjectOutput']
-        upload_handlers = dict(
-            scp = uploadutil.upload_scp,
-            s3 = uploadutil.upload_s3,
-        )
-        for upload_conf in upload_confs:
-            tgt_type = upload_conf['Type']
-            upload_handlers[tgt_type](upload_conf, [zipfilename], os.path.dirname(zipfilename))
+        if zip_project(zipfilename, project_file, project_output_folder):
+            upload_confs = ue4config.conf['ProjectOutput']
+            upload_handlers = dict(
+                scp = uploadutil.upload_scp,
+                s3 = uploadutil.upload_s3,
+            )
+            for upload_conf in upload_confs:
+                tgt_type = upload_conf['Type']
+                upload_handlers[tgt_type](upload_conf, [zipfilename], os.path.dirname(zipfilename))
