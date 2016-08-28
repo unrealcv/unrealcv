@@ -21,20 +21,25 @@ def package(project_file, project_output_folder):
 
     ue4util.run_ue4cmd(cmd)
 
-def save_version_info(info_filename, project_file, project_output_folder):
+def install_plugin(project_file, plugin_folder):
+    project_folder = os.path.dirname(project_file)
+    install_folder = os.path.join(project_folder, 'Plugins', 'unrealcv')
+    if os.path.isdir(install_folder):
+        os.path.rmdir(install_folder) # Complete remove old version
+
+    shutil.copy(plugin_folder, install_folder)
+
+def save_version_info(info_filename, project_file, project_output_folder, plugin_version):
     ''' Save the version info of UnrealCV plugin and the game for easier issue tracking'''
     project_name = ue4util.get_project_name(project_file)
-
     project_folder = os.path.dirname(project_file)
-    plugin_folder = os.path.join(project_folder, 'Plugins', 'unrealcv')
 
     if gitutil.is_dirty(project_folder):
         return False
 
-    if gitutil.is_dirty(plugin_folder):
-        return False
-
-    plugin_version = gitutil.get_short_version(plugin_folder)
+    # if gitutil.is_dirty(plugin_folder):
+    #     return False
+    # plugin_version = gitutil.get_short_version(plugin_folder)
     assert(len(plugin_version) == 7 or len(plugin_version) == 0)
     project_version = gitutil.get_short_version(project_folder)
     assert(len(project_version) == 7 or len(project_version) == 0)
@@ -123,16 +128,20 @@ def zip_project(zipfilename, project_file, project_output_folder):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('plugin_version')
     parser.add_argument('project_file')
     args = parser.parse_args()
 
+    plugin_version = args.plugin_version
     project_file = ue4util.get_real_abspath(args.project_file)
     project_name = ue4util.get_project_name(project_file)
 
     project_output_folder = './built_project/%s' % project_name
     info_filename = os.path.join(project_output_folder, '%s-info.txt' % project_name)
 
-    if save_version_info(info_filename, project_file, project_output_folder):
+    plugin_folder = 'built_plugin/%s' % plugin_version
+    install_plugin(project_file, plugin_folder)
+    if save_version_info(info_filename, project_file, project_output_folder, plugin_version):
         # Check version info, not really doing anything
         package(project_file, project_output_folder)
 

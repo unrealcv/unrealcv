@@ -41,7 +41,7 @@ def upload_plugin(plugin_output_folder, upload_conf):
 if __name__ == '__main__':
     plugin_version = gitutil.get_short_version('.')
     plugin_file = ue4util.get_real_abspath('../../UnrealCV.uplugin')
-    plugin_output_folder = ue4util.get_real_abspath('./built_plugin/unrealcv-%s' % plugin_version)
+    plugin_output_folder = ue4util.get_real_abspath('./built_plugin/%s' % plugin_version)
 
     # Build plugin to disk
     is_built = build_plugin(plugin_file, plugin_output_folder)
@@ -50,4 +50,4 @@ if __name__ == '__main__':
     if is_built:
         upload_confs = ue4config.conf['PluginOutput']
         for upload_conf in upload_confs:
-            upload_plugin(conf)
+            upload_plugin(upload_conf)
