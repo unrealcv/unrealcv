@@ -13,12 +13,12 @@ public:
 	// FConsoleHelper(FCommandDispatcher* CommandDispatcher);
 	static FConsoleHelper& Get();
 	void SetCommandDispatcher(FCommandDispatcher* CommandDispatcher);
-	void RegisterConsole();
+
+	/** The exec result of CommandDispatcher will be written to FConsoleOutputDevice */
+	FConsoleOutputDevice* GetConsole();
 
 private:
 	FConsoleHelper();
-	/** The exec result of CommandDispatcher will be written to FConsoleOutputDevice */
-	FConsoleOutputDevice* ConsoleOutputDevice;
 
 	/** The command from UE4 console will be sent to CommandDispatcher for execution */
 	FCommandDispatcher* CommandDispatcher;

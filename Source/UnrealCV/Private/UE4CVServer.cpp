@@ -2,39 +2,33 @@
 
 #include "UnrealCVPrivate.h"
 #include "UE4CVServer.h"
-#include "CameraManager.h"
 #include "PlayerViewMode.h"
 
 void FUE4CVServer::BeginPlay()
 {
 	// This should be done after the world is initialized.
-	FConsoleHelper::Get().RegisterConsole();
-	
-	APlayerController* PlayerController = GWorld->GetFirstPlayerController();
-	check(PlayerController);
-	APawn* Pawn = PlayerController->GetPawn();
-	check(Pawn);
-	this->Pawn = Pawn;
+	// FConsoleHelper::Get().RegisterConsole();
+	// FCameraManager::Get().AttachGTCaptureComponentToCamera(Pawn);
+	// FPlayerViewMode::Get().Lit();
 
-	FObjectPainter::Get().SetLevel(Pawn->GetLevel());
-	// TODO: Check the pointers
-	FObjectPainter::Get().PaintRandomColors();
-
-	FCameraManager::Get().AttachGTCaptureComponentToCamera(Pawn);
-
-	FPlayerViewMode::Get().CreatePostProcessVolume();
-	FPlayerViewMode::Get().Lit();
-
-	bIsTicking = true;
-	NetworkManager->Start(); // Do not process any request if the game is in the stop mode.
+	// bIsTicking = true;
+	// NetworkManager->Start(); // Do not process any request if the game is in the stop mode.
 }
-
 
 /** Only available during game play */
 APawn* FUE4CVServer::GetPawn()
 {
-	check(this->Pawn);
-	return this->Pawn;
+	static APawn* Pawn = nullptr;
+	static UWorld* CurrentWorld = nullptr;
+	if (Pawn == nullptr || CurrentWorld != GWorld)
+	{
+		APlayerController* PlayerController = GWorld->GetFirstPlayerController();
+		check(PlayerController);
+		Pawn = PlayerController->GetPawn();
+		check(Pawn);
+		CurrentWorld = GWorld;
+	}
+	return Pawn;
 }
 
 FUE4CVServer& FUE4CVServer::Get()

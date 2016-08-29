@@ -177,7 +177,7 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 			Filename = GenerateSeqFilename();
 		}
 
-		UGTCaptureComponent* GTCapturer = FCameraManager::Get().GetCamera(CameraId);
+		UGTCaptureComponent* GTCapturer = FCaptureManager::Get().GetCamera(CameraId);
 		if (GTCapturer == nullptr)
 		{
 			return FExecStatus::Error(FString::Printf(TEXT("Invalid camera id %d"), CameraId));
@@ -202,7 +202,9 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 				return FExecStatus::Pending();
 			}
 		});
-		return FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
+		FString Message = FString::Printf(TEXT("File will be saved to %s"), *Filename);
+		return FExecStatus::AsyncQuery(FPromise(PromiseDelegate), Message); 
+		// The filename here is just for message, not the fullname on the disk, because we can not know that due to sandbox issue.
 	}
 	return FExecStatus::InvalidArgument;
 }

@@ -47,12 +47,12 @@ bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
 		// RecvStatus == BytesRead >= 0
 		check(NumRead <= ExpectedSize);
 
-		if (NumRead == 0) // 0 means gracefully closed 
+		if (NumRead == 0) // 0 means gracefully closed
 		{
 			return false; // Socket is disconnected. if -1, keep waiting for data
 		}
 
-		if (NumRead == -1) 
+		if (NumRead == -1)
 		// -1 means error happen, but not sure what the error is, in windows WSAGetLastError can get the real error
 		{
 			ESocketErrors LastError = ISocketSubsystem::Get()->GetLastErrorCode();
@@ -163,7 +163,7 @@ bool UNetworkManager::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoin
 			bool RecvStatus = ClientSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), Read);
 
 			// if (!RecvStatus) // The connection is broken
-			if (Read == 0) 
+			if (Read == 0)
 			// RecvStatus == true if Read >= 0, this is used to determine client disconnection
 			// -1 means no data, 0 means disconnected
 			{
@@ -179,7 +179,7 @@ bool UNetworkManager::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoin
 	return false;
 }
 
-/** 
+/**
   * Start message service in listening thread
   * TODO: Start a new background thread to receive message
   */
@@ -221,6 +221,7 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 	}
 }
 
+/** Connected Handler */
 bool UNetworkManager::Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
 	bool ServiceStatus = false;
@@ -295,7 +296,6 @@ bool UNetworkManager::SendMessage(const FString& Message)
 		TArray<uint8> Payload;
 		BinaryArrayFromString(Message, Payload);
 
-		UE_LOG(LogTemp, Warning, TEXT("Send connection confirm '%s' to client"), *Message);
 		FSocketMessageHeader::WrapAndSendPayload(Payload, ConnectionSocket);
 		return true;
 	}

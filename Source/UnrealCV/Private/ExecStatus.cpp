@@ -2,6 +2,17 @@
 #include "UnrealCVPrivate.h"
 #include "ExecStatus.h"
 
+
+/** Begin of FPromise functions */
+
+FExecStatus FPromise::CheckStatus()
+{
+	check(this);
+	check(PromiseDelegate.IsBound());
+	return PromiseDelegate.Execute();
+}
+
+/** Begin of FExecStatus functions */
 bool operator==(const FExecStatus& ExecStatus, const FExecStatusType& ExecStatusType)
 {
 	return (ExecStatus.ExecStatusType == ExecStatusType);
@@ -22,22 +33,6 @@ FExecStatus& FExecStatus::operator+=(const FExecStatus& Src)
 	return *this;
 }
 
-FPromise::FPromise()
-{
-	bIsValid = false;
-}
-
-FPromise::FPromise(FPromiseDelegate InPromiseDelegate) : PromiseDelegate(InPromiseDelegate) 
-{
-	bIsValid = true;
-}
-
-FExecStatus FPromise::CheckStatus()
-{
-	check(this);
-	check(PromiseDelegate.IsBound());
-	return PromiseDelegate.Execute();
-}
 
 // DECLARE_DELEGATE_OneParam(FDispatcherDelegate, const TArray< FString >&);
 FExecStatus FExecStatus::InvalidArgument = FExecStatus(FExecStatusType::Error, "Argument Invalid");
@@ -60,9 +55,9 @@ FExecStatus FExecStatus::Pending(FString InMessage)
 	return FExecStatus(FExecStatusType::Pending, InMessage);
 }
 
-FExecStatus FExecStatus::AsyncQuery(FPromise Promise)
+FExecStatus FExecStatus::AsyncQuery(FPromise InPromise, FString InMessage)
 {
-	return FExecStatus(FExecStatusType::AsyncQuery, Promise);
+	return FExecStatus(FExecStatusType::AsyncQuery, InPromise, InMessage);
 }
 
 FExecStatus FExecStatus::Error(FString ErrorMessage)
@@ -93,10 +88,11 @@ FString FExecStatus::GetMessage() const // Define how to format the reply string
 	return Message;
 }
 
-FExecStatus::FExecStatus(FExecStatusType InExecStatusType, FPromise InPromise)
+FExecStatus::FExecStatus(FExecStatusType InExecStatusType, FPromise InPromise, FString InMessage)
 {
 	ExecStatusType = InExecStatusType;
 	Promise = InPromise;
+	MessageBody = InMessage;
 }
 
 FExecStatus::FExecStatus(FExecStatusType InExecStatusType, FString InMessage)

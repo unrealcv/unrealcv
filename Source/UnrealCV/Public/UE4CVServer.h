@@ -69,7 +69,8 @@ public:
 
 	virtual bool IsTickableWhenPaused() const
 	{
-		return bIsTicking;
+		// return bIsTicking;
+		return false; // Not processing request when game is paused.
 	}
 
 	virtual TStatId GetStatId() const
@@ -87,7 +88,7 @@ private:
 	/** The Pawn of the Game */
 	APawn* Pawn;
 
-	bool bIsTicking = false;
+	bool bIsTicking = true;
 
 	/** Construct a server */
 	FUE4CVServer();
