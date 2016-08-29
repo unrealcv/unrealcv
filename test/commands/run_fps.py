@@ -1,16 +1,13 @@
-# Test fps of UnrealCV.
-
-import time, sys
-sys.path.append('../..')
+''' Check how much fps of UnrealCV. '''
+import time, sys, argparse
+from test_cfg import *
 # Use timer to check time.
-import ue4cv
 
-ue4cv.client.connect()
-
+client.connect()
 def echo():
-    res = ue4cv.client.request('vget /unrealcv/echo hello')
-    # res = ue4cv.client.request('vget /camera/0/lit')
-    # res = ue4cv.client.request('vget /camera/0/depth depth.exr')
+    res = client.request('vget /unrealcv/echo hello')
+    # res = client.request('vget /camera/0/lit')
+    # res = client.request('vget /camera/0/depth depth.exr')
 
 class FPSCounter:
     def __init__(self):
@@ -25,11 +22,17 @@ class FPSCounter:
             self.start_time = current_time
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--cmd', default='vget /unrealcv/echo hello')
+
+    args = parser.parse_args()
+
+    print 'Run command %s' % args.cmd
     counter = FPSCounter()
     n_iter = 1000000
     for i in range(n_iter):
         counter.tick(i)
-        echo()
+        client.request(args.cmd)
 
     time.sleep(5)
 
