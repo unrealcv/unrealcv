@@ -49,6 +49,9 @@ def upload_s3(bucket_name, filename):
     mp.complete_upload()
 
 def upload_scp(scp_conf, files, local_root):
+    '''
+    Local root will be subtracted from the abspath of files
+    '''
     import os, paramiko
     assert(scp_conf['Type'] == 'scp')
 
