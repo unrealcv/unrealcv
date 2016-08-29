@@ -38,16 +38,35 @@ def upload_plugin(plugin_output_folder, upload_conf):
     )
     upload_handlers[type](upload_conf, [plugin_output_folder], '.')
 
+def save_version_info(info_filename, plugin_file):
+    plugin_folder = os.path.dirname(plugin_file)
+    if gitutil.is_dirty(plugin_folder):
+        return False
+
+    ''' Save version info of UnrealCV plugin '''
+    plugin_version = gitutil.get_short_version(plugin_folder)
+    info = dict(
+        plugin_version = plugin_version
+    )
+
+    with open(info_filename, 'w') as f:
+        json.dumps(info, f, indent = 4)
+    return True
+
 if __name__ == '__main__':
     plugin_version = gitutil.get_short_version('.')
     plugin_file = ue4util.get_real_abspath('../../UnrealCV.uplugin')
     plugin_output_folder = ue4util.get_real_abspath('./built_plugin/%s' % plugin_version)
+    info_filename = os.path.join(plugin_output_folder, 'unrealcv-info.txt')
 
     # Build plugin to disk
-    is_built = build_plugin(plugin_file, plugin_output_folder)
+    is_built = False
+    if save_version_info(info_filename, plugin_file):
+        build_plugin(plugin_file, plugin_output_folder)
+        is_built = True
 
     # Upload built plugin to upload location
     if is_built:
         upload_confs = ue4config.conf['PluginOutput']
         for upload_conf in upload_confs:
-            upload_plugin(upload_conf)
+            upload_plugin(plugin_output_folder, upload_conf)

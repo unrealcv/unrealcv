@@ -1,7 +1,7 @@
 '''
 Package *.uproject and release it to output location defined in ue4config.py
 '''
-import os, sys, argparse, json
+import os, sys, argparse, json, shutil
 import ue4config
 import ue4util, gitutil, ziputil, uploadutil
 
@@ -10,7 +10,8 @@ def package(project_file, project_output_folder):
     Build project
     '''
 
-    UATScriptTemplate = '{UATScript} BuildCookRun -project={ProjectFile} -archivedirectory={OutputFolder} -noP4 -platform={Platform} -clientconfig=Development -serverconfig=Development -cook -allmaps -build -stage -pak -archive'
+    UATScriptTemplate = '{UATScript} BuildCookRun -project={ProjectFile} -archivedirectory={OutputFolder} -noP4 -platform={Platform} -clientconfig=Development -serverconfig=Development -cook -allmaps -stage -pak -archive -clean -build'
+    # See help information in Engine/Source/Programs/AutomationTool/AutomationUtils/ProjectParams.cs
 
     cmd = UATScriptTemplate.format(
         UATScript = ue4config.conf['UATScript'].replace(' ', '\ '),
@@ -20,14 +21,6 @@ def package(project_file, project_output_folder):
         )
 
     ue4util.run_ue4cmd(cmd)
-
-def install_plugin(project_file, plugin_folder):
-    project_folder = os.path.dirname(project_file)
-    install_folder = os.path.join(project_folder, 'Plugins', 'unrealcv')
-    if os.path.isdir(install_folder):
-        os.path.rmdir(install_folder) # Complete remove old version
-
-    shutil.copy(plugin_folder, install_folder)
 
 def save_version_info(info_filename, project_file, project_output_folder, plugin_version):
     ''' Save the version info of UnrealCV plugin and the game for easier issue tracking'''
@@ -128,11 +121,9 @@ def zip_project(zipfilename, project_file, project_output_folder):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('plugin_version')
     parser.add_argument('project_file')
     args = parser.parse_args()
 
-    plugin_version = args.plugin_version
     project_file = ue4util.get_real_abspath(args.project_file)
     project_name = ue4util.get_project_name(project_file)
 
@@ -140,7 +131,9 @@ if __name__ == '__main__':
     info_filename = os.path.join(project_output_folder, '%s-info.txt' % project_name)
 
     plugin_folder = 'built_plugin/%s' % plugin_version
-    install_plugin(project_file, plugin_folder)
+    package(project_file, project_output_folder)
+
+    # install_plugin(project_file, plugin_folder)
     if save_version_info(info_filename, project_file, project_output_folder, plugin_version):
         # Check version info, not really doing anything
         package(project_file, project_output_folder)
