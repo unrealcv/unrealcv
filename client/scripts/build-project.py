@@ -50,7 +50,7 @@ def save_version_info(info_filename, project_file, project_output_folder, plugin
         json.dump(info, f, indent = 4)
 
     print 'Save project info to file %s' % info_filename
-    print json.dumps(info, indent = 4)
+    # print json.dumps(info, indent = 4)
 
     return True
 
@@ -90,10 +90,13 @@ get_files = ue4util.platform_function(
     Linux = get_files_linux,
 )
 
-def get_zipfilename_from_infofile(infofile):
-    with open(infofile, 'r') as f:
-        info = json.load(f)
-        print info
+def get_zipfilename_from_infofile(project_infofile, plugin_infofile):
+    with open(project_infofile, 'r') as f:
+        project_info = json.load(f)
+    with open(plugin_infofile, 'r') as f:
+        plugin_info = json.load(f)
+    info = project_info.copy()
+    info.update(plugin_info)
     return '{project_name}-{platform}-{project_version}-{plugin_version}.zip'.format(**info)
 
 def check_files_ok(files):
@@ -130,10 +133,8 @@ if __name__ == '__main__':
     project_output_folder = './built_project/%s' % project_name
     info_filename = os.path.join(project_output_folder, '%s-info.txt' % project_name)
 
-    plugin_folder = 'built_plugin/%s' % plugin_version
     package(project_file, project_output_folder)
 
-    # install_plugin(project_file, plugin_folder)
     if save_version_info(info_filename, project_file, project_output_folder, plugin_version):
         # Check version info, not really doing anything
         package(project_file, project_output_folder)

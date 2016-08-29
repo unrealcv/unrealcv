@@ -1,3 +1,4 @@
+import argparse, shutil, os
 import ue4util
 def install_plugin(project_file, plugin_folder):
     project_folder = os.path.dirname(project_file)
@@ -12,6 +13,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('plugin_version')
     parser.add_argument('project_file')
+    args = parser.parse_args()
 
     plugin_version = args.plugin_version
     project_file = ue4util.get_real_abspath(args.project_file)
