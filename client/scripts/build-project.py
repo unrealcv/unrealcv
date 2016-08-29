@@ -122,31 +122,50 @@ def zip_project(zipfilename, project_file, project_output_folder):
     else:
         return False
 
-if __name__ == '__main__':
+def main():
+    # Parse command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('project_file')
     args = parser.parse_args()
 
+    # Read project information
     project_file = ue4util.get_real_abspath(args.project_file)
     project_name = ue4util.get_project_name(project_file)
-
     project_output_folder = './built_project/%s' % project_name
     info_filename = os.path.join(project_output_folder, '%s-info.txt' % project_name)
 
+    # Get plugin information
+    project_folder = os.path.dirname(project_file)
+    plugin_infofile = os.path.join(project_folder, 'Plugins', 'unrealcv', 'unrealcv-info.txt')
+    if not os.path.isfile(plugin_infofile):
+        print 'Plugin not exist'
+        return
+    else:
+        with open(plugin_infofile, 'r') as f:
+            plugin_info = json.load(f)
+            plugin_version = plugin_info['plugin_version']
+
+    # Package game and save version info
     package(project_file, project_output_folder)
 
-    if save_version_info(info_filename, project_file, project_output_folder, plugin_version):
-        # Check version info, not really doing anything
-        package(project_file, project_output_folder)
+    # Save version info after build finished
+    save_version_info(info_filename, project_file, project_output_folder, plugin_version)
 
-        # zip files
-        zipfilename = os.path.join(project_output_folder, get_zipfilename_from_infofile(info_filename))
-        if zip_project(zipfilename, project_file, project_output_folder):
-            upload_confs = ue4config.conf['ProjectOutput']
-            upload_handlers = dict(
-                scp = uploadutil.upload_scp,
-                s3 = uploadutil.upload_s3,
-            )
-            for upload_conf in upload_confs:
-                tgt_type = upload_conf['Type']
-                upload_handlers[tgt_type](upload_conf, [zipfilename], os.path.dirname(zipfilename))
+    # Zip files
+    '''
+    zipfilename = os.path.join(project_output_folder, get_zipfilename_from_infofile(info_filename))
+    zip_project(zipfilename, project_file, project_output_folder)
+
+    # Upload built games to output targets
+    upload_confs = ue4config.conf['ProjectOutput']
+    upload_handlers = dict(
+        scp = uploadutil.upload_scp,
+        s3 = uploadutil.upload_s3,
+    )
+    for upload_conf in upload_confs:
+        tgt_type = upload_conf['Type']
+        upload_handlers[tgt_type](upload_conf, [zipfilename], os.path.dirname(zipfilename))
+    '''
+
+if __name__ == '__main__':
+    main()

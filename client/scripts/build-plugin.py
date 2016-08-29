@@ -52,8 +52,11 @@ def save_version_info(info_filename, plugin_file):
     with open(info_filename, 'w') as f:
         json.dump(info, f, indent = 4)
 
-plugin_file = ue4util.get_real_abspath('../../UnrealCV.uplugin')
-if __name__ == '__main__' and is_valid(plugin_file):
+def main():
+    plugin_file = ue4util.get_real_abspath('../../UnrealCV.uplugin')
+    if not is_valid(plugin_file):
+        return False
+
     plugin_version = gitutil.get_short_version('.')
     plugin_output_folder = ue4util.get_real_abspath('./built_plugin/%s' % plugin_version)
     ue4util.mkdirp(plugin_output_folder)
@@ -67,3 +70,6 @@ if __name__ == '__main__' and is_valid(plugin_file):
     upload_confs = ue4config.conf['PluginOutput']
     for upload_conf in upload_confs:
         upload_plugin(plugin_output_folder, upload_conf)
+
+if __name__ == '__main__':
+    main()
