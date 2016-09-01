@@ -1,12 +1,12 @@
 #include "UnrealCVPrivate.h"
-#include "CameraManager.h"
+#include "CaptureManager.h"
 
 /**
   * Where to put cameras
   * For each camera in the scene, attach SceneCaptureComponent2D to it
   * So that ground truth can be generated, invoked when a new actor is created
   */
-void FCameraManager::AttachGTCaptureComponentToCamera(APawn* Pawn)
+void FCaptureManager::AttachGTCaptureComponentToCamera(APawn* Pawn)
 {
 	// TODO: Only support one camera at the beginning
 	// TODO: Make this automatic from material loader.
@@ -30,10 +30,30 @@ void FCameraManager::AttachGTCaptureComponentToCamera(APawn* Pawn)
 	CaptureComponentList.Add(RightEye);
 }
 
-
-UGTCaptureComponent* FCameraManager::GetCamera(int32 CameraId)
+APawn* GetFirstPawn()
 {
-	check(CaptureComponentList.Num() != 0);
+	static UWorld* CurrentWorld = nullptr;
+	static APawn* Pawn = nullptr;
+	if (Pawn == nullptr || CurrentWorld != GWorld)
+	{
+		APlayerController* PlayerController = GWorld->GetFirstPlayerController();
+		check(PlayerController);
+		Pawn = PlayerController->GetPawn();
+		check(Pawn);
+		CurrentWorld = GWorld;
+	}
+	return Pawn;
+}
+
+UGTCaptureComponent* FCaptureManager::GetCamera(int32 CameraId)
+{
+	static UWorld* CurrentWorld = nullptr;
+	if (CaptureComponentList.Num() == 0 || CurrentWorld != GWorld)
+	{
+		AttachGTCaptureComponentToCamera(GetFirstPawn());
+		CurrentWorld = GWorld;
+	}
+
 	if (CameraId < CaptureComponentList.Num() && CameraId >= 0)
 	{
 		return CaptureComponentList[CameraId];

@@ -67,6 +67,21 @@ private:
 					});
 					// Stop the timer
 				}
+				if (Promise.GetRunningTime() > 5) // Kill pending task that takes too long
+				{
+					UE_LOG(LogTemp, Warning, TEXT("An async task failed to finish and timeout after 5 seconds"));
+					// This is a failed task
+					FPromise FailedPromise;
+					FCallbackDelegate CompletedCallback;
+					PendingPromise.Dequeue(FailedPromise); // Dequeue in the same thread
+					PendingCompletedCallback.Dequeue(CompletedCallback);
+
+					// This needs to be sent back to game thread
+					AsyncTask(ENamedThreads::GameThread, [CompletedCallback]() {
+						CompletedCallback.ExecuteIfBound(FExecStatus::Error("Task took too long, timeout"));
+						// CompletedCallback.Unbind();
+					});
+				}
 			}
 		}
 		return 0; // This thread will exit

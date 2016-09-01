@@ -13,10 +13,20 @@ private:
 	FPromiseDelegate PromiseDelegate;
 public:
 	bool bIsValid;
-	FPromise();
-	FPromise(FPromiseDelegate InPromiseDelegate);
+	FDateTime InitTime;
+	FPromise() { bIsValid = false; }
+	FPromise(FPromiseDelegate InPromiseDelegate) : PromiseDelegate(InPromiseDelegate) 
+	{
+		bIsValid = true;
+		InitTime = FDateTime::Now();
+	}
 	/** Use PromiseDelegate to check whether the task already completed */
 	FExecStatus CheckStatus();
+	float GetRunningTime()
+	{
+		FTimespan Elapsed = FDateTime::Now() - InitTime;
+		return Elapsed.GetTotalSeconds();
+	}
 };
 
 enum FExecStatusType 
@@ -50,7 +60,7 @@ public:
 	 * If the CheckStatus function returns no longer pending, means the async task finished
 	 * see UE4CVCommandsCamera.cpp : GetCameraViewAsyncQuery for an example 
 	 */
-	static FExecStatus AsyncQuery(FPromise Promise);
+	static FExecStatus AsyncQuery(FPromise Promise, FString Message="");
 
 	/** The message body of this ExecStatus, the full message will also include the ExecStatusType */
 	FString MessageBody;
@@ -71,7 +81,7 @@ private:
 	FPromise Promise; 
 	FExecStatus(FExecStatusType InExecStatusType, FString Message);
 	// For query
-	FExecStatus(FExecStatusType InExecStatusType, FPromise Promise);
+	FExecStatus(FExecStatusType InExecStatusType, FPromise Promise, FString Message="");
 };
 
 bool operator==(const FExecStatus& ExecStatus, const FExecStatusType& ExecStatusEnum);

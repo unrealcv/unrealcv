@@ -16,15 +16,17 @@ FPlayerViewMode::FPlayerViewMode() : CurrentViewMode("lit")
 {
 }
 
-void FPlayerViewMode::CreatePostProcessVolume()
+APostProcessVolume* FPlayerViewMode::GetPostProcessVolume()
 {
-	if (PostProcessVolume != nullptr)
+	static APostProcessVolume* PostProcessVolume = nullptr;
+	static UWorld* CurrentWorld = nullptr; // Check whether the world has been restarted.
+	if (PostProcessVolume == nullptr || CurrentWorld != GWorld)
 	{
-		// PostProcessVolume->Destroy();
-		// TODO: Check how to release resource correctly
+		PostProcessVolume = GWorld->SpawnActor<APostProcessVolume>();
+		PostProcessVolume->bUnbound = true;
+		CurrentWorld = GWorld;
 	}
-	PostProcessVolume = GWorld->SpawnActor<APostProcessVolume>();
-	PostProcessVolume->bUnbound = true;
+	return PostProcessVolume;
 }
 
 FPlayerViewMode::~FPlayerViewMode() {}
@@ -94,7 +96,7 @@ void FPlayerViewMode::Unlit()
 
 void FPlayerViewMode::ClearPostProcess()
 {
-	this->PostProcessVolume->BlendWeight = 0;
+	GetPostProcessVolume()->BlendWeight = 0;
 }
 
 void FPlayerViewMode::ApplyPostProcess(FString ModeName)
@@ -105,6 +107,7 @@ void FPlayerViewMode::ApplyPostProcess(FString ModeName)
 	FViewMode::PostProcess(GameViewportClient->EngineShowFlags);
 
 	UMaterial* Material = UGTCaptureComponent::GetMaterial(ModeName);
+	APostProcessVolume* PostProcessVolume = GetPostProcessVolume();
 	PostProcessVolume->Settings.WeightedBlendables.Array.Empty();
 
 	// PostProcessVolume->AddOrUpdateBlendable(Material);
@@ -117,8 +120,20 @@ void FPlayerViewMode::DebugMode()
 	ApplyPostProcess("debug");
 }
 
+// TODO: Clean up this messy function.
+void PaintObjects()
+{
+	APlayerController* PlayerController = GWorld->GetFirstPlayerController();
+	check(PlayerController);
+	APawn* Pawn = PlayerController->GetPawn();
+	check(Pawn);
+	FObjectPainter::Get().SetLevel(Pawn->GetLevel());
+	FObjectPainter::Get().PaintRandomColors();
+}
+
 void FPlayerViewMode::Object()
 {
+	PaintObjects();
 	auto Viewport = GWorld->GetGameViewport();
 	FViewMode::VertexColor(Viewport->EngineShowFlags);
 	// ApplyPostProcess("object_mask");
