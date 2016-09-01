@@ -1,4 +1,4 @@
-# Check whether the rendering result is as expected.
+''' Check whether the rendering result is as expected. '''
 from common_conf import *
 import time, os
 import ue4cv

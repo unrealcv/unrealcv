@@ -1,7 +1,6 @@
 import unittest
-from common_conf import *
-from unrealcv import client
-from checker import *
+from test_cfg import client
+import testutil
 _L = logging.getLogger(__name__)
 
 class TestRealisticRendering(unittest.TestCase):
@@ -21,9 +20,8 @@ class TestRealisticRendering(unittest.TestCase):
         for objname in objects:
             tasks.append(['vget /object/%s/name' % objname, objname])
             tasks.append(['vget /object/%s/color' % objname, skip])
-            # TODO: add a function to check regular expression
 
-        run_tasks(self, self.client, tasks)
+        testutil.run_tasks(self, self.client, tasks)
 
 if __name__ == '__main__':
     tests = [

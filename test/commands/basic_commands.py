@@ -1,40 +1,31 @@
 import sys, os
-sys.path.append('../..')
-import ue4cv
+from test_cfg import client
 
 # Try to connect our python client to the game
-ue4cv.client.connect()
-
+client.connect()
 output_folder = 'unrealcv-files'
 
-def f(filename):
-    return os.path.join(output_folder, filename)
+def f(mode, ext):
+    return os.path.join(output_folder, '%s.%s' % (mode, ext))
 
 # Check if the connection is successfully established
-if not ue4cv.client.isconnected():
+if not client.isconnected():
     print 'UnrealCV server is not running. Run the game downloaded from http://unrealcv.github.io first.'
 else:
-    filename = ue4cv.client.request('vget /camera/0/lit ' + f('lit.png'))
-    print 'Image is saved to %s' % filename
-
-    filename = ue4cv.client.request('vget /camera/0/depth ' + f('depth.png'))
-    print 'Depth is saved to %s' % filename
-
-    filename = ue4cv.client.request('vget /camera/0/depth ' + f('depth.exr'))
-    print 'Depth is saved to %s' % filename
-
-    filename = ue4cv.client.request('vget /camera/0/object_mask ' + f('object_mask.png'))
-    print 'Object instance mask is saved to %s' % filename
-
-    filename = ue4cv.client.request('vget /camera/0/debug ' + f('debug.exr'))
-    print 'Object instance mask is saved to %s' % filename
-
-    # filename = ue4cv.client.request('vget /camera/0/normal unrealcv/normal.png')
-    # print 'Surface normal is saved to %s' % filename
+    mode_list = [
+        ('lit', 'png'),
+        ('depth', 'png'),
+        ('depth', 'exr'),
+        ('object_mask', 'png'),
+        ('debug', 'exr'),
+    ]
+    for (mode, ext) in mode_list:
+        filename = client.request('vget /camera/0/%s %s' % (mode, f(mode, ext)))
+        print '%s is saved to %s' % (mode, filename)
 
     # Switch the camera mode back to normal
-    res = ue4cv.client.request('vset /mode lit')
-    assert(res == 'ok') # Make sure operation is successful
+    res = client.request('vset /viewmode lit')
+    assert res == 'ok', res # Make sure operation is successful
 
     # Disconnect python client from the game
-    ue4cv.client.disconnect()
+    client.disconnect()

@@ -1,12 +1,9 @@
-import unittest, random
-from common_conf import *
-from checker import *
-import ue4cv
+import unittest, random, logging
+from test_cfg import client
+import testutil
 _L = logging.getLogger(__name__)
 _L.setLevel(logging.DEBUG)
 # _L.addHandler(logging.StreamHandler())
-
-request = ue4cv.client.request
 
 def read_camera_info(filename):
     with open(filename) as f:
@@ -24,21 +21,22 @@ def read_camera_info(filename):
             camera_pos.append((location, rotation))
     return camera_pos
 
+
 class TestCommands(unittest.TestCase):
     host = 'localhost'
     port = 9000
     # Test a generic small game
     @classmethod
     def setUpClass(cls):
-        ue4cv.client.connect()
-        if not ue4cv.client.isconnected():
+        client.connect()
+        if not client.isconnected():
             raise Exception('Can not connect to a running game instance')
-        cls.camera_poses = read_camera_info('./correctness_test/camera_info_basename.txt')
+        # cls.camera_poses = read_camera_info('./correctness_test/camera_info_basename.txt')
 
     def test_objects(self):
-        response = request('vget /objects')
+        response = client.request('vget /objects')
         # _L.debug(response)
-        self.assertTrue(validate_format(response))
+        self.assertTrue(testutil.validate_format(response))
 
         objects = response.split(' ')[:10]
         self.assertTrue(len(objects) > 0)
@@ -46,19 +44,19 @@ class TestCommands(unittest.TestCase):
         tasks = []
         for objname in objects:
             tasks.append(['vget /object/%s/name' % objname, objname])
-            tasks.append(['vget /object/%s/color' % objname, skip])
+            tasks.append(['vget /object/%s/color' % objname, testutil.skip])
             # TODO: add a function to check regular expression
 
-        run_tasks(self, ue4cv.client, tasks)
+        testutil.run_tasks(self, client, tasks)
 
     def test_set_location(self):
         for pos in self.camera_poses:
             loc = pos[0] # location
             param_str = '%.3f %.3f %.3f' % (loc[0], loc[1], loc[2])
             cmd = 'vset /camera/0/location %s' % param_str
-            response = request(cmd)
+            response = client.request(cmd)
             self.assertEqual(response, 'ok')
-            response = request('vget /camera/0/location')
+            response = client.request('vget /camera/0/location')
             self.assertEqual(response, param_str, 'expect %s, got %s' % (param_str, response))
 
         # TODO: also try random positions
@@ -67,9 +65,9 @@ class TestCommands(unittest.TestCase):
         for _ in range(5):
             param_str = '%.3f %.3f %.3f' % (random.randrange(100), random.randrange(100), random.randrange(100))
             cmd = 'vset /camera/0/location %s' % param_str
-            response = request(cmd)
+            response = client.request(cmd)
             self.assertEqual(response, 'ok')
-            response = request('vget /camera/0/location')
+            response = client.request('vget /camera/0/location')
             print 'expect %s, got %s' % (param_str, response)
 
     # Try to reach the limit of the scene
@@ -78,9 +76,9 @@ class TestCommands(unittest.TestCase):
             loc = pos[0] # location
             param_str = '%.3f %.3f %.3f' % (loc[0], loc[1], loc[2])
             cmd = 'vset /camera/0/location %s' % param_str
-            response = request(cmd)
+            response = client.request(cmd)
             self.assertEqual(response, 'ok')
-            response = request('vget /camera/0/location')
+            response = client.request('vget /camera/0/location')
             self.assertEqual(response, param_str, 'expect %s, got %s' % (param_str, response))
 
         # TODO: also try random positions
@@ -89,9 +87,9 @@ class TestCommands(unittest.TestCase):
         for _ in range(5):
             param_str = '%.3f %.3f %.3f' % (random.randrange(100), random.randrange(100), random.randrange(100))
             cmd = 'vset /camera/0/location %s' % param_str
-            response = request(cmd)
+            response = client.request(cmd)
             self.assertEqual(response, 'ok')
-            response = request('vget /camera/0/location')
+            response = client.request('vget /camera/0/location')
             print 'expect %s, got %s' % (param_str, response)
 
 
@@ -100,50 +98,51 @@ class TestCommands(unittest.TestCase):
             rot = pos[1] # rotation
             param_str = '%.3f %.3f %.3f' % (rot[0], rot[1], rot[2])
             cmd = 'vset /camera/0/rotation %s' % param_str
-            response = request(cmd)
+            response = client.request(cmd)
             self.assertEqual(response, 'ok')
-            response = request('vget /camera/0/rotation')
+            response = client.request('vget /camera/0/rotation')
             self.assertEqual(response, param_str, 'expect %s, got %s' % (param_str, response))
 
     def test_camera(self):
         tasks = []
-        modes = ['normal', 'base_color', 'depth', 'lit', 'unlit', 'view', 'object_mask']
+        modes = ['normal', 'depth', 'lit', 'object_mask']
+        # base_color, unlit
         for mode in modes:
-            tasks.append(['vget /camera/0/%s' % mode, ispng])
+            tasks.append(['vget /camera/0/%s' % mode, testutil.ispng])
 
-        run_tasks(self, ue4cv.client, tasks)
+        testutil.run_tasks(self, client, tasks)
 
     def test_viewmode(self):
         tasks = []
         modes = ['depth', 'lit', 'unlit', 'normal', 'object_mask']
         for mode in modes:
-            tasks.append(['vset /mode %s' % mode, 'ok'])
-            tasks.append(['vget /mode', mode])
+            tasks.append(['vset /viewmode %s' % mode, 'ok'])
+            tasks.append(['vget /viewmode', mode])
 
-        run_tasks(self, ue4cv.client, tasks)
+        testutil.run_tasks(self, client, tasks)
 
-    def test_set_port(self):
-        ue4cv.client.disconnect()
-
-        client = ue4cv.Client((self.host, 9000))
-        client.connect()
-        self.assertEqual(client.isconnected(), True)
-        response = client.request('vget /unrealcv/port')
-        self.assertEqual(response, '9000')
-        response = client.request('vset /unrealcv/port 9001', timeout=1) # This is a special command and should not expect a response
-        self.assertEqual(response, None)
-        self.assertEqual(client.isconnected(), False)
-
-        client = ue4cv.Client((self.host, 9001))
-        client.connect()
-        self.assertEqual(client.isconnected(), True)
-        response = client.request('vget /unrealcv/port')
-        self.assertEqual(response, '9001')
-        response = client.request('vset /unrealcv/port 9000', timeout=1) # This is a special command and should not expect a response
-        self.assertEqual(response, None)
-        self.assertEqual(client.isconnected(), False)
-
-        ue4cv.client.connect()
+    # def test_set_port(self):
+    #     client.disconnect()
+    #
+    #     client = ue4cv.Client((self.host, 9000))
+    #     client.connect()
+    #     self.assertEqual(client.isconnected(), True)
+    #     response = client.request('vget /unrealcv/port')
+    #     self.assertEqual(response, '9000')
+    #     response = client.request('vset /unrealcv/port 9001', timeout=1) # This is a special command and should not expect a response
+    #     self.assertEqual(response, None)
+    #     self.assertEqual(client.isconnected(), False)
+    #
+    #     client = ue4cv.Client((self.host, 9001))
+    #     client.connect()
+    #     self.assertEqual(client.isconnected(), True)
+    #     response = client.request('vget /unrealcv/port')
+    #     self.assertEqual(response, '9001')
+    #     response = client.request('vset /unrealcv/port 9000', timeout=1) # This is a special command and should not expect a response
+    #     self.assertEqual(response, None)
+    #     self.assertEqual(client.isconnected(), False)
+    #
+    #     ue4cv.client.connect()
 
 if __name__ == '__main__':
     logging.basicConfig()
@@ -153,9 +152,9 @@ if __name__ == '__main__':
         'test_camera',
         'test_viewmode',
         'test_objects',
-        'test_set_rotation',
-        'test_set_location',
-        'test_location_limit',
+        # 'test_set_rotation',
+        # 'test_set_location',
+        # 'test_location_limit',
         # 'test_set_port', # Not stable yet
     ]
     suite = unittest.TestSuite(map(TestCommands, tests))
