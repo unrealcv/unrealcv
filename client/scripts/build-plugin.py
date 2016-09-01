@@ -39,7 +39,7 @@ def upload_plugin(plugin_output_folder, upload_conf):
         scp = uploadutil.upload_scp,
         s3 = uploadutil.upload_s3,
     )
-    upload_handlers[type](upload_conf, [plugin_output_folder], '.')
+    upload_handlers[type](upload_conf, [plugin_output_folder], 'built_plugin')
 
 def save_version_info(info_filename, plugin_file):
     ''' Save version info of UnrealCV plugin '''
