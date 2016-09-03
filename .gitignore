@@ -6,5 +6,6 @@
 
 Binaries/
 Intermediate/
+Config/
 
 *.ipynb_checkpoints/
