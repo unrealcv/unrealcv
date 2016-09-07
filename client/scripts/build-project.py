@@ -147,17 +147,15 @@ def main():
 
     if os.path.isdir(project_output_folder):
         print 'Output directory %s exist, delete it first' % project_output_folder
-        return
+    else:
+        # Package game and save version info
+        package(project_file, project_output_folder)
 
-    # Package game and save version info
-    package(project_file, project_output_folder)
-
-    # Save version info after build finished
-    save_version_info(info_filename, project_file, project_output_folder, plugin_version)
+        # Save version info after build finished
+        save_version_info(info_filename, project_file, project_output_folder, plugin_version)
 
     # Zip files
-    '''
-    zipfilename = os.path.join(project_output_folder, get_zipfilename_from_infofile(info_filename))
+    zipfilename = os.path.join(project_output_folder, get_zipfilename_from_infofile(info_filename, plugin_infofile))
     zip_project(zipfilename, project_file, project_output_folder)
 
     # Upload built games to output targets
@@ -169,7 +167,6 @@ def main():
     for upload_conf in upload_confs:
         tgt_type = upload_conf['Type']
         upload_handlers[tgt_type](upload_conf, [zipfilename], os.path.dirname(zipfilename))
-    '''
 
 if __name__ == '__main__':
     main()
