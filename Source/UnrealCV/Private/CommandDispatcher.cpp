@@ -172,6 +172,7 @@ bool FCommandDispatcher::FormatUri(const FString& RawUri, FString& UriRexexp)
 	return true;
 }
 
+/** Bind command to a function, the command on the bottom will overwrite the command on the top */
 bool FCommandDispatcher::BindCommand(const FString& ReadableUriTemplate, const FDispatcherDelegate& Command, const FString& Description) // Parse URI
 {
 	// TODO: Build a tree structure to boost performance

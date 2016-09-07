@@ -29,7 +29,7 @@ public:
 	FExecStatus GetScreenshot(const TArray<FString>& Args);
 
 
-	/** Get camera image with a given mode */
+	/** Get camera image with a given mode, Get ViewMode data using SceneCaptureComponent, support multi-camera */
 	FExecStatus GetCameraViewMode(const TArray<FString>& Args);
 
 	/** Get camera project matrix */
@@ -40,7 +40,9 @@ public:
 
 	/** Get HDR from the scene */
 	// FExecStatus GetCameraHDR(const TArray<FString>& Args);
-
 	// FExecStatus GetCameraDepth(const TArray<FString>& Args);
 	// FExecStatus GetCameraLit(const TArray<FString>& Args);
+
+	/** Get ViewMode data by switching to this viewmode then switch back, can not support multi-camera */
+	FExecStatus GetObjectInstanceMask(const TArray<FString>& Args);
 };

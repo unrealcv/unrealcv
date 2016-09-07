@@ -35,6 +35,12 @@ void FCameraCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraViewMode);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/[str] [str]", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
 
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetObjectInstanceMask);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/object_mask", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetObjectInstanceMask);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/object_mask [str]", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetScreenshot);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/screenshot", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
 
@@ -159,6 +165,22 @@ FExecStatus FCameraCommandHandler::GetCameraLocation(const TArray<FString>& Args
 	return FExecStatus::Error("Number of arguments incorrect");
 }
 
+FExecStatus FCameraCommandHandler::GetObjectInstanceMask(const TArray<FString>& Args)
+{
+	if (Args.Num() <= 2) // The first is camera id, the second is ViewMode
+	{
+		// Use command dispatcher is more universal
+		FExecStatus ExecStatus = CommandDispatcher->Exec(TEXT("vset /viewmode object_mask"));
+		if (ExecStatus != FExecStatusType::OK)
+		{
+			return ExecStatus;
+		}
+
+		ExecStatus = GetScreenshot(Args);
+		return ExecStatus;
+	}
+	return FExecStatus::InvalidArgument;
+}
 
 FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args)
 {
@@ -227,7 +249,6 @@ FExecStatus FCameraCommandHandler::GetScreenshot(const TArray<FString>& Args)
 
 		FString FullFilename = GetDiskFilename(Filename);
 		return FScreenCapture::GetCameraViewAsyncQuery(FullFilename);
-		// return this->GetCameraViewSync(FullFilename);
 	}
 	return FExecStatus::InvalidArgument;
 }
