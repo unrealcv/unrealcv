@@ -145,6 +145,10 @@ def main():
             plugin_info = json.load(f)
             plugin_version = plugin_info['plugin_version']
 
+    if os.path.isdir(project_output_folder):
+        print 'Output directory %s exist, delete it first' % project_output_folder
+        return
+
     # Package game and save version info
     package(project_file, project_output_folder)
 
