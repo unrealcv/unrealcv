@@ -50,9 +50,10 @@ def get_real_abspath(filename):
         filename = cygwinpath_to_winpath(filename)
     return filename
 
-def run_ue4cmd(cmd):
+def run_ue4cmd(cmd, debug=False):
     print(cmd)
-    os.system(cmd)
+    if not debug:
+        os.system(cmd)
 
 def mkdirp(dir_path):
     if not os.path.exists(dir_path):

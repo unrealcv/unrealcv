@@ -10,7 +10,7 @@ def package(project_file, project_output_folder):
     Build project
     '''
 
-    UATScriptTemplate = '{UATScript} BuildCookRun -project={ProjectFile} -archivedirectory={OutputFolder} -noP4 -platform={Platform} -clientconfig=Development -serverconfig=Development -cook -allmaps -stage -pak -archive -clean -build'
+    UATScriptTemplate = '{UATScript} BuildCookRun -project={ProjectFile} -archivedirectory={OutputFolder} -noP4 -platform={Platform} -clientconfig=Development -serverconfig=Development -cook -allmaps -stage -pak -archive -build'
     # See help information in Engine/Source/Programs/AutomationTool/AutomationUtils/ProjectParams.cs
 
     cmd = UATScriptTemplate.format(
@@ -20,7 +20,7 @@ def package(project_file, project_output_folder):
         ProjectFile = project_file
         )
 
-    ue4util.run_ue4cmd(cmd)
+    ue4util.run_ue4cmd(cmd, False)
 
 def save_version_info(info_filename, project_file, project_output_folder, plugin_version):
     ''' Save the version info of UnrealCV plugin and the game for easier issue tracking'''
