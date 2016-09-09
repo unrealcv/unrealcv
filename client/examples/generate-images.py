@@ -7,7 +7,7 @@
 
 # First, we need to load some python libraries for this tutorial.
 
-# In[17]:
+# In[1]:
 
 import os, sys, time, re, json
 import numpy as np
@@ -23,7 +23,7 @@ get_ipython().magic(u'matplotlib inline')
 
 # ## Connect to the game
 
-# In[18]:
+# In[2]:
 
 # Load unrealcv python client, do `pip install unrealcv` first.
 from unrealcv import client
@@ -32,14 +32,14 @@ if not client.isconnected():
     print 'UnrealCV server is not running. Run the game downloaded from http://unrealcv.github.io first.'
 
 
-# In[19]:
+# In[3]:
 
 # You can use this to show help message of a function
 # client?
 # client.request?
 
 
-# In[20]:
+# In[4]:
 
 # Test connection
 res = client.request('vget /unrealcv/status')
@@ -50,7 +50,7 @@ print res
 
 # Define a function to read a camera trajectory from a file
 
-# In[21]:
+# In[5]:
 
 def read_camera_info(filename):
     with open(filename) as f:
@@ -71,12 +71,12 @@ def read_camera_info(filename):
 
 # We will read a camera trajectory from `realistic_rendering_camera_info.txt`. This file contains a camera trajectory with 10 frames. The camera trajectory recorded using another python script.
 
-# In[23]:
+# In[6]:
 
 get_ipython().system(u'head -n 6 ./realistic_rendering_camera_info.txt')
 
 
-# In[6]:
+# In[7]:
 
 camera_pos = read_camera_info('./realistic_rendering_camera_info.txt')
 print camera_pos[0] # camera location and rotation
@@ -86,11 +86,11 @@ print camera_pos[0] # camera location and rotation
 
 # Define a function to render an image and its annotation
 
-# In[24]:
+# In[8]:
 
 def render_frame(client, cam_pose=None):
     ''' If you want to render a frame using current camera position, leave the pos argument to None '''
-    if pos is not None:
+    if cam_pose is not None:
         # Set camera position
         loc = cam_pose[0] # location
         rot = cam_pose[1] # rotation
@@ -112,7 +112,7 @@ def render_frame(client, cam_pose=None):
 
 # Define a utility function for plotting rendered images
 
-# In[8]:
+# In[9]:
 
 def subplot_image(sub_index, image, param=None):
     if isinstance(image, str):
@@ -122,7 +122,7 @@ def subplot_image(sub_index, image, param=None):
     plt.axis('off')
 
 
-# In[26]:
+# In[10]:
 
 pos = camera_pos[0]
 frame = render_frame(client, pos)
@@ -144,7 +144,7 @@ subplot_image(222, depth, 'gray')
 # Notice: this is a slow and very inefficient implementation. we are working on improving it.
 # If you have suggestion about how to improve, please contact Weichao Qiu (qiuwch@gmail.com)
 
-# In[27]:
+# In[11]:
 
 plt.rcParams['figure.figsize'] = (4, 3) # (w, h)
 subplot_image(111, frame['object_mask'])
@@ -152,14 +152,14 @@ subplot_image(111, frame['object_mask'])
 print '''Here we have the a color map of object instance, then we need to know the color for each object''' 
 
 
-# In[28]:
+# In[12]:
 
 # Get a list of all objects in the scene
 scene_objects = client.request('vget /objects').split(' ')
 print 'There are %d objects in this scene' % len(scene_objects)
 
 
-# In[29]:
+# In[13]:
 
 class Color(object):
     ''' A utility class to parse color value '''
@@ -186,7 +186,7 @@ def subplot_color(index, color, title):
 
 # If we want to know the color of a specific object, we can use command `vget /object/[str]/color`. `[str]` is the object name. We first iterate all objects of the scene and get their color.
 
-# In[30]:
+# In[14]:
 
 def get_color_mapping(client, object_list):
     ''' Get the color mapping for specified objects '''
@@ -196,7 +196,7 @@ def get_color_mapping(client, object_list):
     return color_mapping
 
 
-# In[33]:
+# In[15]:
 
 # Plot the annotation color for some objects. This cell might take about one minute
 color_mapping = get_color_mapping(client, scene_objects)
@@ -212,7 +212,7 @@ for i in range(len(selected_objects)):
 
 # Given we know the labeling color for each object, we can compute the object instance mask for each object.
 
-# In[36]:
+# In[16]:
 
 def match_color(color_image, target_color, tolerance=3): # Tolerance is used to solve numerical issue
     match_region = np.ones(color_image.shape[0:2], dtype=bool)
@@ -236,14 +236,14 @@ def compute_instance_mask(object_mask, color_mapping, objects):
     return dic_instance_mask
 
 
-# In[35]:
+# In[17]:
 
 # Compute the binary mask for each object instance
 dic_instance_mask = compute_instance_mask(frame['object_mask'], color_mapping, scene_objects)
 # dic_instance_mask[object_name] can return the binary mask of the object
 
 
-# In[ ]:
+# In[18]:
 
 # Do some correctness test
 import ipynb_util
@@ -253,7 +253,7 @@ covered = check_coverage(dic_instance_mask)
 # plt.imshow(covered)
 
 
-# In[ ]:
+# In[19]:
 
 def plot_image_with_mask(image, mask):
     '''
@@ -267,7 +267,7 @@ def plot_image_with_mask(image, mask):
     subplot_image(122, masked_image)
 
 
-# In[ ]:
+# In[20]:
 
 # Load object category for each object
 with open('object_category.json') as f:
@@ -275,7 +275,7 @@ with open('object_category.json') as f:
 categories = set(dic_objects_category.values())
 
 
-# In[ ]:
+# In[21]:
 
 print 'Num of objects in the scene:', len(scene_objects)
 image_objects = dic_instance_mask.keys()
@@ -293,7 +293,7 @@ for obj_type in categories:
 
 # If we want to plot the region of an object instance
 
-# In[ ]:
+# In[22]:
 
 plot_image_with_mask(frame['lit'], dic_instance_mask['SM_DeskLamp_5'])
 
