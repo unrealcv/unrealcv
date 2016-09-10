@@ -31,5 +31,5 @@ If you found this project useful, please consider citing our paper
 ```
 
 ## Contact
-If you have any suggestion or interested in using UnrealCV, please [contact us](contact.html).
+If you have any suggestion or interested in using UnrealCV, please [contact us](http://unrealcv.github.io/contact.html).
 
