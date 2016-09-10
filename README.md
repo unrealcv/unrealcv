@@ -7,7 +7,7 @@ UnrealCV is a project to help computer vision researchers build virtual worlds u
 1. A set of UnrealCV commands to interact with the virtual world.
 2. Communication between UE4 and an external program, such as Caffe.
 
-UnrealCV can be used in two ways. First, download a compiled game binary with UnrealCV embedded. This is as simple as running a game, no knowledge of Unreal Engine is required. Second, install UnrealCV plugin to Unreal Engine 4 (UE4) and use the editor of UE4 to build a new virtual world.
+UnrealCV can be used in two ways. The first one is using a compiled game binary with UnrealCV embedded. This is as simple as running a game, no knowledge of Unreal Engine is required. The second is installing UnrealCV plugin to Unreal Engine 4 (UE4) and use the editor of UE4 to build a new virtual world.
 
 
 Please read [Tutorial: Getting Started](/tutorial/getting_started.html) to learn using UnrealCV.
