@@ -10,7 +10,7 @@ UnrealCV is a project to help computer vision researchers build virtual worlds u
 UnrealCV can be used in two ways. The first one is using a compiled game binary with UnrealCV embedded. This is as simple as running a game, no knowledge of Unreal Engine is required. The second is installing UnrealCV plugin to Unreal Engine 4 (UE4) and use the editor of UE4 to build a new virtual world.
 
 
-Please read [Tutorial: Getting Started](/tutorial/getting_started.html) to learn using UnrealCV.
+Please read [Tutorial: Getting Started](http://unrealcv.github.io/tutorial/getting_started.html) to learn using UnrealCV.
 
 <center>
 <img src="http://unrealcv.github.io/images/homepage_teaser.png" alt="annotation"/>
