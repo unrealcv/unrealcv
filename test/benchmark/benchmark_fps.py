@@ -1,6 +1,6 @@
 ''' Check how much fps of UnrealCV. '''
 import time, sys, argparse
-from test_cfg import *
+from unrealcv import client
 # Use timer to check time.
 
 client.connect()
