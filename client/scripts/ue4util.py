@@ -26,8 +26,11 @@ def platform_function(**kwargs):
 
 def cygwinpath_to_winpath(path):
     path_mapping = {
+        # Support cygwin
         "/drives/d/": "D:/",
         "/drives/c/": "C:/",
+        "/cygdrive/d/": "D:/",
+        "/cygdrive/c/": "C:/",
         "/home/mobaxterm/d/": "D:/",
     }
     for (k, v) in path_mapping.iteritems():

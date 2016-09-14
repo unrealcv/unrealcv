@@ -1,19 +1,12 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "UnrealCVPrivate.h"
 #include "UE4CVServer.h"
 #include "PlayerViewMode.h"
-
-void FUE4CVServer::BeginPlay()
-{
-	// This should be done after the world is initialized.
-	// FConsoleHelper::Get().RegisterConsole();
-	// FCameraManager::Get().AttachGTCaptureComponentToCamera(Pawn);
-	// FPlayerViewMode::Get().Lit();
-
-	// bIsTicking = true;
-	// NetworkManager->Start(); // Do not process any request if the game is in the stop mode.
-}
+#include "ConsoleHelper.h"
+#include "ObjectPainter.h"
+#include "CaptureManager.h"
+#include "CameraHandler.h"
+#include "ObjectHandler.h"
+#include "PluginHandler.h"
 
 /** Only available during game play */
 APawn* FUE4CVServer::GetPawn()
@@ -77,11 +70,37 @@ FUE4CVServer::~FUE4CVServer()
 	// this->NetworkManager->FinishDestroy(); // TODO: Check is this usage correct?
 }
 
+/**
+ * Make sure the UE4CVServer is correctly configured.
+ */
+void FUE4CVServer::InitGWorld()
+{
+	// Use this to replace BeginPlay()
+	static UWorld *CurrentWorld = nullptr;
+	if (CurrentWorld != GWorld) 
+	{
+		// Invoke this everytime when the GWorld changes
+		// This will happen when the game is stopped and restart in the UE4Editor
+		APlayerController* PlayerController = GWorld->GetFirstPlayerController();
+		check(PlayerController);
+		APawn* Pawn = PlayerController->GetPawn();
+		check(Pawn);
+		FObjectPainter::Get().SetLevel(Pawn->GetLevel());
+		FObjectPainter::Get().PaintRandomColors();
+
+		FCaptureManager::Get().AttachGTCaptureComponentToCamera(Pawn);
+
+		CurrentWorld = GWorld;
+	}
+}
+
 // Each tick of GameThread.
 void FUE4CVServer::ProcessPendingRequest()
 {
 	while (!PendingRequest.IsEmpty())
 	{
+		this->InitGWorld();
+
 		FRequest Request;
 		bool DequeueStatus = PendingRequest.Dequeue(Request);
 		check(DequeueStatus);

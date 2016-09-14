@@ -32,6 +32,9 @@ public:
 	/** Get camera image with a given mode, Get ViewMode data using SceneCaptureComponent, support multi-camera */
 	FExecStatus GetCameraViewMode(const TArray<FString>& Args);
 
+	/** Explicitly set ViewMode, then GetCameraViewMode */
+	FExecStatus GetLitViewMode(const TArray<FString>& Args);
+
 	/** Get camera project matrix */
 	FExecStatus GetCameraProjMatrix(const TArray<FString>& Args);
 

@@ -6,9 +6,9 @@ class FCaptureManager
 private:
 	FCaptureManager() {}
 	TArray<UGTCaptureComponent*> CaptureComponentList;
-	void AttachGTCaptureComponentToCamera(APawn* Pawn);
 
 public:
+	void AttachGTCaptureComponentToCamera(APawn* Pawn);
 	static FCaptureManager& Get()
 	{
 		static FCaptureManager Singleton;

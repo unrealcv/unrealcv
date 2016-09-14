@@ -31,6 +31,7 @@ namespace UnrealBuildTool.Rules
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
+                    "UnrealCV/Private/Commands"
 				}
 				);
 

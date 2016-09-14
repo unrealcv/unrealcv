@@ -1,5 +1,5 @@
 import unittest, random, logging
-from test_cfg import client
+from unrealcv import client
 import testutil
 _L = logging.getLogger(__name__)
 _L.setLevel(logging.DEBUG)

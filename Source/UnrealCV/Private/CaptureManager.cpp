@@ -47,13 +47,6 @@ APawn* GetFirstPawn()
 
 UGTCaptureComponent* FCaptureManager::GetCamera(int32 CameraId)
 {
-	static UWorld* CurrentWorld = nullptr;
-	if (CaptureComponentList.Num() == 0 || CurrentWorld != GWorld)
-	{
-		AttachGTCaptureComponentToCamera(GetFirstPawn());
-		CurrentWorld = GWorld;
-	}
-
 	if (CameraId < CaptureComponentList.Num() && CameraId >= 0)
 	{
 		return CaptureComponentList[CameraId];

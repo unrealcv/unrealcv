@@ -23,13 +23,11 @@ AUE4CVCharacter::AUE4CVCharacter()
 void AUE4CVCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	FUE4CVServer::Get().BeginPlay();
 }
 
 void AUE4CVCharacter::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
-	// FUE4CVServer::Get().ProcessPendingRequest();
 }
 
 void AUE4CVCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
@@ -86,7 +84,6 @@ AUE4CVPawn::AUE4CVPawn()
 void AUE4CVPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	FUE4CVServer::Get().BeginPlay(); // Should not do all the initialization during begin play
 }
 
 void AUE4CVPawn::Tick( float DeltaTime )

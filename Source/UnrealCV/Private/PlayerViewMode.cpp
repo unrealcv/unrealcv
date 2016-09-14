@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-// #include "RealisticRendering.h"
 #include "UnrealCVPrivate.h"
 #include "PlayerViewMode.h"
 #include "BufferVisualizationData.h"
@@ -9,6 +6,7 @@
 #include "SceneViewport.h"
 #include "ViewMode.h"
 #include "GTCaptureComponent.h"
+#include "ObjectPainter.h"
 
 DECLARE_DELEGATE(ViewModeFunc)
 

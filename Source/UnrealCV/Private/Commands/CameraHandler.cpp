@@ -7,6 +7,7 @@
 #include "GTCaptureComponent.h"
 #include "PlayerViewMode.h"
 #include "UE4CVServer.h"
+#include "CaptureManager.h"
 
 FString GetDiskFilename(FString Filename)
 {
@@ -34,6 +35,12 @@ void FCameraCommandHandler::RegisterCommands()
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraViewMode);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/[str] [str]", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetLitViewMode);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/lit", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetLitViewMode);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/lit [str]", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetObjectInstanceMask);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/object_mask", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
@@ -178,6 +185,20 @@ FExecStatus FCameraCommandHandler::GetObjectInstanceMask(const TArray<FString>& 
 
 		ExecStatus = GetScreenshot(Args);
 		return ExecStatus;
+	}
+	return FExecStatus::InvalidArgument;
+}
+
+FExecStatus FCameraCommandHandler::GetLitViewMode(const TArray<FString>& Args)
+{
+	if (Args.Num() <= 3)
+	{
+		// For this viewmode, The post-effect material needs to be explictly cleared
+		FPlayerViewMode::Get().Lit();
+
+		TArray<FString> ExtraArgs(Args);
+		ExtraArgs.Insert(TEXT("lit"), 1);
+		return GetCameraViewMode(ExtraArgs);
 	}
 	return FExecStatus::InvalidArgument;
 }
