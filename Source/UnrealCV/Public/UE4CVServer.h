@@ -39,9 +39,6 @@ class UNREALCV_API FUE4CVServer : public FTickableGameObject
 public:
 	~FUE4CVServer();
 
-	/** Will be invoked when BeginPlay event happen */
-	void BeginPlay();
-
 	/** Send a string message to connected clients */
 	void SendClientMessage(FString Message);
 
@@ -79,6 +76,8 @@ public:
 	}
 
 	void RegisterCommandHandlers();
+
+	void InitGWorld();
 private:
 	TArray<FCommandHandler*> CommandHandlers;
 
@@ -98,4 +97,5 @@ private:
 
 	/** Handle the raw message from NetworkManager and parse raw message to a FRequest */
 	void HandleRawMessage(const FString& RawMessage);
+	
 };
