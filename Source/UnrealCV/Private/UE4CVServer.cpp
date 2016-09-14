@@ -1,8 +1,12 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "UnrealCVPrivate.h"
 #include "UE4CVServer.h"
 #include "PlayerViewMode.h"
+#include "ConsoleHelper.h"
+#include "ObjectPainter.h"
+#include "CaptureManager.h"
+#include "CameraHandler.h"
+#include "ObjectHandler.h"
+#include "PluginHandler.h"
 
 void FUE4CVServer::BeginPlay()
 {
