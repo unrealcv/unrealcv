@@ -14,7 +14,7 @@ Please read [Tutorial: Getting Started](http://unrealcv.github.io/tutorial/getti
 
 <center>
 <img src="http://unrealcv.github.io/images/homepage_teaser.png" alt="annotation"/>
-Images generated from the technical demo <a href="http://unrealcv.github.io/reference/model_zoo.html#realistic_rendering">RelisticRendering</a><br>
+Images generated from the technical demo <a href="http://unrealcv.github.io/reference/model_zoo.html#realistic_rendering">RealisticRendering</a><br>
 </center>
 
 ## Citation
