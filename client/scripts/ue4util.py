@@ -1,4 +1,55 @@
-import os, sys
+import os, sys, argparse
+
+
+EnginePathNotDefined = '''
+EnginePath is not specified, script is not sure where to find UnrealEngine
+configure it by copy ue4config.py.example to ue4config.py and change the EnginePath
+or use argument --engine_path to specify it
+'''
+
+EngineNotFound = '''
+UE4 can not be found in %s, check ue4config.py and argument to make sure it is correct
+'''
+
+UATScriptNotFound = '''
+RunUAT script can not be found in %s
+'''
+
+def get_UAT_script():
+    engine_path = get_engine_path()
+    platform = get_platform_name()
+
+    if platform == 'Win64':
+        UAT_basename = 'Engine/Build/BatchFiles/RunUAT.bat'
+    elif platform == 'Mac' or platform == 'Linux':
+        UAT_basename = 'Engine/Build/BatchFiles/RunUAT.sh'
+    else:
+        print 'platform %s is not recognized' % platform
+
+    UAT_script = os.path.join(engine_path, UAT_basename)
+    if not os.path.isfile(UAT_script):
+        exit(UATScriptNotFound % UAT_script)
+
+    return UAT_script
+
+def get_engine_path():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--engine_path')
+
+    args = parser.parse_args()
+    if args.engine_path:
+        engine_path = args.engine_path
+    else:
+        try:
+            import ue4config
+            engine_path = ue4config.EnginePath
+        except:
+            exit('EnginePath is not specified')
+
+    if not os.path.isdir(engine_path):
+        exit(EngineNotFound % engine_path)
+
+    return engine_path
 
 def get_project_name(projectfile):
     if not projectfile.endswith('.uproject'):

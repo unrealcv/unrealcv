@@ -1,17 +1,11 @@
 '''
 Package ue4 plugin and release it to output location defined in ue4config.py
 '''
-import os, sys, json, pdb
-import ue4config
+import os, sys, json, pdb, argparse
 import ue4util, gitutil, shutil, uploadutil
 
-UAT_script = ue4config.conf['UATScript']
 def is_valid(plugin_file):
     plugin_folder = os.path.dirname(plugin_file)
-    if not os.path.isfile(UAT_script):
-        print('Can not find Automation Script of UE4 %s' % UAT_script)
-        print('Please set UnrealEnginePath in ue4config.py correctly first')
-        return False
 
     if gitutil.is_dirty(plugin_folder):
         print 'Error: uncommited changes of this repo exist'
@@ -24,6 +18,7 @@ def build_plugin(plugin_file, plugin_output_folder):
     Build plugin binaries
     Return whether the operation is successful
     '''
+    UAT_script = ue4util.get_UAT_script()
     bin = UAT_script.replace(' ', '\ ')
     cmd = '%s BuildPlugin -plugin=%s -package=%s -rocket -targetplatforms=Win64+Linux' % (bin, plugin_file, plugin_output_folder)
     ue4util.run_ue4cmd(cmd)
@@ -70,9 +65,9 @@ def main():
     save_version_info(info_filename, plugin_file)
 
     # Upload built plugin to upload location
-    upload_confs = ue4config.conf['PluginOutput']
-    for upload_conf in upload_confs:
-        upload_plugin(plugin_output_folder, upload_conf)
+    # upload_confs = ue4config.conf['PluginOutput']
+    # for upload_conf in upload_confs:
+    #     upload_plugin(plugin_output_folder, upload_conf)
 
 if __name__ == '__main__':
     main()

@@ -1,4 +1,3 @@
-from ue4config import conf
 import ziputil
 import ue4util
 # Use python to upload files to server
