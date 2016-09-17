@@ -2,7 +2,6 @@
 Package *.uproject and release it to output location defined in ue4config.py
 '''
 import os, sys, argparse, json, shutil
-import ue4config
 import ue4util, gitutil, ziputil, uploadutil
 
 def package(project_file, project_output_folder):
@@ -14,7 +13,7 @@ def package(project_file, project_output_folder):
     # See help information in Engine/Source/Programs/AutomationTool/AutomationUtils/ProjectParams.cs
 
     cmd = UATScriptTemplate.format(
-        UATScript = ue4config.conf['UATScript'].replace(' ', '\ '),
+        UATScript = ue4util.get_UAT_script(),
         Platform = ue4util.get_platform_name(),
         OutputFolder = ue4util.get_real_abspath(project_output_folder),
         ProjectFile = project_file
@@ -123,15 +122,19 @@ def zip_project(zipfilename, project_file, project_output_folder):
         return False
 
 def main():
+    # Files is relative to this python script
+    cur_dir = os.path.dirname(os.path.abspath(__file__))
+
     # Parse command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('project_file')
-    args = parser.parse_args()
+    # args = parser.parse_args()
+    args, _ = parser.parse_known_args()
 
     # Read project information
     project_file = ue4util.get_real_abspath(args.project_file)
     project_name = ue4util.get_project_name(project_file)
-    project_output_folder = './built_project/%s' % project_name
+    project_output_folder = os.path.join(cur_dir, 'built_project/%s' % project_name)
     info_filename = os.path.join(project_output_folder, '%s-info.txt' % project_name)
 
     # Get plugin information
@@ -155,18 +158,18 @@ def main():
         save_version_info(info_filename, project_file, project_output_folder, plugin_version)
 
     # Zip files
-    zipfilename = os.path.join(project_output_folder, get_zipfilename_from_infofile(info_filename, plugin_infofile))
-    zip_project(zipfilename, project_file, project_output_folder)
+    # zipfilename = os.path.join(project_output_folder, get_zipfilename_from_infofile(info_filename, plugin_infofile))
+    # zip_project(zipfilename, project_file, project_output_folder)
 
     # Upload built games to output targets
-    upload_confs = ue4config.conf['ProjectOutput']
-    upload_handlers = dict(
-        scp = uploadutil.upload_scp,
-        s3 = uploadutil.upload_s3,
-    )
-    for upload_conf in upload_confs:
-        tgt_type = upload_conf['Type']
-        upload_handlers[tgt_type](upload_conf, [zipfilename], os.path.dirname(zipfilename))
+    # upload_confs = ue4config.conf['ProjectOutput']
+    # upload_handlers = dict(
+    #     scp = uploadutil.upload_scp,
+    #     s3 = uploadutil.upload_s3,
+    # )
+    # for upload_conf in upload_confs:
+    #     tgt_type = upload_conf['Type']
+    #     upload_handlers[tgt_type](upload_conf, [zipfilename], os.path.dirname(zipfilename))
 
 if __name__ == '__main__':
     main()

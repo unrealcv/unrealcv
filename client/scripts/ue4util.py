@@ -30,13 +30,16 @@ def get_UAT_script():
     if not os.path.isfile(UAT_script):
         exit(UATScriptNotFound % UAT_script)
 
-    return UAT_script
+    return UAT_script.replace(' ', '\ ')
 
 def get_engine_path():
     parser = argparse.ArgumentParser()
     parser.add_argument('--engine_path')
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
+    # only do partial parsing, the second return result is the remaining args
+    args, _ = parser.parse_known_args() # Fix this
+
     if args.engine_path:
         engine_path = args.engine_path
     else:
@@ -48,6 +51,8 @@ def get_engine_path():
 
     if not os.path.isdir(engine_path):
         exit(EngineNotFound % engine_path)
+
+    print 'Debug: ', engine_path
 
     return engine_path
 
