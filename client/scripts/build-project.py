@@ -128,6 +128,7 @@ def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('project_file')
+    parser.add_argument('--engine_path') # Add here just as a placeholder
     # args = parser.parse_args()
     args, _ = parser.parse_known_args()
 
