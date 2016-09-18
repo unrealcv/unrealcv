@@ -18,5 +18,6 @@ if __name__ == '__main__':
     plugin_version = args.plugin_version
     project_file = ue4util.get_real_abspath(args.project_file)
 
-    plugin_folder = 'built_plugin/%s' % plugin_version
+    cur_dir = os.path.dirname(os.path.abspath(__file__))
+    plugin_folder = os.path.join(cur_dir, 'built_plugin/%s' % plugin_version)
     install_plugin(project_file, plugin_folder)
