@@ -19,11 +19,13 @@ if __name__ == '__main__':
     if args.version:
         plugin_version = args.version
     elif not gitutil.is_dirty(cur_dir):
-        plugin_version = gitutil.get_short_version('.')
+        plugin_version = gitutil.get_short_version(cur_dir)
     else:
         exit('Uncommited changes of plugin exist, can not get current version')
     project_file = ue4util.get_real_abspath(args.project_file)
 
     cur_dir = os.path.dirname(os.path.abspath(__file__))
     plugin_folder = os.path.join(cur_dir, 'built_plugin/%s' % plugin_version)
+    if not os.path.isdir(plugin_folder):
+        exit('Can not found plugin content in %s' % plugin_folder)
     install_plugin(project_file, plugin_folder)
