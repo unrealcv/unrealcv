@@ -1,7 +1,7 @@
 '''
 Package *.uproject and release it to output location defined in ue4config.py
 '''
-import os, sys, argparse, json, shutil
+import os, sys, argparse, json, shutil, subprocess
 import ue4util, gitutil, ziputil, uploadutil
 
 def package(project_file, project_output_folder):
