@@ -19,9 +19,12 @@ def build_plugin(plugin_file, plugin_output_folder):
     Return whether the operation is successful
     '''
     UAT_script = ue4util.get_UAT_script()
-    bin = UAT_script.replace(' ', '\ ')
-    cmd = '%s BuildPlugin -plugin=%s -package=%s -rocket -targetplatforms=Win64+Linux' % (bin, plugin_file, plugin_output_folder)
-    ue4util.run_ue4cmd(cmd)
+    # cmd = '%s BuildPlugin -plugin=%s -package=%s -rocket -targetplatforms=Win64+Linux' % (UAT_script, plugin_file, plugin_output_folder)
+    # cmd = '%s BuildPlugin ' % UAT_script
+    import subprocess
+    cmd = [UAT_script, 'BuildPlugin', '-plugin=%s' % plugin_file, '-package=%s' % plugin_output_folder, '-rocket', '-targetplatforms=Win64+Linux']
+    subprocess.call(cmd)
+    # ue4util.run_ue4cmd(cmd)
 
     # Post processing clean up intermediate files
     intermediate_folder = os.path.join(plugin_output_folder, 'Intermediate')

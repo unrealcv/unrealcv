@@ -30,7 +30,8 @@ def get_UAT_script():
     if not os.path.isfile(UAT_script):
         exit(UATScriptNotFound % UAT_script)
 
-    return UAT_script.replace(' ', '\ ')
+    # return UAT_script.replace(' ', '\ ')
+    return UAT_script
 
 def get_engine_path():
     parser = argparse.ArgumentParser()
@@ -112,7 +113,10 @@ def get_real_abspath(filename):
 def run_ue4cmd(cmd, debug=False):
     print(cmd)
     if not debug:
-        os.system(cmd)
+        # os.system(cmd)
+
+        import subprocess
+        subprocess.call([cmd], shell=True)
 
 def mkdirp(dir_path):
     if not os.path.exists(dir_path):
