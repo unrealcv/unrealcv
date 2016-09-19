@@ -12,14 +12,31 @@ def package(project_file, project_output_folder):
     UATScriptTemplate = '{UATScript} BuildCookRun -project={ProjectFile} -archivedirectory={OutputFolder} -noP4 -platform={Platform} -clientconfig=Development -serverconfig=Development -cook -allmaps -stage -pak -archive -build'
     # See help information in Engine/Source/Programs/AutomationTool/AutomationUtils/ProjectParams.cs
 
-    cmd = UATScriptTemplate.format(
-        UATScript = ue4util.get_UAT_script(),
-        Platform = ue4util.get_platform_name(),
-        OutputFolder = ue4util.get_real_abspath(project_output_folder),
-        ProjectFile = project_file
-        )
+    # cmd = UATScriptTemplate.format(
+    #     UATScript = ue4util.get_UAT_script(),
+    #     Platform = ue4util.get_platform_name(),
+    #     OutputFolder = ue4util.get_real_abspath(project_output_folder),
+    #     ProjectFile = project_file
+    #     )
+    cmd = [
+        ue4util.get_UAT_script(),
+        'BuildCookRun',
+        '-project=%s' % project_file,
+        '-archivedirectory=%s' % ue4util.get_real_abspath(project_output_folder),
+        '-noP4',
+        '-platform=%s' % ue4util.get_platform_name(),
+        '-clientconfig=Development',
+        '-serverconfig=Development',
+        '-cook',
+        '-allmaps',
+        '-stage',
+        '-pak',
+        '-archive',
+        '-build'
+    ]
 
-    ue4util.run_ue4cmd(cmd, False)
+    # ue4util.run_ue4cmd(cmd, False)
+    subprocess.call(cmd)
 
 def save_version_info(info_filename, project_file, project_output_folder, plugin_version):
     ''' Save the version info of UnrealCV plugin and the game for easier issue tracking'''
