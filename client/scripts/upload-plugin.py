@@ -7,6 +7,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('remote')
     parser.add_argument('--version')
+    parser.add_argument('--password', help = 'Account password')
+    parser.add_argument('--pkey', help = 'Private key')
 
     cur_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -24,5 +26,8 @@ if __name__ == '__main__':
 
     print 'Upload plugin from %s -> %s' % (repr(plugin_output_folder), repr(remote))
     # Use repr so that I can correctly see the difference between / and \\
-    uploadutil.upload_scp(remote, [plugin_output_folder], 'built_plugin', DEBUG=True)
+    uploadutil.upload_scp(remote, [plugin_output_folder], 'built_plugin',
+        password=args.password,
+        key_filename=args.pkey,
+        DEBUG=True)
     # uploadutil.upload_scp()

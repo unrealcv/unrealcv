@@ -45,14 +45,19 @@ def upload_s3(bucket_name, filename):
     # Finish the upload
     mp.complete_upload()
 
-def upload_scp(remote, files, local_root, DEBUG=False):
+def upload_scp(remote, files, local_root, password=None, key_filename=None, DEBUG=False):
     '''
     Local root will be subtracted from the abspath of files
     '''
     import os, paramiko
 
     # Make sure the remote is with a correct format
-    [username, remain] = remote.split('@')
+    if '@' in remote:
+        [username, remain] = remote.split('@')
+    else:
+        remain = remote
+        username = None
+
     [host, remote_root] = remain.split(':')
 
     absfiles = ziputil.get_all_files(files, include_folder=True)
@@ -70,7 +75,7 @@ def upload_scp(remote, files, local_root, DEBUG=False):
     ssh.load_system_host_keys()
     # ssh.connect(scp_conf['Host'])
 
-    ssh.connect(host)
+    ssh.connect(host, username = username, password = password, key_filename = key_filename)
     # Use private key for authentication
     # remote_root = scp_conf['RemoteRoot']
 

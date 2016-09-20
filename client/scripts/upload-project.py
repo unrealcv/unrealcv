@@ -74,6 +74,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('project', help='Project name')
     parser.add_argument('remote')
+    parser.add_argument('--password', help = 'Account password')
+    parser.add_argument('--pkey', help = 'Private key')
     args = parser.parse_args()
 
     remote = args.remote
@@ -93,4 +95,7 @@ if __name__ == '__main__':
 
     # Upload built games to output targets
     print 'Upload project from %s -> %s' % (zipfilename, remote)
-    uploadutil.upload_scp(remote, [zipfilename], os.path.dirname(zipfilename), DEBUG=True)
+    uploadutil.upload_scp(remote, [zipfilename], os.path.dirname(zipfilename),
+        password = args.password,
+        key_filename = args.pkey,
+        DEBUG=True)
