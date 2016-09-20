@@ -70,6 +70,13 @@ def get_zipfilename_from_infofile(project_infofile):
     info = project_info
     return '{project_name}-{platform}-{project_version}-{plugin_version}.zip'.format(**info)
 
+def get_project_output_folder(project_infofile):
+    with open(project_infofile, 'r') as f:
+        info = json.load(f)
+    cur_dir = os.path.dirname(os.path.abspath(__file__))
+    project_output_folder = os.path.join(cur_dir, 'built_project/{project_name}/{project_version}-{plugin_version}'.format(**info))
+    return project_output_folder
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('project', help='Project name')
@@ -81,9 +88,13 @@ if __name__ == '__main__':
     remote = args.remote
     project_name = args.project
 
+
+    # project_output_folder = os.path.join(cur_dir, 'built_project/%s' % project_name)
+    # info_filename = os.path.join(project_output_folder, '%s-info.txt' % project_name)
     cur_dir = os.path.dirname(os.path.abspath(__file__))
-    project_output_folder = os.path.join(cur_dir, 'built_project/%s' % project_name)
-    info_filename = os.path.join(project_output_folder, '%s-info.txt' % project_name)
+    info_filename = os.path.join(cur_dir, 'built_project/%s' % project_name, '%s-info.txt' % project_name)
+    info_filename = ue4util.get_real_abspath(info_filename)
+    project_output_folder = get_project_output_folder(info_filename)
 
     # project_folder = os.path.dirname(project_file)
     # plugin_infofile = os.path.join(project_folder, 'Plugins', 'unrealcv', 'unrealcv-info.txt')

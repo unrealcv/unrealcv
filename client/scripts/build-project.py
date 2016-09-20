@@ -9,7 +9,7 @@ def package(project_file, project_output_folder):
     Build project
     '''
 
-    UATScriptTemplate = '{UATScript} BuildCookRun -project={ProjectFile} -archivedirectory={OutputFolder} -noP4 -platform={Platform} -clientconfig=Development -serverconfig=Development -cook -allmaps -stage -pak -archive -build'
+    # UATScriptTemplate = '{UATScript} BuildCookRun -project={ProjectFile} -archivedirectory={OutputFolder} -noP4 -platform={Platform} -clientconfig=Development -serverconfig=Development -cook -allmaps -stage -pak -archive -build'
     # See help information in Engine/Source/Programs/AutomationTool/AutomationUtils/ProjectParams.cs
 
     # cmd = UATScriptTemplate.format(
@@ -34,7 +34,7 @@ def package(project_file, project_output_folder):
         '-archive',
         '-build'
     ]
-
+    print cmd
     # ue4util.run_ue4cmd(cmd, False)
     subprocess.call(cmd)
 
@@ -78,25 +78,38 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('project_file')
     parser.add_argument('--engine_path') # Add here just as a placeholder
+    # parser.add_argument('--clean', action='store_true')
     # args = parser.parse_args()
     args, _ = parser.parse_known_args()
 
     # Read project information
     project_file = ue4util.get_real_abspath(args.project_file)
     project_name = ue4util.get_project_name(project_file)
-    project_output_folder = os.path.join(cur_dir, 'built_project/%s' % project_name)
-    info_filename = os.path.join(project_output_folder, '%s-info.txt' % project_name)
 
     # Get plugin information
     project_folder = os.path.dirname(project_file)
     plugin_infofile = os.path.join(project_folder, 'Plugins', 'unrealcv', 'unrealcv-info.txt')
     if not os.path.isfile(plugin_infofile):
-        print 'Plugin not exist'
-        return
+        exit('Plugin not exist in the project')
     else:
         with open(plugin_infofile, 'r') as f:
             plugin_info = json.load(f)
             plugin_version = plugin_info['plugin_version']
+
+    project_version = gitutil.get_short_version(project_folder)
+    project_output_folder = os.path.join(cur_dir, 'built_project/%s/%s-%s' % (project_name, project_version, plugin_version))
+    info_filename = os.path.join(project_output_folder, '%s-info.txt' % project_name)
+
+    # if args.clean and os.path.isdir(project_output_folder):
+    #     # Use a very strict check to avoid acciently perform the delete
+    #     # --force might be dangerous, use it with care
+    #     project_output_folder = ue4util.get_real_abspath(project_output_folder)
+    #     print 'Try to delete existing compiled project %s' % project_output_folder
+    #     assert(project_name in project_output_folder)
+    #     assert('*' not in project_output_folder)
+    #     assert(project_output_folder.count('/') > 2)
+    #     assert(len(project_output_folder) > 10)
+    #     shutil.rmtree(project_output_folder)
 
     if os.path.isdir(project_output_folder):
         print 'Output directory %s exist, delete it first' % project_output_folder
@@ -105,8 +118,13 @@ def main():
         package(project_file, project_output_folder)
 
         # Save version info after build finished
+        # Save one to version folder
         save_version_info(info_filename, project_file, project_output_folder, plugin_version)
 
+        # Save one to project folder
+        project_root_folder = os.path.join(cur_dir, 'built_project/%s' % project_name)
+        root_info_filename = os.path.join(project_root_folder, '%s-info.txt' % project_name)
+        save_version_info(root_info_filename, project_file, project_output_folder, plugin_version)
 
 if __name__ == '__main__':
     main()

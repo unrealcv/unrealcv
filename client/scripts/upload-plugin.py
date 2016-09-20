@@ -30,5 +30,5 @@ if __name__ == '__main__':
     uploadutil.upload_scp(remote, [plugin_output_folder], local_root,
         password=args.password,
         key_filename=args.pkey,
-        DEBUG=True)
+        DEBUG=False)
     # uploadutil.upload_scp()
