@@ -47,12 +47,15 @@ def upload_s3(bucket_name, filename):
     # Finish the upload
     mp.complete_upload()
 
-def upload_scp(scp_conf, files, local_root):
+def upload_scp(remote, files, local_root):
     '''
     Local root will be subtracted from the abspath of files
     '''
     import os, paramiko
-    assert(scp_conf['Type'] == 'scp')
+
+    # Make sure the remote is with a correct format
+    [username, remain] = remote.split('@')
+    [host, remote_root] = remain.split(':')
 
     absfiles = ziputil.get_all_files(files, include_folder=True)
     local_root = ue4util.get_real_abspath(local_root) + '/'
@@ -61,8 +64,14 @@ def upload_scp(scp_conf, files, local_root):
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     # ssh.load_system_host_keys()
     # ssh.load_host_keys(os.path.expanduser(os.path.join('~', '.ssh', 'known_hosts')))
-    ssh.connect(scp_conf['Host'], username = scp_conf['Username'], password = scp_conf['Password'])
-    remote_root = scp_conf['RemoteRoot']
+    # ssh.connect(scp_conf['Host'], username = scp_conf['Username'], password = scp_conf['Password'])
+
+    ssh.load_system_host_keys()
+    # ssh.connect(scp_conf['Host'])
+
+    ssh.connect(host)
+    # Use private key for authentication
+    # remote_root = scp_conf['RemoteRoot']
 
     sftp = ssh.open_sftp()
 

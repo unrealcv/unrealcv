@@ -2,7 +2,7 @@
 Package ue4 plugin and release it to output location defined in ue4config.py
 '''
 import os, sys, json, pdb, argparse
-import ue4util, gitutil, shutil, uploadutil
+import ue4util, gitutil, shutil
 
 def is_valid(plugin_file):
     plugin_folder = os.path.dirname(plugin_file)
@@ -31,13 +31,6 @@ def build_plugin(plugin_file, plugin_output_folder):
     print 'Delete intermediate folder %s' % intermediate_folder
     shutil.rmtree(intermediate_folder)
 
-def upload_plugin(plugin_output_folder, upload_conf):
-    type = upload_conf['Type']
-    upload_handlers = dict(
-        scp = uploadutil.upload_scp,
-        s3 = uploadutil.upload_s3,
-    )
-    upload_handlers[type](upload_conf, [plugin_output_folder], 'built_plugin')
 
 def save_version_info(info_filename, plugin_file):
     ''' Save version info of UnrealCV plugin '''
@@ -58,7 +51,7 @@ def main():
     if not is_valid(plugin_file):
         return False
 
-    plugin_version = gitutil.get_short_version('.')
+    plugin_version = gitutil.get_short_version(cur_dir)
     plugin_output_folder = ue4util.get_real_abspath(os.path.join(cur_dir, 'built_plugin/%s' % plugin_version))
     ue4util.mkdirp(plugin_output_folder)
     info_filename = os.path.join(plugin_output_folder, 'unrealcv-info.txt')
@@ -67,10 +60,6 @@ def main():
     build_plugin(plugin_file, plugin_output_folder)
     save_version_info(info_filename, plugin_file)
 
-    # Upload built plugin to upload location
-    # upload_confs = ue4config.conf['PluginOutput']
-    # for upload_conf in upload_confs:
-    #     upload_plugin(plugin_output_folder, upload_conf)
 
 if __name__ == '__main__':
     main()
