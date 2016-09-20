@@ -22,5 +22,6 @@ if __name__ == '__main__':
     if not os.path.isdir(plugin_output_folder):
         exit('Version %s of plugin does not exist, compile first' % plugin_version)
 
+    print 'Upload plugin from %s -> %s' % (plugin_output_folder, remote)
     uploadutil.upload_scp(remote, [plugin_output_folder], 'built_plugin')
     # uploadutil.upload_scp()

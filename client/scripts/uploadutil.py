@@ -2,6 +2,7 @@ import ziputil
 import ue4util
 # Use python to upload files to server
 
+DEBUG = False
 
 def upload_s3(bucket_name, filename):
     '''
@@ -82,7 +83,9 @@ def upload_scp(remote, files, local_root):
 
         if os.path.isdir(local_filename):
             remote_dir = os.path.join(remote_root, relative_filename)
-            print 'Mkdir remote dir %s' % remote_dir
+            if DEBUG:
+                print 'Mkdir remote dir %s' % remote_dir
+
             try:
                 sftp.mkdir(remote_dir)
             except:
@@ -90,7 +93,8 @@ def upload_scp(remote, files, local_root):
             continue
         else:
             remote_filename = os.path.join(remote_root, relative_filename)
-            print '%s -> %s' % (local_filename, remote_filename)
+            if DEBUG:
+                print '%s -> %s' % (local_filename, remote_filename)
             # client.transfer(filename, remote_filename)
             sftp.put(local_filename, remote_filename)
 
