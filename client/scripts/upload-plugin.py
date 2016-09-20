@@ -26,7 +26,8 @@ if __name__ == '__main__':
 
     print 'Upload plugin from %s -> %s' % (repr(plugin_output_folder), repr(remote))
     # Use repr so that I can correctly see the difference between / and \\
-    uploadutil.upload_scp(remote, [plugin_output_folder], 'built_plugin',
+    local_root = os.path.join(cur_dir, 'built_plugin')
+    uploadutil.upload_scp(remote, [plugin_output_folder], local_root,
         password=args.password,
         key_filename=args.pkey,
         DEBUG=True)

@@ -1,4 +1,5 @@
 import ziputil, ue4util
+import pdb
 # Use python to upload files to server
 
 def upload_s3(bucket_name, filename):
@@ -83,7 +84,7 @@ def upload_scp(remote, files, local_root, password=None, key_filename=None, DEBU
 
     # client = scp.Client(host = scp_conf['host'], user = scp_conf['user'], password = scp_conf['password'])
     for local_filename in absfiles:
-        if not local_root in local_filename:
+        if local_root not in local_filename:
             exit('The local_root %s is not found is the abs filename %s' % (repr(local_root), repr(local_filename)))
         relative_filename = local_filename.replace(local_root, '')
         # print 'local filename: %s, relative filename: %s' % (local_filename, relative_filename)
