@@ -1,8 +1,5 @@
-import ziputil
-import ue4util
+import ziputil, ue4util
 # Use python to upload files to server
-
-DEBUG = False
 
 def upload_s3(bucket_name, filename):
     '''
@@ -48,7 +45,7 @@ def upload_s3(bucket_name, filename):
     # Finish the upload
     mp.complete_upload()
 
-def upload_scp(remote, files, local_root):
+def upload_scp(remote, files, local_root, DEBUG=False):
     '''
     Local root will be subtracted from the abspath of files
     '''
@@ -59,7 +56,10 @@ def upload_scp(remote, files, local_root):
     [host, remote_root] = remain.split(':')
 
     absfiles = ziputil.get_all_files(files, include_folder=True)
-    local_root = ue4util.get_real_abspath(local_root) + '/'
+    local_root = ue4util.get_real_abspath(local_root) + ue4util.get_path_sep()
+    if DEBUG:
+        print 'Local root is %s' % repr(local_root)
+        print 'Remote root is %s' % repr(remote_root)
 
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -78,13 +78,16 @@ def upload_scp(remote, files, local_root):
 
     # client = scp.Client(host = scp_conf['host'], user = scp_conf['user'], password = scp_conf['password'])
     for local_filename in absfiles:
+        if not local_root in local_filename:
+            exit('The local_root %s is not found is the abs filename %s' % (repr(local_root), repr(local_filename)))
         relative_filename = local_filename.replace(local_root, '')
         # print 'local filename: %s, relative filename: %s' % (local_filename, relative_filename)
 
         if os.path.isdir(local_filename):
-            remote_dir = os.path.join(remote_root, relative_filename)
+            # remote_dir = os.path.join(remote_root, relative_filename)
+            remote_dir = '/'.join([remote_root, relative_filename]) # Make sure we use '/' here
             if DEBUG:
-                print 'Mkdir remote dir %s' % remote_dir
+                print 'Mkdir remote dir %s' % repr(remote_dir)
 
             try:
                 sftp.mkdir(remote_dir)
@@ -92,9 +95,10 @@ def upload_scp(remote, files, local_root):
                 pass # maybe exist
             continue
         else:
-            remote_filename = os.path.join(remote_root, relative_filename)
+            # remote_filename = os.path.join(remote_root, relative_filename)
+            remote_filename = '/'.join([remote_root, relative_filename])
             if DEBUG:
-                print '%s -> %s' % (local_filename, remote_filename)
+                print '%s -> %s' % (repr(local_filename), repr(remote_filename))
             # client.transfer(filename, remote_filename)
             sftp.put(local_filename, remote_filename)
 

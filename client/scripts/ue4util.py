@@ -108,6 +108,7 @@ def get_real_abspath(filename):
 
     if sys.platform == 'cygwin':
         filename = cygwinpath_to_winpath(filename)
+    filename = filename.replace('\\', '/') # This is much more universal and easier to handle
     return filename
 
 def run_ue4cmd(cmd, debug=False):
@@ -121,3 +122,10 @@ def run_ue4cmd(cmd, debug=False):
 def mkdirp(dir_path):
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
+
+def get_path_sep():
+    # if get_platform_name() == 'Win64':
+    #     return '\\'
+    # else: # Linux, Mac, cygwin
+    #     return '/'
+    return '/'

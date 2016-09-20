@@ -22,6 +22,7 @@ if __name__ == '__main__':
     if not os.path.isdir(plugin_output_folder):
         exit('Version %s of plugin does not exist, compile first' % plugin_version)
 
-    print 'Upload plugin from %s -> %s' % (plugin_output_folder, remote)
-    uploadutil.upload_scp(remote, [plugin_output_folder], 'built_plugin')
+    print 'Upload plugin from %s -> %s' % (repr(plugin_output_folder), repr(remote))
+    # Use repr so that I can correctly see the difference between / and \\
+    uploadutil.upload_scp(remote, [plugin_output_folder], 'built_plugin', DEBUG=True)
     # uploadutil.upload_scp()
