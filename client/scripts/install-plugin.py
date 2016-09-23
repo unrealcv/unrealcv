@@ -1,5 +1,5 @@
 import argparse, shutil, os
-import ue4util
+import ue4util, gitutil
 def install_plugin(project_file, plugin_folder):
     project_folder = os.path.dirname(project_file)
     install_folder = os.path.join(project_folder, 'Plugins', 'unrealcv')
@@ -11,12 +11,21 @@ def install_plugin(project_file, plugin_folder):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('plugin_version')
+    parser.add_argument('--version')
     parser.add_argument('project_file')
     args = parser.parse_args()
+    cur_dir = os.path.dirname(os.path.abspath(__file__))
 
-    plugin_version = args.plugin_version
+    if args.version:
+        plugin_version = args.version
+    elif not gitutil.is_dirty(cur_dir):
+        plugin_version = gitutil.get_short_version(cur_dir)
+    else:
+        exit('Uncommited changes of plugin exist, can not get current version')
     project_file = ue4util.get_real_abspath(args.project_file)
 
-    plugin_folder = 'built_plugin/%s' % plugin_version
+    cur_dir = os.path.dirname(os.path.abspath(__file__))
+    plugin_folder = os.path.join(cur_dir, 'built_plugin/%s' % plugin_version)
+    if not os.path.isdir(plugin_folder):
+        exit('Can not found plugin content in %s' % plugin_folder)
     install_plugin(project_file, plugin_folder)

@@ -1,8 +1,6 @@
-from ue4config import conf
-import ziputil
-import ue4util
+import ziputil, ue4util
+import pdb
 # Use python to upload files to server
-
 
 def upload_s3(bucket_name, filename):
     '''
@@ -48,41 +46,65 @@ def upload_s3(bucket_name, filename):
     # Finish the upload
     mp.complete_upload()
 
-def upload_scp(scp_conf, files, local_root):
+def upload_scp(remote, files, local_root, password=None, key_filename=None, DEBUG=False):
     '''
     Local root will be subtracted from the abspath of files
     '''
     import os, paramiko
-    assert(scp_conf['Type'] == 'scp')
+
+    # Make sure the remote is with a correct format
+    if '@' in remote:
+        [username, remain] = remote.split('@')
+    else:
+        remain = remote
+        username = None
+
+    [host, remote_root] = remain.split(':')
 
     absfiles = ziputil.get_all_files(files, include_folder=True)
-    local_root = ue4util.get_real_abspath(local_root) + '/'
+    local_root = ue4util.get_real_abspath(local_root) + ue4util.get_path_sep()
+    if DEBUG:
+        print 'Local root is %s' % repr(local_root)
+        print 'Remote root is %s' % repr(remote_root)
 
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     # ssh.load_system_host_keys()
     # ssh.load_host_keys(os.path.expanduser(os.path.join('~', '.ssh', 'known_hosts')))
-    ssh.connect(scp_conf['Host'], username = scp_conf['Username'], password = scp_conf['Password'])
-    remote_root = scp_conf['RemoteRoot']
+    # ssh.connect(scp_conf['Host'], username = scp_conf['Username'], password = scp_conf['Password'])
+
+    ssh.load_system_host_keys()
+    # ssh.connect(scp_conf['Host'])
+
+    ssh.connect(host, username = username, password = password, key_filename = key_filename)
+    # Use private key for authentication
+    # remote_root = scp_conf['RemoteRoot']
 
     sftp = ssh.open_sftp()
 
     # client = scp.Client(host = scp_conf['host'], user = scp_conf['user'], password = scp_conf['password'])
     for local_filename in absfiles:
+        if local_root not in local_filename:
+            exit('The local_root %s is not found is the abs filename %s' % (repr(local_root), repr(local_filename)))
         relative_filename = local_filename.replace(local_root, '')
         # print 'local filename: %s, relative filename: %s' % (local_filename, relative_filename)
 
         if os.path.isdir(local_filename):
-            remote_dir = os.path.join(remote_root, relative_filename)
-            print 'Mkdir remote dir %s' % remote_dir
+            # remote_dir = os.path.join(remote_root, relative_filename)
+            remote_dir = '/'.join([remote_root, relative_filename]) # Make sure we use '/' here
+            if DEBUG:
+                print 'Mkdir remote dir %s' % repr(remote_dir)
+
             try:
                 sftp.mkdir(remote_dir)
             except:
                 pass # maybe exist
             continue
         else:
-            remote_filename = os.path.join(remote_root, relative_filename)
-            print '%s -> %s' % (local_filename, remote_filename)
+            # remote_filename = os.path.join(remote_root, relative_filename)
+            remote_filename = '/'.join([remote_root, relative_filename])
+            if DEBUG:
+                print '%s -> %s' % (repr(local_filename), repr(remote_filename))
             # client.transfer(filename, remote_filename)
             sftp.put(local_filename, remote_filename)
 

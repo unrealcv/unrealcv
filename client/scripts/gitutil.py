@@ -17,5 +17,9 @@ def get_short_version(project_folder):
     '''
     Return the short git commit version
     '''
+    if is_dirty(project_folder):
+        exit('Error: uncommited changes of this repo exist')
+
     short_version = os.popen('git -C %s rev-parse --short HEAD' % project_folder).read().strip()
+
     return short_version
