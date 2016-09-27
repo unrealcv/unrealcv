@@ -46,7 +46,6 @@ class UNREALCV_API UNetworkManager : public UObject
 
 public:
 	// TODO: Make these property effective
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int32 PortNum = PORT;
 
 	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
