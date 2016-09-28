@@ -30,6 +30,8 @@ FString GenerateSeqFilename()
 void FCameraCommandHandler::RegisterCommands()
 {
 	FDispatcherDelegate Cmd;
+	FString Help;
+	
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraViewMode);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/[str]", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
 
@@ -52,32 +54,40 @@ void FCameraCommandHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vget /camera/[uint]/screenshot", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraLocation);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/location", Cmd, "Get camera location");
+	Help = "Get camera location [x, y, z]";
+	CommandDispatcher->BindCommand("vget /camera/[uint]/location", Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraRotation);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/rotation", Cmd, "Get camera rotation");
+	Help = "Get camera rotation [pitch, yaw, roll]";
+	CommandDispatcher->BindCommand("vget /camera/[uint]/rotation", Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::SetCameraLocation);
-	CommandDispatcher->BindCommand("vset /camera/[uint]/location [float] [float] [float]", Cmd, "Set camera location");
+	Help = "Teleport camera to location [x, y, z]";
+	CommandDispatcher->BindCommand("vset /camera/[uint]/location [float] [float] [float]", Cmd, Help);
 
 	/** This is different from SetLocation (which is teleport) */
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::MoveTo);
-	CommandDispatcher->BindCommand("vset /camera/[uint]/moveto [float] [float] [float]", Cmd, "Set camera location");
+	Help = "Move camera to location [x, y, z], will be blocked by objects";
+	CommandDispatcher->BindCommand("vset /camera/[uint]/moveto [float] [float] [float]", Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::SetCameraRotation);
-	CommandDispatcher->BindCommand("vset /camera/[uint]/rotation [float] [float] [float]", Cmd, "Set camera rotation");
+	Help = "Set rotation [pitch, yaw, roll] of camera [id]";
+	CommandDispatcher->BindCommand("vset /camera/[uint]/rotation [float] [float] [float]", Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraProjMatrix);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/proj_matrix", Cmd, "Get projection matrix");
+	Help = "Get projection matrix from camera [id]";
+	CommandDispatcher->BindCommand("vget /camera/[uint]/proj_matrix", Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::SetMode);
-	CommandDispatcher->BindCommand("vset /viewmode [str]", Cmd, "Set mode"); // Better to check the correctness at compile time
+	Help = "Set ViewMode to (lit, normal, depth, object_mask)";
+	CommandDispatcher->BindCommand("vset /viewmode [str]", Cmd, Help); // Better to check the correctness at compile time
 
 	Cmd = FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::GetMode);
-	CommandDispatcher->BindCommand("vget /viewmode", Cmd, "Get mode");
+	Help = "Get current ViewMode";
+	CommandDispatcher->BindCommand("vget /viewmode", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetBuffer);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/buffer", Cmd, "Get buffer of this camera");
+	// Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetBuffer);
+	// CommandDispatcher->BindCommand("vget /camera/[uint]/buffer", Cmd, "Get buffer of this camera");
 }
 
 FExecStatus FCameraCommandHandler::GetCameraProjMatrix(const TArray<FString>& Args)
