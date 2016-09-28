@@ -6,34 +6,43 @@
 void FObjectCommandHandler::RegisterCommands()
 {
 	FDispatcherDelegate Cmd;
+	FString Help;
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjects);
-	CommandDispatcher->BindCommand(TEXT("vget /objects"), Cmd, "Get all objects in the scene");
+	Help = "Get the name of all objects";
+	CommandDispatcher->BindCommand(TEXT("vget /objects"), Cmd, Help);
 
 	// The order matters
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::CurrentObjectHandler); // Redirect to current
-	CommandDispatcher->BindCommand(TEXT("[str] /object/_/[str]"), Cmd, "Get current object");
+	// Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::CurrentObjectHandler); // Redirect to current
+	// CommandDispatcher->BindCommand(TEXT("[str] /object/_/[str]"), Cmd, "Get current object");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectColor);
-	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/color"), Cmd, "Get object color");
+	Help = "Get the labeling color of an object (used in object instance mask)";
+	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/color"), Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectColor);
-	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/color [uint] [uint] [uint]"), Cmd, "Set object color");
+	Help = "Set the labeling color of an object [r, g, b]";
+	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/color [uint] [uint] [uint]"), Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectName);
-	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/name"), Cmd, "Get object name");
+	Help = "[debug] Get the object name";
+	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/name"), Cmd, Help);
 	
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectLocation);
-	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/location"), Cmd, "Get object location [x, y, z]");
+	Help = "Get object location [x, y, z]";
+	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/location"), Cmd, Help);
 	
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectRotation);
-	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/rotation"), Cmd, "Get object rotation [pitch, raw, roll]");
+	Help = "Get object rotation [pitch, yaw, roll]";
+	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/rotation"), Cmd, Help);
 	
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectLocation);
-	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/location"), Cmd, "Set object location to [x, y, z]");
+	Help = "Set object location [x, y, z]";
+	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/location [float] [float] [float]"), Cmd, Help);
 	
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectRotation);
-	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/rotation"), Cmd, "Set object rotation to [pitch, yaw, roll]");
+	Help = "Set object rotation [pitch, yaw, roll]";
+	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/rotation [float] [float] [float]"), Cmd, Help);
 }
 
 FExecStatus FObjectCommandHandler::GetObjects(const TArray<FString>& Args)
