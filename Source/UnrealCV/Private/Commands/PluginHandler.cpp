@@ -5,20 +5,25 @@
 void FPluginCommandHandler::RegisterCommands()
 {
 	FDispatcherDelegate Cmd;
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetPort);
-	CommandDispatcher->BindCommand("vget /unrealcv/port", Cmd, "Get port from the plugin listening to");
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::SetPort);
-	CommandDispatcher->BindCommand("vset /unrealcv/port [uint]", Cmd, "Set port the plugin listening to");
+	FString Help;
+	
+	// Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetPort);
+	// CommandDispatcher->BindCommand("vget /unrealcv/port", Cmd, "Get port from the plugin listening to");
+	// 
+	// Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::SetPort);
+	// CommandDispatcher->BindCommand("vset /unrealcv/port [uint]", Cmd, "Set port the plugin listening to");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetUnrealCVStatus);
-	CommandDispatcher->BindCommand("vget /unrealcv/status", Cmd, "Get camera location");
+	Help = "Get the status of UnrealCV plugin";
+	CommandDispatcher->BindCommand("vget /unrealcv/status", Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetCommands);
-	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/help"), Cmd, "Get all available commands");
+	Help = "List all available commands and their help message";
+	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/help"), Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::Echo);
-	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/echo [str]"), Cmd, "Echo back all message");
+	Help = "[debug] Echo back all message, for debug";
+	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/echo [str]"), Cmd, Help);
 }
 
 FExecStatus FPluginCommandHandler::Echo(const TArray<FString>& Args)

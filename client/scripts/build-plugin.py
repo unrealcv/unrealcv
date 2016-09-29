@@ -44,21 +44,29 @@ def save_version_info(info_filename, plugin_file):
         json.dump(info, f, indent = 4)
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dev', help='Continue doing build without checking git status', action='store_true')
+    args = parser.parse_known_args()[0]
+    
     # Files is relative to this python script
     cur_dir = os.path.dirname(os.path.abspath(__file__))
 
     plugin_file = ue4util.get_real_abspath(os.path.join(cur_dir, '../../UnrealCV.uplugin'))
-    if not is_valid(plugin_file):
-        return False
+    if args.dev:
+        plugin_output_folder = os.path.join(cur_dir, 'tmp')
+        build_plugin(plugin_file, plugin_output_folder)
+    else:
+        if not is_valid(plugin_file):
+            return False
 
-    plugin_version = gitutil.get_short_version(cur_dir)
-    plugin_output_folder = ue4util.get_real_abspath(os.path.join(cur_dir, 'built_plugin/%s' % plugin_version))
-    ue4util.mkdirp(plugin_output_folder)
-    info_filename = os.path.join(plugin_output_folder, 'unrealcv-info.txt')
+        plugin_version = gitutil.get_short_version(cur_dir)
+        plugin_output_folder = ue4util.get_real_abspath(os.path.join(cur_dir, 'built_plugin/%s' % plugin_version))
+        ue4util.mkdirp(plugin_output_folder)
+        info_filename = os.path.join(plugin_output_folder, 'unrealcv-info.txt')
 
-    # Build plugin to disk
-    build_plugin(plugin_file, plugin_output_folder)
-    save_version_info(info_filename, plugin_file)
+        # Build plugin to disk
+        build_plugin(plugin_file, plugin_output_folder)
+        save_version_info(info_filename, plugin_file)
 
 
 if __name__ == '__main__':
