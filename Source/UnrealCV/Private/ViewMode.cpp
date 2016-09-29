@@ -23,6 +23,10 @@ void BasicSetting(FEngineShowFlags& ShowFlags)
 	ShowFlags = FEngineShowFlags(EShowFlagInitMode::ESFIM_All0);
 	ShowFlags.SetRendering(true);
 	ShowFlags.SetStaticMeshes(true);
+	ShowFlags.SetLandscape(true);
+	ShowFlags.SetInstancedFoliage(true);
+	ShowFlags.SetInstancedGrass(true);
+	ShowFlags.SetInstancedStaticMeshes(true);
 }
 
 void FViewMode::Lit(FEngineShowFlags& ShowFlags)
