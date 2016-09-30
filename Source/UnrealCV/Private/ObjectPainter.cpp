@@ -72,7 +72,7 @@ int32 GetChannelValue(uint32 Index)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Invalid channel index"));
+		UE_LOG(LogUnrealCV, Error, TEXT("Invalid channel index"));
 		check(false);
 		return -1;
 	}
@@ -274,7 +274,7 @@ bool FObjectPainter::PaintObject(AActor* Actor, const FColor& Color, bool IsColo
 		Converted &= GetDisplayValue(Color.B, NewColor.B, InvGamma);
 		if (!Converted)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Can not convert encoded color %d %d %d"), Color.R, Color.G, Color.B);
+			UE_LOG(LogUnrealCV, Error, TEXT("Can not convert encoded color %d %d %d"), Color.R, Color.G, Color.B);
 			return false;
 		}
 
@@ -348,7 +348,7 @@ bool FObjectPainter::PaintObject(AActor* Actor, const FColor& Color, bool IsColo
 				/*
 				// TODO: Need to check other LOD levels
 				// Use flood fill to paint mesh vertices
-				UE_LOG(LogTemp, Warning, TEXT("%s:%s has %d vertices"), *Actor->GetActorLabel(), *StaticMeshComponent->GetName(), NumVertices);
+				UE_LOG(LogUnrealCV, Warning, TEXT("%s:%s has %d vertices"), *Actor->GetActorLabel(), *StaticMeshComponent->GetName(), NumVertices);
 
 				if (LODModel.ColorVertexBuffer.GetNumVertices() == 0)
 				{

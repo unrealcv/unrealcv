@@ -127,7 +127,7 @@ FExecStatus FObjectCommandHandler::CurrentObjectHandler(const TArray<FString>& A
 		{
 			AActor* HitActor = HitResult.GetActor();
 
-			// UE_LOG(LogTemp, Warning, TEXT("%s"), *HitActor->GetActorLabel());
+			// UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *HitActor->GetActorLabel());
 			// Draw a bounding box of the hitted object and also output the name of it.
 			FString ActorName = HitActor->GetHumanReadableName();
 			FString Method = Args[0], Property = Args[1];

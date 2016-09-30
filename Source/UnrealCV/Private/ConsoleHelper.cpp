@@ -50,7 +50,7 @@ void FConsoleHelper::VRun(const TArray<FString>& Args)
 {
 	if (CommandDispatcher == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("CommandDispatcher not set"));
+		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set"));
 	}
 	// Provide support to alias
 	if (Args.Num() == 1)
@@ -63,7 +63,7 @@ void FConsoleHelper::VRun(const TArray<FString>& Args)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Alias can not support extra parameters"));
+		UE_LOG(LogUnrealCV, Error, TEXT("Alias can not support extra parameters"));
 	}
 }
 
@@ -71,7 +71,7 @@ void FConsoleHelper::VGet(const TArray<FString>& Args)
 {
 	if (CommandDispatcher == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("CommandDispatcher not set"));
+		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set"));
 	}
 	// TODO: Is there any way to know which command trigger this handler?
 	// Join string
@@ -86,9 +86,9 @@ void FConsoleHelper::VGet(const TArray<FString>& Args)
 	Cmd += Args[NumArgs-1]; // Maybe a more elegant implementation for joining string
 	FUE4CVServer::Get().InitGWorld();
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
-	UE_LOG(LogTemp, Warning, TEXT("vget helper function, the real command is %s"), *Cmd);
+	UE_LOG(LogUnrealCV, Warning, TEXT("vget helper function, the real command is %s"), *Cmd);
 	// In the console mode, output should be writen to the output log.
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *ExecStatus.GetMessage());
+	UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *ExecStatus.GetMessage());
 	GetConsole()->Log(ExecStatus.GetMessage());
 }
 
@@ -96,7 +96,7 @@ void FConsoleHelper::VSet(const TArray<FString>& Args)
 {
 	if (CommandDispatcher == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("CommandDispatcher not set"));
+		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set"));
 	}
 	FString Cmd = "vset ";
 	uint32 NumArgs = Args.Num();
@@ -110,7 +110,7 @@ void FConsoleHelper::VSet(const TArray<FString>& Args)
 	FUE4CVServer::Get().InitGWorld();
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
 	// Output result to the console
-	UE_LOG(LogTemp, Warning, TEXT("vset helper function, the real command is %s"), *Cmd);
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *ExecStatus.GetMessage());
+	UE_LOG(LogUnrealCV, Warning, TEXT("vset helper function, the real command is %s"), *Cmd);
+	UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *ExecStatus.GetMessage());
 	GetConsole()->Log(ExecStatus.GetMessage());
 }
