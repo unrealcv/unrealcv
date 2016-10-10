@@ -115,7 +115,7 @@ UMaterial* UGTCaptureComponent::GetMaterial(FString InModeName = TEXT(""))
 	UMaterial* Material = StaticMaterialMap->FindRef(InModeName);
 	if (Material == nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Can not recognize visualization mode %s"), *InModeName);
+		UE_LOG(LogUnrealCV, Warning, TEXT("Can not recognize visualization mode %s"), *InModeName);
 	}
 	return Material;
 }
@@ -254,7 +254,7 @@ void UGTCaptureComponent::TickComponent(float DeltaTime, enum ELevelTick TickTyp
 		USceneCaptureComponent2D* CaptureComponent = this->CaptureComponents.FindRef(Task.Mode);
 		if (CaptureComponent == nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Unrecognized capture mode %s"), *Task.Mode);
+			UE_LOG(LogUnrealCV, Warning, TEXT("Unrecognized capture mode %s"), *Task.Mode);
 		}
 		else
 		{
@@ -269,7 +269,7 @@ void UGTCaptureComponent::TickComponent(float DeltaTime, enum ELevelTick TickTyp
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Unrecognized image file extension %s"), *LowerCaseFilename);
+				UE_LOG(LogUnrealCV, Warning, TEXT("Unrecognized image file extension %s"), *LowerCaseFilename);
 			}
 		}
 		Task.AsyncRecord->bIsCompleted = true;

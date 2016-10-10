@@ -67,7 +67,7 @@ private:
 				}
 				if (Promise.GetRunningTime() > 5) // Kill pending task that takes too long
 				{
-					UE_LOG(LogTemp, Warning, TEXT("An async task failed to finish and timeout after 5 seconds"));
+					UE_LOG(LogUnrealCV, Warning, TEXT("An async task failed to finish and timeout after 5 seconds"));
 					// This is a failed task
 					FPromise FailedPromise;
 					FCallbackDelegate CompletedCallback;
@@ -122,7 +122,7 @@ bool FCommandDispatcher::FormatUri(const FString& RawUri, FString& UriRexexp)
 			}
 			if (Ch == ']')
 			{
-				UE_LOG(LogTemp, Error, TEXT("Unexpected ] in %d"), Index);
+				UE_LOG(LogUnrealCV, Error, TEXT("Unexpected ] in %d"), Index);
 				check(false);
 				return false;
 			}
@@ -134,7 +134,7 @@ bool FCommandDispatcher::FormatUri(const FString& RawUri, FString& UriRexexp)
 		{
 			if (Ch == '[')
 			{
-				UE_LOG(LogTemp, Error, TEXT("Unexpected [ in %d"), Index);
+				UE_LOG(LogUnrealCV, Error, TEXT("Unexpected [ in %d"), Index);
 				check(false);
 				return false;
 			}
@@ -149,7 +149,7 @@ bool FCommandDispatcher::FormatUri(const FString& RawUri, FString& UriRexexp)
 				}
 				else
 				{
-					UE_LOG(LogTemp, Error, TEXT("Unknown type specifier "));
+					UE_LOG(LogUnrealCV, Error, TEXT("Unknown type specifier "));
 					check(false);
 					return false;
 				}
@@ -162,7 +162,7 @@ bool FCommandDispatcher::FormatUri(const FString& RawUri, FString& UriRexexp)
 
 	if (TypeSpecifier != "")
 	{
-		UE_LOG(LogTemp, Error, TEXT("Not all [ are closed by ]"));
+		UE_LOG(LogUnrealCV, Error, TEXT("Not all [ are closed by ]"));
 		check(false);
 		return false;
 	}
@@ -179,14 +179,14 @@ bool FCommandDispatcher::BindCommand(const FString& ReadableUriTemplate, const F
 	FString UriTemplate;
 	if (!FormatUri(ReadableUriTemplate, UriTemplate))
 	{
-		UE_LOG(LogTemp, Error, TEXT("The UriTemplate %s is malformat"), *ReadableUriTemplate);
+		UE_LOG(LogUnrealCV, Error, TEXT("The UriTemplate %s is malformat"), *ReadableUriTemplate);
 		check(false);
 		return false;
 	}
 
 	if (UriMapping.Contains(UriTemplate))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("The UriTemplate %s already exist, overwrited."), *UriTemplate);
+		UE_LOG(LogUnrealCV, Warning, TEXT("The UriTemplate %s already exist, overwrited."), *UriTemplate);
 	}
 	UriMapping.Emplace(UriTemplate, Command);
 	UriDescription.Emplace(ReadableUriTemplate, Description);
@@ -198,7 +198,7 @@ bool FCommandDispatcher::Alias(const FString& InAlias, const TArray<FString>& Co
 {
 	if (AliasMapping.Contains(InAlias))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Alias %s already exist, overwrite."), *InAlias);
+		UE_LOG(LogUnrealCV, Warning, TEXT("Alias %s already exist, overwrite."), *InAlias);
 	}
 	AliasMapping.Emplace(InAlias, Commands);
 	// Alias can not support arguments

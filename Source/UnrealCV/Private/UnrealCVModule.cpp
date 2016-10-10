@@ -1,5 +1,7 @@
 #include "UnrealCVPrivate.h"
 
+DEFINE_LOG_CATEGORY(LogUnrealCV);
+
 class FUnrealCVPlugin : public IModuleInterface
 {
 	virtual void StartupModule() override;

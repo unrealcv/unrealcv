@@ -1,6 +1,5 @@
 #include "UnrealCVPrivate.h"
 #include "UE4CVGameMode.h"
-#include "UnrealCV.h"
 #include "StaticMeshResources.h"
 #include "Networking.h"
 #include <string>
@@ -66,7 +65,7 @@ void AUE4CVCharacter::OnFire()
 {
 	// Send a message to notify client an event just happened
 	FUE4CVServer::Get().SendClientMessage("clicked");
-	UE_LOG(LogTemp, Warning, TEXT("Mouse Clicked"));
+	UE_LOG(LogUnrealCV, Warning, TEXT("Mouse Clicked"));
 }
 
 
@@ -105,5 +104,5 @@ void AUE4CVPawn::OnFire()
 {
 	// Send a message to notify client an event just happened
 	FUE4CVServer::Get().SendClientMessage("clicked");
-	UE_LOG(LogTemp, Warning, TEXT("Mouse Clicked"));
+	UE_LOG(LogUnrealCV, Warning, TEXT("Mouse Clicked"));
 }

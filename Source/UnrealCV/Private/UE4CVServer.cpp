@@ -109,7 +109,7 @@ void FUE4CVServer::ProcessPendingRequest()
 		FCallbackDelegate CallbackDelegate;
 		CallbackDelegate.BindLambda([this, RequestId](FExecStatus ExecStatus)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
+			UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
 			FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), RequestId, *ExecStatus.GetMessage());
 			SendClientMessage(ReplyRawMessage);
 		});
@@ -120,7 +120,7 @@ void FUE4CVServer::ProcessPendingRequest()
 /** Message handler for server */
 void FUE4CVServer::HandleRawMessage(const FString& InRawMessage)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Request: %s"), *InRawMessage);
+	UE_LOG(LogUnrealCV, Warning, TEXT("Request: %s"), *InRawMessage);
 	// Parse Raw Message
 	FString MessageFormat = "(\\d{1,8}):(.*)";
 	FRegexPattern RegexPattern(MessageFormat);

@@ -53,7 +53,7 @@ void FPlayerViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("The BufferVisualization is not correctly configured."));
+		UE_LOG(LogUnrealCV, Warning, TEXT("The BufferVisualization is not correctly configured."));
 	}
 }
 
@@ -139,7 +139,7 @@ void FPlayerViewMode::Object()
 
 FExecStatus FPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input arguments
 {
-	UE_LOG(LogTemp, Warning, TEXT("Run SetMode %s"), *Args[0]);
+	UE_LOG(LogUnrealCV, Warning, TEXT("Run SetMode %s"), *Args[0]);
 
 	static TMap<FString, ViewModeFunc>* ViewModeHandlers;
 
@@ -173,7 +173,7 @@ FExecStatus FPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Unrecognized ViewMode %s"), *ViewMode);
+			UE_LOG(LogUnrealCV, Warning, TEXT("Unrecognized ViewMode %s"), *ViewMode);
 			bSuccess = false;
 			return FExecStatus::Error(FString::Printf(TEXT("Can not set ViewMode to %s"), *ViewMode));
 		}

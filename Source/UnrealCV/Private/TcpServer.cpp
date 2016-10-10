@@ -18,7 +18,7 @@ bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, FSoc
 	Socket->Send(Ar.GetData(), Ar.Num(), AmountSent);
 	if (AmountSent != Ar.Num())
 	{
-		UE_LOG(LogTemp, Error, TEXT("Unable to send."));
+		UE_LOG(LogUnrealCV, Error, TEXT("Unable to send."));
 		return false;
 	}
 	return true;
@@ -78,8 +78,8 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 	if (!SocketReceiveAll(Socket, HeaderBytes.GetData(), Size))
 	{
 		// false here means socket disconnected.
-		// UE_LOG(LogTemp, Error, TEXT("Unable to read header, Socket disconnected."));
-		UE_LOG(LogTemp, Warning, TEXT("Client disconnected."));
+		// UE_LOG(LogUnrealCV, Error, TEXT("Unable to read header, Socket disconnected."));
+		UE_LOG(LogUnrealCV, Warning, TEXT("Client disconnected."));
 		return false;
 	}
 
@@ -89,7 +89,7 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 
 	if (Magic != FSocketMessageHeader::DefaultMagic)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Bad network header magic"));
+		UE_LOG(LogUnrealCV, Error, TEXT("Bad network header magic"));
 		return false;
 	}
 
@@ -97,7 +97,7 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 	Reader << PayloadSize;
 	if (!PayloadSize)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Empty payload"));
+		UE_LOG(LogUnrealCV, Error, TEXT("Empty payload"));
 		return false;
 	}
 
@@ -105,7 +105,7 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 	OutPayload.Seek(PayloadOffset);
 	if (!SocketReceiveAll(Socket, OutPayload.GetData() + PayloadOffset, PayloadSize))
 	{
-		UE_LOG(LogTemp, Error, TEXT("Unable to read full payload, Socket disconnected."));
+		UE_LOG(LogUnrealCV, Error, TEXT("Unable to read full payload, Socket disconnected."));
 		return false;
 	}
 
@@ -144,7 +144,7 @@ bool UNetworkManager::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoin
 {
 	if (!this->ConnectionSocket) // Only maintain one active connection, So just reuse the TCPListener thread.
 	{
-		UE_LOG(LogTemp, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
+		UE_LOG(LogUnrealCV, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
 		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
 		ConnectionSocket = ClientSocket;
 
@@ -186,7 +186,7 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 	{
 		ConnectionSocket = ClientSocket;
 
-		UE_LOG(LogTemp, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
+		UE_LOG(LogUnrealCV, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
 		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
 		FString Confirm = FString::Printf(TEXT("connected to %s"), FApp::GetGameName());
 		this->SendMessage(Confirm); // Send a hello message
@@ -206,14 +206,14 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 			FString Message = StringFromBinaryArray(ArrayReader);
 			BroadcastReceived(Message);
 			// Fire raw message received event, use message id to connect request and response
-			UE_LOG(LogTemp, Warning, TEXT("Receive message %s"), *Message);
+			UE_LOG(LogUnrealCV, Warning, TEXT("Receive message %s"), *Message);
 		}
 		return false; // TODO: What is the meaning of return value?
 	}
 	else
 	{
 		// No response and let the client silently timeout
-		UE_LOG(LogTemp, Warning, TEXT("Only one client is allowed, can not allow new connection from %s"), *ClientEndpoint.ToString());
+		UE_LOG(LogUnrealCV, Warning, TEXT("Only one client is allowed, can not allow new connection from %s"), *ClientEndpoint.ToString());
 		return false; // Already have a connection
 	}
 }
@@ -241,7 +241,7 @@ bool UNetworkManager::Start(int32 InPortNum) // Restart the server if configurat
 
 	if (TcpListener) // Delete previous configuration first
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Stop previous server"));
+		UE_LOG(LogUnrealCV, Warning, TEXT("Stop previous server"));
 		TcpListener->Stop(); // TODO: test the robustness, will this operation successful?
 		delete TcpListener;
 	}
@@ -264,7 +264,7 @@ bool UNetworkManager::Start(int32 InPortNum) // Restart the server if configurat
 	else
 	{
 		this->bIsListening = false;
-		UE_LOG(LogTemp, Error, TEXT("Can not start listening on port %d, Port might be in use"), PortNum);
+		UE_LOG(LogUnrealCV, Error, TEXT("Can not start listening on port %d, Port might be in use"), PortNum);
 		return false;
 	}
 
@@ -275,13 +275,13 @@ bool UNetworkManager::Start(int32 InPortNum) // Restart the server if configurat
 	if (TcpListener->Init())
 	{
 		this->bIsListening = true;
-		UE_LOG(LogTemp, Warning, TEXT("Start listening on %d"), PortNum);
+		UE_LOG(LogUnrealCV, Warning, TEXT("Start listening on %d"), PortNum);
 		return true;
 	}
 	else
 	{
 		this->bIsListening = false;
-		UE_LOG(LogTemp, Error, TEXT("Can not start listening on port %d"), PortNum);
+		UE_LOG(LogUnrealCV, Error, TEXT("Can not start listening on port %d"), PortNum);
 		return false;
 	}
 }
