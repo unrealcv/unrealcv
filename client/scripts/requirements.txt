@@ -1,3 +1,4 @@
-boto
-FileChunkIO
-paramiko
+python-magic
+pyOpenSSL
+ndg-httpsclient
+pyasn1
