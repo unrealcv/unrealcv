@@ -18,9 +18,9 @@ UnrealCV adds a set of commands useful for computer vision research. What is mor
 
 
 [Contact us](/contact.html) to tell us what missing functions are useful for your project. We will consider to add it in the future release. This page is generated from UnrealCV automatically. To see the update-to-date help message.
-Use {% include script.html key="ls.py" %} to generate the table below.
+Use `client/script/ls.py` to generate the table below.
 
-<!-- how to generate a tree -->
+To see the command list for other versions, please check this [versions](https://readthedocs.org/projects/unrealcv/versions/) page.
 
 | URI                                                  | Description                                                |
 |:-----------------------------------------------------|:-----------------------------------------------------------|
