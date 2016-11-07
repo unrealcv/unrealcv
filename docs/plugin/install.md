@@ -4,9 +4,9 @@ This page briefly describes how to install UnrealCV to Unreal Engine.
 
 Install UnrealCV is just copying compiled UnrealCV binaries to the plugins folder of an UE4 project or to the UE4 engine path. UnrealCV binaries can be downloaded from the [release page](https://github.com/unrealcv/unrealcv/releases).
 
-## Install from UE4 marketplace (in progress)
+## Install from UE4 marketplace (coming)
 
-For Windows and Mac user, we are also working on pushing UnrealCV to the UE4 marketplace, so that the installation can be as simple as clicking a button.
+For Windows and Mac user, we are working on pushing UnrealCV to the UE4 marketplace, so that the installation can be as simple as clicking a button.
 
 ## Compile from source code
 
