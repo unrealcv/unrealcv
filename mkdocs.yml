@@ -1,17 +1,24 @@
 site_name: UnrealCV
 theme: readthedocs
+repo_url: https://github.com/qiuwch/unrealcv/
+edit_uri: edit/doc/docs/
+markdown_extensions:
+  - markdown.extensions.admonition
 pages:
-    - Home: index.md
-    - "Use a game binary":
-        - "Getting started": binary/getting-started.md
-        - "Release a binary": binary/new-binary.md
-    - "Use the UE4 plugin":
-        - "Installation": plugin/install.md
-        - "Usage": plugin/usage.md
-    - Development:
-        - "Environment setup": dev/setup.md
-        - "Example: add a new command": dev/example-add-new-command.md
-    - Reference:
-        - Architecture: ref/arch.md
-        - "UnrealCV commands": ref/command.md
-    - FAQ: faq.md
+  - Home: index.md
+  - "Use UnrealCV game binaries":
+    - "Getting started": binary/getting-started.md
+    - "Tutorial: Generate images": ipynb/generate.md
+    - "Tutorial: Use Faster-RCNN": binary/tutorial/faster-rcnn.md
+    - "Release a binary": binary/new-binary.md
+  - "Use UnrealCV plugin":
+    - "Installation": plugin/install.md
+    - "Usage": plugin/usage.md
+  - Development:
+    - "Dev environment setup": dev/setup.md
+    - "Tutorial: Add a new command": dev/example-add-new-command.md
+  - Reference:
+    - Architecture: ref/arch.md
+    - "UnrealCV commands": ref/command.md
+    - "Video": ref/video.md
+  - FAQ: faq.md
