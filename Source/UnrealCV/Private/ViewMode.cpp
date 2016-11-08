@@ -24,10 +24,16 @@ void BasicSetting(FEngineShowFlags& ShowFlags)
 	ShowFlags.SetRendering(true);
 	ShowFlags.SetStaticMeshes(true);
 	ShowFlags.SetLandscape(true);
+
+	ShowFlags.SetMaterials(true); // Important for the correctness of tree leaves.
+
 	ShowFlags.SetInstancedFoliage(true);
 	ShowFlags.SetInstancedGrass(true);
 	ShowFlags.SetInstancedStaticMeshes(true);
 	ShowFlags.SetSkeletalMeshes(true);
+
+	// ShowFlags = FEngineShowFlags(EShowFlagInitMode::ESFIM_Game);
+	// ApplyViewMode(EViewModeIndex::VMI_VisualizeBuffer, true, ShowFlags); // This did more than just SetVisualizeBuffer(true);
 }
 
 void FViewMode::Lit(FEngineShowFlags& ShowFlags)
