@@ -261,32 +261,8 @@ bool FObjectPainter::PaintObject(AActor* Actor, const FColor& Color, bool IsColo
 	FColor NewColor;
 	if (IsColorGammaEncoded)
 	{
-		/*
-		FSceneViewport* SceneViewport = FUE4CVServer::Get().GetPawn()->GetWorld()->GetGameViewport()->GetGameViewport();
-		float Gamma = SceneViewport->GetDisplayGamma();
-		check(Gamma != 0);
-		if (Gamma == 0) Gamma = 1;
-		float InvGamma = 1 / Gamma;
-
-		bool Converted = true;
-		Converted &= GetDisplayValue(Color.R, NewColor.R, InvGamma);
-		Converted &= GetDisplayValue(Color.G, NewColor.G, InvGamma);
-		Converted &= GetDisplayValue(Color.B, NewColor.B, InvGamma);
-		if (!Converted)
-		{
-			UE_LOG(LogUnrealCV, Error, TEXT("Can not convert encoded color %d %d %d"), Color.R, Color.G, Color.B);
-			return false;
-		}
-
-		// See UnrealEngine/Engine/Shaders/GammaCorrection.usf
-		// This is the real calculation, but due to numerical issue, we need to use table lookup
-		// NewColor.R = FMath::RoundToInt(FMath::Pow(Color.R / 255.0, Gamma) * 255.0);
-		// NewColor.G = FMath::RoundToInt(FMath::Pow(Color.G / 255.0, Gamma) * 255.0);
-		// NewColor.B = FMath::RoundToInt(FMath::Pow(Color.B / 255.0, Gamma) * 255.0);
-		*/
 		FLinearColor LinearColor = FLinearColor::FromPow22Color(Color);
 		NewColor = LinearColor.ToFColor(false);
-		// NewColor = LinearColor.ToFColor(true); // this is incorrect, not sRGB, just pow22
 	}
 	else
 	{
@@ -294,8 +270,6 @@ bool FObjectPainter::PaintObject(AActor* Actor, const FColor& Color, bool IsColo
 	}
 
 	TArray<UMeshComponent*> PaintableComponents;
-	// TInlineComponentArray<UMeshComponent*> MeshComponents;
-	// Actor->GetComponents<UMeshComponent>(MeshComponents);
 	Actor->GetComponents<UMeshComponent>(PaintableComponents);
 
 
