@@ -1,12 +1,14 @@
-The motivation of UnrealCV is making virtual worlds easier to create, use and share for computer vision researchers.
+The motivation of UnrealCV is making virtual worlds easier to **create, use and share** for computer vision researchers.
 
 If you have an Unreal Engine project, you can compile UnrealCV into your project and share with other researchers. This is different from releasing an image/video dataset. Other researchers can use UnrealCV commands to generate image/video with rich ground truth and do perform many more tasks that are not available for a static dataset.
 
 ## How to package
 
+You can use the editor menu to package a game. Many related blog posts can be found online. Or use scripts provided in UnrealCV repository.
+
 ## Submission guide
 
-Please include the following information:
+Please include the following information, and make a pull request in the model_zoo page.
 
 | Key               | Value         |
 |:------------------|:--------------|

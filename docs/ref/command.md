@@ -5,17 +5,19 @@ The function of UnrealCV is provided by a set of UnrealCV commands.
 
 Unreal Engine 4 has some built-in commands to help game development. These commands can be typed into a built-in console. Using these commands, a developer can profile the game performance and view debug information.  To invoke the built-in console of a game, type the <code>&#96;</code> key (the key above tab).
 
-<img src="/images/keyboard.png" width="100" alt="Key to invoke console">
-
-UnrealCV adds a set of commands useful for computer vision research. What is more, these UnrealCV commands can be used by an external program.
+UnrealCV adds a set of commands useful for computer vision research. What is more, these commands can be used by an external program.
 
 
 # Command cheatsheet
 
-<blockquote class='bg-warning'>
-  This command list is growing and subject to change<br>
-</blockquote>
+!!!note
+    This command list is growing and subject to change<br>
 
+!!!tip   
+    Some tips
+
+!!!danger   
+    Avoid doing this
 
 [Contact us](/contact.html) to tell us what missing functions are useful for your project. We will consider to add it in the future release. This page is generated from UnrealCV automatically. To see the update-to-date help message.
 Use `client/script/ls.py` to generate the table below.
@@ -37,3 +39,21 @@ To see the command list for other versions, please check this [versions](https:/
 | vget /viewmode                                       | Get current ViewMode                                       |
 | vget /unrealcv/status                                | Get the status of UnrealCV plugin                          |
 | vget /unrealcv/help                                  | List all available commands and their help message         |
+
+## Camera operation
+
+```Under construction```
+
+See `Source/UnrealCV/Private/Commands/CameraHandler.h`
+
+## Object interaction
+
+```Under construction```
+
+See `Source/UnrealCV/Private/Commands/ObjectHandler.h`
+
+## UnrealCV plugin options
+
+```Under construction```
+
+See `Source/UnrealCV/Private/Commands/PluginHandler.h`

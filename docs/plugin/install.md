@@ -1,4 +1,6 @@
-This page briefly describes how to install UnrealCV to Unreal Engine.
+This page briefly describes how to install UnrealCV to Unreal Engine. Make sure you read [Getting Started](/binary/getting-started.md) before using UnrealCV plugin.
+
+UnrealCV plugin can add extra functions to Unreal Engine Editor.
 
 ## Download compiled binaries
 
@@ -19,4 +21,4 @@ python client/script/build-plugin.py --engine_path [UnrealEnginePath] --dev
 The plugin binaries will be produced in `tmp` folder.
 
 
-If you want to modify UnrealCV code and add new features to it. Please refer to the page describing how to setup a dev environment [here](dev/setup.md). Setting up a dev environment takes more time but makes it much easier to debug and modify code.
+If you want to modify UnrealCV code and add new features to it. Please refer to the page describing how to setup a dev environment [here](/dev/setup.md). Setting up a dev environment takes more time but makes it much easier to debug and modify code.

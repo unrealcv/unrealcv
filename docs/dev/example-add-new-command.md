@@ -7,6 +7,18 @@ The benefit of implementing an UnrealCV command are:
 
 Here we will walk you through how to implement a command `vset /object/[id]/rotation` to enable you set the rotation of an object.
 
+```C++
+```
+
+`FExecStatus` return the exec result of this command. The result will be returned as a text string.
+
+Available variables for a command are GetWorld(); GetActor(); GetLevel();
+
+A new functions will be implemented in a CommandHandler. CommandDispatcher will use CommandHandler.
+
+Can I link these class definition to doxygen?
+Compile html and link to an external html page, is this possible? I think so.
+
 ```
 Under construction
 ```
