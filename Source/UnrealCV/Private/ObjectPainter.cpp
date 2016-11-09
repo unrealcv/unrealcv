@@ -131,13 +131,13 @@ FObjectPainter::FObjectPainter(ULevel* InLevel)
 
 FExecStatus FObjectPainter::SetActorColor(FString ObjectName, FColor Color)
 {
-	auto ObjectsMapping = GetObjectsMapping();
-	if (ObjectsMapping.Contains(ObjectName))
+	auto ObjectMap = GetObjectMap(this->Level);
+	if (ObjectMap.Contains(ObjectName))
 	{
-		AActor* Actor = ObjectsMapping[ObjectName];
+		AActor* Actor = ObjectMap[ObjectName];
 		if (PaintObject(Actor, Color))
 		{
-			ObjectsColorMapping.Emplace(ObjectName, Color);
+			ObjectColorMap.Emplace(ObjectName, Color);
 			return FExecStatus::OK();
 		}
 		else
@@ -151,11 +151,26 @@ FExecStatus FObjectPainter::SetActorColor(FString ObjectName, FColor Color)
 	}
 }
 
+/** Check whether an actor can be painted with vertex color */
+bool IsPaintable(AActor* Actor)
+{
+	TArray<UMeshComponent*> PaintableComponents;
+	Actor->GetComponents<UMeshComponent>(PaintableComponents);
+	if (PaintableComponents.Num() == 0)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
+}
+
 FExecStatus FObjectPainter::GetActorColor(FString ObjectName)
 {
-	if (ObjectsColorMapping.Contains(ObjectName))
+	if (ObjectColorMap.Contains(ObjectName))
 	{
-		FColor ObjectColor = ObjectsColorMapping[ObjectName]; // Make sure the object exist
+		FColor ObjectColor = ObjectColorMap[ObjectName]; // Make sure the object exist
 		FString Message = ObjectColor.ToString();
 		// FString Message = "%.3f %.3f %.3f %.3f";
 		return FExecStatus::OK(Message);
@@ -166,10 +181,11 @@ FExecStatus FObjectPainter::GetActorColor(FString ObjectName)
 	}
 }
 
+// This should be moved to command handler
 FExecStatus FObjectPainter::GetObjectList()
 {
 	TArray<FString> Keys;
-	GetObjectsMapping().GetKeys(Keys);
+	GetObjectMap(this->Level).GetKeys(Keys);
 	FString Message = "";
 	for (auto ObjectName : Keys)
 	{
@@ -179,72 +195,51 @@ FExecStatus FObjectPainter::GetObjectList()
 	return FExecStatus::OK(Message);
 }
 
-TMap<FString, AActor*>& FObjectPainter::GetObjectsMapping()
+TMap<FString, AActor*>& FObjectPainter::GetObjectMap(ULevel* Level)
 {
-	static TMap<FString, AActor*> ObjectsMapping;
-	if (!this->Level) return ObjectsMapping;
-	check(Level);
-	if (ObjectsMapping.Num() == 0)
+	// This list needs to be generated every the game restarted.
+	static ULevel* CurrentLevel = nullptr;
+	static TMap<FString, AActor*> ObjectMap;
+	if (!this->Level) return ObjectMap;
+	if (Level == CurrentLevel)
 	{
+		return ObjectMap;
+	}
+	else
+	{ 
+		check(Level);
+		CurrentLevel = Level;
+		ObjectMap.Empty();
 		for (AActor* Actor : Level->Actors)
 		{
-			if (Actor && Actor->IsA(AStaticMeshActor::StaticClass())) // Only StaticMeshActor is interesting
+			if (Actor && IsPaintable(Actor)) 
 			{
-				// FString ActorLabel = Actor->GetActorLabel();
 				FString ActorLabel = Actor->GetHumanReadableName();
-				ObjectsMapping.Emplace(ActorLabel, Actor);
+				ObjectMap.Emplace(ActorLabel, Actor);
 			}
 		}
+		return ObjectMap;
 	}
-	return ObjectsMapping;
 }
 
-bool FObjectPainter::PaintRandomColors()
+bool FObjectPainter::PaintColors()
 {
 	FSceneViewport* SceneViewport = GWorld->GetGameViewport()->GetGameViewport();
-	/*
-	float Gamma = SceneViewport->GetDisplayGamma();
-	check(Gamma != 0);
-	if (Gamma == 0) Gamma = 1;
-	float InvGamma = 1 / Gamma;
-	BuildDecodeColorValue(InvGamma);
-	*/
-	// Iterate over all actors
-	// ULevel* Level = GetLevel();
 
-	// Get a random color
 	check(Level);
 	uint32 ObjectIndex = 0;
-	for (auto Actor : Level->Actors)
+
+	TArray<AActor*> Actors;
+	GetObjectMap(this->Level).GenerateValueArray(Actors);
+	for (auto Actor : Actors)
 	{
-		if (Actor && Actor->IsA(AStaticMeshActor::StaticClass())) // Only StaticMeshActor is interesting
-		{
-			// FString ActorLabel = Actor->GetActorLabel();
-			FString ActorLabel = Actor->GetHumanReadableName();
-			// FColor NewColor = FColor(FMath::RandRange(0, 255), FMath::RandRange(0, 255), FMath::RandRange(0, 255), 255);
-			// FColor NewColor = FColor(1, 1, 1, 255);
-			/*
-			FColor NewColor;
-			TArray<uint8> ValidVals;
-			DecodeColorValue.GenerateKeyArray(ValidVals);
+		FString ActorLabel = Actor->GetHumanReadableName(); // GetActorLabel can not work
+		FColor NewColor = GetColorFromColorMap(ObjectIndex);
 
-			NewColor.R = ValidVals[FMath::RandRange(0, ValidVals.Num()-1)];
-			NewColor.G = ValidVals[FMath::RandRange(0, ValidVals.Num()-1)];
-			NewColor.B = ValidVals[FMath::RandRange(0, ValidVals.Num()-1)];
-			NewColor.A = 255;
-			*/
-			// FColor NewColor = FColor(128, 128, 128, 255);
-			// FColor NewColor = FColor::MakeRandomColor();
-			FColor NewColor = GetColorFromColorMap(ObjectIndex);
-
-			ObjectsColorMapping.Emplace(ActorLabel, NewColor);
-			check(PaintObject(Actor, NewColor));
-			ObjectIndex++;
-		}
+		ObjectColorMap.Emplace(ActorLabel, NewColor);
+		check(PaintObject(Actor, NewColor));
+		ObjectIndex++;
 	}
-
-	// Paint actor using floodfill.
-	// return FExecStatus::OK();
 	return true;
 }
 
@@ -289,6 +284,7 @@ bool FObjectPainter::PaintObject(AActor* Actor, const FColor& Color, bool IsColo
 					StaticMeshComponent->SetLODDataCount(PaintingMeshLODIndex + 1, StaticMeshComponent->LODData.Num());
 					InstanceMeshLODInfo = &StaticMeshComponent->LODData[PaintingMeshLODIndex];
 
+					InstanceMeshLODInfo->ReleaseOverrideVertexColorsAndBlock();
 					// Setup OverrideVertexColors
 					// if (!InstanceMeshLODInfo->OverrideVertexColors) // TODO: Check this
 					{
@@ -345,10 +341,10 @@ void FObjectPainter::SetLevel(ULevel* InLevel)
 AActor* FObjectPainter::GetObject(FString ObjectName)
 {
 	/** Return the pointer of an object, return NULL if object not found */
-	auto ObjectsMapping = GetObjectsMapping();
-	if (ObjectsMapping.Contains(ObjectName))
+	auto ObjectMap = GetObjectMap(this->Level);
+	if (ObjectMap.Contains(ObjectName))
 	{
-		return ObjectsMapping[ObjectName];
+		return ObjectMap[ObjectName];
 	}
 	else
 	{

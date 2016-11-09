@@ -27,7 +27,7 @@ void BasicSetting(FEngineShowFlags& ShowFlags)
 
 	ShowFlags.SetMaterials(true); // Important for the correctness of tree leaves.
 
-	ShowFlags.SetInstancedFoliage(true);
+	// ShowFlags.SetInstancedFoliage(true);
 	ShowFlags.SetInstancedGrass(true);
 	ShowFlags.SetInstancedStaticMeshes(true);
 	ShowFlags.SetSkeletalMeshes(true);
@@ -38,7 +38,6 @@ void BasicSetting(FEngineShowFlags& ShowFlags)
 
 void FViewMode::Lit(FEngineShowFlags& ShowFlags)
 {
-	BasicSetting(ShowFlags);
 	ShowFlags = FEngineShowFlags(EShowFlagInitMode::ESFIM_Game);
 	ApplyViewMode(VMI_Lit, true, ShowFlags);
 	ShowFlags.SetMaterials(true);
@@ -97,6 +96,7 @@ void FViewMode::VertexColor(FEngineShowFlags& ShowFlags)
 	ApplyViewMode(VMI_Lit, true, ShowFlags);
 
 	// From MeshPaintEdMode.cpp:2942
+	ShowFlags.SetInstancedFoliage(false);
 	ShowFlags.SetMaterials(false);
 	ShowFlags.SetLighting(false);
 	ShowFlags.SetBSPTriangles(true);

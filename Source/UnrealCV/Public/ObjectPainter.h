@@ -10,19 +10,17 @@ private:
 	ULevel* Level;
 	FObjectPainter(ULevel* InLevel);
 	/** The assigned color for each object */
-	TMap<FString, FColor> ObjectsColorMapping;
-
-	/** The pointer for each object */
-	TMap<FString, AActor*>& GetObjectsMapping();
+	TMap<FString, FColor> ObjectColorMap;
 
 public:
+	/** A list of paintable objects in a level */
+	TMap<FString, AActor*>& GetObjectMap(ULevel* Level);
 
 	/** Vertex paint one object with Flood-Fill */
 	bool PaintObject(AActor* Actor, const FColor& Color, bool IsColorGammaEncoded = true);
 
 	/** Paint all objects */
-	// TODO: Random color is not a good idea
-	bool PaintRandomColors();
+	bool PaintColors();
 
 	/** Set the level for this painter */
 	void SetLevel(ULevel* InLevel);

@@ -126,7 +126,7 @@ void PaintObjects()
 	APawn* Pawn = PlayerController->GetPawn();
 	check(Pawn);
 	FObjectPainter::Get().SetLevel(Pawn->GetLevel());
-	FObjectPainter::Get().PaintRandomColors();
+	FObjectPainter::Get().PaintColors();
 }
 
 void FPlayerViewMode::Object()

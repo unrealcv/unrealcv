@@ -30,6 +30,8 @@ FUE4CVServer& FUE4CVServer::Get()
 	return Singleton;
 }
 
+// TODO: GetGameWorld, GetCurrentLevel
+
 /**
  For UnrealCV server, when a game start:
  1. Start a TCPserver.
@@ -86,7 +88,7 @@ void FUE4CVServer::InitGWorld()
 		APawn* Pawn = PlayerController->GetPawn();
 		check(Pawn);
 		FObjectPainter::Get().SetLevel(Pawn->GetLevel());
-		FObjectPainter::Get().PaintRandomColors();
+		FObjectPainter::Get().PaintColors();
 
 		FCaptureManager::Get().AttachGTCaptureComponentToCamera(Pawn);
 
