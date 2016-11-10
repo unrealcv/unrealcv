@@ -36,6 +36,8 @@ void BasicSetting(FEngineShowFlags& ShowFlags)
 	// ApplyViewMode(EViewModeIndex::VMI_VisualizeBuffer, true, ShowFlags); // This did more than just SetVisualizeBuffer(true);
 }
 
+/** Deprecated */
+/*
 void FViewMode::Lit(FEngineShowFlags& ShowFlags)
 {
 	ShowFlags = FEngineShowFlags(EShowFlagInitMode::ESFIM_Game);
@@ -53,6 +55,7 @@ void FViewMode::Lit(FEngineShowFlags& ShowFlags)
 	ShowFlags.SetAntiAliasing(true);
 	ShowFlags.SetEyeAdaptation(false); // Eye adaption is a slow temporal procedure, not useful for image capture
 }
+*/
 
 void FViewMode::BufferVisualization(FEngineShowFlags& ShowFlags)
 {
@@ -116,4 +119,16 @@ void FViewMode::Unlit(FEngineShowFlags& ShowFlags)
 	ShowFlags.SetLightFunctions(false);
 	ShowFlags.SetLighting(false);
 	ShowFlags.SetAtmosphericFog(false);
+}
+
+void FViewMode::SetVisibility(FEngineShowFlags& Target, FEngineShowFlags& Source)
+{
+	Target.SetStaticMeshes(Source.StaticMeshes);
+	Target.SetLandscape(Source.Landscape);
+
+	Target.SetInstancedFoliage(Source.InstancedFoliage);
+	Target.SetInstancedGrass(Source.InstancedGrass);
+	Target.SetInstancedStaticMeshes(Source.InstancedStaticMeshes);
+
+	Target.SetSkeletalMeshes(Source.SkeletalMeshes);
 }

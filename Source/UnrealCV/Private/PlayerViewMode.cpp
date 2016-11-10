@@ -82,8 +82,12 @@ void FPlayerViewMode::BaseColor()
 void FPlayerViewMode::Lit()
 {
 	this->ClearPostProcess();
-	auto Viewport = GWorld->GetGameViewport();
-	FViewMode::Lit(Viewport->EngineShowFlags);
+	if (GameShowFlags == nullptr)
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("The lit mode is not correctly configured."));
+		return;
+	}
+	GWorld->GetGameViewport()->EngineShowFlags = *GameShowFlags;
 }
 
 void FPlayerViewMode::Unlit()
@@ -125,7 +129,7 @@ void PaintObjects()
 	check(PlayerController);
 	APawn* Pawn = PlayerController->GetPawn();
 	check(Pawn);
-	FObjectPainter::Get().SetLevel(Pawn->GetLevel());
+	FObjectPainter::Get().Reset(Pawn->GetLevel());
 	FObjectPainter::Get().PaintColors();
 }
 
@@ -187,4 +191,14 @@ FExecStatus FPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input
 FExecStatus FPlayerViewMode::GetMode(const TArray<FString>& Args) // Check input arguments
 {
 	return FExecStatus::OK(CurrentViewMode);
+}
+
+void FPlayerViewMode::SaveGameDefault(FEngineShowFlags ShowFlags)
+{
+	if (this->GameShowFlags != nullptr)
+	{
+		delete this->GameShowFlags;
+		this->GameShowFlags = nullptr;
+	}
+	GameShowFlags = new FEngineShowFlags(ShowFlags);
 }

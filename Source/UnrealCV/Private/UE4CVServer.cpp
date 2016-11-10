@@ -81,16 +81,19 @@ void FUE4CVServer::InitGWorld()
 	static UWorld *CurrentWorld = nullptr;
 	if (CurrentWorld != GWorld) 
 	{
+		check(GWorld->IsGameWorld());
 		// Invoke this everytime when the GWorld changes
 		// This will happen when the game is stopped and restart in the UE4Editor
 		APlayerController* PlayerController = GWorld->GetFirstPlayerController();
 		check(PlayerController);
 		APawn* Pawn = PlayerController->GetPawn();
 		check(Pawn);
-		FObjectPainter::Get().SetLevel(Pawn->GetLevel());
-		FObjectPainter::Get().PaintColors();
+		FObjectPainter::Get().Reset(Pawn->GetLevel());
 
 		FCaptureManager::Get().AttachGTCaptureComponentToCamera(Pawn);
+		
+		FEngineShowFlags ShowFlags = GWorld->GetGameViewport()->EngineShowFlags;
+		FPlayerViewMode::Get().SaveGameDefault(ShowFlags);
 
 		CurrentWorld = GWorld;
 	}

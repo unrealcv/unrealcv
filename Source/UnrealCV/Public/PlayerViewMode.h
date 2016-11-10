@@ -4,6 +4,7 @@
 #include "CommandDispatcher.h"
 /**
  * Define different ViewModes of the scene
+ * Provide functions for vset /viewmode
  */
 class UNREALCV_API FPlayerViewMode
 {
@@ -24,7 +25,11 @@ public:
 	FExecStatus GetMode(const TArray<FString>& Args);
 	APostProcessVolume* GetPostProcessVolume();
 	void ApplyPostProcess(FString ModeName);
+
+	/** Save the default rendering configuration of game for switching back from GT modes */
+	void SaveGameDefault(FEngineShowFlags ShowFlags);
 private:
+	FEngineShowFlags* GameShowFlags;
 	void SetCurrentBufferVisualizationMode(FString ViewMode);
 	FPlayerViewMode();
 	FString CurrentViewMode;
