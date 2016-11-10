@@ -6,45 +6,6 @@
 
 static TMap<uint8, uint8> DecodeColorValue; // Convert Encoded Color to Display Color, for numerical issue
 
-// Do Gamma correction
-/* This is a homebrew version of convert color. Use the mapping function from Unreal Engine instead
-void BuildDecodeColorValue(float InvGamma)
-{
-	DecodeColorValue.Empty();
-	for (int32 DisplayIter = 0; DisplayIter < 256; DisplayIter++) // if use uint8, this loop will go forever
-	{
-		int32 EncodeVal = FMath::FloorToInt(FMath::Pow((float)DisplayIter / 255.0, InvGamma) * 255.0);
-		check(EncodeVal >= 0);
-		check(EncodeVal <= 255);
-		if (!DecodeColorValue.Find(EncodeVal))
-		{
-			DecodeColorValue.Emplace(EncodeVal, DisplayIter);
-		}
-	}
-	check(DecodeColorValue.Num() < 256); // Not all of them can find a correspondence due to numerical issue
-}
-
-bool GetDisplayValue(uint8 InEncodedValue, uint8& OutDisplayValue, float InvGamma)
-{
-	static float CachedInvGamma;
-	if (DecodeColorValue.Num() == 0 || CachedInvGamma != InvGamma)
-	{
-		BuildDecodeColorValue(InvGamma);
-		CachedInvGamma = InvGamma;
-	}
-
-	if (DecodeColorValue.Find(InEncodedValue))
-	{
-		OutDisplayValue = DecodeColorValue[InEncodedValue];
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-*/
-
 // Utility function to generate color map
 int32 GetChannelValue(uint32 Index)
 {
@@ -131,7 +92,6 @@ FObjectPainter::FObjectPainter(ULevel* InLevel)
 
 FExecStatus FObjectPainter::SetActorColor(FString ObjectName, FColor Color)
 {
-	auto ObjectMap = GetObjectMap(this->Level);
 	if (ObjectMap.Contains(ObjectName))
 	{
 		AActor* Actor = ObjectMap[ObjectName];
@@ -185,7 +145,7 @@ FExecStatus FObjectPainter::GetActorColor(FString ObjectName)
 FExecStatus FObjectPainter::GetObjectList()
 {
 	TArray<FString> Keys;
-	GetObjectMap(this->Level).GetKeys(Keys);
+	this->ObjectMap.GetKeys(Keys);
 	FString Message = "";
 	for (auto ObjectName : Keys)
 	{
@@ -195,31 +155,19 @@ FExecStatus FObjectPainter::GetObjectList()
 	return FExecStatus::OK(Message);
 }
 
-TMap<FString, AActor*>& FObjectPainter::GetObjectMap(ULevel* Level)
+TMap<FString, AActor*>& FObjectPainter::GetObjectMap()
 {
-	// This list needs to be generated every the game restarted.
-	static ULevel* CurrentLevel = nullptr;
-	static TMap<FString, AActor*> ObjectMap;
-	if (!this->Level) return ObjectMap;
-	if (Level == CurrentLevel)
+	// This list needs to be generated everytime the game restarted.
+	check(Level);
+	for (AActor* Actor : Level->Actors)
 	{
-		return ObjectMap;
-	}
-	else
-	{ 
-		check(Level);
-		CurrentLevel = Level;
-		ObjectMap.Empty();
-		for (AActor* Actor : Level->Actors)
+		if (Actor && IsPaintable(Actor)) 
 		{
-			if (Actor && IsPaintable(Actor)) 
-			{
-				FString ActorLabel = Actor->GetHumanReadableName();
-				ObjectMap.Emplace(ActorLabel, Actor);
-			}
+			FString ActorLabel = Actor->GetHumanReadableName();
+			ObjectMap.Emplace(ActorLabel, Actor);
 		}
-		return ObjectMap;
 	}
+	return ObjectMap;
 }
 
 bool FObjectPainter::PaintColors()
@@ -230,7 +178,7 @@ bool FObjectPainter::PaintColors()
 	uint32 ObjectIndex = 0;
 
 	TArray<AActor*> Actors;
-	GetObjectMap(this->Level).GenerateValueArray(Actors);
+	ObjectMap.GenerateValueArray(Actors);
 	for (auto Actor : Actors)
 	{
 		FString ActorLabel = Actor->GetHumanReadableName(); // GetActorLabel can not work
@@ -333,15 +281,9 @@ bool FObjectPainter::PaintObject(AActor* Actor, const FColor& Color, bool IsColo
 	return true;
 }
 
-void FObjectPainter::SetLevel(ULevel* InLevel)
-{
-	Level = InLevel;
-}
-
 AActor* FObjectPainter::GetObject(FString ObjectName)
 {
 	/** Return the pointer of an object, return NULL if object not found */
-	auto ObjectMap = GetObjectMap(this->Level);
 	if (ObjectMap.Contains(ObjectName))
 	{
 		return ObjectMap[ObjectName];
@@ -350,4 +292,12 @@ AActor* FObjectPainter::GetObject(FString ObjectName)
 	{
 		return NULL;
 	}
+}
+
+void FObjectPainter::Reset(ULevel* InLevel)
+{
+	this->Level = InLevel;
+	this->ObjectColorMap.Empty();
+	this->ObjectMap.Empty();
+	this->GetObjectMap();
 }
