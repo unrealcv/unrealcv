@@ -57,12 +57,14 @@ void GetColors(int32 MaxVal, bool Fix1, bool Fix2, bool Fix3, TArray<FColor>& Co
 	}
 }
 
+// TODO: support more than 1000 objects
 FColor GetColorFromColorMap(int32 ObjectIndex)
 {
 	static TArray<FColor> ColorMap;
+	int MaxPerChannel = 15;
 	if (ColorMap.Num() == 0)
 	{
-		for (int32 MaxChannelIndex = 0; MaxChannelIndex < 10; MaxChannelIndex++) // Get color map for 1000 objects
+		for (int32 MaxChannelIndex = 0; MaxChannelIndex < MaxPerChannel; MaxChannelIndex++) // Get color map for 1000 = 10^3 objects
 		{
 			// GetColors(MaxChannelIndex, false, false, false, ColorMap);
 			GetColors(MaxChannelIndex, false, false, true , ColorMap);
@@ -74,8 +76,8 @@ FColor GetColorFromColorMap(int32 ObjectIndex)
 			GetColors(MaxChannelIndex, true , true , true , ColorMap);
 		}
 	}
-	check(ColorMap.Num() == 1000);
-	check(ObjectIndex >= 0 && ObjectIndex <= 1000);
+	check(ColorMap.Num() == pow(MaxPerChannel, 3));
+	// check(ObjectIndex >= 0 && ObjectIndex <= 1000);
 	return ColorMap[ObjectIndex];
 }
 
@@ -128,6 +130,11 @@ bool IsPaintable(AActor* Actor)
 
 FExecStatus FObjectPainter::GetActorColor(FString ObjectName)
 {
+	// Make sure the object color map is initialized
+	if (ObjectColorMap.Num() == 0)
+	{
+		
+	}
 	if (ObjectColorMap.Contains(ObjectName))
 	{
 		FColor ObjectColor = ObjectColorMap[ObjectName]; // Make sure the object exist
@@ -159,12 +166,17 @@ TMap<FString, AActor*>& FObjectPainter::GetObjectMap()
 {
 	// This list needs to be generated everytime the game restarted.
 	check(Level);
+	uint32 ObjectIndex = 0;
+
 	for (AActor* Actor : Level->Actors)
 	{
 		if (Actor && IsPaintable(Actor)) 
 		{
 			FString ActorLabel = Actor->GetHumanReadableName();
 			ObjectMap.Emplace(ActorLabel, Actor);
+			FColor NewColor = GetColorFromColorMap(ObjectIndex);
+			ObjectColorMap.Emplace(ActorLabel, NewColor);
+			ObjectIndex++;
 		}
 	}
 	return ObjectMap;
@@ -172,11 +184,10 @@ TMap<FString, AActor*>& FObjectPainter::GetObjectMap()
 
 bool FObjectPainter::PaintColors()
 {
-	FSceneViewport* SceneViewport = GWorld->GetGameViewport()->GetGameViewport();
-
 	check(Level);
-	uint32 ObjectIndex = 0;
-
+	// FSceneViewport* SceneViewport = GWorld->GetGameViewport()->GetGameViewport();
+	// uint32 ObjectIndex = 0;
+	/*
 	TArray<AActor*> Actors;
 	ObjectMap.GenerateValueArray(Actors);
 	for (auto Actor : Actors)
@@ -187,6 +198,14 @@ bool FObjectPainter::PaintColors()
 		ObjectColorMap.Emplace(ActorLabel, NewColor);
 		check(PaintObject(Actor, NewColor));
 		ObjectIndex++;
+	}
+	*/
+	for (auto& Elem : ObjectColorMap)
+	{
+		FString ActorLabel = Elem.Key;
+		FColor NewColor = Elem.Value;
+		AActor* Actor = ObjectMap[ActorLabel];
+		check(PaintObject(Actor, NewColor));
 	}
 	return true;
 }
