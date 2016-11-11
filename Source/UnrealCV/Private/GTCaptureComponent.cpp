@@ -93,6 +93,9 @@ UMaterial* UGTCaptureComponent::GetMaterial(FString InModeName = TEXT(""))
 		MaterialPathMap->Add(TEXT("debug"), TEXT("Material'/UnrealCV/debug.debug'"));
 		// MaterialPathMap->Add(TEXT("object_mask"), TEXT("Material'/UnrealCV/VertexColorMaterial.VertexColorMaterial'"));
 		MaterialPathMap->Add(TEXT("normal"), TEXT("Material'/UnrealCV/WorldNormal.WorldNormal'"));
+
+		FString OpaqueMaterialName = "Material'/Game/OpaqueMaterial.OpaqueMaterial'";
+		MaterialPathMap->Add(TEXT("opaque"), OpaqueMaterialName);
 	}
 
 	static TMap<FString, UMaterial*>* StaticMaterialMap = nullptr;
