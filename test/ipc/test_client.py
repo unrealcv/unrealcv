@@ -1,5 +1,5 @@
 import unittest, threading, random, logging
-from common_conf import *
+# from common_conf import *
 import unrealcv
 from checker import *
 from dev_server import EchoServer, MessageServer, NullServer

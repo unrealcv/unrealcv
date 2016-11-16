@@ -1,5 +1,5 @@
 import unittest, logging, argparse, random, socket, time
-from common_conf import *
+# from common_conf import *
 import unrealcv
 _L = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ class TestUE4CVServer(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         print cls.port
-        cls.test_cmd = 'vset /mode/depth'
+        cls.test_cmd = 'vset /viewmode depth'
         unrealcv.client = unrealcv.Client(('localhost', cls.port))
         unrealcv.client.connect()
         if not unrealcv.client.isconnected():

@@ -2,7 +2,7 @@ import SocketServer, threading, logging
 # import MySocketServer as SocketServer
 SocketServer.ThreadingMixIn.daemon_threads = True
 SocketServer.TCPServer.allow_reuse_address = True
-from common_conf import *
+# from common_conf import *
 import unrealcv
 
 _L = logging.getLogger(__name__)
