@@ -78,6 +78,9 @@ public:
 	void RegisterCommandHandlers();
 
 	void InitGWorld();
+
+	/** Return the GameWorld of the editor or the game */
+	UWorld* GetGameWorld();
 private:
 	TArray<FCommandHandler*> CommandHandlers;
 
