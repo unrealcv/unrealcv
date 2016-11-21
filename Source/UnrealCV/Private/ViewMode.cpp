@@ -23,14 +23,15 @@ void BasicSetting(FEngineShowFlags& ShowFlags)
 	ShowFlags = FEngineShowFlags(EShowFlagInitMode::ESFIM_All0);
 	ShowFlags.SetRendering(true);
 	ShowFlags.SetStaticMeshes(true);
-	ShowFlags.SetLandscape(true);
 
 	ShowFlags.SetMaterials(true); // Important for the correctness of tree leaves.
 
+	// These options are ruled by the function SetVisibility.
+	// ShowFlags.SetLandscape(true);
 	// ShowFlags.SetInstancedFoliage(true);
-	ShowFlags.SetInstancedGrass(true);
-	ShowFlags.SetInstancedStaticMeshes(true);
-	ShowFlags.SetSkeletalMeshes(true);
+	// ShowFlags.SetInstancedGrass(true);
+	// ShowFlags.SetInstancedStaticMeshes(true);
+	// ShowFlags.SetSkeletalMeshes(true);
 
 	// ShowFlags = FEngineShowFlags(EShowFlagInitMode::ESFIM_Game);
 	// ApplyViewMode(EViewModeIndex::VMI_VisualizeBuffer, true, ShowFlags); // This did more than just SetVisualizeBuffer(true);
@@ -77,6 +78,7 @@ void FViewMode::BufferVisualization(FEngineShowFlags& ShowFlags)
 /** ViewMode showing post process */
 void FViewMode::PostProcess(FEngineShowFlags& ShowFlags)
 {
+	FEngineShowFlags PreviousShowFlags(ShowFlags); // Store previous ShowFlags
 	BasicSetting(ShowFlags);
 	// These are minimal setting
 	ShowFlags.SetPostProcessing(true);
@@ -84,6 +86,7 @@ void FViewMode::PostProcess(FEngineShowFlags& ShowFlags)
 	// ShowFlags.SetVertexColors(true); // This option will change object material to vertex color material, which don't produce surface normal
 
 	GVertexColorViewMode = EVertexColorViewMode::Color;
+	SetVisibility(ShowFlags, PreviousShowFlags); // Store the visibility of the scene, such as folliage and landscape.
 }
 
 void FViewMode::Wireframe(FEngineShowFlags& ShowFlags)
@@ -96,10 +99,10 @@ void FViewMode::Wireframe(FEngineShowFlags& ShowFlags)
 
 void FViewMode::VertexColor(FEngineShowFlags& ShowFlags)
 {
+	FEngineShowFlags PreviousShowFlags(ShowFlags); // Store previous ShowFlags
 	ApplyViewMode(VMI_Lit, true, ShowFlags);
 
 	// From MeshPaintEdMode.cpp:2942
-	ShowFlags.SetInstancedFoliage(false);
 	ShowFlags.SetMaterials(false);
 	ShowFlags.SetLighting(false);
 	ShowFlags.SetBSPTriangles(true);
@@ -109,6 +112,7 @@ void FViewMode::VertexColor(FEngineShowFlags& ShowFlags)
 	ShowFlags.SetTonemapper(false); // This won't take effect here
 
 	GVertexColorViewMode = EVertexColorViewMode::Color;
+	SetVisibility(ShowFlags, PreviousShowFlags); // Store the visibility of the scene, such as folliage and landscape.
 }
 
 void FViewMode::Unlit(FEngineShowFlags& ShowFlags)
