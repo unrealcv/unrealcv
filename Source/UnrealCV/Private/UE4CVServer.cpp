@@ -8,6 +8,7 @@
 #include "ObjectHandler.h"
 #include "PluginHandler.h"
 #include "ActionHandler.h"
+#include "AliasHandler.h"
 
 /** Only available during game play */
 APawn* FUE4CVServer::GetPawn()
@@ -52,6 +53,7 @@ void FUE4CVServer::RegisterCommandHandlers()
 	CommandHandlers.Add(new FCameraCommandHandler(CommandDispatcher));
 	CommandHandlers.Add(new FPluginCommandHandler(CommandDispatcher));
 	CommandHandlers.Add(new FActionCommandHandler(CommandDispatcher));
+	CommandHandlers.Add(new FAliasCommandHandler(CommandDispatcher));
 	for (FCommandHandler* Handler : CommandHandlers)
 	{
 		Handler->RegisterCommands();
