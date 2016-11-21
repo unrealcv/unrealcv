@@ -14,13 +14,14 @@ APawn* FUE4CVServer::GetPawn()
 {
 	static APawn* Pawn = nullptr;
 	static UWorld* CurrentWorld = nullptr;
-	if (Pawn == nullptr || CurrentWorld != GWorld)
+	UWorld* World = GetGameWorld();
+	if (Pawn == nullptr || CurrentWorld != World)
 	{
-		APlayerController* PlayerController = GWorld->GetFirstPlayerController();
+		APlayerController* PlayerController = World->GetFirstPlayerController();
 		check(PlayerController);
 		Pawn = PlayerController->GetPawn();
 		check(Pawn);
-		CurrentWorld = GWorld;
+		CurrentWorld = World;
 	}
 	return Pawn;
 }
@@ -94,22 +95,21 @@ UWorld* FUE4CVServer::GetGameWorld()
 	check(false);
 	return World;
 }
-	
+
 
 /**
  * Make sure the UE4CVServer is correctly configured.
  */
 void FUE4CVServer::InitGWorld()
 {
+	UWorld *World = GetGameWorld();
 	// Use this to replace BeginPlay()
 	static UWorld *CurrentWorld = nullptr;
-	if (CurrentWorld != GWorld) 
+	if (CurrentWorld != World)
 	{
-		UWorld* World = GetGameWorld();
-
 		// Invoke this everytime when the GWorld changes
 		// This will happen when the game is stopped and restart in the UE4Editor
-		// APlayerController* PlayerController = GWorld->GetFirstPlayerController();
+		// APlayerController* PlayerController = World->GetFirstPlayerController();
 		APlayerController* PlayerController = World->GetFirstPlayerController();
 		check(PlayerController);
 		APawn* Pawn = PlayerController->GetPawn();
@@ -119,7 +119,7 @@ void FUE4CVServer::InitGWorld()
 
 		FCaptureManager::Get().AttachGTCaptureComponentToCamera(Pawn);
 
-		CurrentWorld = GWorld;
+		CurrentWorld = World;
 	}
 }
 
