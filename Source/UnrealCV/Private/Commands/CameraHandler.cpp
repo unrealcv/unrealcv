@@ -317,8 +317,8 @@ FExecStatus FCameraCommandHandler::GetScreenshot(const TArray<FString>& Args)
 			Filename = Args[1];
 		}
 
-		FString FullFilename = GetDiskFilename(Filename);
-		return FScreenCapture::GetCameraViewAsyncQuery(FullFilename);
+		// FString FullFilename = GetDiskFilename(Filename);
+		return FScreenCapture::GetCameraViewAsyncQuery(Filename);
 	}
 	return FExecStatus::InvalidArgument;
 }
