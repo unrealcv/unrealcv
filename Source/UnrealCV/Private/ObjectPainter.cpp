@@ -185,21 +185,6 @@ TMap<FString, AActor*>& FObjectPainter::GetObjectMap()
 bool FObjectPainter::PaintColors()
 {
 	check(Level);
-	// FSceneViewport* SceneViewport = GWorld->GetGameViewport()->GetGameViewport();
-	// uint32 ObjectIndex = 0;
-	/*
-	TArray<AActor*> Actors;
-	ObjectMap.GenerateValueArray(Actors);
-	for (auto Actor : Actors)
-	{
-		FString ActorLabel = Actor->GetHumanReadableName(); // GetActorLabel can not work
-		FColor NewColor = GetColorFromColorMap(ObjectIndex);
-
-		ObjectColorMap.Emplace(ActorLabel, NewColor);
-		check(PaintObject(Actor, NewColor));
-		ObjectIndex++;
-	}
-	*/
 	for (auto& Elem : ObjectColorMap)
 	{
 		FString ActorLabel = Elem.Key;
