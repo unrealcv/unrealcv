@@ -1,4 +1,4 @@
-The development of unrealcv is supported by a set of test to ensure the correctness. To run the test for each components, `cd` to this folder and run `py.test -x 1`.
+The development of unrealcv is supported by a set of test to ensure the correctness. To run the test for each components, `cd` to this folder and run `py.test -x`, the `-x` parameter will stop when encounter the first error. Use `py.test -v` if you prefer a verbose output.
 
 1. `client`
 
@@ -11,3 +11,5 @@ Test the connection between the client and the plugin. Test the data exchange, t
 3. `command`
 
 Test the correctness of unrealcv commands. If you implemented a new command, add a test to here. Organize by the hierarchical structure of the unrealcv commands.
+
+Make sure files have been cleared before running the test.
