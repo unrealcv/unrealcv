@@ -1,3 +1,7 @@
+'''
+A python server to mimic the behavior of unrealcv server
+Useful for development
+'''
 import SocketServer, threading, logging
 # import MySocketServer as SocketServer
 SocketServer.ThreadingMixIn.daemon_threads = True
@@ -135,3 +139,15 @@ class NullServer(ThreadedServer):
     def __init__(self, endpoint):
         self.endpoint = endpoint
         self.server = SocketServer.ThreadingTCPServer(self.endpoint, NULLTCPHandler)
+
+
+if __name__ == '__main__':
+    import logging
+    L = logging.getLogger('unrealcv')
+    L.setLevel(logging.DEBUG)
+
+    logging.basicConfig()
+    server = MessageServer(('localhost', 9000))
+    server.start()
+    while(1):
+        pass

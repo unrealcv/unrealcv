@@ -1,3 +1,6 @@
+'''
+Test the correctness of the dev server, which duplicates the functions of unrealcv server
+'''
 import threading, time, socket, unittest, logging, SocketServer
 # from common_conf import *
 from dev_server import MessageServer, MessageTCPHandler
