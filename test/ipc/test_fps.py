@@ -1,4 +1,6 @@
 import unittest, time, random
+
+import sys; sys.path.append('..')
 from testcfg import client
 
 class FPSCounter:
@@ -22,7 +24,8 @@ class FPSTestCase(unittest.TestCase):
         loc = client.request('vget /camera/0/location').split(' ')
         rot = client.request('vget /camera/0/rotation').split(' ')
 
-        n_iter = 1000000
+        n_iter = 100
+        print 'Run command for %d iteration, will take some time' % n_iter
         for i in range(n_iter):
             counter.tick(i)
             jitter = [random.random() * 10 for _ in range(3)]
@@ -33,7 +36,7 @@ class FPSTestCase(unittest.TestCase):
             res = client.request('vset /camera/0/rotation %s' % ' '.join(rot))
             res = client.request('vget /camera/0/lit')
 
-test_suite = unittest.TestLoader().loadTestsFromTestCase(FPSTestCase)
+# test_suite = unittest.TestLoader().loadTestsFromTestCase(FPSTestCase)
 if __name__ == '__main__':
     # unittest.main()
 
