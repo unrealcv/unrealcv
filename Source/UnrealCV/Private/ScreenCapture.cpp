@@ -140,7 +140,8 @@ FExecStatus GetCameraViewSync(const FString& FullFilename)
 	// This can only work within editor
 	// Reimplement a GameViewportClient is required according to the discussion from here
 	// https://forums.unrealengine.com/showthread.php?50857-FViewPort-ReadPixels-crash-while-play-on-quot-standalone-Game-quot-mode
-	UGameViewportClient* ViewportClient = GWorld->GetGameViewport();
+	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	UGameViewportClient* ViewportClient = World->GetGameViewport();
 	if (DoCaptureScreen(ViewportClient, FullFilename))
 	{
 		return FExecStatus::OK(FullFilename);

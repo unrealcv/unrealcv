@@ -44,26 +44,40 @@ bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
 		// RecvStatus == BytesRead >= 0
 		check(NumRead <= ExpectedSize);
 
-		if (NumRead == 0) // 0 means gracefully closed
+		ESocketErrors LastError = ISocketSubsystem::Get()->GetLastErrorCode();
+		// Use this check instead of use return status of recv to ensure backward compatibility
+		// Because there is a bug with 4.12 FSocketBSD implementation
+		// https://www.unrealengine.com/blog/unreal-engine-4-13-released, Search FSocketBSD::Recv
+		if (NumRead == 0 && LastError == ESocketErrors::SE_NO_ERROR) // 0 means gracefully closed
 		{
+			UE_LOG(LogUnrealCV, Log, TEXT("The connection is gracefully closed by the client."));
 			return false; // Socket is disconnected. if -1, keep waiting for data
 		}
 
-		if (NumRead == -1)
-		// -1 means error happen, but not sure what the error is, in windows WSAGetLastError can get the real error
+		if (NumRead == 0 && LastError == ESocketErrors::SE_EWOULDBLOCK)
 		{
-			ESocketErrors LastError = ISocketSubsystem::Get()->GetLastErrorCode();
-			if (LastError == ESocketErrors::SE_EWOULDBLOCK)
-			{
-				continue; // No data received
-			}
-			else // SE_ECONNABORTED
-			{
-				return false;
-			}
+			continue; // No data and keep waiting
 		}
-		Offset += NumRead;
-		ExpectedSize -= NumRead;
+
+		if (LastError == ESocketErrors::SE_NO_ERROR || LastError == ESocketErrors::SE_EWOULDBLOCK)
+		{
+			// Got some data and in an expected condition
+			Offset += NumRead;
+			ExpectedSize -= NumRead;
+			continue;
+		}
+		//else if (LastError == ESocketErrors::SE_EWOULDBLOCK)
+		//{
+		//	UE_LOG(LogUnrealCV, Log, TEXT("Running a non-block socket."));
+		//	continue; // No data received
+		//}
+		if (LastError == ESocketErrors::SE_ECONNABORTED) // SE_ECONNABORTED
+		{
+			UE_LOG(LogUnrealCV, Error, TEXT("Connection aborted unexpectly."));
+			return false;
+		}
+
+		check(false); // Unexpected error happened
 	}
 	return true;
 }
@@ -79,7 +93,7 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 	{
 		// false here means socket disconnected.
 		// UE_LOG(LogUnrealCV, Error, TEXT("Unable to read header, Socket disconnected."));
-		UE_LOG(LogUnrealCV, Warning, TEXT("Client disconnected."));
+		UE_LOG(LogUnrealCV, Log, TEXT("Client disconnected."));
 		return false;
 	}
 
@@ -189,7 +203,11 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 		UE_LOG(LogUnrealCV, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
 		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
 		FString Confirm = FString::Printf(TEXT("connected to %s"), FApp::GetGameName());
-		this->SendMessage(Confirm); // Send a hello message
+		bool IsSent = this->SendMessage(Confirm); // Send a hello message
+		if (!IsSent)
+		{
+			UE_LOG(LogUnrealCV, Error, TEXT("Failed to send welcome message to client."));
+		}
 
 		// TODO: Start a new thread
 		while (this->ConnectionSocket) // Listening thread, while the client is still connected

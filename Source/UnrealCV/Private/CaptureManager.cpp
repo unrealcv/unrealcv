@@ -15,9 +15,9 @@ void FCaptureManager::AttachGTCaptureComponentToCamera(APawn* Pawn)
 	SupportedModes.Add(TEXT("depth"));
 	SupportedModes.Add(TEXT("debug"));
 	SupportedModes.Add(TEXT("object_mask"));
-	SupportedModes.Add(TEXT("normal")); 
+	SupportedModes.Add(TEXT("normal"));
 	SupportedModes.Add(TEXT("wireframe"));
-	SupportedModes.Add(TEXT("default")); 
+	SupportedModes.Add(TEXT("default"));
 	// TODO: Get the list from GTCaptureComponent
 
 	CaptureComponentList.Empty();
@@ -28,21 +28,6 @@ void FCaptureManager::AttachGTCaptureComponentToCamera(APawn* Pawn)
 	UGTCaptureComponent* RightEye = UGTCaptureComponent::Create(Pawn, SupportedModes);
 	RightEye->AddLocalOffset(FVector(0, 40, 0)); // TODO: make this configurable
 	CaptureComponentList.Add(RightEye);
-}
-
-APawn* GetFirstPawn()
-{
-	static UWorld* CurrentWorld = nullptr;
-	static APawn* Pawn = nullptr;
-	if (Pawn == nullptr || CurrentWorld != GWorld)
-	{
-		APlayerController* PlayerController = GWorld->GetFirstPlayerController();
-		check(PlayerController);
-		Pawn = PlayerController->GetPawn();
-		check(Pawn);
-		CurrentWorld = GWorld;
-	}
-	return Pawn;
 }
 
 UGTCaptureComponent* FCaptureManager::GetCamera(int32 CameraId)
