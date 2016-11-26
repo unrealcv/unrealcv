@@ -5,6 +5,7 @@
 #include "CommandHandler.h"
 #include "CommandDispatcher.h"
 #include "TcpServer.h"
+#include "Tickable.h"
 
 class FAsyncRecord
 {
