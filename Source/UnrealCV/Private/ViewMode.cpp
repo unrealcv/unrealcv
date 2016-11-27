@@ -27,6 +27,7 @@ void BasicSetting(FEngineShowFlags& ShowFlags)
 	ShowFlags.SetInstancedFoliage(true);
 	ShowFlags.SetInstancedGrass(true);
 	ShowFlags.SetInstancedStaticMeshes(true);
+	ShowFlags.SetSkeletalMeshes(true);
 }
 
 void FViewMode::Lit(FEngineShowFlags& ShowFlags)

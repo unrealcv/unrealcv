@@ -12,6 +12,7 @@ DECLARE_CYCLE_STAT(TEXT("GetResource"), STAT_GetResource, STATGROUP_UnrealCV);
 
 void InitCaptureComponent(USceneCaptureComponent2D* CaptureComponent)
 {
+	UWorld* World = FUE4CVServer::Get().GetGameWorld();
 	// Can not use ESceneCaptureSource::SCS_SceneColorHDR, this option will disable post-processing
 	CaptureComponent->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 
@@ -19,11 +20,11 @@ void InitCaptureComponent(USceneCaptureComponent2D* CaptureComponent)
 	CaptureComponent->TextureTarget->InitAutoFormat(640, 480); // TODO: Update this later
 
 	/*
-	UGameViewportClient* GameViewportClient = GWorld->GetGameViewport();
+	UGameViewportClient* GameViewportClient = World->GetGameViewport();
 	CaptureComponent->TextureTarget->InitAutoFormat(GameViewportClient->Viewport->GetSizeXY().X,  GameViewportClient->Viewport->GetSizeXY().Y); // TODO: Update this later
 	*/
 
-	CaptureComponent->RegisterComponentWithWorld(GWorld); // What happened for this?
+	CaptureComponent->RegisterComponentWithWorld(World); // What happened for this?
 	// CaptureComponent->AddToRoot(); This is not necessary since it has been attached to the Pawn.
 }
 
@@ -122,6 +123,7 @@ UMaterial* UGTCaptureComponent::GetMaterial(FString InModeName = TEXT(""))
 
 UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, TArray<FString> Modes)
 {
+	UWorld* World = FUE4CVServer::Get().GetGameWorld();
 	UGTCaptureComponent* GTCapturer = NewObject<UGTCaptureComponent>();
 
 	GTCapturer->bIsActive = true;
@@ -129,7 +131,7 @@ UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, TArray<FString> 
 	GTCapturer->Pawn = InPawn; // This GTCapturer should depend on the Pawn and be released together with the Pawn.
 	GTCapturer->AttachTo(InPawn->GetRootComponent());
 	// GTCapturer->AddToRoot();
-	GTCapturer->RegisterComponentWithWorld(GWorld);
+	GTCapturer->RegisterComponentWithWorld(World);
 
 	for (FString Mode : Modes)
 	{
@@ -196,7 +198,7 @@ UGTCaptureComponent::UGTCaptureComponent()
 FAsyncRecord* UGTCaptureComponent::Capture(FString Mode, FString InFilename)
 {
 	// Flush location and rotation
-	
+
 	check(CaptureComponents.Num() != 0);
 	USceneCaptureComponent2D* CaptureComponent = CaptureComponents.FindRef(Mode);
 	if (CaptureComponent == nullptr)
@@ -239,11 +241,11 @@ void UGTCaptureComponent::TickComponent(float DeltaTime, enum ELevelTick TickTyp
 	}
 
 	while (!PendingTasks.IsEmpty())
-	{ 
+	{
 		FGTCaptureTask Task;
 		PendingTasks.Peek(Task);
 		uint64 CurrentFrame = GFrameCounter;
-		
+
 		int32 SkipFrame = 1;
 		if (!(CurrentFrame > Task.CurrentFrame + SkipFrame)) // TODO: This is not an elegant solution, fix it later.
 		{ // Wait for the rendering thread to catch up game thread.

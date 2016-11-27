@@ -35,7 +35,7 @@ namespace UnrealBuildTool.Rules
 				}
 				);
 
-            PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "RenderCore", "Networking", "Sockets", "Slate", "ImageWrapper"});
+            PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "RenderCore", "Networking", "Sockets", "Slate", "ImageWrapper", "UnrealEd"});
             /*
 			PublicDependencyModuleNames.AddRange(
 				new string[]

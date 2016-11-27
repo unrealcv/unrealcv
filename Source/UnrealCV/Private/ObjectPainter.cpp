@@ -201,7 +201,8 @@ TMap<FString, AActor*>& FObjectPainter::GetObjectsMapping()
 
 bool FObjectPainter::PaintRandomColors()
 {
-	FSceneViewport* SceneViewport = GWorld->GetGameViewport()->GetGameViewport();
+	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	FSceneViewport* SceneViewport = World->GetGameViewport()->GetGameViewport();
 	/*
 	float Gamma = SceneViewport->GetDisplayGamma();
 	check(Gamma != 0);
