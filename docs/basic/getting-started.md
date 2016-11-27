@@ -1,12 +1,14 @@
+This page covers the basics of UnrealCV. It includes how to use [UnrealCV commands](/ref/command.md) to perform various tasks and how to use a python script to control an UnrealCV embedded game.
+
 ## Game mode or plugin mode?
-- The images for these two modes are shown below:
-- "Use game binaries" teaches how to use a compiled game binary with UnrealCV embedded
-- "Use UnrealCV Plugin" provides information about using UnrealCV editor plugin
 
-- "Development" provides information for modifying UnrealCV source code
+The images for these two modes are shown below.
 
+In the game mode, you can download a compiled binary created by the community. In this binary, you can generate images, ground truth. But it is not easy to change the scene by adding more objects.
 
-This tutorial covers the basics of UnrealCV. It includes how to use [UnrealCV commands](/ref/command.md) to perform various tasks and how to use a python script to control an UnrealCV embedded game.
+<!-- the virtual world definition from unrealcv paper  -->
+
+Install the plugin to UE4 editor, you can use the power of UE4 editor to modify the virtual world as you wish.
 
 ## 1. Download a game binary
 
@@ -15,7 +17,7 @@ This tutorial will use a game binary to demonstrate UnrealCV commands. If you ar
 A list of games can be found in [Reference: Model Zoo](/reference/model_zoo.html). For this tutorial, please download [RealisticRendering](/reference/model_zoo.html#realistic_rendering). After unzip and run the binary, you are expected to see a screen like this. The game will be started in a window mode with resolution 640x480, you can change the resolution later.
 
 <center>
-  <img alt="Startup Screenshot" src="/images/rr_init.png" width="300px"/>
+  <img alt="Startup Screenshot" src="../../images/rr_init.png" width="300px"/>
   <p>Fig.1. Initial screen of the game</p>
 </center>
 
@@ -37,7 +39,7 @@ Unreal Engine provides a built-in console to help developers to debug games. Thi
 (the key on top of tab) twice, a console will pop out, shown in Fig.2. Type in `vset /viewmode object_mask` you are expected to see the object instance mask. Use `vset /viewmode lit` to switch back to normal rendering setting.
 
 <center>
-  <img alt="console" src="/images/console.png" width="600px"/>
+  <img alt="console" src="../../images/console.png" width="600px"/>
   <p>Fig.2 Use console to try UnrealCV commands</p>
 </center>
 
