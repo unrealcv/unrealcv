@@ -4,29 +4,49 @@ UnrealCV is a project to help computer vision researchers build virtual worlds u
 1. A set of UnrealCV commands to interact with the virtual world.
 2. Communication between UE4 and an external program, such as Caffe.
 
-<center>
-<img src="images/homepage_teaser.png" alt="annotation"/>
-Images generated from the technical demo <a href="reference/model_zoo.html#realistic_rendering">RelisticRendering</a><br>
-</center>
+![teaser](images/homepage_teaser.png)
+Images generated from the technical demo [RealisticRendering](reference/model_zoo.html#realistic_rendering)
 
-UnrealCV can be used in two ways. The first is using a compiled game binary with UnrealCV embedded. This is as simple as running a game, no knowledge of Unreal Engine is required. The second is installing UnrealCV plugin to Unreal Engine 4 (UE4) and use the editor of UE4 to build a new virtual world.
-
-Before reading this documentation, please read [Getting Started](/binary/getting-started.md) to help you familiarize what UnrealCV is about. This goal of this documentation is helping you integrate UnrealCV with your research project.
+The goal of this documentation is to help you integrate UnrealCV with your research project.
 
 
-## Outline
+## Documentation Outline
+
+UnrealCV is an UE4 plugin, but it can be used in two modes and this documentation will show which mode is suitable for you and how to use it in these two modes.
+
+1. `Game` mode: use precompiled binaries provided by Unrealcv community. This is as simple as running a video game, no knowledge of Unreal Engine is required.    
+2. `Plugin` mode: use unrealcv plugin in UE4Editor. In this mode, UnrealCV is installed into UE4 as an editor plugin and can be used to build a virtual world.
+
+Unrealcv consists two parts:   
+1. `unrealcv server` which is embedded into a video game (in game mode)     
+or in the UE4 editor (in plugin mode).      
+2. `unrealcv client` use commands to control the server.
+
 This documentation is organized as follow:
 
-- "Use game binaries" teaches how to use a compiled game binary with UnrealCV embedded
+- UnrealCV basics
+    - [Getting Started](basic/getting-started.md)
+        - Download and install
+        - [Game mode or plugin mode](basic/game_or_plugin.md)
+        - UnrealCV Commands
+
+- Game Mode
+    - [Usage](game/usage.md)
+    - [Tutorial: Generate images](game/generate.md)
+    - [Tutorial: Integrate with other programs]()
+
+- Plugin Mode
+    - [Usage](plugin/usage.md)
+        - [Install](plugin/usage.md#install)
+    - [Development](plugin/dev.md)
+        - [Environment setup](dev/setup.md)
+        - [Modify UnrealCV code to add more functionalities](dev/example-add-new-command.md)
+
+- Reference
     - Model Zoo
-- "Use UnrealCV Plugin" provides information about using UnrealCV editor plugin
-    - [Installation](plugin/install.md)
-- "Development" provides information for modifying UnrealCV source code
-    - [Environment setup](dev/setup.md)
-    - [Modify UnrealCV code to add more functionalities](dev/example-add-new-command.md)
-- "Reference" is an index of resources
-    - [Architecture](ref/arch.md)
-    - [UnrealCV commands](ref/command.md)
+    - [Architecture](reference/arch.md)
+    - [Command list](reference/command.md)
+
 
 ## Contact
 

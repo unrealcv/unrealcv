@@ -3,22 +3,30 @@ theme: readthedocs
 repo_url: https://github.com/qiuwch/unrealcv/
 edit_uri: edit/doc/docs/
 markdown_extensions:
-  - markdown.extensions.admonition
+    - markdown.extensions.admonition
 pages:
-  - Home: index.md
-  - "Use UnrealCV game binaries":
-    - "Getting started": binary/getting-started.md
-    - "Tutorial: Generate images": ipynb/generate.md
-    - "Tutorial: Use Faster-RCNN": binary/tutorial/faster-rcnn.md
-    - "Release a binary": binary/new-binary.md
-  - "Use UnrealCV plugin":
-    - "Installation": plugin/install.md
-    - "Usage": plugin/usage.md
-  - Development:
-    - "Dev environment setup": dev/setup.md
-    - "Tutorial: Add a new command": dev/example-add-new-command.md
-  - Reference:
-    - Architecture: ref/arch.md
-    - "UnrealCV commands": ref/command.md
-    - "Video": ref/video.md
-  - FAQ: faq.md
+    - Home: index.md
+    - "UnrealCV basics":
+        - "Getting Started" : basic/getting-started.md
+    - "Game Mode":
+        # - "Usage": "game/usage.md"
+        - "Tutorial: Generate images": "game/generate.md"
+        - "Tutorial: Integrate": "game/faster-rcnn.md"
+  # - "Use UnrealCV game binaries":
+  #   - "Getting started": binary/getting-started.md
+  #   - "Tutorial: Generate images": ipynb/generate.md
+  #   - "Tutorial: Use Faster-RCNN": binary/tutorial/faster-rcnn.md
+  #   - "Release a binary": binary/new-binary.md
+    - "Plugin Mode":
+        - "Usage": plugin/usage.md
+        - "Tutorial: Create Virtual World": plugin/create.md
+        - "Development": plugin/dev.md
+        - "Tutorial: Add new UnrealCV commands": plugin/add-command.md
+  # - Development:
+  #   - "Dev environment setup": dev/setup.md
+  #   - "Tutorial: Add a new command": dev/example-add-new-command.md
+    - Reference:
+        - Architecture: reference/arch.md
+        - "UnrealCV commands": reference/command.md
+        # - "Video": reference/video.md
+  # - FAQ: faq.md

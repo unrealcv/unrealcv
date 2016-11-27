@@ -1,3 +1,11 @@
+## Game mode or plugin mode?
+- The images for these two modes are shown below:
+- "Use game binaries" teaches how to use a compiled game binary with UnrealCV embedded
+- "Use UnrealCV Plugin" provides information about using UnrealCV editor plugin
+
+- "Development" provides information for modifying UnrealCV source code
+
+
 This tutorial covers the basics of UnrealCV. It includes how to use [UnrealCV commands](/ref/command.md) to perform various tasks and how to use a python script to control an UnrealCV embedded game.
 
 ## 1. Download a game binary
@@ -17,11 +25,11 @@ Use mouse to look around and use keys `wasd` to navigate, use `qe` to level the 
 
 UnrealCV provides a set of commands for computer vision research. These commands are used to perform various tasks, such as control camera and get ground truth. The table below summaries commands used in this tutorial. The complete list can be found in [Reference: Command List](/reference/commands.html).
 
-| Command                             | Help                |
-| ---                                 | ---                 |
-| vset /viewmode [viewmode_name]      | Set ViewMode to (lit, normal, depth, object_mask)       |
-| vget /camera/0/lit                  | Save image to disk and return filename           |
-| vset /camera/0/location [x] [y] [z] | Set camera location |
+| Command                             | Help                                              |
+|:------------------------------------|:--------------------------------------------------|
+| vset /viewmode [viewmode_name]      | Set ViewMode to (lit, normal, depth, object_mask) |
+| vget /camera/0/lit                  | Save image to disk and return filename            |
+| vset /camera/0/location [x] [y] [z] | Set camera location                               |
 
 ### Try UnrealCV commands
 Unreal Engine provides a built-in console to help developers to debug games. This built-in console is a convenient way of trying UnrealCV commands. To open the console, press
