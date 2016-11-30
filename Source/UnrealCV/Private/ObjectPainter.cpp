@@ -4,47 +4,6 @@
 #include "UE4CVServer.h"
 #include "SceneViewport.h"
 
-static TMap<uint8, uint8> DecodeColorValue; // Convert Encoded Color to Display Color, for numerical issue
-
-// Do Gamma correction
-/* This is a homebrew version of convert color. Use the mapping function from Unreal Engine instead
-void BuildDecodeColorValue(float InvGamma)
-{
-	DecodeColorValue.Empty();
-	for (int32 DisplayIter = 0; DisplayIter < 256; DisplayIter++) // if use uint8, this loop will go forever
-	{
-		int32 EncodeVal = FMath::FloorToInt(FMath::Pow((float)DisplayIter / 255.0, InvGamma) * 255.0);
-		check(EncodeVal >= 0);
-		check(EncodeVal <= 255);
-		if (!DecodeColorValue.Find(EncodeVal))
-		{
-			DecodeColorValue.Emplace(EncodeVal, DisplayIter);
-		}
-	}
-	check(DecodeColorValue.Num() < 256); // Not all of them can find a correspondence due to numerical issue
-}
-
-bool GetDisplayValue(uint8 InEncodedValue, uint8& OutDisplayValue, float InvGamma)
-{
-	static float CachedInvGamma;
-	if (DecodeColorValue.Num() == 0 || CachedInvGamma != InvGamma)
-	{
-		BuildDecodeColorValue(InvGamma);
-		CachedInvGamma = InvGamma;
-	}
-
-	if (DecodeColorValue.Find(InEncodedValue))
-	{
-		OutDisplayValue = DecodeColorValue[InEncodedValue];
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-*/
-
 // Utility function to generate color map
 int32 GetChannelValue(uint32 Index)
 {
@@ -99,9 +58,11 @@ void GetColors(int32 MaxVal, bool Fix1, bool Fix2, bool Fix3, TArray<FColor>& Co
 FColor GetColorFromColorMap(int32 ObjectIndex)
 {
 	static TArray<FColor> ColorMap;
+	int NumPerChannel = 32;
 	if (ColorMap.Num() == 0)
 	{
-		for (int32 MaxChannelIndex = 0; MaxChannelIndex < 10; MaxChannelIndex++) // Get color map for 1000 objects
+		// 32 ^ 3
+		for (int32 MaxChannelIndex = 0; MaxChannelIndex < NumPerChannel; MaxChannelIndex++) // Get color map for 1000 objects
 		{
 			// GetColors(MaxChannelIndex, false, false, false, ColorMap);
 			GetColors(MaxChannelIndex, false, false, true , ColorMap);
@@ -114,7 +75,10 @@ FColor GetColorFromColorMap(int32 ObjectIndex)
 		}
 	}
 	check(ColorMap.Num() == 1000);
-	check(ObjectIndex >= 0 && ObjectIndex <= 1000);
+	if (ObjectIndex < 0 || ObjectIndex >= pow(NumPerChannel, 3))
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("Object index %d is out of the color map boundary [%d, %d]"), ObjectIndex, 0, pow(NumPerChannel, 3));
+	}
 	return ColorMap[ObjectIndex];
 }
 
@@ -304,12 +268,12 @@ bool FObjectPainter::PaintObject(AActor* Actor, const FColor& Color, bool IsColo
 	{
 		if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(MeshComponent))
 		{
-			if (UStaticMesh* StaticMesh = StaticMeshComponent->StaticMesh)
+			if (UStaticMesh* StaticMesh = StaticMeshComponent->GetStaticMesh())
 			{
 				uint32 PaintingMeshLODIndex = 0;
-				uint32 NumLODLevel = StaticMeshComponent->StaticMesh->RenderData->LODResources.Num();
+				uint32 NumLODLevel = StaticMeshComponent->GetStaticMesh()->RenderData->LODResources.Num();
 				check(NumLODLevel == 1);
-				FStaticMeshLODResources& LODModel = StaticMeshComponent->StaticMesh->RenderData->LODResources[PaintingMeshLODIndex];
+				FStaticMeshLODResources& LODModel = StaticMeshComponent->GetStaticMesh()->RenderData->LODResources[PaintingMeshLODIndex];
 				FStaticMeshComponentLODInfo* InstanceMeshLODInfo = NULL;
 
 				// PaintingMeshLODIndex + 1 is the minimum requirement, enlarge if not satisfied

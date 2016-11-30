@@ -29,9 +29,9 @@ void AUE4CVCharacter::Tick( float DeltaTime )
 	Super::Tick( DeltaTime );
 }
 
-void AUE4CVCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
+void AUE4CVCharacter::SetupPlayerInputComponent(class UInputComponent* InInputComponent)
 {
-	Super::SetupPlayerInputComponent(InputComponent);
+	Super::SetupPlayerInputComponent(InInputComponent);
 
 	check(InputComponent);
 
@@ -93,9 +93,9 @@ void AUE4CVPawn::Tick( float DeltaTime )
 	this->SetActorRotation(ControlRotation);
 }
 
-void AUE4CVPawn::SetupPlayerInputComponent(class UInputComponent* InputComponent)
+void AUE4CVPawn::SetupPlayerInputComponent(class UInputComponent* InInputComponent)
 {
-	Super::SetupPlayerInputComponent(InputComponent);
+	Super::SetupPlayerInputComponent(InInputComponent);
 
 	InputComponent->BindKey(FKey("LeftMouseButton"), IE_Pressed, this, &AUE4CVPawn::OnFire);
 }
