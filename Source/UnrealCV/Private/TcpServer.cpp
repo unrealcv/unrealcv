@@ -66,18 +66,16 @@ bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
 			ExpectedSize -= NumRead;
 			continue;
 		}
-		//else if (LastError == ESocketErrors::SE_EWOULDBLOCK)
-		//{
-		//	UE_LOG(LogUnrealCV, Log, TEXT("Running a non-block socket."));
-		//	continue; // No data received
-		//}
+		// LastError == ESocketErrors::SE_EWOULDBLOCK means running a non-block socket."));
 		if (LastError == ESocketErrors::SE_ECONNABORTED) // SE_ECONNABORTED
 		{
 			UE_LOG(LogUnrealCV, Error, TEXT("Connection aborted unexpectly."));
 			return false;
 		}
-
-		check(false); // Unexpected error happened
+		
+		const TCHAR* LastErrorMsg = ISocketSubsystem::Get()->GetSocketError(LastError);
+		UE_LOG(LogUnrealCV, Error, TEXT("Expected error of socket happend, error %s"), LastErrorMsg);
+		return false;
 	}
 	return true;
 }

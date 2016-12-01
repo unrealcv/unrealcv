@@ -80,29 +80,46 @@ UWorld* FUE4CVServer::GetGameWorld()
 	if (EditorEngine != nullptr)
 	{
 		World = EditorEngine->PlayWorld;
-		check(World->IsGameWorld());
-		return World;
+		if (World != nullptr && World->IsValidLowLevel() && World->IsGameWorld())
+		{
+			return World;
+		}
+		else
+		{
+			UE_LOG(LogUnrealCV, Error, TEXT("Can not get PlayWorld from EditorEngine"));
+			return nullptr;
+		}
 	}
 
 	UGameEngine* GameEngine = Cast<UGameEngine>(GEngine);
 	if (GameEngine != nullptr)
 	{
 		World = GameEngine->GetGameWorld();
-		check(World->IsGameWorld());
-		return World;
+		if (World != nullptr && World->IsValidLowLevel())
+		{
+			return World;
+		}
+		else
+		{
+			UE_LOG(LogUnrealCV, Error, TEXT("Can not get GameWorld from GameEngine"));
+			return nullptr;
+		}
 	}
 
-	check(false);
-	return World;
+	return nullptr;
 }
 
 
 /**
  * Make sure the UE4CVServer is correctly configured.
  */
-void FUE4CVServer::InitGWorld()
+bool FUE4CVServer::InitWorld()
 {
 	UWorld *World = GetGameWorld();
+	if (World == nullptr)
+	{
+		return false;
+	}
 	// Use this to replace BeginPlay()
 	static UWorld *CurrentWorld = nullptr;
 	if (CurrentWorld != World)
@@ -121,6 +138,7 @@ void FUE4CVServer::InitGWorld()
 
 		CurrentWorld = World;
 	}
+	return true;
 }
 
 // Each tick of GameThread.
@@ -128,8 +146,8 @@ void FUE4CVServer::ProcessPendingRequest()
 {
 	while (!PendingRequest.IsEmpty())
 	{
-		this->InitGWorld();
-
+		if (!InitWorld()) break;
+		
 		FRequest Request;
 		bool DequeueStatus = PendingRequest.Dequeue(Request);
 		check(DequeueStatus);

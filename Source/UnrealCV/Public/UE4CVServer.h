@@ -77,7 +77,8 @@ public:
 
 	void RegisterCommandHandlers();
 
-	void InitGWorld();
+	/** Make sure UE4CVServer correctly initialized itself in the GameWorld */
+	bool InitWorld();
 
 	/** Return the GameWorld of the editor or the game */
 	UWorld* GetGameWorld();
