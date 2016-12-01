@@ -6,8 +6,8 @@ struct FGTCaptureTask
 {
 	FString Mode;
 	FString Filename;
-	FAsyncRecord* AsyncRecord;
 	uint64 CurrentFrame;
+	FAsyncRecord* AsyncRecord;
 	FGTCaptureTask() {}
 	FGTCaptureTask(FString InMode, FString InFilename, uint64 InCurrentFrame, FAsyncRecord* InAsyncRecord) :
 		Mode(InMode), Filename(InFilename), CurrentFrame(InCurrentFrame), AsyncRecord(InAsyncRecord) {}
