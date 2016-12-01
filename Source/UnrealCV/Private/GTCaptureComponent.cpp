@@ -129,7 +129,11 @@ UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, TArray<FString> 
 	GTCapturer->bIsActive = true;
 	// check(GTCapturer->IsComponentTickEnabled() == true);
 	GTCapturer->Pawn = InPawn; // This GTCapturer should depend on the Pawn and be released together with the Pawn.
-	GTCapturer->AttachTo(InPawn->GetRootComponent());
+
+	// This snippet is from Engine/Source/Runtime/Engine/Private/Components/SceneComponent.cpp, AttachTo
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepRelative, false);
+	ConvertAttachLocation(EAttachLocation::KeepRelativeOffset, AttachmentRules.LocationRule, AttachmentRules.RotationRule, AttachmentRules.ScaleRule);
+	GTCapturer->AttachToComponent(InPawn->GetRootComponent(), AttachmentRules);
 	// GTCapturer->AddToRoot();
 	GTCapturer->RegisterComponentWithWorld(World);
 
@@ -141,7 +145,8 @@ UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, TArray<FString> 
 		GTCapturer->CaptureComponents.Add(Mode, CaptureComponent);
 
 		// CaptureComponent needs to be attached to somewhere immediately, otherwise it will be gc-ed
-		CaptureComponent->AttachTo(GTCapturer);
+
+		CaptureComponent->AttachToComponent(GTCapturer, AttachmentRules);
 		InitCaptureComponent(CaptureComponent);
 
 		UMaterial* Material = GetMaterial(Mode);

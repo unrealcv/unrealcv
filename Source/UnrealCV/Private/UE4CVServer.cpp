@@ -12,10 +12,9 @@
 /** Only available during game play */
 APawn* FUE4CVServer::GetPawn()
 {
-	static APawn* Pawn = nullptr;
 	static UWorld* CurrentWorld = nullptr;
 	UWorld* World = GetGameWorld();
-	if (Pawn == nullptr || CurrentWorld != World)
+	if (CurrentWorld != World)
 	{
 		APlayerController* PlayerController = World->GetFirstPlayerController();
 		check(PlayerController);
@@ -129,12 +128,10 @@ bool FUE4CVServer::InitWorld()
 		// APlayerController* PlayerController = World->GetFirstPlayerController();
 		APlayerController* PlayerController = World->GetFirstPlayerController();
 		check(PlayerController);
-		APawn* Pawn = PlayerController->GetPawn();
-		check(Pawn);
-		FObjectPainter::Get().SetLevel(Pawn->GetLevel());
+		FObjectPainter::Get().SetLevel(GetPawn()->GetLevel());
 		FObjectPainter::Get().PaintRandomColors();
 
-		FCaptureManager::Get().AttachGTCaptureComponentToCamera(Pawn);
+		FCaptureManager::Get().AttachGTCaptureComponentToCamera(GetPawn());
 
 		CurrentWorld = World;
 	}
