@@ -102,5 +102,5 @@ private:
 
 	/** Handle the raw message from NetworkManager and parse raw message to a FRequest */
 	void HandleRawMessage(const FString& RawMessage);
-	
+
 };

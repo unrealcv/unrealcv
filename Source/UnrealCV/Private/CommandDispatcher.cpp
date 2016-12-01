@@ -35,15 +35,15 @@ private:
 		Thread = FRunnableThread::Create(this, TEXT("FAsyncWatcher"), 8 * 1024, TPri_Normal);
 		Stopping = false;
 	}
-	
-	TQueue<FPromise, EQueueMode::Spsc> PendingPromise; 
-	TQueue<FCallbackDelegate, EQueueMode::Spsc> PendingCompletedCallback; 
+
+	TQueue<FPromise, EQueueMode::Spsc> PendingPromise;
+	TQueue<FCallbackDelegate, EQueueMode::Spsc> PendingCompletedCallback;
 	bool Stopping; // Whether this thread should stop?
 
 	FRunnableThread* Thread;
 	virtual uint32 Run() override
 	{
-		while (!Stopping) 
+		while (!Stopping)
 		{
 			while (IsActive())
 			{
@@ -253,7 +253,7 @@ void FCommandDispatcher::ExecAsync(const FString Uri, const FCallbackDelegate Ca
 	FExecStatus ExecStatus = Exec(Uri);
 	if (ExecStatus == FExecStatusType::AsyncQuery) // This is an async task
 	{
-		FAsyncWatcher::Get().Wait(ExecStatus.GetPromise(), Callback); 
+		FAsyncWatcher::Get().Wait(ExecStatus.GetPromise(), Callback);
 	}
 	else
 	{
@@ -262,7 +262,7 @@ void FCommandDispatcher::ExecAsync(const FString Uri, const FCallbackDelegate Ca
 	}
 }
 
-	
+
 FExecStatus FCommandDispatcher::Exec(const FString Uri)
 {
 	check(IsInGameThread());
@@ -280,12 +280,12 @@ FExecStatus FCommandDispatcher::Exec(const FString Uri)
 
 		// FDispatcherDelegate& Cmd = Elem.Value;
 		FDispatcherDelegate& Cmd = UriMapping[Key];
-		
+
 		FRegexMatcher Matcher(Pattern, Uri);
 		if (Matcher.FindNext())
 		{
 			for (uint32 GroupIndex = 1; GroupIndex < NumArgsLimit + 1; GroupIndex++)
-			{ 
+			{
 				uint32 BeginIndex = Matcher.GetCaptureGroupBeginning(GroupIndex);
 				if (BeginIndex == -1) break; // No more matching group to extract
 				FString Match = Matcher.GetCaptureGroup(GroupIndex); // TODO: Strip empty space
@@ -293,7 +293,7 @@ FExecStatus FCommandDispatcher::Exec(const FString Uri)
 			}
 			return Cmd.Execute(Args); // The exec status can be successful, fail or give a message back
 		}
-		
+
 		// TODO: Regular expression mapping is slow, need to implement in a more efficient way.
 		// FRegexMatcher()
 	}

@@ -144,7 +144,7 @@ void FUE4CVServer::ProcessPendingRequest()
 	while (!PendingRequest.IsEmpty())
 	{
 		if (!InitWorld()) break;
-		
+
 		FRequest Request;
 		bool DequeueStatus = PendingRequest.Dequeue(Request);
 		check(DequeueStatus);

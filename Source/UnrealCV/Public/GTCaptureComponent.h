@@ -15,7 +15,7 @@ struct FGTCaptureTask
 
 /**
  * Use USceneCaptureComponent2D to export information from the scene.
- * This class needs to be tickable to update the rotation of the USceneCaptureComponent2D 
+ * This class needs to be tickable to update the rotation of the USceneCaptureComponent2D
  */
 UCLASS()
 class UNREALCV_API UGTCaptureComponent : public USceneComponent // , public FTickableGameObject

@@ -6,10 +6,10 @@ void FPluginCommandHandler::RegisterCommands()
 {
 	FDispatcherDelegate Cmd;
 	FString Help;
-	
+
 	// Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetPort);
 	// CommandDispatcher->BindCommand("vget /unrealcv/port", Cmd, "Get port from the plugin listening to");
-	// 
+	//
 	// Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::SetPort);
 	// CommandDispatcher->BindCommand("vset /unrealcv/port [uint]", Cmd, "Set port the plugin listening to");
 

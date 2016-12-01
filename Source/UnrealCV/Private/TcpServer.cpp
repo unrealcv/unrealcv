@@ -72,7 +72,7 @@ bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
 			UE_LOG(LogUnrealCV, Error, TEXT("Connection aborted unexpectly."));
 			return false;
 		}
-		
+
 		const TCHAR* LastErrorMsg = ISocketSubsystem::Get()->GetSocketError(LastError);
 		UE_LOG(LogUnrealCV, Error, TEXT("Expected error of socket happend, error %s"), LastErrorMsg);
 		return false;

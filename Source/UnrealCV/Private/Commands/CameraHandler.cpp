@@ -31,7 +31,7 @@ void FCameraCommandHandler::RegisterCommands()
 {
 	FDispatcherDelegate Cmd;
 	FString Help;
-	
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraViewMode);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/[str]", Cmd, "Get snapshot from camera, the third parameter is optional"); // Take a screenshot and return filename
 
@@ -257,7 +257,7 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 			}
 		});
 		FString Message = FString::Printf(TEXT("File will be saved to %s"), *Filename);
-		return FExecStatus::AsyncQuery(FPromise(PromiseDelegate), Message); 
+		return FExecStatus::AsyncQuery(FPromise(PromiseDelegate), Message);
 		// The filename here is just for message, not the fullname on the disk, because we can not know that due to sandbox issue.
 	}
 	return FExecStatus::InvalidArgument;

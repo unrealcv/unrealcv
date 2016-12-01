@@ -36,7 +36,7 @@ private:
 	TArray<FString> UriList;
 
 	/** Store help message */
-	TMap<FString, FString> UriDescription; // Contains help message 
+	TMap<FString, FString> UriDescription; // Contains help message
 
 	/** Store the definition of an alias */
 	TMap<FString, TArray<FString> > AliasMapping;

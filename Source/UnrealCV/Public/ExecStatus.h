@@ -6,7 +6,7 @@ DECLARE_DELEGATE_RetVal(FExecStatus, FPromiseDelegate); // Check task status
 /**
  * Return by async task, used to check status to see whether the task is finished.
  */
-class FPromise 
+class FPromise
 {
 private:
 	/** The method to check whether this promise is alreay completed */
@@ -15,7 +15,7 @@ public:
 	bool bIsValid;
 	FDateTime InitTime;
 	FPromise() { bIsValid = false; }
-	FPromise(FPromiseDelegate InPromiseDelegate) : PromiseDelegate(InPromiseDelegate) 
+	FPromise(FPromiseDelegate InPromiseDelegate) : PromiseDelegate(InPromiseDelegate)
 	{
 		bIsValid = true;
 		InitTime = FDateTime::Now();
@@ -29,7 +29,7 @@ public:
 	}
 };
 
-enum FExecStatusType 
+enum FExecStatusType
 {
 	OK,
 	Error,
@@ -54,11 +54,11 @@ public:
 	/** Pending : Message */
 	static FExecStatus Pending(FString Message=""); // Useful for async task
 
-	/** 
+	/**
 	 * For an async task, return a special pending FExecStatus
 	 * Use the CheckStatus of FPromise to check whether the task is completed
 	 * If the CheckStatus function returns no longer pending, means the async task finished
-	 * see UE4CVCommandsCamera.cpp : GetCameraViewAsyncQuery for an example 
+	 * see UE4CVCommandsCamera.cpp : GetCameraViewAsyncQuery for an example
 	 */
 	static FExecStatus AsyncQuery(FPromise Promise, FString Message="");
 
@@ -69,16 +69,16 @@ public:
 
 	~FExecStatus();
 	/** Convert this ExecStatus to String */
-	FString GetMessage() const; 
+	FString GetMessage() const;
 
 	/** Add this FExecStatus with other FExecStatus, useful for executing a few commands at the same time */
 	FExecStatus& operator+=(const FExecStatus& InExecStatus);
 
 	/** Return the promise of this FExecStatus, will only be set if the status is pending */
-	FPromise& GetPromise(); 
+	FPromise& GetPromise();
 private:
 	/** The promise to check result, only useful for async tasks */
-	FPromise Promise; 
+	FPromise Promise;
 	FExecStatus(FExecStatusType InExecStatusType, FString Message);
 	// For query
 	FExecStatus(FExecStatusType InExecStatusType, FPromise Promise, FString Message="");

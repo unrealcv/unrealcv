@@ -47,7 +47,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dev', help='Continue doing build without checking git status', action='store_true')
     args = parser.parse_known_args()[0]
-    
+
     # Files is relative to this python script
     cur_dir = os.path.dirname(os.path.abspath(__file__))
 

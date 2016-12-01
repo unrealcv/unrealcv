@@ -8,7 +8,7 @@
 #include "TcpServer.generated.h"
 
 /**
- * a simplified version from FNFSMessageHeader of UnrealEngine4, without CRC check 
+ * a simplified version from FNFSMessageHeader of UnrealEngine4, without CRC check
  */
 class FSocketMessageHeader
 {
@@ -40,7 +40,7 @@ DECLARE_EVENT_OneParam(UNetworkManager, FReceivedEvent, const FString&)
  */
 UCLASS()
 class UNREALCV_API UNetworkManager : public UObject
-// NetworkManager needs to be an UObject, so that we can bind ip and port to UI. 
+// NetworkManager needs to be an UObject, so that we can bind ip and port to UI.
 {
 	GENERATED_BODY()
 
@@ -52,9 +52,9 @@ public:
 	// bool bIsConnected = false;
 	bool IsConnected();
 
-	bool IsListening() 
-	{ 
-		return bIsListening;  
+	bool IsListening()
+	{
+		return bIsListening;
 	}
 
 	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

@@ -1,5 +1,5 @@
 language: python
 install:
     - pip install unrealcv
-script: 
+script:
     python test/test-unrealcv.py --travis
