@@ -3,6 +3,7 @@
 #include "StaticMeshResources.h"
 #include "UE4CVServer.h"
 #include "SceneViewport.h"
+#include "Version.h"
 
 // Utility function to generate color map
 int32 GetChannelValue(uint32 Index)
@@ -74,7 +75,6 @@ FColor GetColorFromColorMap(int32 ObjectIndex)
 			GetColors(MaxChannelIndex, true , true , true , ColorMap);
 		}
 	}
-	check(ColorMap.Num() == 1000);
 	if (ObjectIndex < 0 || ObjectIndex >= pow(NumPerChannel, 3))
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("Object index %d is out of the color map boundary [%d, %d]"), ObjectIndex, 0, pow(NumPerChannel, 3));
@@ -268,12 +268,18 @@ bool FObjectPainter::PaintObject(AActor* Actor, const FColor& Color, bool IsColo
 	{
 		if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(MeshComponent))
 		{
-			if (UStaticMesh* StaticMesh = StaticMeshComponent->GetStaticMesh())
+			UStaticMesh* StaticMesh;
+#if ENGINE_MINOR_VERSION >= 14  // Assume major version is 4
+			StaticMesh = StaticMeshComponent->GetStaticMesh(); // This is a new function introduced in 4.14
+#else
+			StaticMesh = StaticMeshComponent->StaticMesh; // This is deprecated in 4.14, add here for backward compatibility
+#endif
+			if (StaticMesh)
 			{
 				uint32 PaintingMeshLODIndex = 0;
-				uint32 NumLODLevel = StaticMeshComponent->GetStaticMesh()->RenderData->LODResources.Num();
+				uint32 NumLODLevel = StaticMesh->RenderData->LODResources.Num();
 				check(NumLODLevel == 1);
-				FStaticMeshLODResources& LODModel = StaticMeshComponent->GetStaticMesh()->RenderData->LODResources[PaintingMeshLODIndex];
+				FStaticMeshLODResources& LODModel = StaticMesh->RenderData->LODResources[PaintingMeshLODIndex];
 				FStaticMeshComponentLODInfo* InstanceMeshLODInfo = NULL;
 
 				// PaintingMeshLODIndex + 1 is the minimum requirement, enlarge if not satisfied

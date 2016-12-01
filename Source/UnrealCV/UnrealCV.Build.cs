@@ -8,7 +8,7 @@ namespace UnrealBuildTool.Rules
 		public UnrealCV(TargetInfo Target)
 		{
             // This is tricky from https://answers.unrealengine.com/questions/258689/how-to-include-private-header-files-of-other-modul.html
-            // string EnginePath = Path.GetFullPath(BuildConfiguration.RelativeEnginePath);
+            string EnginePath = Path.GetFullPath(BuildConfiguration.RelativeEnginePath);
             // string RuntimePath = EnginePath + "Source/Runtime/";
             // string RenderPrivatePath = EnginePath + "Source/Runtime/Renderer/Private";
 
@@ -28,6 +28,12 @@ namespace UnrealBuildTool.Rules
                 }
                 );
                 */
+            PublicIncludePaths.AddRange(
+                new string[]
+                {
+                    EnginePath + "Source/Runtime/Launch/Resources",
+                }
+                );
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
@@ -35,7 +41,18 @@ namespace UnrealBuildTool.Rules
 				}
 				);
 
-            PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "RenderCore", "Networking", "Sockets", "Slate", "ImageWrapper", "UnrealEd"});
+            PublicDependencyModuleNames.AddRange(new string[] {
+                "Core",
+                "CoreUObject",
+                "Engine",
+                "InputCore",
+                "RenderCore",
+                "Networking",
+                "Sockets",
+                "Slate",
+                "ImageWrapper",
+                "UnrealEd"
+            });
             /*
 			PublicDependencyModuleNames.AddRange(
 				new string[]
