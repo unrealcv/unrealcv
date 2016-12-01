@@ -57,6 +57,9 @@ void FUE4CVServer::RegisterCommandHandlers()
 
 FUE4CVServer::FUE4CVServer()
 {
+	Config.Load();
+	Config.Save(); // Save the configuration back to disk
+
 	// Code defined here should not use FUE4CVServer::Get();
 	NetworkManager = NewObject<UNetworkManager>();
 	CommandDispatcher = new FCommandDispatcher();
