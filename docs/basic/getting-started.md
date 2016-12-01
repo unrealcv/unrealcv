@@ -27,6 +27,7 @@ Use mouse to look around and use keys `wasd` to navigate, use `qe` to level the 
 
 UnrealCV provides a set of commands for computer vision research. These commands are used to perform various tasks, such as control camera and get ground truth. The table below summaries commands used in this tutorial. The complete list can be found in [Reference: Command List](/reference/commands.html).
 
+<!-- TODO: consider making this external -->
 | Command                             | Help                                              |
 |:------------------------------------|:--------------------------------------------------|
 | vset /viewmode [viewmode_name]      | Set ViewMode to (lit, normal, depth, object_mask) |

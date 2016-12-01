@@ -36,9 +36,7 @@ git clone https://github.com/unrealcv/playground.git
 ---
 ## Code Documentation
 
-The C++ source code of the plugin is documented with doxygen.
-
-You can generate the document for code by running `cd docs/doxygen; doxygen`.
+The C++ source code of the plugin is documented with doxygen. You can generate the document for code by running `cd docs/doxygen; doxygen`. An online version is hosted [here](https://codedocs.xyz/unrealcv/unrealcv/).
 
 ---
 ## UnrealCV Architecture
@@ -46,6 +44,8 @@ You can generate the document for code by running `cd docs/doxygen; doxygen`.
 The initialization procedure of UnrealCV. The module loaded and start a TCP server waiting for connection. Commands will be parsed by regexp.
 
 ---
+The code is here {{ config.extra.codebase }} 
+
 ## Project Layout
     client/            # Client code for Python and MATLAB
         examples/      # Examples showing how to use client code to do tasks

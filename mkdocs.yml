@@ -30,3 +30,5 @@ pages:
         - "UnrealCV commands": reference/command.md
         # - "Video": reference/video.md
   # - FAQ: faq.md
+extra:
+    codebase: https://github.com/unrealcv/unrealcv
