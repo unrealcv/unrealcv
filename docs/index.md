@@ -1,5 +1,5 @@
 ## Introduction
-UnrealCV is a project to help computer vision researchers build virtual worlds using Unreal Engine 4 (UE4). It extends UE4 with a plugin by providing:
+UnrealCV helps computer vision researchers build virtual worlds using Unreal Engine 4 (UE4). It extends UE4 with a plugin by providing:
 
 1. A set of UnrealCV commands to interact with the virtual world.
 2. Communication between UE4 and an external program, such as Caffe.

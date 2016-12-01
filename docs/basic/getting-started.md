@@ -1,8 +1,6 @@
-This page covers the basics of UnrealCV. It includes how to use [UnrealCV commands](/ref/command.md) to perform various tasks and how to use a python script to control an UnrealCV embedded game.
+This page covers the basics of UnrealCV. It includes how to use UnrealCV commands to perform basic task and how to use a python script to control an UnrealCV embedded game.
 
 ## Game mode or plugin mode?
-
-The images for these two modes are shown below.
 
 In the game mode, you can download a compiled binary created by the community. In this binary, you can generate images, ground truth. But it is not easy to change the scene by adding more objects.
 
@@ -10,11 +8,17 @@ In the game mode, you can download a compiled binary created by the community. I
 
 Install the plugin to UE4 editor, you can use the power of UE4 editor to modify the virtual world as you wish.
 
+The images for these two modes are shown below.
+
+TODO
+
 ## 1. Download a game binary
 
-This tutorial will use a game binary to demonstrate UnrealCV commands. If you are interested in using the plugin in UE4Editor or produce binaries, please finish this tutorial, then go to [Tutorial: Use Plugin](/plugin/usage.html).
+This tutorial will use a game binary to demonstrate UnrealCV commands. If you are interested in using the plugin in UE4Editor or produce binaries, please finish this tutorial, then go to [Plugin Mode - Usage](/plugin/usage.md).
 
-A list of games can be found in [Reference: Model Zoo](/reference/model_zoo.html). For this tutorial, please download [RealisticRendering](/reference/model_zoo.html#realistic_rendering). After unzip and run the binary, you are expected to see a screen like this. The game will be started in a window mode with resolution 640x480, you can change the resolution later.
+A list of games can be found in [Model Zoo](TODO). For this tutorial, please download [RealisticRendering](/reference/model_zoo.html#realistic_rendering).
+
+After unzip and run the binary, you are expected to see a screen like this. The game will be started in a window mode with resolution 640x480, you can change the resolution by changing the configuration file of UnrealCV, see [here](TODO).
 
 <center>
   <img alt="Startup Screenshot" src="../../images/rr_init.png" width="300px"/>
@@ -67,6 +71,8 @@ else:
   filename = client.request('vget /camera/0/depth depth.exr')
 ```
 You can find this example in {% include script.html key='demo.py' %}.
+
+## The speed of UnrealCV
 
 ## Next:
 
