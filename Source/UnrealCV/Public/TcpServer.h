@@ -34,7 +34,6 @@ public:
 
 DECLARE_EVENT_OneParam(UNetworkManager, FReceivedEvent, const FString&)
 
-#define PORT 9000
 /**
  * Server to send and receive message
  */
@@ -45,8 +44,8 @@ class UNREALCV_API UNetworkManager : public UObject
 	GENERATED_BODY()
 
 public:
-	// TODO: Make these property effective
-	int32 PortNum = PORT;
+	/** The port number this server is listening on */
+	int32 PortNum;
 
 	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	// bool bIsConnected = false;
@@ -62,7 +61,7 @@ public:
 
 	/** Start the underlying TcpListener to listen for new connection */
 	// TODO: Handle port in use exception
-	bool Start(int32 InPortNum = PORT);
+	bool Start(int32 InPortNum);
 
 	/** Send a message to connected client, return false if false to send. Will fail if no connection available */
 	bool SendMessage(const FString& Message);

@@ -12,11 +12,11 @@ IMPLEMENT_MODULE(FUnrealCVPlugin, UnrealCV)
 
 void FUnrealCVPlugin::StartupModule()
 {
-	FUE4CVServer::Get().RegisterCommandHandlers();
-	FUE4CVServer::Get().NetworkManager->Start();
+	FUE4CVServer &Server = FUE4CVServer::Get();
+	Server.RegisterCommandHandlers();
+	Server.NetworkManager->Start(Server.Config.Port);
 }
 
 void FUnrealCVPlugin::ShutdownModule()
 {
-	// TODO: implement stop
 }

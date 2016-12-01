@@ -17,7 +17,8 @@ void InitCaptureComponent(USceneCaptureComponent2D* CaptureComponent)
 	CaptureComponent->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 
 	CaptureComponent->TextureTarget = NewObject<UTextureRenderTarget2D>();
-	CaptureComponent->TextureTarget->InitAutoFormat(640, 480); // TODO: Update this later
+	FServerConfig& Config = FUE4CVServer::Get().Config;
+	CaptureComponent->TextureTarget->InitAutoFormat(Config.Width, Config.Height); 
 
 	/*
 	UGameViewportClient* GameViewportClient = World->GetGameViewport();
