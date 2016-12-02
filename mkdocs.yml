@@ -1,0 +1,16 @@
+site_name: UnrealCV
+theme: readthedocs
+pages:
+    - Home: index.md
+    - UnrealCV Commands: command.md
+    - Plugin:
+        - "• Installation": plugin/install.md
+        - "• Usage": plugin/usage.md
+    - Binary:
+        - "• Release Binary": binary/new-binary.md
+    - Development:
+        - Setup: dev/setup.md
+        - "Example: add a new command": dev/example-new-command.md
+    - Reference:
+        - Architecture: arch.md
+    - FAQ: faq.md

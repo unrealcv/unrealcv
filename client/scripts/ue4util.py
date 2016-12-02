@@ -15,8 +15,10 @@ UATScriptNotFound = '''
 RunUAT script can not be found in %s
 '''
 
-def get_UAT_script():
-    engine_path = get_engine_path()
+def get_UAT_script(engine_path):
+    if not os.path.isdir(engine_path):
+        exit(EngineNotFound % engine_path)
+
     platform = get_platform_name()
 
     if platform == 'Win64':
@@ -32,30 +34,6 @@ def get_UAT_script():
 
     # return UAT_script.replace(' ', '\ ')
     return UAT_script
-
-def get_engine_path():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--engine_path')
-
-    # args = parser.parse_args()
-    # only do partial parsing, the second return result is the remaining args
-    args, _ = parser.parse_known_args() # Fix this
-
-    if args.engine_path:
-        engine_path = args.engine_path
-    else:
-        try:
-            import ue4config
-            engine_path = ue4config.EnginePath
-        except:
-            exit('EnginePath is not specified')
-
-    if not os.path.isdir(engine_path):
-        exit(EngineNotFound % engine_path)
-
-    print 'Debug: ', engine_path
-
-    return engine_path
 
 def get_project_name(projectfile):
     if not projectfile.endswith('.uproject'):
