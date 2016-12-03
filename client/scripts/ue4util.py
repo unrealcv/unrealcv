@@ -15,25 +15,31 @@ UATScriptNotFound = '''
 RunUAT script can not be found in %s
 '''
 
-def get_UAT_script(engine_path):
-    if not os.path.isdir(engine_path):
-        exit(EngineNotFound % engine_path)
+class UE4Util:
+    def __init__(self, engine_path):
+        if not os.path.isdir(engine_path):
+            exit(EngineNotFound % engine_path)
+        self.engine_path = engine_path
 
-    platform = get_platform_name()
+    def get_UAT_script(self):
+        '''
+        UAT Script is a command line script for automation
+        '''
+        platform = get_platform_name()
 
-    if platform == 'Win64':
-        UAT_basename = 'Engine/Build/BatchFiles/RunUAT.bat'
-    elif platform == 'Mac' or platform == 'Linux':
-        UAT_basename = 'Engine/Build/BatchFiles/RunUAT.sh'
-    else:
-        print 'platform %s is not recognized' % platform
+        if platform == 'Win64':
+            UAT_basename = 'Engine/Build/BatchFiles/RunUAT.bat'
+        elif platform == 'Mac' or platform == 'Linux':
+            UAT_basename = 'Engine/Build/BatchFiles/RunUAT.sh'
+        else:
+            print 'platform %s is not recognized' % platform
 
-    UAT_script = os.path.join(engine_path, UAT_basename)
-    if not os.path.isfile(UAT_script):
-        exit(UATScriptNotFound % UAT_script)
+        UAT_script = os.path.join(self.engine_path, UAT_basename)
+        if not os.path.isfile(UAT_script):
+            exit(UATScriptNotFound % UAT_script)
 
-    # return UAT_script.replace(' ', '\ ')
-    return UAT_script
+        # return UAT_script.replace(' ', '\ ')
+        return UAT_script
 
 def get_project_name(projectfile):
     if not projectfile.endswith('.uproject'):
