@@ -7,7 +7,9 @@
 #include "CameraHandler.h"
 #include "ObjectHandler.h"
 #include "PluginHandler.h"
+#if WITH_EDITOR
 #include "UnrealEd.h"
+#endif
 
 /** Only available during game play */
 APawn* FUE4CVServer::GetPawn()
@@ -76,9 +78,10 @@ FUE4CVServer::~FUE4CVServer()
 
 UWorld* FUE4CVServer::GetGameWorld()
 {
-	// The correct way to get GameWorld;
-	UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine); // TODO: check which macro can determine whether I am in editor
 	UWorld* World = nullptr;
+	// The correct way to get GameWorld;
+#if WITH_EDITOR
+	UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine); // TODO: check which macro can determine whether I am in editor
 	if (EditorEngine != nullptr)
 	{
 		World = EditorEngine->PlayWorld;
@@ -92,6 +95,7 @@ UWorld* FUE4CVServer::GetGameWorld()
 			return nullptr;
 		}
 	}
+#endif
 
 	UGameEngine* GameEngine = Cast<UGameEngine>(GEngine);
 	if (GameEngine != nullptr)

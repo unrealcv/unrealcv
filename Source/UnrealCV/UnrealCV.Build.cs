@@ -7,78 +7,54 @@ namespace UnrealBuildTool.Rules
 	{
 		public UnrealCV(TargetInfo Target)
 		{
-            // This is tricky from https://answers.unrealengine.com/questions/258689/how-to-include-private-header-files-of-other-modul.html
-            string EnginePath = Path.GetFullPath(BuildConfiguration.RelativeEnginePath);
-            // string RuntimePath = EnginePath + "Source/Runtime/";
-            // string RenderPrivatePath = EnginePath + "Source/Runtime/Renderer/Private";
+			// This trick is from https://answers.unrealengine.com/questions/258689/how-to-include-private-header-files-of-other-modul.html
+			string EnginePath = Path.GetFullPath(BuildConfiguration.RelativeEnginePath);
 
-            /*
-            PublicIncludePaths.AddRange(
-				new string[] {
-					// ... add public include paths required here ...
-                    "Renderer"
+			PublicIncludePaths.AddRange(
+				new string[]
+				{
+					EnginePath + "Source/Runtime/Launch/Resources",
+					// To get Unreal Engine minor version
 				}
-				);
-            PublicIncludePaths.AddRange(
-                new string[]
-                {
-                    EnginePath + "Source/Runtime/Renderer/Private",
-                    EnginePath + "Source/Runtime/Renderer/Private/CompositionLighting",
-                    EnginePath + "Source/Runtime/Renderer/Private/PostProcess",
-                }
-                );
-                */
-            PublicIncludePaths.AddRange(
-                new string[]
-                {
-                    EnginePath + "Source/Runtime/Launch/Resources",
-                }
-                );
+			);
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
-                    "UnrealCV/Private/Commands"
+					"UnrealCV/Private/Commands"
 				}
-				);
+			);
 
-            PublicDependencyModuleNames.AddRange(new string[] {
-                "Core",
-                "CoreUObject",
-                "Engine",
-                "InputCore",
-                "RenderCore",
-                "Networking",
-                "Sockets",
-                "Slate",
-                "ImageWrapper",
-                "UnrealEd"
-            });
-            /*
-			PublicDependencyModuleNames.AddRange(
-				new string[]
-				{
-					"Core",
-					"CoreUObject",
-					// ... add other public dependencies that you statically link with here ...
-				}
-				);
-                */
+			PublicDependencyModuleNames.AddRange(new string[] {
+				"Core",
+				"CoreUObject",
+				"Engine",
+				"InputCore",
+				"RenderCore",
+				"Networking",
+				"Sockets",
+				"Slate",
+				"ImageWrapper",
+			});
 
-			PrivateDependencyModuleNames.AddRange(
-				new string[]
-				{
-					// ... add private dependencies that you statically link with here ...
-                    // "Renderer"
-				}
+
+			// PrivateDependency only available in Private folder
+			// Reference: https://answers.unrealengine.com/questions/23384/what-is-the-difference-between-publicdependencymod.html
+			if (UEBuildConfiguration.bBuildEditor == true)
+			{
+				PrivateDependencyModuleNames.AddRange(
+					new string[]
+					{
+						"UnrealEd", // To support GetGameWorld
+					}
 				);
+			}
 
 			DynamicallyLoadedModuleNames.AddRange(
 				new string[]
 				{
-					// ... add any modules that your module loads dynamically here ...
-                    "Renderer"
+					"Renderer"
 				}
-				);
+			);
 		}
 	}
 }
