@@ -280,7 +280,7 @@ bool UNetworkManager::Start(int32 InPortNum) // Restart the server if configurat
 	else
 	{
 		this->bIsListening = false;
-		UE_LOG(LogUnrealCV, Error, TEXT("Can not start listening on port %d, Port might be in use"), PortNum);
+		UE_LOG(LogUnrealCV, Warning, TEXT("Can not start listening on port %d, Port might be in use"), PortNum);
 		return false;
 	}
 
