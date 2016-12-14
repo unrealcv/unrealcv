@@ -7,6 +7,7 @@
 #include "ViewMode.h"
 #include "GTCaptureComponent.h"
 #include "ObjectPainter.h"
+#include "CaptureManager.h"
 
 DECLARE_DELEGATE(ViewModeFunc)
 
@@ -85,8 +86,13 @@ void FPlayerViewMode::Lit()
 {
 	UWorld* World = FUE4CVServer::Get().GetGameWorld();
 	this->ClearPostProcess();
-	auto Viewport = World->GetGameViewport();
-	FViewMode::Lit(Viewport->EngineShowFlags);
+	if (GameShowFlags == nullptr)
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("The lit mode is not correctly configured."));
+		return;
+	}
+	World->GetGameViewport()->EngineShowFlags = *GameShowFlags;
+	// FViewMode::Lit(Viewport->EngineShowFlags);
 }
 
 void FPlayerViewMode::Unlit()
@@ -131,8 +137,8 @@ void PaintObjects()
 	check(PlayerController);
 	APawn* Pawn = PlayerController->GetPawn();
 	check(Pawn);
-	FObjectPainter::Get().SetLevel(Pawn->GetLevel());
-	FObjectPainter::Get().PaintRandomColors();
+	FObjectPainter::Get().Reset(Pawn->GetLevel());
+	FObjectPainter::Get().PaintColors();
 }
 
 void FPlayerViewMode::Object()
@@ -163,6 +169,8 @@ FExecStatus FPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input
 		ViewModeHandlers->Add(TEXT("base_color"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::BaseColor));
 		ViewModeHandlers->Add(TEXT("debug"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::DebugMode));
 		ViewModeHandlers->Add(TEXT("wireframe"), ViewModeFunc::CreateLambda([World]() { FViewMode::Wireframe(World->GetGameViewport()->EngineShowFlags);  }));
+		ViewModeHandlers->Add(TEXT("vertex_color"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::VertexColor));
+		ViewModeHandlers->Add(TEXT("no_transparency"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::NoTransparency));
 	}
 
 	// Check args
@@ -195,4 +203,57 @@ FExecStatus FPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input
 FExecStatus FPlayerViewMode::GetMode(const TArray<FString>& Args) // Check input arguments
 {
 	return FExecStatus::OK(CurrentViewMode);
+}
+
+void FPlayerViewMode::SaveGameDefault(FEngineShowFlags ShowFlags)
+{
+	if (this->GameShowFlags != nullptr)
+	{
+		delete this->GameShowFlags;
+		this->GameShowFlags = nullptr;
+	}
+	GameShowFlags = new FEngineShowFlags(ShowFlags);
+}
+
+void FPlayerViewMode::VertexColor()
+{
+	auto Viewport = GWorld->GetGameViewport();
+	FViewMode::VertexColor(Viewport->EngineShowFlags);
+}
+
+void FPlayerViewMode::NoTransparency()
+{
+	// Iterate over all the materials in the scene and replace transparent materials to non-transparent 
+	for (TActorIterator<AActor> ActorItr(GWorld); ActorItr; ++ActorItr)
+	{
+		// Iterate over all the material of the actor
+		TArray<UActorComponent*> TheComponents;
+		(*ActorItr)->GetComponents(TheComponents);
+
+		for (auto ComponentIt = TheComponents.CreateIterator(); ComponentIt; ++ComponentIt)
+		{
+			UStaticMeshComponent *OneComponent = Cast<UStaticMeshComponent>(*ComponentIt);
+			if (OneComponent != NULL)
+			{
+				for (int ComponentMaterialIdx = 0; ComponentMaterialIdx < OneComponent->GetNumMaterials(); ++ComponentMaterialIdx)
+				{
+					UMaterialInterface* MaterialInterface = OneComponent->GetMaterial(ComponentMaterialIdx);
+					if (MaterialInterface != nullptr)
+					{
+						EBlendMode BlendMode = MaterialInterface->GetBlendMode();
+						// OneComponent->SetMaterial(ComponentMaterialIdx, DynamicMaterialInstance);
+						if (BlendMode == EBlendMode::BLEND_Translucent)
+						{
+							UMaterial* OpaqueMaterial = FCaptureManager::Get().GetCamera(0)->GetMaterial("opaque");
+							OneComponent->SetMaterial(ComponentMaterialIdx, OpaqueMaterial);
+
+							// Change this material to an opaque material.
+							FString MaterialName = MaterialInterface->GetFullName();
+							UE_LOG(LogUnrealCV, Warning, TEXT("%s is transparent"), *MaterialName);
+						}
+					}
+				}
+			}
+		}
+	}
 }

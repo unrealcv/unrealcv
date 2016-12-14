@@ -7,6 +7,8 @@
 #include "CameraHandler.h"
 #include "ObjectHandler.h"
 #include "PluginHandler.h"
+#include "ActionHandler.h"
+#include "AliasHandler.h"
 #if WITH_EDITOR
 #include "UnrealEd.h"
 #endif
@@ -51,6 +53,8 @@ void FUE4CVServer::RegisterCommandHandlers()
 	CommandHandlers.Add(new FObjectCommandHandler(CommandDispatcher));
 	CommandHandlers.Add(new FCameraCommandHandler(CommandDispatcher));
 	CommandHandlers.Add(new FPluginCommandHandler(CommandDispatcher));
+	CommandHandlers.Add(new FActionCommandHandler(CommandDispatcher));
+	CommandHandlers.Add(new FAliasCommandHandler(CommandDispatcher));
 	for (FCommandHandler* Handler : CommandHandlers)
 	{
 		Handler->RegisterCommands();
@@ -132,13 +136,15 @@ bool FUE4CVServer::InitWorld()
 	{
 		// Invoke this everytime when the GWorld changes
 		// This will happen when the game is stopped and restart in the UE4Editor
-		// APlayerController* PlayerController = World->GetFirstPlayerController();
 		APlayerController* PlayerController = World->GetFirstPlayerController();
 		check(PlayerController);
-		FObjectPainter::Get().SetLevel(GetPawn()->GetLevel());
-		FObjectPainter::Get().PaintRandomColors();
+		FObjectPainter::Get().Reset(GetPawn()->GetLevel());
+		FObjectPainter::Get().PaintColors();
 
 		FCaptureManager::Get().AttachGTCaptureComponentToCamera(GetPawn());
+		
+		FEngineShowFlags ShowFlags = World->GetGameViewport()->EngineShowFlags;
+		FPlayerViewMode::Get().SaveGameDefault(ShowFlags);
 
 		CurrentWorld = World;
 	}

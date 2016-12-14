@@ -34,8 +34,8 @@ namespace UnrealBuildTool.Rules
 				"Sockets",
 				"Slate",
 				"ImageWrapper",
+				"CinematicCamera",
 			});
-
 
 			// PrivateDependency only available in Private folder
 			// Reference: https://answers.unrealengine.com/questions/23384/what-is-the-difference-between-publicdependencymod.html

@@ -95,6 +95,9 @@ UMaterial* UGTCaptureComponent::GetMaterial(FString InModeName = TEXT(""))
 		MaterialPathMap->Add(TEXT("debug"), TEXT("Material'/UnrealCV/debug.debug'"));
 		// MaterialPathMap->Add(TEXT("object_mask"), TEXT("Material'/UnrealCV/VertexColorMaterial.VertexColorMaterial'"));
 		MaterialPathMap->Add(TEXT("normal"), TEXT("Material'/UnrealCV/WorldNormal.WorldNormal'"));
+
+		FString OpaqueMaterialName = "Material'/Game/OpaqueMaterial.OpaqueMaterial'";
+		MaterialPathMap->Add(TEXT("opaque"), OpaqueMaterialName);
 	}
 
 	static TMap<FString, UMaterial*>* StaticMaterialMap = nullptr;
@@ -153,7 +156,7 @@ UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, TArray<FString> 
 		UMaterial* Material = GetMaterial(Mode);
 		if (Mode == "lit") // For rendered images
 		{
-			FViewMode::Lit(CaptureComponent->ShowFlags);
+			// FViewMode::Lit(CaptureComponent->ShowFlags);
 			CaptureComponent->TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
 			// float DisplayGamma = SceneViewport->GetDisplayGamma();
 		}
@@ -166,7 +169,7 @@ UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, TArray<FString> 
 			CaptureComponent->TextureTarget->TargetGamma = 1;
 			if (Mode == "object_mask") // For object mask
 			{
-				FViewMode::Lit(CaptureComponent->ShowFlags);
+				// FViewMode::Lit(CaptureComponent->ShowFlags);
 				FViewMode::VertexColor(CaptureComponent->ShowFlags);
 			}
 			else if (Mode == "wireframe") // For object mask

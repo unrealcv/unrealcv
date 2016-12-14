@@ -8,6 +8,7 @@
 #include "PlayerViewMode.h"
 #include "UE4CVServer.h"
 #include "CaptureManager.h"
+#include "CineCameraActor.h"
 
 FString GetDiskFilename(FString Filename)
 {
@@ -158,10 +159,28 @@ FExecStatus FCameraCommandHandler::GetCameraRotation(const TArray<FString>& Args
 {
 	if (Args.Num() == 1)
 	{
-		int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
-		// FRotator CameraRotation = this->Character->GetActorRotation();  // We need the rotation of the controller
-		APawn* Pawn = FUE4CVServer::Get().GetPawn();
-		FRotator CameraRotation = Pawn->GetControlRotation();
+		bool bIsMatinee = false;
+
+		FRotator CameraRotation;
+		ACineCameraActor* CineCameraActor = nullptr;
+		for (AActor* Actor : GWorld->GetCurrentLevel()->Actors)
+		{
+			// if (Actor && Actor->IsA(AMatineeActor::StaticClass())) // AMatineeActor is deprecated 
+			if (Actor && Actor->IsA(ACineCameraActor::StaticClass()))
+			{
+				bIsMatinee = true;
+				CameraRotation = Actor->GetActorRotation();
+				break;
+			}
+		}
+
+		if (!bIsMatinee)
+		{
+			int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
+			APawn* Pawn = FUE4CVServer::Get().GetPawn();
+			CameraRotation = Pawn->GetControlRotation();
+		}
+
 		FString Message = FString::Printf(TEXT("%.3f %.3f %.3f"), CameraRotation.Pitch, CameraRotation.Yaw, CameraRotation.Roll);
 
 		return FExecStatus::OK(Message);
@@ -173,9 +192,28 @@ FExecStatus FCameraCommandHandler::GetCameraLocation(const TArray<FString>& Args
 {
 	if (Args.Num() == 1)
 	{
-		int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
-		APawn* Pawn = FUE4CVServer::Get().GetPawn();
-		FVector CameraLocation = Pawn->GetActorLocation();
+		bool bIsMatinee = false;
+
+		FVector CameraLocation;
+		ACineCameraActor* CineCameraActor = nullptr;
+		for (AActor* Actor : GWorld->GetCurrentLevel()->Actors)
+		{
+			// if (Actor && Actor->IsA(AMatineeActor::StaticClass())) // AMatineeActor is deprecated 
+			if (Actor && Actor->IsA(ACineCameraActor::StaticClass()))
+			{
+				bIsMatinee = true;
+				CameraLocation = Actor->GetActorLocation();
+				break;
+			}
+		}
+
+		if (!bIsMatinee)
+		{
+			int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
+			APawn* Pawn = FUE4CVServer::Get().GetPawn();
+			CameraLocation = Pawn->GetActorLocation();
+		}
+
 		FString Message = FString::Printf(TEXT("%.3f %.3f %.3f"), CameraLocation.X, CameraLocation.Y, CameraLocation.Z);
 
 		return FExecStatus::OK(Message);
@@ -279,8 +317,8 @@ FExecStatus FCameraCommandHandler::GetScreenshot(const TArray<FString>& Args)
 			Filename = Args[1];
 		}
 
-		FString FullFilename = GetDiskFilename(Filename);
-		return FScreenCapture::GetCameraViewAsyncQuery(FullFilename);
+		// FString FullFilename = GetDiskFilename(Filename);
+		return FScreenCapture::GetCameraViewAsyncQuery(Filename);
 	}
 	return FExecStatus::InvalidArgument;
 }
