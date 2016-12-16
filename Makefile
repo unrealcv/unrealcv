@@ -1,8 +1,13 @@
-plugin:
-	python client/scripts/build-plugin.py --engine_path ${UE4}
 
-package: plugin
-	# Package plugin to a zip file and send it to release
-	
+precompiled=unrealcv-$(shell python client/scripts/get-version.py).zip
+package:
+	# Package plugin to a zip file
+	rm -rf built/Intermediate
+	cd built && zip -r ../${precompiled} *
+
+rebuild:
+	rm -rf built/
+	sh build.sh
+
 clean:
-	rm -rf Intermediate Binaries
+	rm -rf Intermediate Binaries built
