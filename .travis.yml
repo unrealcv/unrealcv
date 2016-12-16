@@ -1,6 +1,7 @@
 language: python
 install:
     - pip install unrealcv
+    - pip install pytest
 script:
     pytest test/client
     # There is no way to test ipc and commands with travis, they need to be tested locally
