@@ -1,16 +1,23 @@
-import sys
+import sys, platform
 
 class OSUtil():
     def __init__(self):
         pass
 
     def platform(self):
-        platform = sys.platform # Map from python platform name to ue4 platform name
+        win = 'Win'
+        mac = 'Mac'
+        linux = 'Linux'
+        if platform.release().endswith('Microsoft'):
+            # This is a hacky way to check whether I am running Ubuntu on Windows
+            return win
+
+        # Map from python platform name to ue4 platform name
         names = {
-            'cygwin': 'Win', # could be win32 also
-            'win32': 'Win',
-            'win64': 'Win',
-            'linux2': 'Linux',
-            'darwin': 'Mac',
+            'cygwin': win, # could be win32 also
+            'win32': win,
+            'win64': win,
+            'linux2': linux,
+            'darwin': mac,
             }
-        return names[platform]
+        return names[sys.platform]
