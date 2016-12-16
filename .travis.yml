@@ -1,8 +1,10 @@
 language: python
+python:
+    - "2.7"
+    - "3.4"
 install:
     - pip install unrealcv
-    - pip install pytest
 script:
-    pytest test/client
+    - pytest test/client
     # There is no way to test ipc and commands with travis, they need to be tested locally
     # Because travis can not run the UE4 binary.
