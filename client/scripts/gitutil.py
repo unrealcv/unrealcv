@@ -1,25 +1,38 @@
 import os
 
-def is_dirty(git_repo):
-    '''
-    Is there any uncommitted changes
-    git_repo is the abs path
-    '''
-    print 'Get commit version of %s' % git_repo
-    status = os.popen('git -C %s status -s' % git_repo).read().strip()
-    if status != '':
-        print 'Folder %s has uncommited changes' % git_repo
-        print status
-        return True
-    return False
+class GitUtil:
+    def __init__(self, wd):
+        self.wd = wd
 
-def get_short_version(project_folder):
-    '''
-    Return the short git commit version
-    '''
-    if is_dirty(project_folder):
-        exit('Error: uncommited changes of this repo exist')
+    def is_dirty(self):
+        print 'Check the git status of "%s"' % self.wd
+        status = os.popen('git -C %s status -s' % self.wd).read().strip()
+        if status != '':
+            print 'Folder %s has uncommited changes' % self.wd
+            print status
+            return True
+        return False
 
-    short_version = os.popen('git -C %s rev-parse --short HEAD' % project_folder).read().strip()
+    def get_tag(self):
+        # Get git tag of the working directory
+        print 'Get git tag of "%s"' % self.wd
+        if self.is_dirty():
+            return ""
+        else:
+            tag = os.popen('git -C %s describe --tags --exact-match' % self.wd).read().strip()
+            return tag
 
-    return short_version
+    def get_remote_info(self):
+        print 'Get remote info of "%s"' % self.wd
+        # The the repo information of the working directory
+        remote = os.popen('git config --get remote.origin.url').read().strip()
+        return remote
+
+    def get_sha_version(self):
+        print 'Get sha version of "%s"' % self.wd
+        if self.is_dirty():
+            return ""
+
+        short_version = os.popen('git -C %s rev-parse --short HEAD' % self.wd).read().strip()
+
+        return short_version

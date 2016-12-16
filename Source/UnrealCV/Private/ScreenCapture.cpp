@@ -55,14 +55,20 @@ bool DoCaptureScreen(UGameViewportClient *ViewportClient, const FString& Capture
 		return bScreenshotSuccessful;
 }
 
-FExecStatus FScreenCapture::GetCameraViewAsyncQuery(const FString& FullFilename)
+extern FString GetDiskFilename(FString Filename);
+
+FExecStatus FScreenCapture::GetCameraViewAsyncQuery(const FString& Filename)
 {
 		// Method 1: Use custom ViewportClient
 		// UMyGameViewportClient* ViewportClient = (UMyGameViewportClient*)Character->GetWorld()->GetGameViewport();
 		// ViewportClient->CaptureScreen(FullFilename);
 
 		// Method2: System screenshot function
+		const FString Dir = FPlatformProcess::BaseDir(); // TODO: Change this to screen capture folder
+		FString FullFilename = FPaths::Combine(*Dir, *Filename);
+
 		FScreenshotRequest::RequestScreenshot(FullFilename, false, false); // This is an async operation
+		// It is important to pass in the FullFilename
 
 		// Implement 2, Start async and query
 		// FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateRaw(this, &FCameraCommandHandler::CheckStatusScreenshot);
@@ -75,6 +81,7 @@ FExecStatus FScreenCapture::GetCameraViewAsyncQuery(const FString& FullFilename)
 			else
 			{
 				FString DiskFilename = IFileManager::Get().GetFilenameOnDisk(*FullFilename); // This is important
+				// FString DiskFilename = IFileManager::Get().GetFilenameOnDisk(*FullFilename); // This is important
 				// See: https://wiki.unrealengine.com/Packaged_Game_Paths,_Obtain_Directories_Based_on_Executable_Location.
 				return FExecStatus::OK(DiskFilename);
 			}
@@ -140,7 +147,8 @@ FExecStatus GetCameraViewSync(const FString& FullFilename)
 	// This can only work within editor
 	// Reimplement a GameViewportClient is required according to the discussion from here
 	// https://forums.unrealengine.com/showthread.php?50857-FViewPort-ReadPixels-crash-while-play-on-quot-standalone-Game-quot-mode
-	UGameViewportClient* ViewportClient = GWorld->GetGameViewport();
+	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	UGameViewportClient* ViewportClient = World->GetGameViewport();
 	if (DoCaptureScreen(ViewportClient, FullFilename))
 	{
 		return FExecStatus::OK(FullFilename);

@@ -7,5 +7,7 @@
 Binaries/
 Intermediate/
 Config/
+built/
 
 *.ipynb_checkpoints/
+core

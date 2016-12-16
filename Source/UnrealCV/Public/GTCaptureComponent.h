@@ -6,8 +6,8 @@ struct FGTCaptureTask
 {
 	FString Mode;
 	FString Filename;
-	FAsyncRecord* AsyncRecord;
 	uint64 CurrentFrame;
+	FAsyncRecord* AsyncRecord;
 	FGTCaptureTask() {}
 	FGTCaptureTask(FString InMode, FString InFilename, uint64 InCurrentFrame, FAsyncRecord* InAsyncRecord) :
 		Mode(InMode), Filename(InFilename), CurrentFrame(InCurrentFrame), AsyncRecord(InAsyncRecord) {}
@@ -15,7 +15,7 @@ struct FGTCaptureTask
 
 /**
  * Use USceneCaptureComponent2D to export information from the scene.
- * This class needs to be tickable to update the rotation of the USceneCaptureComponent2D 
+ * This class needs to be tickable to update the rotation of the USceneCaptureComponent2D
  */
 UCLASS()
 class UNREALCV_API UGTCaptureComponent : public USceneComponent // , public FTickableGameObject

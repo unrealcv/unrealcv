@@ -21,13 +21,13 @@ public:
 
 	/** Get object location */
 	FExecStatus GetObjectLocation(const TArray<FString>& Args);
-	
+
 	/** Get object rotation */
 	FExecStatus GetObjectRotation(const TArray<FString>& Args);
-	
+
 	/** Set object location */
 	FExecStatus SetObjectLocation(const TArray<FString>& Args);
-	
+
 	/** Set object rotation */
-	FExecStatus SetObjectRotation(const TArray<FString>& Args); 
+	FExecStatus SetObjectRotation(const TArray<FString>& Args);
 };

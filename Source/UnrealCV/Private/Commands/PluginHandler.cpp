@@ -6,12 +6,6 @@ void FPluginCommandHandler::RegisterCommands()
 {
 	FDispatcherDelegate Cmd;
 	FString Help;
-	
-	// Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetPort);
-	// CommandDispatcher->BindCommand("vget /unrealcv/port", Cmd, "Get port from the plugin listening to");
-	// 
-	// Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::SetPort);
-	// CommandDispatcher->BindCommand("vset /unrealcv/port [uint]", Cmd, "Set port the plugin listening to");
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetUnrealCVStatus);
 	Help = "Get the status of UnrealCV plugin";
@@ -37,34 +31,6 @@ FExecStatus FPluginCommandHandler::Echo(const TArray<FString>& Args)
 	return FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
 	// Sync version
 	// return FExecStatus::OK(Args[0]);
-}
-
-FExecStatus FPluginCommandHandler::GetPort(const TArray<FString>& Args)
-{
-	FString Msg = FString::Printf(TEXT("%d"), FUE4CVServer::Get().NetworkManager->PortNum);
-	return FExecStatus::OK(Msg);
-	// return FExecStatus::InvalidArgument;
-}
-
-FExecStatus FPluginCommandHandler::SetPort(const TArray<FString>& Args)
-{
-	if (Args.Num() == 1)
-	{
-		int32 PortNum = FCString::Atoi(*Args[0]);
-		bool IsSuccessful = FUE4CVServer::Get().NetworkManager->Start(PortNum);
-		if (IsSuccessful)
-		{
-			return FExecStatus::OK();
-		}
-		else
-		{
-			return FExecStatus::Error(FString::Printf(TEXT("Fail to set port to %d"), PortNum));
-		}
-	}
-	else
-	{
-		return FExecStatus::InvalidArgument;
-	}
 }
 
 FExecStatus FPluginCommandHandler::GetUnrealCVStatus(const TArray<FString>& Args)

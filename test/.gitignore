@@ -1,3 +1,2 @@
-*
-!*.py
-!*/
+deprecated/
+.cache/

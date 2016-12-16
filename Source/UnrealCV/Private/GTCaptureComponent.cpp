@@ -12,18 +12,20 @@ DECLARE_CYCLE_STAT(TEXT("GetResource"), STAT_GetResource, STATGROUP_UnrealCV);
 
 void InitCaptureComponent(USceneCaptureComponent2D* CaptureComponent)
 {
+	UWorld* World = FUE4CVServer::Get().GetGameWorld();
 	// Can not use ESceneCaptureSource::SCS_SceneColorHDR, this option will disable post-processing
 	CaptureComponent->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 
 	CaptureComponent->TextureTarget = NewObject<UTextureRenderTarget2D>();
-	CaptureComponent->TextureTarget->InitAutoFormat(640, 480); // TODO: Update this later
+	FServerConfig& Config = FUE4CVServer::Get().Config;
+	CaptureComponent->TextureTarget->InitAutoFormat(Config.Width, Config.Height); 
 
 	/*
-	UGameViewportClient* GameViewportClient = GWorld->GetGameViewport();
+	UGameViewportClient* GameViewportClient = World->GetGameViewport();
 	CaptureComponent->TextureTarget->InitAutoFormat(GameViewportClient->Viewport->GetSizeXY().X,  GameViewportClient->Viewport->GetSizeXY().Y); // TODO: Update this later
 	*/
 
-	CaptureComponent->RegisterComponentWithWorld(GWorld); // What happened for this?
+	CaptureComponent->RegisterComponentWithWorld(World); // What happened for this?
 	// CaptureComponent->AddToRoot(); This is not necessary since it has been attached to the Pawn.
 }
 
@@ -93,6 +95,9 @@ UMaterial* UGTCaptureComponent::GetMaterial(FString InModeName = TEXT(""))
 		MaterialPathMap->Add(TEXT("debug"), TEXT("Material'/UnrealCV/debug.debug'"));
 		// MaterialPathMap->Add(TEXT("object_mask"), TEXT("Material'/UnrealCV/VertexColorMaterial.VertexColorMaterial'"));
 		MaterialPathMap->Add(TEXT("normal"), TEXT("Material'/UnrealCV/WorldNormal.WorldNormal'"));
+
+		FString OpaqueMaterialName = "Material'/UnrealCV/OpaqueMaterial.OpaqueMaterial'";
+		MaterialPathMap->Add(TEXT("opaque"), OpaqueMaterialName);
 	}
 
 	static TMap<FString, UMaterial*>* StaticMaterialMap = nullptr;
@@ -122,14 +127,19 @@ UMaterial* UGTCaptureComponent::GetMaterial(FString InModeName = TEXT(""))
 
 UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, TArray<FString> Modes)
 {
+	UWorld* World = FUE4CVServer::Get().GetGameWorld();
 	UGTCaptureComponent* GTCapturer = NewObject<UGTCaptureComponent>();
 
 	GTCapturer->bIsActive = true;
 	// check(GTCapturer->IsComponentTickEnabled() == true);
 	GTCapturer->Pawn = InPawn; // This GTCapturer should depend on the Pawn and be released together with the Pawn.
-	GTCapturer->AttachTo(InPawn->GetRootComponent());
+
+	// This snippet is from Engine/Source/Runtime/Engine/Private/Components/SceneComponent.cpp, AttachTo
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepRelative, false);
+	ConvertAttachLocation(EAttachLocation::KeepRelativeOffset, AttachmentRules.LocationRule, AttachmentRules.RotationRule, AttachmentRules.ScaleRule);
+	GTCapturer->AttachToComponent(InPawn->GetRootComponent(), AttachmentRules);
 	// GTCapturer->AddToRoot();
-	GTCapturer->RegisterComponentWithWorld(GWorld);
+	GTCapturer->RegisterComponentWithWorld(World);
 
 	for (FString Mode : Modes)
 	{
@@ -139,13 +149,14 @@ UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, TArray<FString> 
 		GTCapturer->CaptureComponents.Add(Mode, CaptureComponent);
 
 		// CaptureComponent needs to be attached to somewhere immediately, otherwise it will be gc-ed
-		CaptureComponent->AttachTo(GTCapturer);
+
+		CaptureComponent->AttachToComponent(GTCapturer, AttachmentRules);
 		InitCaptureComponent(CaptureComponent);
 
 		UMaterial* Material = GetMaterial(Mode);
 		if (Mode == "lit") // For rendered images
 		{
-			FViewMode::Lit(CaptureComponent->ShowFlags);
+			// FViewMode::Lit(CaptureComponent->ShowFlags);
 			CaptureComponent->TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
 			// float DisplayGamma = SceneViewport->GetDisplayGamma();
 		}
@@ -158,7 +169,7 @@ UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, TArray<FString> 
 			CaptureComponent->TextureTarget->TargetGamma = 1;
 			if (Mode == "object_mask") // For object mask
 			{
-				FViewMode::Lit(CaptureComponent->ShowFlags);
+				// FViewMode::Lit(CaptureComponent->ShowFlags);
 				FViewMode::VertexColor(CaptureComponent->ShowFlags);
 			}
 			else if (Mode == "wireframe") // For object mask
@@ -196,7 +207,7 @@ UGTCaptureComponent::UGTCaptureComponent()
 FAsyncRecord* UGTCaptureComponent::Capture(FString Mode, FString InFilename)
 {
 	// Flush location and rotation
-	
+
 	check(CaptureComponents.Num() != 0);
 	USceneCaptureComponent2D* CaptureComponent = CaptureComponents.FindRef(Mode);
 	if (CaptureComponent == nullptr)
@@ -239,11 +250,11 @@ void UGTCaptureComponent::TickComponent(float DeltaTime, enum ELevelTick TickTyp
 	}
 
 	while (!PendingTasks.IsEmpty())
-	{ 
+	{
 		FGTCaptureTask Task;
 		PendingTasks.Peek(Task);
 		uint64 CurrentFrame = GFrameCounter;
-		
+
 		int32 SkipFrame = 1;
 		if (!(CurrentFrame > Task.CurrentFrame + SkipFrame)) // TODO: This is not an elegant solution, fix it later.
 		{ // Wait for the rendering thread to catch up game thread.

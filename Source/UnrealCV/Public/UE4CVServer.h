@@ -5,6 +5,8 @@
 #include "CommandHandler.h"
 #include "CommandDispatcher.h"
 #include "TcpServer.h"
+#include "Tickable.h"
+#include "ServerConfig.h"
 
 class FAsyncRecord
 {
@@ -42,8 +44,6 @@ public:
 	/** Send a string message to connected clients */
 	void SendClientMessage(FString Message);
 
-	/** The underlying class to handle network connection, ip and port are configured here */
-	UNetworkManager* NetworkManager;
 
 	/** Get the singleton */
 	static FUE4CVServer& Get();
@@ -77,8 +77,19 @@ public:
 
 	void RegisterCommandHandlers();
 
-	void InitGWorld();
+	/** Make sure UE4CVServer correctly initialized itself in the GameWorld */
+	bool InitWorld();
+
+	/** Return the GameWorld of the editor or of the game */
+	UWorld* GetGameWorld();
+
+	/** The config of UE4CVServer */
+	FServerConfig Config;
+
+	/** The underlying class to handle network connection, ip and port are configured here */
+	UNetworkManager* NetworkManager;
 private:
+	/** Handlers for UnrealCV commands */
 	TArray<FCommandHandler*> CommandHandlers;
 
 	/** Process pending requests in a tick */
@@ -97,5 +108,5 @@ private:
 
 	/** Handle the raw message from NetworkManager and parse raw message to a FRequest */
 	void HandleRawMessage(const FString& RawMessage);
-	
+
 };

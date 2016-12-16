@@ -1,7 +1,5 @@
-import unittest, threading, random, logging
-from common_conf import *
+import unittest, threading, random, logging, time
 import unrealcv
-from checker import *
 from dev_server import EchoServer, MessageServer, NullServer
 _L = logging.getLogger(__name__)
 
@@ -18,6 +16,26 @@ def no_error(func):
         return result
     return call
 
+def run_tasks(testcase, client, tasks):
+    for task in tasks:
+        cmd = task[0]
+        expect = task[1]
+
+        _L.debug('Cmd: %s' % cmd)
+        response = client.request(cmd)
+        # if response == None:
+        #     testcase.assertTrue(False, 'Can not connect to UnrealCV server')
+        #     return
+
+        _L.debug('Response: %s' % repr(response))
+        # Need to lock until I got a reply
+        # print reply
+
+        error_message = 'cmd: %s, expect: %s, response %s' % (cmd, str(expect), response)
+        if expect == None or isinstance(expect, str):
+            testcase.assertEqual(response, expect, error_message)
+        else:
+            testcase.assertTrue(expect(response), error_message)
 
 class TestUE4CVClient(unittest.TestCase):
     '''

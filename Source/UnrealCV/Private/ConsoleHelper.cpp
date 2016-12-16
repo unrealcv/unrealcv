@@ -19,7 +19,8 @@ FConsoleHelper::FConsoleHelper()
 
 	IConsoleObject* VRunCmd = IConsoleManager::Get().RegisterConsoleCommand(
 		TEXT("vrun"),
-		TEXT("Exec alias"),
+		// TEXT("Exec alias"),
+		TEXT("Exec Unreal Engine commands"),
 		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FConsoleHelper::VRun)
 		);
 }
@@ -52,19 +53,21 @@ void FConsoleHelper::VRun(const TArray<FString>& Args)
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set"));
 	}
-	// Provide support to alias
-	if (Args.Num() == 1)
+	FString Cmd = "vrun ";
+	uint32 NumArgs = Args.Num();
+	if (NumArgs == 0) return;
+
+	for (uint32 ArgIndex = 0; ArgIndex < NumArgs-1; ArgIndex++)
 	{
-		FString Alias = Args[0];
-		FString Cmd = FString::Printf(TEXT("vrun %s"), *Alias);
-		FUE4CVServer::Get().InitGWorld();
-		FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
-		GetConsole()->Log(ExecStatus.GetMessage());
+		Cmd += Args[ArgIndex] + " ";
 	}
-	else
-	{
-		UE_LOG(LogUnrealCV, Error, TEXT("Alias can not support extra parameters"));
-	}
+	Cmd += Args[NumArgs-1]; // Maybe a more elegant implementation for joining string
+	FUE4CVServer::Get().InitWorld();
+	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
+	UE_LOG(LogUnrealCV, Warning, TEXT("vrun helper function, the real command is %s"), *Cmd);
+	// In the console mode, output should be writen to the output log.
+	UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *ExecStatus.GetMessage());
+	GetConsole()->Log(ExecStatus.GetMessage());
 }
 
 void FConsoleHelper::VGet(const TArray<FString>& Args)
@@ -84,7 +87,7 @@ void FConsoleHelper::VGet(const TArray<FString>& Args)
 		Cmd += Args[ArgIndex] + " ";
 	}
 	Cmd += Args[NumArgs-1]; // Maybe a more elegant implementation for joining string
-	FUE4CVServer::Get().InitGWorld();
+	FUE4CVServer::Get().InitWorld();
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
 	UE_LOG(LogUnrealCV, Warning, TEXT("vget helper function, the real command is %s"), *Cmd);
 	// In the console mode, output should be writen to the output log.
@@ -107,7 +110,7 @@ void FConsoleHelper::VSet(const TArray<FString>& Args)
 		Cmd += Args[ArgIndex] + " ";
 	}
 	Cmd += Args[NumArgs-1];
-	FUE4CVServer::Get().InitGWorld();
+	FUE4CVServer::Get().InitWorld();
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
 	// Output result to the console
 	UE_LOG(LogUnrealCV, Warning, TEXT("vset helper function, the real command is %s"), *Cmd);

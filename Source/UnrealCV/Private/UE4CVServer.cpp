@@ -7,19 +7,24 @@
 #include "CameraHandler.h"
 #include "ObjectHandler.h"
 #include "PluginHandler.h"
+#include "ActionHandler.h"
+#include "AliasHandler.h"
+#if WITH_EDITOR
+#include "UnrealEd.h"
+#endif
 
 /** Only available during game play */
 APawn* FUE4CVServer::GetPawn()
 {
-	static APawn* Pawn = nullptr;
 	static UWorld* CurrentWorld = nullptr;
-	if (Pawn == nullptr || CurrentWorld != GWorld)
+	UWorld* World = GetGameWorld();
+	if (CurrentWorld != World)
 	{
-		APlayerController* PlayerController = GWorld->GetFirstPlayerController();
+		APlayerController* PlayerController = World->GetFirstPlayerController();
 		check(PlayerController);
 		Pawn = PlayerController->GetPawn();
 		check(Pawn);
-		CurrentWorld = GWorld;
+		CurrentWorld = World;
 	}
 	return Pawn;
 }
@@ -48,6 +53,8 @@ void FUE4CVServer::RegisterCommandHandlers()
 	CommandHandlers.Add(new FObjectCommandHandler(CommandDispatcher));
 	CommandHandlers.Add(new FCameraCommandHandler(CommandDispatcher));
 	CommandHandlers.Add(new FPluginCommandHandler(CommandDispatcher));
+	CommandHandlers.Add(new FActionCommandHandler(CommandDispatcher));
+	CommandHandlers.Add(new FAliasCommandHandler(CommandDispatcher));
 	for (FCommandHandler* Handler : CommandHandlers)
 	{
 		Handler->RegisterCommands();
@@ -56,6 +63,9 @@ void FUE4CVServer::RegisterCommandHandlers()
 
 FUE4CVServer::FUE4CVServer()
 {
+	Config.Load();
+	Config.Save(); // Save the configuration back to disk
+
 	// Code defined here should not use FUE4CVServer::Get();
 	NetworkManager = NewObject<UNetworkManager>();
 	CommandDispatcher = new FCommandDispatcher();
@@ -70,28 +80,75 @@ FUE4CVServer::~FUE4CVServer()
 	// this->NetworkManager->FinishDestroy(); // TODO: Check is this usage correct?
 }
 
+UWorld* FUE4CVServer::GetGameWorld()
+{
+	UWorld* World = nullptr;
+	// The correct way to get GameWorld;
+#if WITH_EDITOR
+	UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine); // TODO: check which macro can determine whether I am in editor
+	if (EditorEngine != nullptr)
+	{
+		World = EditorEngine->PlayWorld;
+		if (World != nullptr && World->IsValidLowLevel() && World->IsGameWorld())
+		{
+			return World;
+		}
+		else
+		{
+			UE_LOG(LogUnrealCV, Error, TEXT("Can not get PlayWorld from EditorEngine"));
+			return nullptr;
+		}
+	}
+#endif
+
+	UGameEngine* GameEngine = Cast<UGameEngine>(GEngine);
+	if (GameEngine != nullptr)
+	{
+		World = GameEngine->GetGameWorld();
+		if (World != nullptr && World->IsValidLowLevel())
+		{
+			return World;
+		}
+		else
+		{
+			UE_LOG(LogUnrealCV, Error, TEXT("Can not get GameWorld from GameEngine"));
+			return nullptr;
+		}
+	}
+
+	return nullptr;
+}
+
+
 /**
  * Make sure the UE4CVServer is correctly configured.
  */
-void FUE4CVServer::InitGWorld()
+bool FUE4CVServer::InitWorld()
 {
+	UWorld *World = GetGameWorld();
+	if (World == nullptr)
+	{
+		return false;
+	}
 	// Use this to replace BeginPlay()
 	static UWorld *CurrentWorld = nullptr;
-	if (CurrentWorld != GWorld) 
+	if (CurrentWorld != World)
 	{
 		// Invoke this everytime when the GWorld changes
 		// This will happen when the game is stopped and restart in the UE4Editor
-		APlayerController* PlayerController = GWorld->GetFirstPlayerController();
+		APlayerController* PlayerController = World->GetFirstPlayerController();
 		check(PlayerController);
-		APawn* Pawn = PlayerController->GetPawn();
-		check(Pawn);
-		FObjectPainter::Get().SetLevel(Pawn->GetLevel());
-		FObjectPainter::Get().PaintRandomColors();
+		FObjectPainter::Get().Reset(GetPawn()->GetLevel());
+		FObjectPainter::Get().PaintColors();
 
-		FCaptureManager::Get().AttachGTCaptureComponentToCamera(Pawn);
+		FCaptureManager::Get().AttachGTCaptureComponentToCamera(GetPawn());
+		
+		FEngineShowFlags ShowFlags = World->GetGameViewport()->EngineShowFlags;
+		FPlayerViewMode::Get().SaveGameDefault(ShowFlags);
 
-		CurrentWorld = GWorld;
+		CurrentWorld = World;
 	}
+	return true;
 }
 
 // Each tick of GameThread.
@@ -99,7 +156,7 @@ void FUE4CVServer::ProcessPendingRequest()
 {
 	while (!PendingRequest.IsEmpty())
 	{
-		this->InitGWorld();
+		if (!InitWorld()) break;
 
 		FRequest Request;
 		bool DequeueStatus = PendingRequest.Dequeue(Request);

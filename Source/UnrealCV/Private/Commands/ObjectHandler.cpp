@@ -27,19 +27,19 @@ void FObjectCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectName);
 	Help = "[debug] Get the object name";
 	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/name"), Cmd, Help);
-	
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectLocation);
 	Help = "Get object location [x, y, z]";
 	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/location"), Cmd, Help);
-	
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectRotation);
 	Help = "Get object rotation [pitch, yaw, roll]";
 	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/rotation"), Cmd, Help);
-	
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectLocation);
 	Help = "Set object location [x, y, z]";
 	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/location [float] [float] [float]"), Cmd, Help);
-	
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectRotation);
 	Help = "Set object rotation [pitch, yaw, roll]";
 	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/rotation [float] [float] [float]"), Cmd, Help);
@@ -198,9 +198,9 @@ FExecStatus FObjectCommandHandler::SetObjectLocation(const TArray<FString>& Args
 
 		// TODO: Check whether this object is movable
 		float X = FCString::Atof(*Args[1]), Y = FCString::Atof(*Args[2]), Z = FCString::Atof(*Args[3]);
-		FVector NewLocation = FVector(X, Y, Z); 
+		FVector NewLocation = FVector(X, Y, Z);
 		bool Success = Object->SetActorLocation(NewLocation);
-		
+
 		return FExecStatus::OK();
 	}
 	return FExecStatus::InvalidArgument;

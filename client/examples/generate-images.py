@@ -149,7 +149,7 @@ subplot_image(222, depth, 'gray')
 plt.rcParams['figure.figsize'] = (4, 3) # (w, h)
 subplot_image(111, frame['object_mask'])
 
-print '''Here we have the a color map of object instance, then we need to know the color for each object''' 
+print '''Here we have the a color map of object instance, then we need to know the color for each object'''
 
 
 # In[12]:
