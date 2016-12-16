@@ -2,7 +2,11 @@
 A python server to mimic the behavior of unrealcv server
 Useful for development
 '''
-import SocketServer, threading, logging
+import threading, logging, sys
+if (sys.version_info > (3, 0)):
+    import socketserver as SocketServer
+else:
+    import SocketServer
 # import MySocketServer as SocketServer
 SocketServer.ThreadingMixIn.daemon_threads = True
 SocketServer.TCPServer.allow_reuse_address = True

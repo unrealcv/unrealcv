@@ -1,7 +1,11 @@
 '''
 Test the correctness of the dev server, which duplicates the functions of unrealcv server
 '''
-import threading, time, socket, unittest, logging, SocketServer
+import threading, time, socket, unittest, logging, sys
+if (sys.version_info > (3, 0)):
+    import socketserver as SocketServer
+else:
+    import SocketServer
 # from common_conf import *
 from dev_server import MessageServer, MessageTCPHandler
 import unrealcv

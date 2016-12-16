@@ -185,10 +185,10 @@ class TestReceiveHandler(unittest.TestCase):
         cls.echo_server.start()
 
     def handle_message(self, msg):
-        print 'Got server message %s' % repr(msg)
+        print('Got server message %s' % repr(msg))
         res = unrealcv.client.request('ok', 1)
         self.assertEqual(res, 'ok')
-        print 'Server response %s' % res
+        print('Server response %s' % res)
 
     def test_message_handler(self):
         unrealcv.client.connect()
