@@ -30,9 +30,9 @@ class GitUtil:
 
     def get_sha_version(self):
         print 'Get sha version of "%s"' % self.wd
-        if is_dirty(self.wd):
+        if self.is_dirty():
             return ""
 
-        short_version = os.popen('git -C %s rev-parse --short HEAD' % wd).read().strip()
+        short_version = os.popen('git -C %s rev-parse --short HEAD' % self.wd).read().strip()
 
         return short_version
