@@ -10,4 +10,4 @@ rebuild:
 	sh build.sh
 
 clean:
-	rm -rf Intermediate Binaries built
+	rm -rf Intermediate/ Binaries/ built/
