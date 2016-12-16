@@ -1,65 +1,66 @@
-## Setting up development environment
-UnrealCV can be compiled seperately as a plugin as shown in [here](plugin.md#compilation)
-, or be compiled together with an UE4 C++ project. If you just want to produce binaries from a newer version of code. Simply type `make` can produce binary for you.
+# Setting up development environment
+UnrealCV can be compiled as a plugin as shown in [the plugin install instruction](/plugin/usage.md), or be compiled together with an UE4 C++ project.
 
-## Blueprint project or C++ project
+## 1. Create a C++ game project
 
-We suggest developing UnrealCV together with a C++ Unreal Engine project. You can develop UnrealCV with any UE4 C++ project, if the project you are working on is not a C++ project, you can add a C++ class to make it a C++ project.
+UE4 has two types of game projects. Blueprint project and C++ project, in a blueprint project, the game logic is designed by blueprint scripting languages, a specific language created by Unreal Engine team. These two types of projects are easily convertable.
 
-The simplest way is starting from the [playground project](https://github.com/unrealcv/playground). Playground project is a simple UE4 project to show the features or UE4 and UnrealCV, it serves as a development base and test platform for unrealcv team.
+In a C++ project, the plugin code will be compiled together with the game project. We suggest developing UnrealCV together with a C++ Unreal Engine project.
 
-The playground project can be got by
+The simplest way to start is using the [playground project](https://github.com/unrealcv/playground). Playground project is a simple UE4 project to show the features or UE4 and UnrealCV, it serves as a development base and test platform for UnrealCV team.
+
+The playground project is hosted [here](github.com/unrealcv/playground.git) in github. You can get it by
+
 ```
-git clone https://github.com/unrealcv/playground.git
+git clone --recursive https://github.com/unrealcv/playground.git
 ```
 
-- Windows
+UnrealCV is a submodule of this repository. If you cloned the project without `--recursive` and found the folder `Plugins/unrealcv` empty. You can use `git submodule init; git submodule update` to get the UnrealCV code.
 
-    To generate visual studio solution, right click `playground.uproject` and choose `Generate Visual Studio project files`.
+## 2. Compile the C++ project
 
-    The plugin code will be compiled together with the game project.
+### Windows
 
-    ---
+Install visual studio.
 
-- Linux
+To generate visual studio solution, right click `playground.uproject` and choose `Generate Visual Studio project files`.
 
-    ```
-    Under construction
-    ```
+The plugin code will be compiled together with the game project.
 
-    Generate project file and use Makefile
+### Linux
 
-    ---
+- Compile UE4 from source code following [this instruction](https://wiki.unrealengine.com/Building_On_Linux)
 
-- Mac
+- Put this to your `.bashrc` or `.zshrc`
 
-    Ask @siyuan how to compile in Mac.
+```bash
+# Modify to a path that specified in step 1
+export UE4=/home/qiuwch/UnrealEngine/4.13
+UE4Editor() { bin=${UE4}/Engine/Binaries/Linux/UE4Editor; file=`pwd`/$1; $bin $file; }
+UE4GenerateProjectFiles() {
+  bin=${UE4}/GenerateProjectFiles.sh; file=`pwd`/$1;
+  $bin -project=${file} -game -engine;
+}
+```
 
----
-## Code Documentation
+- Generate project file and use Makefile
 
-The C++ source code of the plugin is documented with doxygen. You can generate the document for code by running `cd docs/doxygen; doxygen`. An online version is hosted [here](https://codedocs.xyz/unrealcv/unrealcv/).
+```bash
+UE4GenerateProjectFiles playground.uproject
+make playgroundEditor
+# or make playgroundEditor-Linux-Debug
+UE4Editor playground.uproject
+```
 
----
-## UnrealCV Architecture
+### Mac
 
-The initialization procedure of UnrealCV. The module loaded and start a TCP server waiting for connection. Commands will be parsed by regexp.
+TODO: Need help
+<!-- TODO -->
 
----
-The code is here {{ config.extra.codebas }}
+## Next
 
-## Project Layout
-    client/            # Client code for Python and MATLAB
-        examples/      # Examples showing how to use client code to do tasks
-        matlab/
-        python/
-        scripts/       # Scripts for automatic tasks, such as Jenkins build
-    Content/           # Plugin data
-    docs/              # Documentation of UnrealCV
-    Resources/         # Plugin resource
-    Source/            # Plugin C++ source code
-    test/              # Test code
-    UnrealCV.uplugin   #
-    README.md
+After finishing setting up the development environment, you can write code to do more tasks beyond UnrealCV already provides. Tutorial [add a new command](plugin/add-command.md) shows how to add a new UnrealCV command to the plugin.
 
----
+Useful resources for development are:
+- [Code documentation](plugin/api-docs.md)
+- [Project architecture](reference/arch.md)

@@ -1,6 +1,6 @@
-Prerequisite: Read [development setup](plugin/dev.md) to make sure you know how to compile the plugin.
+Prerequisite: Read [development setup](/plugin/dev.md) to make sure you know how to compile the plugin.
 
-UnrealCV provides a rich set of commands for accomplishing tasks and the list is growing. But it might not be sufficient for your task. If you need any functions that is missing. You can [contact us](), or try to implement it yourself.
+UnrealCV provides a rich set of commands for accomplishing tasks and the list is growing. But it might not be sufficient for your task. If you need any functions that is missing, you can try to implement it yourself.
 
 The benefit of implementing an UnrealCV command are:
 
