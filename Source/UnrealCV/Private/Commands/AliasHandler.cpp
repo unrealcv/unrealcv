@@ -16,16 +16,17 @@ void FAliasCommandHandler::RegisterCommands()
 FExecStatus FAliasCommandHandler::VRun(const TArray<FString>& Args)
 {
 	FString Cmd = "";
-	
+
 	uint32 NumArgs = Args.Num();
 	for (uint32 ArgIndex = 0; ArgIndex < NumArgs-1; ArgIndex++)
 	{
 		Cmd += Args[ArgIndex] + " ";
 	}
-	Cmd += Args[NumArgs-1]; 
-	check(GWorld->IsGameWorld());
-	// GWorld->Exec(GWorld, *Cmd, *GetConsole());
-	APlayerController* PlayerController = GWorld->GetFirstPlayerController();
+	Cmd += Args[NumArgs-1];
+	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	check(World->IsGameWorld());
+
+	APlayerController* PlayerController = World->GetFirstPlayerController();
 	PlayerController->ConsoleCommand(Cmd, true);
 	return FExecStatus::OK();
 }
