@@ -46,16 +46,6 @@ def get_project_name(projectfile):
         print 'Error %s is not a valid project file' % projectfile
     return os.path.basename(projectfile).replace('.uproject', '')
 
-def get_platform_name():
-    platform = sys.platform # Map from python platform name to ue4 platform name
-    names = {
-        'cygwin': 'Win64', # could be win32 also
-        'win32': 'Win64',
-        'win64': 'Win64',
-        'linux2': 'Linux',
-        'darwin': 'Mac',
-        }
-    return names[platform]
 
 def platform_function(**kwargs):
     platform_name = get_platform_name()
