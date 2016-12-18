@@ -5,6 +5,7 @@ This ipython notebook can be found in [client/examples/generate-images.ipynb](ht
 
 First, we need to load some python libraries for this tutorial.
 
+<b>In[1]:</b>
 
 ```python
 import os, sys, time, re, json
@@ -21,6 +22,7 @@ import matplotlib.pyplot as plt
 
 ## Connect to the game
 
+<b>In[2]:</b>
 
 ```python
 # Load unrealcv python client, do `pip install unrealcv` first.
@@ -29,10 +31,13 @@ client.connect()
 if not client.isconnected():
     print 'UnrealCV server is not running. Run the game downloaded from http://unrealcv.github.io first.'
 ```
+<b>Out[2]:</b>
+```no-highlight
+INFO:__init__:204:Got connection confirm: 'connected to RealisticRendering'
 
-    INFO:__init__:204:Got connection confirm: 'connected to RealisticRendering'
+```
 
-
+<b>In[3]:</b>
 
 ```python
 # You can use this to show help message of a function
@@ -40,23 +45,27 @@ if not client.isconnected():
 # client.request?
 ```
 
+<b>In[4]:</b>
 
 ```python
 # Test connection
 res = client.request('vget /unrealcv/status')
 print res
 ```
+<b>Out[4]:</b>
+```no-highlight
+Is Listening
+Client Connected
+9000
 
-    Is Listening
-    Client Connected
-    9000
-    
 
+```
 
 ## Read a camera trajectory from a file
 
 Define a function to read a camera trajectory from a file
 
+<b>In[5]:</b>
 
 ```python
 def read_camera_info(filename):
@@ -79,32 +88,39 @@ def read_camera_info(filename):
 
 We will read a camera trajectory from `realistic_rendering_camera_info.txt`. This file contains a camera trajectory with 10 frames. The camera trajectory recorded using another python script.
 
+<b>In[6]:</b>
 
 ```python
 !head -n 6 ./realistic_rendering_camera_info.txt
 ```
+<b>Out[6]:</b>
+```no-highlight
+0001.png
+0.000 0.000 136.335
+341.382 297.717 0.000
+0002.png
+69.022 -11.622 126.405
+345.077 72.858 0.000
 
-    0001.png
-    0.000 0.000 136.335
-    341.382 297.717 0.000
-    0002.png
-    69.022 -11.622 126.405
-    345.077 72.858 0.000
+```
 
-
+<b>In[7]:</b>
 
 ```python
 camera_pos = read_camera_info('./realistic_rendering_camera_info.txt')
 print camera_pos[0] # camera location and rotation
 ```
+<b>Out[7]:</b>
+```no-highlight
+([0.0, 0.0, 136.335], [341.382, 297.717, 0.0])
 
-    ([0.0, 0.0, 136.335], [341.382, 297.717, 0.0])
-
+```
 
 ## Render images using the camera trajectory
 
 Define a function to render an image and its annotation
 
+<b>In[8]:</b>
 
 ```python
 def render_frame(client, cam_pose=None):
@@ -132,6 +148,7 @@ def render_frame(client, cam_pose=None):
 
 Define a utility function for plotting rendered images
 
+<b>In[9]:</b>
 
 ```python
 def subplot_image(sub_index, image, param=None):
@@ -143,6 +160,7 @@ def subplot_image(sub_index, image, param=None):
 
 ```
 
+<b>In[10]:</b>
 
 ```python
 pos = camera_pos[0]
@@ -160,7 +178,7 @@ subplot_image(222, depth, 'gray')
 # for demostration purpose, we just render one frame. If you want to generate all frames of the trajectory
 # simply do frames = [render_frame(client, pos) for pos in camera_pos]
 ```
-
+<b>Out[10]:</b>
 
 ![png](generate-images_files/generate-images_19_0.png)
 
@@ -169,6 +187,7 @@ subplot_image(222, depth, 'gray')
 Notice: this is a slow and very inefficient implementation. we are working on improving it.
 If you have suggestion about how to improve, please contact Weichao Qiu (qiuwch@gmail.com)
 
+<b>In[11]:</b>
 
 ```python
 plt.rcParams['figure.figsize'] = (4, 3) # (w, h)
@@ -176,24 +195,30 @@ subplot_image(111, frame['object_mask'])
 
 print '''Here we have the a color map of object instance, then we need to know the color for each object''' 
 ```
+<b>Out[11]:</b>
+```no-highlight
+Here we have the a color map of object instance, then we need to know the color for each object
 
-    Here we have the a color map of object instance, then we need to know the color for each object
-
+```
 
 
 ![png](generate-images_files/generate-images_21_1.png)
 
 
+<b>In[12]:</b>
 
 ```python
 # Get a list of all objects in the scene
 scene_objects = client.request('vget /objects').split(' ')
 print 'There are %d objects in this scene' % len(scene_objects)
 ```
+<b>Out[12]:</b>
+```no-highlight
+There are 295 objects in this scene
 
-    There are 295 objects in this scene
+```
 
-
+<b>In[13]:</b>
 
 ```python
 class Color(object):
@@ -222,6 +247,7 @@ def subplot_color(index, color, title):
 
 If we want to know the color of a specific object, we can use command `vget /object/[str]/color`. `[str]` is the object name. We first iterate all objects of the scene and get their color.
 
+<b>In[14]:</b>
 
 ```python
 def get_color_mapping(client, object_list):
@@ -233,6 +259,7 @@ def get_color_mapping(client, object_list):
 
 ```
 
+<b>In[15]:</b>
 
 ```python
 # Plot the annotation color for some objects. This cell might take about one minute
@@ -246,12 +273,14 @@ for i in range(len(selected_objects)):
     color = color_mapping[object_name]
     subplot_color(baseindex+i, color, object_name)
 ```
+<b>Out[15]:</b>
+```no-highlight
+WallPiece1_22 (R=63,G=255,B=127,A=255)
+SM_Shelving_6 (R=63,G=63,B=127,A=255)
+SM_Couch_1seat_5 (R=255,G=0,B=255,A=255)
+SM_Frame_39 (R=127,G=63,B=0,A=255)
 
-    WallPiece1_22 (R=63,G=255,B=127,A=255)
-    SM_Shelving_6 (R=63,G=63,B=127,A=255)
-    SM_Couch_1seat_5 (R=255,G=0,B=255,A=255)
-    SM_Frame_39 (R=127,G=63,B=0,A=255)
-
+```
 
 
 ![png](generate-images_files/generate-images_26_1.png)
@@ -259,6 +288,7 @@ for i in range(len(selected_objects)):
 
 Given we know the labeling color for each object, we can compute the object instance mask for each object.
 
+<b>In[16]:</b>
 
 ```python
 def match_color(color_image, target_color, tolerance=3): # Tolerance is used to solve numerical issue
@@ -284,6 +314,7 @@ def compute_instance_mask(object_mask, color_mapping, objects):
 
 ```
 
+<b>In[17]:</b>
 
 ```python
 # Compute the binary mask for each object instance
@@ -291,6 +322,7 @@ dic_instance_mask = compute_instance_mask(frame['object_mask'], color_mapping, s
 # dic_instance_mask[object_name] can return the binary mask of the object
 ```
 
+<b>In[18]:</b>
 
 ```python
 # Do some correctness test
@@ -300,10 +332,13 @@ from ipynb_util import check_coverage
 covered = check_coverage(dic_instance_mask)
 # plt.imshow(covered)
 ```
+<b>Out[18]:</b>
+```no-highlight
+Coverage 1.00
 
-    Coverage 1.00
+```
 
-
+<b>In[19]:</b>
 
 ```python
 def plot_image_with_mask(image, mask):
@@ -319,6 +354,7 @@ def plot_image_with_mask(image, mask):
 
 ```
 
+<b>In[20]:</b>
 
 ```python
 # Load object category for each object
@@ -327,6 +363,7 @@ with open('object_category.json') as f:
 categories = set(dic_objects_category.values())
 ```
 
+<b>In[21]:</b>
 
 ```python
 print 'Num of objects in the scene:', len(scene_objects)
@@ -342,35 +379,38 @@ for obj_type in categories:
     if len(objects) != 0:
         print '%20s : %s' % (obj_type, objects)
 ```
+<b>Out[21]:</b>
+```no-highlight
+Num of objects in the scene: 295
+Num of objects in this image: 18
+All objects in this image
+       Category Name : Object Name
+                Wire : ['Wire1_17']
+            Shelving : ['SM_Shelving_10']
+               Couch : ['Couch_13']
+                 Mug : ['Mug_30']
+                Book : ['BookLP_182']
+             Curtain : ['SM_Curtain_43', 'SM_Curtain_42', 'SM_Curtain_45']
+              Statue : ['Statue_48']
+          Trim_Floor : ['S_Trim_Floor_10']
+              Carpet : ['Carpet_5']
+           FloorLamp : ['SM_FloorLamp_5']
+         EditorPlane : ['EditorPlane_33']
+               Frame : ['SM_Frame_38']
+           WallPiece : ['WallPiece6_32', 'WallPiece1_22']
+        SlidingDoors : ['SlidingDoors_5']
+         CoffeeTable : ['SM_CoffeeTable_14']
 
-    Num of objects in the scene: 295
-    Num of objects in this image: 18
-    All objects in this image
-           Category Name : Object Name
-                    Wire : ['Wire1_17']
-                Shelving : ['SM_Shelving_10']
-                   Couch : ['Couch_13']
-                     Mug : ['Mug_30']
-                    Book : ['BookLP_182']
-                 Curtain : ['SM_Curtain_43', 'SM_Curtain_42', 'SM_Curtain_45']
-                  Statue : ['Statue_48']
-              Trim_Floor : ['S_Trim_Floor_10']
-                  Carpet : ['Carpet_5']
-               FloorLamp : ['SM_FloorLamp_5']
-             EditorPlane : ['EditorPlane_33']
-                   Frame : ['SM_Frame_38']
-               WallPiece : ['WallPiece6_32', 'WallPiece1_22']
-            SlidingDoors : ['SlidingDoors_5']
-             CoffeeTable : ['SM_CoffeeTable_14']
-
+```
 
 If we want to plot the region of an object instance
 
+<b>In[22]:</b>
 
 ```python
 plot_image_with_mask(frame['lit'], dic_instance_mask['SM_DeskLamp_5'])
 ```
-
+<b>Out[22]:</b>
 
     ---------------------------------------------------------------------------
 
@@ -385,6 +425,7 @@ plot_image_with_mask(frame['lit'], dic_instance_mask['SM_DeskLamp_5'])
 
 If we want to plot the region of a category, such as Couch
 
+<b>In[ ]:</b>
 
 ```python
 def get_category_mask(category):
@@ -401,12 +442,14 @@ def get_category_mask(category):
 
 ```
 
+<b>In[ ]:</b>
 
 ```python
 mask = get_category_mask('Couch')
 plot_image_with_mask(frame['lit'], mask)
 ```
 
+<b>In[ ]:</b>
 
 ```python
 print 'The version of this ipython notebook:'

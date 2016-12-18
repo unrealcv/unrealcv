@@ -1,5 +1,4 @@
-# Setting up development environment
-UnrealCV can be compiled as a plugin as shown in [the plugin install instruction](/plugin/usage.md), or be compiled together with an UE4 C++ project.
+UnrealCV can be compiled as a plugin as shown in the [plugin install instruction](/plugin/usage.md), but it you want to modify the plugin source code, compiling it together with an UE4 C++ project will make debug much easier.
 
 ## 1. Create a C++ game project
 
@@ -19,17 +18,17 @@ UnrealCV is a submodule of this repository. If you cloned the project without `-
 
 ## 2. Compile the C++ project
 
-### Windows
+<h3>Windows</h3>
 
-Install visual studio.
+- Install visual studio.
 
-To generate visual studio solution, right click `playground.uproject` and choose `Generate Visual Studio project files`.
+- To generate visual studio solution, right click `playground.uproject` and choose `Generate Visual Studio project files`.
 
-The plugin code will be compiled together with the game project.
+- Open the `*.sln` solution file and build the solution. The plugin code will be compiled together with the game project.
 
-### Linux
+<h3>Linux</h3>
 
-- Compile UE4 from source code following [this instruction](https://wiki.unrealengine.com/Building_On_Linux)
+- Compile UE4 from source code following [this official  instruction](https://wiki.unrealengine.com/Building_On_Linux)
 
 - Put this to your `.bashrc` or `.zshrc`
 
@@ -52,15 +51,17 @@ make playgroundEditor
 UE4Editor playground.uproject
 ```
 
-### Mac
+<h3>Mac</h3>
 
-TODO: Need help
+!!! Tip
+    Need help for writing this section
 <!-- TODO -->
 
-## Next
+<h2>Next</h2>
 
-After finishing setting up the development environment, you can write code to do more tasks beyond UnrealCV already provides. Tutorial [add a new command](plugin/add-command.md) shows how to add a new UnrealCV command to the plugin.
+After setting up the development environment, you can add more commands to UnrealCV by modifying its C++ code. Tutorial [add a new command](/plugin/add-command.md) shows how to add a new UnrealCV command to the plugin.
 
-Useful resources for development are:
-- [Code documentation](plugin/api-docs.md)
-- [Project architecture](reference/arch.md)
+Useful resources for development include:
+
+- [The code API documentation](/reference/api.md)
+- [Project architecture](/reference/arch.md)
