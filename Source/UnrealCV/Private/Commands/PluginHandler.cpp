@@ -37,6 +37,7 @@ FExecStatus FPluginCommandHandler::GetUnrealCVStatus(const TArray<FString>& Args
 {
 	FString Msg;
 	FUE4CVServer& Server = FUE4CVServer::Get(); // TODO: Can not use a copy constructor, need to disable copy constructor
+	
 	if (Server.NetworkManager->IsListening())
 	{
 		Msg += "Is Listening\n";
@@ -54,6 +55,8 @@ FExecStatus FPluginCommandHandler::GetUnrealCVStatus(const TArray<FString>& Args
 		Msg += "No Client Connected\n";
 	}
 	Msg += FString::Printf(TEXT("%d\n"), Server.NetworkManager->PortNum);
+	Msg += "Configuration\n";
+	Msg += FUE4CVServer::Get().Config.ToString();
 	return FExecStatus::OK(Msg);
 }
 
