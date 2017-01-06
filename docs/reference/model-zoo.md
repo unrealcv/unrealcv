@@ -18,7 +18,7 @@ Disclaimer: the game binaries provided in this page are provided by researchers.
 <div id="realistic_rendering"></div>
 
 **Preview:**
-![teaser](/assets/realistic_rendering.png)
+![teaser](/images/realistic_rendering.png)
 
 **Description:**
 
@@ -26,8 +26,8 @@ Realistic Rendering is a demo created by Epic Games to show the rendering power 
 
 **Download:**
 
-- [Windows]({{ bin_host }}/{{ bin_filename }})
+- [Windows](http://www.cs.jhu.edu/~qiuwch/unrealcv/binaries//RealisticRendering-Win64-65d6144-171cd97.zip)
 
-- [Linux]() (Tested in Ubuntu 14.04)
+- [Linux](http://www.cs.jhu.edu/~qiuwch/unrealcv/binaries//RealisticRendering-Linux-65d6144-171cd97.zip) (Tested in Ubuntu 14.04)
 
-- [Mac]()
+- [Mac](http://www.cs.jhu.edu/~qiuwch/unrealcv/binaries//RealisticRendering-Mac-65d6144-c25660b.zip)

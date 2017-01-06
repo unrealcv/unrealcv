@@ -10,7 +10,7 @@ pages:
     - "Welcome": index.md
     - "Getting started": getting-started.md
     - "Game Mode":
-        - "Generate images": "game/generate-images.md"
+        - "Generate images": "ipynb/generate-images.md"
         - "Integrate with external programs": "game/faster-rcnn.md"
         - "Configuration": "game/configuration.md"
     - "Plugin Mode":
@@ -19,7 +19,6 @@ pages:
         - "Package a game": "plugin/package-game.md"
         - "Development setup": plugin/dev.md
         - "Add new UnrealCV commands": plugin/add-command.md
-        - "External": "generate-images.html"
     - "Reference":
         - "Architecture": reference/arch.md
         - "Command List": reference/command.md

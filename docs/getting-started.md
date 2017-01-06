@@ -15,7 +15,7 @@ Use mouse to look around and use keys `w a s d` to navigate, use `q e` to level 
 
 ## 2. UnrealCV commands
 
-UnrealCV provides a set of commands for computer vision research. These commands are used to perform various tasks, such as control camera and get ground truth. The table below summaries commands used in this tutorial. The complete list can be found in [the command list](reference/commands.html) in the reference section.
+UnrealCV provides a set of commands for computer vision research. These commands are used to perform various tasks, such as control camera and get ground truth. The table below summaries commands used in this tutorial. The complete list can be found in [the command list](reference/command.md) in the reference section.
 
 | Command                             | Help                                              |
 |:------------------------------------|:--------------------------------------------------|
@@ -76,4 +76,4 @@ For the game mode, you can use a compiled game binary. You can freely control th
 
 <h3>Articles</h3>
 
-- To fully understand how does UnrealCV work and the technical details, please read its [architecture](/reference/architecture.html) or [our paper](http://arxiv.org/abs/1609.01326). For a complete list of available commands, please read [the command list](/reference/commands.html) in the reference section.
+- To fully understand how does UnrealCV work and the technical details, please read its [architecture](reference/arch.md) or [our paper](http://arxiv.org/abs/1609.01326). For a complete list of available commands, please read [the command list](reference/command.md) in the reference section.
