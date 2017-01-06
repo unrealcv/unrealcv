@@ -8,7 +8,7 @@ In a C++ project, the plugin code will be compiled together with the game projec
 
 The simplest way to start is using the [playground project](https://github.com/unrealcv/playground). Playground project is a simple UE4 project to show the features or UE4 and UnrealCV, it serves as a development base and test platform for UnrealCV team.
 
-The playground project is hosted [here](github.com/unrealcv/playground.git) in github. You can get it by
+The playground project is hosted [here](https://github.com/unrealcv/playground.git) in github. You can get it by
 
 ```
 git clone --recursive https://github.com/unrealcv/playground.git
