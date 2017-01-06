@@ -69,7 +69,7 @@ For the game mode, you can use a compiled game binary. You can freely control th
 
 <h3>Tutorials</h3>
 
-- [How to generate an image dataset](game/generate-images.md)
+- [How to generate an image dataset](ipynb/generate-images.md)
 - [Integrate with a deep learning framework](game/faster-rcnn.md)
 - [Use the plugin in UE4Editor](plugin/usage.md)
 - [Modify code and add a new command](plugin/add-command.md)

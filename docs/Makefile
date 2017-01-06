@@ -4,8 +4,10 @@
 nbconvert=jupyter nbconvert --to markdown --template ./ipynb_template.tpl
 
 ipynb:
-	${nbconvert} ../client/examples/generate-images.ipynb --output-dir ./game
+	${nbconvert} ../client/examples/generate-images.ipynb --output-dir ./ipynb
 
 # Make sure no dead links in the doc.
 check-docs:
 	cd .. && mkdocs build && linkchecker site
+
+.PHONY: ipynb
