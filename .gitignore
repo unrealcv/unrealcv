@@ -10,4 +10,9 @@ Config/
 built/
 
 *.ipynb_checkpoints/
+# Core dump
 core
+
+# Markdown files converted from *.ipynb
+docs/ipynb
+site/
