@@ -31,4 +31,4 @@ After running `faster-rcnn.py`, you are expected to see a message showing the cl
 
 Here we show how to do testing in a virtual scene. If you are interested in training model with synthetic images. Please refer to the tutorial about [generating images](/ipynb/generate-images.md).
 
-If you want the training procedure can also interact with the scene, such as reinforcement learning, please [contact us](/contact.md), we are working on it.
+If you want the training procedure can also interact with the scene, such as reinforcement learning, please join the discussion [here](https://groups.google.com/d/topic/unrealcv/0zFjX_DCe7U/discussion), we are working on it.
