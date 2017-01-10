@@ -11,3 +11,5 @@ UnrealCV helps computer vision researchers build virtual worlds using Unreal Eng
 </center>
 
 Currently, UnrealCV plugin supports UE4 (4.12, 4.13, 4.14) in Windows, Linux and Mac. UnrealCV client supports python and MATLAB (experimental). Read [getting started](getting-started.md) to learn how to use UnrealCV.
+
+This doc is hosted in [readthedocs](https://unrealcv.readthedocs.io). For the doc of a specific version of unrealcv, please see [the version page](https://readthedocs.org/projects/unrealcv/versions/)

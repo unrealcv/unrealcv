@@ -1,4 +1,4 @@
-UnrealCV can be compiled as a plugin as shown in the [plugin install instruction](/plugin/usage.md), but it you want to modify the plugin source code, compiling it together with an UE4 C++ project will make debug much easier.
+UnrealCV can be compiled as a plugin as shown in the [plugin install instruction](/plugin/install.md#compile-from-source-code-advanced), but it you want to modify the plugin source code, compiling it together with an UE4 C++ project will make debug much easier.
 
 ## 1. Create a C++ game project
 
