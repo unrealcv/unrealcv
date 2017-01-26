@@ -1,6 +1,9 @@
+!!! warning
+    This page is under construction
+
 ## The configuration file
 
-Start from UnrealCV v0.3.0, the config of UnrealCV can be configured in a configuration file. Use `vget /unrealcv/status` to see whether the configuration is correctly loaded.
+Start from UnrealCV v0.3.1, the config of UnrealCV can be configured in a configuration file. Use `vget /unrealcv/status` to see current configuration.
 
 ## Change game resolution
 
