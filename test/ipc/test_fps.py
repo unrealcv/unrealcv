@@ -1,4 +1,4 @@
-import unittest, time, random
+import unittest, time, random, argparse
 
 import sys; sys.path.append('..')
 from testcfg import client
@@ -15,31 +15,90 @@ class FPSCounter:
             self.start_index = current_index
             self.start_time = current_time
 
-class FPSTestCase(unittest.TestCase):
-    def setUp(self):
-        client.connect()
+def test_move():
+    counter = FPSCounter()
+    loc = client.request('vget /camera/0/location').split(' ')
+    rot = client.request('vget /camera/0/rotation').split(' ')
 
-    def test_get_lit(self):
-        counter = FPSCounter()
-        loc = client.request('vget /camera/0/location').split(' ')
-        rot = client.request('vget /camera/0/rotation').split(' ')
+    n_iter = 100
+    print 'Run command for %d iteration, will take some time' % n_iter
+    for i in range(n_iter):
+        counter.tick(i)
+        jitter = [random.random() * 10 for _ in range(3)]
+        loc = [str(float(a)+b) for (a,b) in zip(loc, jitter)]
+        rot = [str(float(a)+b) for (a,b) in zip(rot, jitter)]
 
-        n_iter = 100
-        print 'Run command for %d iteration, will take some time' % n_iter
-        for i in range(n_iter):
-            counter.tick(i)
-            jitter = [random.random() * 10 for _ in range(3)]
-            loc = [str(float(a)+b) for (a,b) in zip(loc, jitter)]
-            rot = [str(float(a)+b) for (a,b) in zip(rot, jitter)]
+        res = client.request('vset /camera/0/location %s' % ' '.join(loc))
+        res = client.request('vset /camera/0/rotation %s' % ' '.join(rot))
 
-            res = client.request('vset /camera/0/location %s' % ' '.join(loc))
-            res = client.request('vset /camera/0/rotation %s' % ' '.join(rot))
-            res = client.request('vget /camera/0/lit')
+def test_lit():
+    counter = FPSCounter()
+    loc = client.request('vget /camera/0/location').split(' ')
+    rot = client.request('vget /camera/0/rotation').split(' ')
+
+    n_iter = 100
+    print 'Run command for %d iteration, will take some time' % n_iter
+    for i in range(n_iter):
+        counter.tick(i)
+        jitter = [random.random() * 10 for _ in range(3)]
+        loc = [str(float(a)+b) for (a,b) in zip(loc, jitter)]
+        rot = [str(float(a)+b) for (a,b) in zip(rot, jitter)]
+
+        res = client.request('vset /camera/0/location %s' % ' '.join(loc))
+        res = client.request('vset /camera/0/rotation %s' % ' '.join(rot))
+        res = client.request('vget /camera/0/lit')
+
+def test_depth():
+    counter = FPSCounter()
+
+    n_iter = 100
+    print 'Run command for %d iteration, will take some time' % n_iter
+    for i in range(n_iter):
+        counter.tick(i)
+        jitter = [random.random() * 10 for _ in range(3)]
+        loc = [str(float(a)+b) for (a,b) in zip(loc, jitter)]
+        rot = [str(float(a)+b) for (a,b) in zip(rot, jitter)]
+
+        res = client.request('vset /camera/0/location %s' % ' '.join(loc))
+        res = client.request('vset /camera/0/rotation %s' % ' '.join(rot))
+        res = client.request('vget /camera/0/lit')
+
+def test_sync():
+    counter = FPSCounter()
+    n_iter = 100
+    for i in range(n_iter):
+        counter.tick(i)
+        res = client.request('vget /unrealcv/sync %s' % 'hi')
+
+def test_async():
+    counter = FPSCounter()
+    n_iter = 100
+    for i in range(n_iter):
+        counter.tick(i)
+        res = client.request('vset /unrealcv/async %s' % 'hi')
+
 
 # test_suite = unittest.TestLoader().loadTestsFromTestCase(FPSTestCase)
 if __name__ == '__main__':
     # unittest.main()
-
-    suite = unittest.TestSuite()
-    suite.addTest(FPSTestCase("test_get_lit"))
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    client.connect()
+    # test_sync()
+    # test_lit()
+    # test_move()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--sync', action='store_true')
+    parser.add_argument('--async', action='store_true')
+    parser.add_argument('--move', action='store_true')
+    parser.add_argument('--lit', action='store_true')
+    parser.add_argument('--depth', action='store_true')
+    args = parser.parse_args()
+    if args.sync:
+        test_sync()
+    if args.async:
+        test_async()
+    if args.move:
+        test_move()
+    if args.lit:
+        test_lit()
+    if args.depth:
+        test_depth()
