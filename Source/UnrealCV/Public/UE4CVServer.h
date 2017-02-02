@@ -66,8 +66,7 @@ public:
 
 	virtual bool IsTickableWhenPaused() const
 	{
-		// return bIsTicking;
-		return false; // Not processing request when game is paused.
+		return bIsTicking; // Need to keep processing commands when game is paused
 	}
 
 	virtual TStatId GetStatId() const

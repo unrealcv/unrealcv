@@ -140,6 +140,7 @@ UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, TArray<FString> 
 	GTCapturer->AttachToComponent(InPawn->GetRootComponent(), AttachmentRules);
 	// GTCapturer->AddToRoot();
 	GTCapturer->RegisterComponentWithWorld(World);
+	GTCapturer->SetTickableWhenPaused(true);
 
 	for (FString Mode : Modes)
 	{
