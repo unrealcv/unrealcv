@@ -4,7 +4,7 @@ This page briefly describes how to install UnrealCV as a UE4 plugin. Make sure y
 
 ## Use compiled plugin binary
 
-You can download compiled UnrealCV binaries from our [github release page](https://github.com/unrealcv/unrealcv/releases). Then copy the compiled binaries to the plugins folder to install it. The plugin can support 4.12, 4.13 and 4.14. Compiled binaries are provided for 4.13, if you need a version other than that, you can [send us a request](/contact.md) or build it yourself by following [the instruction](#compile-from-source-code-advanced). You can install the plugin to either a game project or to UE4 engine.
+You can download compiled UnrealCV binaries from our [github release page](https://github.com/unrealcv/unrealcv/releases). Then copy the compiled binaries to the plugins folder to install it. The plugin can support 4.12, 4.13 and 4.14. Compiled binaries are provided for 4.13, if you need a version other than that, you can [send us a request](https://unrealcv.org/contact.html) or build it yourself by following [the instruction](#compile-from-source-code-advanced). You can install the plugin to either a game project or to UE4 engine.
 
 - Install to project     
     - Go to project folder which contains `[ProjectName].uproject`

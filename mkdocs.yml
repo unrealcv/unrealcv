@@ -26,7 +26,6 @@ pages:
         - "Model zoo": reference/model-zoo.md
         - "API docs": reference/api.md
         - "Issues": reference/issues.md
-    - "Contact": contact.md
 extra:
     version: v0.3.0
     codebase: https://github.com/unrealcv/unrealcv

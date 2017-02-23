@@ -9,7 +9,7 @@ UnrealCV provides commands useful for computer vision researchers. What is more,
 !!! Note
     This command list is growing and subject to change
 
-[Contact us](/contact.md) to tell us what missing functions are needed for your project. We will consider adding it in the future release.
+Reply [this thread](https://groups.google.com/d/topic/unrealcv/EuJlibmTN3c/discussion) to tell us what missing functions are needed for your project. We will consider adding it in the future release.
 
 <!-- Do not use table, very hard to extend, this is manually synced from the source code -->
 
