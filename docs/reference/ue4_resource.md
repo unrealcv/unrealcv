@@ -22,6 +22,6 @@ More related links can be found in [this project](https://github.com/qiuwch/synt
 
 ## C++ Development
 
-- [UE4 API](TODO)
-- [UE4 Answerhub](TODO)
-- [Github repository](https://github.com/EpicGames/UnrealEngine) (This is a private repository, you need to register [here]() before you can access this repository)
+- [UE4 API](https://docs.unrealengine.com/latest/INT/API/)
+- [UE4 Answerhub](https://answers.unrealengine.com/)
+- [Github repository](https://github.com/EpicGames/UnrealEngine) (This is a private repository, you need to register [here](https://www.unrealengine.com/ue4-on-github) before you can access this repository)
