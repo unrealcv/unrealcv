@@ -7,7 +7,7 @@ This tutorial will use a game binary to demonstrate UnrealCV commands. You can a
 First you need to download a game binary from [our model zoo](reference/model-zoo.md). For this tutorial, please download [RealisticRendering](reference/model-zoo.md#realistic_rendering). After unzip and run the binary, you are expected to see a screen like this. The game will be started in a window mode with resolution 640x480, you can change the resolution by [changing the configuration file](game/configuration.md) of UnrealCV.
 
 <center>
-  <img alt="Startup Screenshot" src="/images/rr_init.png" width="300px"/>
+  <img alt="Startup Screenshot" src="images/rr_init.png" width="300px"/>
   <p>Fig.1. Initial screen of the game</p>
 </center>
 
@@ -29,7 +29,7 @@ Unreal Engine provides a built-in console to help developers to debug games. Thi
 (the key on top of tab) twice, a console will pop out, shown in Fig.2. Type in `vset /viewmode object_mask` you are expected to see the object instance mask. Use `vset /viewmode lit` to switch back to normal rendering setting.
 
 <center>
-  <img alt="console" src="/images/console.png"/>
+  <img alt="console" src="images/console.png"/>
   <p>Fig.2 Use console to try UnrealCV commands</p>
 </center>
 
