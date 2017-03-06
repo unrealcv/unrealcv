@@ -35,6 +35,7 @@ namespace UnrealBuildTool.Rules
 				"Slate",
 				"ImageWrapper",
 				"CinematicCamera",
+                "Projects", // Support IPluginManager
 			});
 
 			// PrivateDependency only available in Private folder

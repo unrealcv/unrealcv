@@ -1,5 +1,6 @@
 #include "UnrealCVPrivate.h"
 #include "PluginHandler.h"
+#include "IPluginManager.h"
 #include "UE4CVServer.h"
 
 void FPluginCommandHandler::RegisterCommands()
@@ -18,6 +19,10 @@ void FPluginCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::Echo);
 	Help = "[debug] Echo back all message, for debug";
 	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/echo [str]"), Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetVersion);
+	Help = "Get the version of UnrealCV, the format is v0.*.*";
+	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/version"), Cmd, Help);
 }
 
 FExecStatus FPluginCommandHandler::Echo(const TArray<FString>& Args)
@@ -76,4 +81,21 @@ FExecStatus FPluginCommandHandler::GetCommands(const TArray<FString>& Args)
 	}
 
 	return FExecStatus::OK(Message);
+}
+
+FExecStatus FPluginCommandHandler::GetVersion(const TArray<FString>& Args)
+{
+	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin("UnrealCV");
+	if (!Plugin.IsValid())
+	{
+		return FExecStatus::Error("The plugin is not correctly loaded");
+	}
+	else
+	{
+		FString PluginName = Plugin->GetName();
+		FPluginDescriptor PluginDescriptor = Plugin->GetDescriptor();
+		FString VersionName = PluginDescriptor.VersionName;
+		int32 VersionNumber = PluginDescriptor.Version;
+		return FExecStatus::OK(VersionName);
+	}
 }
