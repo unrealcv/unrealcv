@@ -38,13 +38,7 @@ void FConsoleHelper::SetCommandDispatcher(FCommandDispatcher* InCommandDispatche
 
 FConsoleOutputDevice* FConsoleHelper::GetConsole() // The ConsoleOutputDevice will depend on the external world, so we need to use a get function
 {
-	static FConsoleOutputDevice* ConsoleOutputDevice = nullptr;
-	static UWorld* CurrentWorld = nullptr;
-	if (ConsoleOutputDevice == nullptr || CurrentWorld != GWorld)
-	{
-		ConsoleOutputDevice = new FConsoleOutputDevice(GWorld->GetGameViewport()->ViewportConsole); // TODO: Check the pointers
-	}
-	return ConsoleOutputDevice;
+	return new FConsoleOutputDevice(FUE4CVServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
 }
 
 void FConsoleHelper::VRun(const TArray<FString>& Args)

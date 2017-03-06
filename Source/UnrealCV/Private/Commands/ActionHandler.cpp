@@ -19,7 +19,7 @@ void FActionCommandHandler::RegisterCommands()
 
 FExecStatus FActionCommandHandler::PauseGame(const TArray<FString>& Args)
 {
-	APlayerController* PlayerController = GWorld->GetFirstPlayerController();
+	APlayerController* PlayerController = this->GetWorld()->GetFirstPlayerController();
 	PlayerController->Pause();
 	return FExecStatus::OK();
 }

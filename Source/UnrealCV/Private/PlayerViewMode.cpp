@@ -217,14 +217,14 @@ void FPlayerViewMode::SaveGameDefault(FEngineShowFlags ShowFlags)
 
 void FPlayerViewMode::VertexColor()
 {
-	auto Viewport = GWorld->GetGameViewport();
+	auto Viewport = FUE4CVServer::Get().GetGameWorld()->GetGameViewport();
 	FViewMode::VertexColor(Viewport->EngineShowFlags);
 }
 
 void FPlayerViewMode::NoTransparency()
 {
 	// Iterate over all the materials in the scene and replace transparent materials to non-transparent 
-	for (TActorIterator<AActor> ActorItr(GWorld); ActorItr; ++ActorItr)
+	for (TActorIterator<AActor> ActorItr(FUE4CVServer::Get().GetGameWorld()); ActorItr; ++ActorItr)
 	{
 		// Iterate over all the material of the actor
 		TArray<UActorComponent*> TheComponents;

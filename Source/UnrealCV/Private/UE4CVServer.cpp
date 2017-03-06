@@ -131,7 +131,7 @@ bool FUE4CVServer::InitWorld()
 	static UWorld *CurrentWorld = nullptr;
 	if (CurrentWorld != World)
 	{
-		// Invoke this everytime when the GWorld changes
+		// Invoke this everytime when the World changes
 		// This will happen when the game is stopped and restart in the UE4Editor
 		APlayerController* PlayerController = World->GetFirstPlayerController();
 		check(PlayerController);

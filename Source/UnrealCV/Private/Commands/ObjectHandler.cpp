@@ -123,7 +123,7 @@ FExecStatus FObjectCommandHandler::CurrentObjectHandler(const TArray<FString>& A
 		}
 		// TODO: This is not working well.
 
-		if (GWorld->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility, QueryParams))
+		if (this->GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility, QueryParams))
 		{
 			AActor* HitActor = HitResult.GetActor();
 

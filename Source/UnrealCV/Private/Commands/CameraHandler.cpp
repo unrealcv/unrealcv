@@ -163,7 +163,7 @@ FExecStatus FCameraCommandHandler::GetCameraRotation(const TArray<FString>& Args
 
 		FRotator CameraRotation;
 		ACineCameraActor* CineCameraActor = nullptr;
-		for (AActor* Actor : GWorld->GetCurrentLevel()->Actors)
+		for (AActor* Actor : this->GetWorld()->GetCurrentLevel()->Actors)
 		{
 			// if (Actor && Actor->IsA(AMatineeActor::StaticClass())) // AMatineeActor is deprecated 
 			if (Actor && Actor->IsA(ACineCameraActor::StaticClass()))
@@ -196,7 +196,7 @@ FExecStatus FCameraCommandHandler::GetCameraLocation(const TArray<FString>& Args
 
 		FVector CameraLocation;
 		ACineCameraActor* CineCameraActor = nullptr;
-		for (AActor* Actor : GWorld->GetCurrentLevel()->Actors)
+		for (AActor* Actor : this->GetWorld()->GetCurrentLevel()->Actors)
 		{
 			// if (Actor && Actor->IsA(AMatineeActor::StaticClass())) // AMatineeActor is deprecated 
 			if (Actor && Actor->IsA(ACineCameraActor::StaticClass()))

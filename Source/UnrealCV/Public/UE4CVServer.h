@@ -2,11 +2,13 @@
 
 #pragma once
 
-#include "CommandHandler.h"
+// #include "CommandHandler.h"
 #include "CommandDispatcher.h"
 #include "TcpServer.h"
 #include "Tickable.h"
 #include "ServerConfig.h"
+
+class FCommandHandler;
 
 class FAsyncRecord
 {
