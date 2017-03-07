@@ -34,6 +34,7 @@ FExecStatus FPluginCommandHandler::Echo(const TArray<FString>& Args)
 		return FExecStatus::OK(Msg);
 	});
 	return FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
+
 	// Sync version
 	// return FExecStatus::OK(Args[0]);
 }

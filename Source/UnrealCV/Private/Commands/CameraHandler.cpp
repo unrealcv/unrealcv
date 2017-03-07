@@ -87,6 +87,14 @@ void FCameraCommandHandler::RegisterCommands()
 	Help = "Get current ViewMode";
 	CommandDispatcher->BindCommand("vget /viewmode", Cmd, Help);
 
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetActorLocation);
+	Help = "Get actor location [x, y, z]";
+	CommandDispatcher->BindCommand("vget /actor/location", Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetActorRotation);
+	Help = "Get actor rotation [pitch, yaw, roll]";
+	CommandDispatcher->BindCommand("vget /actor/rotation", Cmd, Help);
+
 	// Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetBuffer);
 	// CommandDispatcher->BindCommand("vget /camera/[uint]/buffer", Cmd, "Get buffer of this camera");
 }
@@ -155,6 +163,8 @@ FExecStatus FCameraCommandHandler::SetCameraRotation(const TArray<FString>& Args
 	return FExecStatus::InvalidArgument;
 }
 
+
+
 FExecStatus FCameraCommandHandler::GetCameraRotation(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1)
@@ -210,8 +220,14 @@ FExecStatus FCameraCommandHandler::GetCameraLocation(const TArray<FString>& Args
 		if (!bIsMatinee)
 		{
 			int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
-			APawn* Pawn = FUE4CVServer::Get().GetPawn();
-			CameraLocation = Pawn->GetActorLocation();
+			// APawn* Pawn = FUE4CVServer::Get().GetPawn();
+			// CameraLocation = Pawn->GetActorLocation();
+			UGTCaptureComponent* CaptureComponent = FCaptureManager::Get().GetCamera(CameraId);
+			if (CaptureComponent == nullptr)
+			{
+				return FExecStatus::Error(FString::Printf(TEXT("Camera %d can not be found."), CameraId));
+			}
+			CameraLocation = CaptureComponent->GetComponentLocation();
 		}
 
 		FString Message = FString::Printf(TEXT("%.3f %.3f %.3f"), CameraLocation.X, CameraLocation.Y, CameraLocation.Z);
@@ -344,4 +360,20 @@ FExecStatus FCameraCommandHandler::GetBuffer(const TArray<FString>& Args)
 	// FSceneViewport* SceneViewport = this->GetWorld()->GetGameViewport()->GetGameViewport();
 	// SceneViewport->TakeHighResScreenShot();
 	return FExecStatus::OK();
+}
+
+FExecStatus FCameraCommandHandler::GetActorRotation(const TArray<FString>& Args)
+{
+	APawn* Pawn = FUE4CVServer::Get().GetPawn();
+	FRotator CameraRotation = Pawn->GetControlRotation();
+	FString Message = FString::Printf(TEXT("%.3f %.3f %.3f"), CameraRotation.Pitch, CameraRotation.Yaw, CameraRotation.Roll);
+	return FExecStatus::OK(Message);
+}
+
+FExecStatus FCameraCommandHandler::GetActorLocation(const TArray<FString>& Args)
+{
+	APawn* Pawn = FUE4CVServer::Get().GetPawn();
+	FVector CameraLocation = Pawn->GetActorLocation();
+	FString Message = FString::Printf(TEXT("%.3f %.3f %.3f"), CameraLocation.X, CameraLocation.Y, CameraLocation.Z);
+	return FExecStatus::OK(Message);
 }

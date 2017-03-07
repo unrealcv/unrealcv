@@ -21,13 +21,18 @@ public:
 	FExecStatus	SetCameraLocation(const TArray<FString>& Args);
 	/** vset /camera/moveto */
 	FExecStatus	MoveTo(const TArray<FString>& Args);
-	/** vget /camera/rotation */
+	/** vget /camera/[id]/rotation */
 	FExecStatus GetCameraRotation(const TArray<FString>& Args);
-	/** vset /camera/rotation */
+	/** vset /camera/[id]/rotation */
 	FExecStatus	SetCameraRotation(const TArray<FString>& Args);
+
+	/** vget /actor/rotation, follow the concept of actor in RL */
+	FExecStatus GetActorRotation(const TArray<FString>& Args);
+	/** vget /actor/location */
+	FExecStatus GetActorLocation(const TArray<FString>& Args);
+
 	/** vget /camera/view */
 	FExecStatus GetScreenshot(const TArray<FString>& Args);
-
 
 	/** Get camera image with a given mode, Get ViewMode data using SceneCaptureComponent, support multi-camera */
 	FExecStatus GetCameraViewMode(const TArray<FString>& Args);

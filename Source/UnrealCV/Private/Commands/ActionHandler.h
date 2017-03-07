@@ -13,4 +13,7 @@ public:
 
 	/** vset /action/game/resume */
 	FExecStatus ResumeGame(const TArray<FString>& Args);
+
+	/** vset /action/eyes_distance [float] */
+	FExecStatus SetStereoDistance(const TArray<FString>& Args);
 };
