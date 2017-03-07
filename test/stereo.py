@@ -1,9 +1,27 @@
-# pytest -s stereo.py
+# pytest -s stereo.py -k [name]
 from unrealcv import client
 import math, random
+from common import iserror, isok
 
-def isok(res):
-    return res == 'ok'
+def get_version():
+    res = client.request('vget /unrealcv/version')
+    if iserror(res):
+        return '0.3.0' # or earlier
+    else:
+        return res
+
+class Version:
+    def __init__(self, data):
+        if isinstance(data, str):
+            # parse vx.y.z
+            [self.x, self.y, self.z] = [int(v) for v in data.lstrip('v').split('.')]
+
+    def __cmp__(self, v):
+        if self.x != v.x:
+            return cmp(self.x, v.x)
+        if self.y != v.y:
+            return cmp(self.y, v.y)
+        return cmp(self.z, v.z)
 
 class Vec3:
     def __init__(self, data):
@@ -35,6 +53,15 @@ def test_vec3():
     b = Vec3([1, 1, 1])
     assert(approx((a-b).l2norm(), math.sqrt(3)))
     assert(approx((a+b).l2norm(), math.sqrt(3)))
+
+def test_version():
+    a = Version('v0.3.0')
+    b = Version('v0.3.1')
+    c = Version('v0.2.3')
+    d = Version('v0.3.0')
+    assert a < b
+    assert a > c
+    assert a == d
 
 def test_camera_distance():
     isok(client.connect())
