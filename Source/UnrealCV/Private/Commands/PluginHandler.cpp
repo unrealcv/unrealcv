@@ -23,6 +23,11 @@ void FPluginCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetVersion);
 	Help = "Get the version of UnrealCV, the format is v0.*.*";
 	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/version"), Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetSceneName);
+	Help = "Get the name of this scene, to make sure the annotation data is for this scene.";
+	CommandDispatcher->BindCommand(TEXT("vget /scene/name"), Cmd, Help);
+
 }
 
 FExecStatus FPluginCommandHandler::Echo(const TArray<FString>& Args)
@@ -99,4 +104,11 @@ FExecStatus FPluginCommandHandler::GetVersion(const TArray<FString>& Args)
 		int32 VersionNumber = PluginDescriptor.Version;
 		return FExecStatus::OK(VersionName);
 	}
+}
+
+
+FExecStatus FPluginCommandHandler::GetSceneName(const TArray<FString>& Args)
+{
+	FString SceneName = FApp::GetGameName();
+	return FExecStatus::OK(SceneName);
 }

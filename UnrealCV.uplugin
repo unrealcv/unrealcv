@@ -1,7 +1,7 @@
 {
     "FileVersion" : 3,
-    "Version" : 2,
-    "VersionName": "0.3.2",
+    "Version" : 3,
+    "VersionName": "0.3.3",
     "FriendlyName": "Unreal CV",
     "Description": "UnrealCV is a plugin to connect computer vision algorithm and the games built by Unreal Engine",
     "Category" : "Science",

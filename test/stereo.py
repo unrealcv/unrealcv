@@ -82,3 +82,10 @@ def test_camera_distance():
             assert approx(actual_dist, expect_dist)
             actor_cam0_distance = (actor_loc - loc1).l2norm()
             assert approx(actor_cam0_distance, 0)
+
+def test_pause():
+    client.connect()
+    print client.request('vset /action/game/pause')
+    print client.request('vget /camera/0/lit')
+    print client.request('vget /camera/1/lit')
+    print client.request('vset /action/game/pause')

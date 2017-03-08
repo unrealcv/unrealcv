@@ -1,4 +1,7 @@
 ## Development
+- v0.3.3  
+  Add `vget /scene/name`
+
 - v0.3.2  
   Add `vget /unrealcv/version`  
   Add `vset /action/eyes_distance`  
