@@ -16,3 +16,6 @@ core
 # Markdown files converted from *.ipynb
 docs/ipynb
 site/
+
+# The built result
+Plugins/
