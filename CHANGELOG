@@ -1,15 +1,12 @@
 ## Development
-- v0.3.3  
-  Add `vget /scene/name`
-
+- v0.3.4 : Delay the object mask painting from initialization code
+- v0.3.3 : Add `vget /scene/name`
 - v0.3.2  
   Add `vget /unrealcv/version`  
   Add `vset /action/eyes_distance`  
   Fix `vget /camera/[id]/location` to support multiple cameras  
   Update test code  
-
-- v0.3.1  
-  Fix GWorld issue
+- v0.3.1 : Fix GWorld issue
 
 ## v0.3.0 - Stability improvement
 

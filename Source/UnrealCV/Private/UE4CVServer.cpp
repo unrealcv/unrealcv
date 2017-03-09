@@ -136,7 +136,6 @@ bool FUE4CVServer::InitWorld()
 		APlayerController* PlayerController = World->GetFirstPlayerController();
 		check(PlayerController);
 		FObjectPainter::Get().Reset(GetPawn()->GetLevel());
-		FObjectPainter::Get().PaintColors();
 
 		FCaptureManager::Get().AttachGTCaptureComponentToCamera(GetPawn());
 
