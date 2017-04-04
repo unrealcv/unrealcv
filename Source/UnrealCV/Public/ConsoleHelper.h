@@ -29,4 +29,6 @@ private:
 	void VSet(const TArray<FString>& Args);
 	/** Register vrun command to UE4 console */
 	void VRun(const TArray<FString>& Args);
+	/** Register vexec command */
+	void VExec(const TArray<FString>& Args);
 };
