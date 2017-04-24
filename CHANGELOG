@@ -1,4 +1,5 @@
 ## Development
+- v0.3.5 : Add vexec to support the invocation of blueprint functions, Add GetWorld() in FCommandHandler.
 - v0.3.4 : Delay the object mask painting from initialization code
 - v0.3.3 : Add `vget /scene/name`
 - v0.3.2  
