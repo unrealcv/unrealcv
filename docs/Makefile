@@ -1,13 +1,7 @@
-# Convert ipynb notebook to markdown documentation
-# An alternative way is linking to ipynb files directly
-#
-nbconvert=jupyter nbconvert --to markdown --template ./ipynb_template.tpl
+html:
+	doxygen ./Doxyfile
+	sphinx-build -n -b html . _build/html
+	xdg-open _build/html/index.html
 
-ipynb:
-	${nbconvert} ../client/examples/generate-images.ipynb --output-dir ./ipynb
-
-# Make sure no dead links in the doc.
-check-docs:
-	cd .. && mkdocs build && linkchecker site
-
-.PHONY: ipynb
+clean:
+	rm -rf _build modules tutorials doxygen/html doxygen/latex doxygen/xml
