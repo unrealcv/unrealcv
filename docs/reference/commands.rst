@@ -69,6 +69,14 @@ vget /unrealcv/status
 vget /unrealcv/help
     (v0.2) List all available commands and their help message
 
+4. Action commands
+------------------
+
+See :file:`Source/UnrealCV/Private/Commands/ActionHandler.h(.cpp)`
+
+vset /action/keyboard [key_name] [delta]
+    (v0.3.6) Valid key_name can be found in `here <https://wiki.unrealengine.com/List_of_Key/Gamepad_Input_Names>`__
+
 Run UE4 built-in commands
 -------------------------
 
