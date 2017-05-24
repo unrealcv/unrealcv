@@ -1,7 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os, sys, glob, shutil
-sys.path.insert(0, os.path.abspath('.'))
+import os, sys, glob, shutil, subprocess
+doc_dir = os.path.dirname(os.path.abspath(__file__))
+project_dir = os.path.dirname(doc_dir)
+sys.path.insert(0, doc_dir)
+
+# If runs on ReadTheDocs environment
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
+# Hack for lacking git-lfs support ReadTheDocs
+if on_rtd:
+    print('Fetching files with git_lfs for %s' % project_dir)
+    from git_lfs import fetch
+    fetch(project_dir)
+
+    subprocess.call('doxygen Doxyfile', shell=True)
+    # Generate xml from doxygen
 
 import sphinx_rtd_theme
 
