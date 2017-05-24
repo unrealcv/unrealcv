@@ -1,5 +1,5 @@
 ===============
-Getting Started
+Getting started
 ===============
 
 This page introduces *UnrealCV commands* and how to use them to perform basic tasks. We also show how to use a python script to control an UnrealCV embedded game through these commands.

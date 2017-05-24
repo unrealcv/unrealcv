@@ -294,7 +294,7 @@ Stop docker image
 
 
 
-**Total running time of the script:** ( 0 minutes  12.372 seconds)
+**Total running time of the script:** ( 0 minutes  11.667 seconds)
 
 
 
