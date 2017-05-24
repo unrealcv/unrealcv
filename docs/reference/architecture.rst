@@ -1,7 +1,7 @@
 The architecture of UnrealCV
 ============================
 
-.. figure:: ../images/pipeline.svg
+.. figure:: ../images/pipeline.png
     :width: 500px
     :align: center
 
