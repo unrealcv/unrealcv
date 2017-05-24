@@ -5,6 +5,10 @@ CHANGELOG
 Development branch
 ==================
 
+- v0.3.6 :
+    - Change docs from markdown to reStructuredText
+    - Add docker to automate tests
+    - Add :code:`vset /action/keyboard [key_name] [delta]`
 - v0.3.5 : Add vexec to support the invocation of blueprint functions, Add :code:`GetWorld()` in :code:`FCommandHandler`.
 - v0.3.4 : Delay the object mask painting from initialization code
 - v0.3.3 : Add :code:`vget /scene/name`

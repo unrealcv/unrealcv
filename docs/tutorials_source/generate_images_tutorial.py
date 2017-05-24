@@ -16,7 +16,6 @@ import numpy as np
 # Load matplotlib for plotting
 import matplotlib.pyplot as plt
 imread = plt.imread
-import ipdb
 from PIL import Image # Use pillow
 
 def imread8(im_file):

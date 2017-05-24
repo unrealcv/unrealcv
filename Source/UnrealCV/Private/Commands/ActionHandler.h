@@ -16,4 +16,8 @@ public:
 
 	/** vset /action/eyes_distance [float] */
 	FExecStatus SetStereoDistance(const TArray<FString>& Args);
+
+	/** vset /action/keyboard [key_name] [delta] */
+	FExecStatus Keyboard(const TArray<FString>& Args);
+	TFunction<void(void)> GetReleaseKey(FKey Key);
 };
