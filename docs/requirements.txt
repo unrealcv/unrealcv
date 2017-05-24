@@ -5,3 +5,4 @@ numpy
 matplotlib
 breathe
 docker
+pytest
