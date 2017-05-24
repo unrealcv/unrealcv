@@ -5,3 +5,6 @@ numpy
 matplotlib
 breathe
 docker
+pytest
+git-lfs
+

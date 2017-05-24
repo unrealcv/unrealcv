@@ -1,4 +1,5 @@
 _build/
+_rtd/
 modules/
-tutorials/
 tutorials_source/output/
+
