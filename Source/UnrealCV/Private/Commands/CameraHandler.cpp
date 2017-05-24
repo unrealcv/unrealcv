@@ -98,6 +98,9 @@ void FCameraCommandHandler::RegisterCommands()
 
 	// Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetBuffer);
 	// CommandDispatcher->BindCommand("vget /camera/[uint]/buffer", Cmd, "Get buffer of this camera");
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetLitRaw);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/lit png", Cmd, "Return raw binary image data, instead of the image filename");
 }
 
 FExecStatus FCameraCommandHandler::GetCameraProjMatrix(const TArray<FString>& Args)
@@ -378,4 +381,18 @@ FExecStatus FCameraCommandHandler::GetActorLocation(const TArray<FString>& Args)
 	FVector CameraLocation = Pawn->GetActorLocation();
 	FString Message = FString::Printf(TEXT("%.3f %.3f %.3f"), CameraLocation.X, CameraLocation.Y, CameraLocation.Z);
 	return FExecStatus::OK(Message);
+}
+
+FExecStatus FCameraCommandHandler::GetLitRaw(const TArray<FString>& Args)
+{
+	int32 CameraId = FCString::Atoi(*Args[0]);
+
+	UGTCaptureComponent* GTCapturer = FCaptureManager::Get().GetCamera(CameraId);
+	if (GTCapturer == nullptr)
+	{
+		return FExecStatus::Error(FString::Printf(TEXT("Invalid camera id %d"), CameraId));
+	}
+
+	TArray<uint8> ImgData = GTCapturer->Capture("lit");
+	return FExecStatus::Binary(ImgData);
 }

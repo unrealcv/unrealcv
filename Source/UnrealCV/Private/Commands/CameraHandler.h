@@ -53,4 +53,7 @@ public:
 
 	/** Get ViewMode data by switching to this viewmode then switch back, can not support multi-camera */
 	FExecStatus GetObjectInstanceMask(const TArray<FString>& Args);
+
+	/** Get raw binary image data instead of filename */
+	FExecStatus GetLitRaw(const TArray<FString>& Args);
 };

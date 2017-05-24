@@ -30,6 +30,10 @@ Core
 
 .. doxygenclass:: UNetworkManager
 
+.. doxygenclass:: FExecStatus
+
+The execution result of a command
+
 Basic
 -----
 .. doxygenclass:: AUE4CVPawn
