@@ -2,6 +2,14 @@
 Issues
 ======
 
+We tried our best to make the software stable and easy to use, but accidents sometimes happen. Here are a list of issues that you might find. Use the search function :kbd:`ctrl+f` to search your error message. If you can not find useful information here, post a new issue.
+
+- The binary can not run
+
+:issue: #30
+
+Error message..
+
 .. _supported:
 
 Supported Unreal Engine Version
@@ -41,6 +49,10 @@ Known issues
 - The speed of UnrealCV
 
 - The OpenEXR requirement
+
+- The Unreal Engine config file not changed
+
+- The image and ground truth not aligned
 
 Issues and workarounds
 ======================
