@@ -26,8 +26,8 @@ def imread8(im_file):
 ####################
 # Start the docker image
 # ======================
-from docker_util import runner
-runner.start()
+# from docker_util import runner
+# runner.start()
 
 ####################
 # Connect to the game
@@ -146,5 +146,5 @@ plt.imshow(mask)
 # Clean up resources
 # ==================
 # Stop docker image
-runner.stop()
+# runner.stop()
 client.disconnect()
