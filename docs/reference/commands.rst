@@ -38,6 +38,15 @@ vget /camera/[id]/[viewmode]
 vget /camera/[id]/[viewmode] [filename]
     (v0.2) Same as the above, with an extra parameter for filename
 
+    :filename: Filename is where the file will be stored. 
+    :example: :code:`vget /camera/0/lit lit.png`
+
+vget /camera/[id]/[viewmode] [format]
+    (v0.3.7) Support binary data format
+
+    :format: If only file format is specified, the binary data will be returned through socket instead of being saved as a file.
+    :example: :code:`vget /camera/0/lit png`
+
 vset /viewmode [viewmode]
     (v0.2) Set ViewMode to (lit, normal, depth, object_mask)
 
