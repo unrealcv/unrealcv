@@ -65,3 +65,5 @@ If the plugin crashed the editor, please send us your crash log to help us figur
 - Can not connect to the binary
 
 Use :code:`vget /unrealcv/status` to make sure the server is listening and no client is connected.
+
+Subscribe to an issue if you want to get future notification.
