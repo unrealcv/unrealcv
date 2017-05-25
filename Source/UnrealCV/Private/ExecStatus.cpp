@@ -139,10 +139,10 @@ TArray<uint8> FExecStatus::GetData() const // Define how to format the reply str
 	{
 		Message = FString::Printf(TEXT("%s %s"), *TypeName, *MessageBody);
 	}
-	TArray<uint8> BinaryData;
-	BinaryArrayFromString(Message, BinaryData);
+	TArray<uint8> FormatedBinaryData;
+	BinaryArrayFromString(Message, FormatedBinaryData);
 	
-	return BinaryData;
+	return FormatedBinaryData;
 }
 
 

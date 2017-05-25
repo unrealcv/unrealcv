@@ -49,5 +49,5 @@ public:
 	FExecStatus GetObjectInstanceMask(const TArray<FString>& Args);
 
 	/** Get raw binary image data instead of filename */
-	FExecStatus GetLitRaw(const TArray<FString>& Args);
+	FExecStatus GetPngBinary(const TArray<FString>& Args);
 };

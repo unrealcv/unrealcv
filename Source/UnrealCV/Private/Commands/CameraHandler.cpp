@@ -83,6 +83,10 @@ void FCameraCommandHandler::RegisterCommands()
 
 	Cmd = FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::SetMode);
 	Help = "Set ViewMode to (lit, normal, depth, object_mask)";
+	// CommandDispatcher->BindCommand("vset /viewmode lit", Cmd, Help); // Better to check the correctness at compile time
+	// CommandDispatcher->BindCommand("vset /viewmode normal", Cmd, Help); // Better to check the correctness at compile time
+	// CommandDispatcher->BindCommand("vset /viewmode depth", Cmd, Help); // Better to check the correctness at compile time
+	// CommandDispatcher->BindCommand("vset /viewmode object_mask", Cmd, Help); // Better to check the correctness at compile time
 	CommandDispatcher->BindCommand("vset /viewmode [str]", Cmd, Help); // Better to check the correctness at compile time
 
 	Cmd = FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::GetMode);
@@ -100,8 +104,12 @@ void FCameraCommandHandler::RegisterCommands()
 	// Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetBuffer);
 	// CommandDispatcher->BindCommand("vget /camera/[uint]/buffer", Cmd, "Get buffer of this camera");
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetLitRaw);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/lit png", Cmd, "Return raw binary image data, instead of the image filename");
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetPngBinary);
+	Help = "Return raw binary image data, instead of the image filename";
+	CommandDispatcher->BindCommand("vget /camera/[uint]/lit png", Cmd, Help);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/depth png", Cmd, Help);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/normal png", Cmd, Help);
+	// object_mask will be handled differently
 }
 
 FExecStatus FCameraCommandHandler::GetCameraProjMatrix(const TArray<FString>& Args)
@@ -387,7 +395,7 @@ FExecStatus FCameraCommandHandler::GetActorLocation(const TArray<FString>& Args)
 	return FExecStatus::OK(Message);
 }
 
-FExecStatus FCameraCommandHandler::GetLitRaw(const TArray<FString>& Args)
+FExecStatus FCameraCommandHandler::GetPngBinary(const TArray<FString>& Args)
 {
 	int32 CameraId = FCString::Atoi(*Args[0]);
 
