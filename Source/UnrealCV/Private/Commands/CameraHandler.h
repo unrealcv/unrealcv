@@ -2,12 +2,6 @@
 #include "CommandHandler.h"
 #include "GTCaptureComponent.h"
 
-class FScreenCapture
-{
-public:
-	static FExecStatus GetCameraViewAsyncQuery(const FString& FullFilename);
-};
-
 class FCameraCommandHandler : public FCommandHandler
 {
 public:

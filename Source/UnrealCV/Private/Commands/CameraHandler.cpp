@@ -10,6 +10,7 @@
 #include "CaptureManager.h"
 #include "CineCameraActor.h"
 #include "ObjectPainter.h"
+#include "ScreenCapture.h"
 
 FString GetDiskFilename(FString Filename)
 {
@@ -179,7 +180,7 @@ FExecStatus FCameraCommandHandler::GetCameraRotation(const TArray<FString>& Args
 		ACineCameraActor* CineCameraActor = nullptr;
 		for (AActor* Actor : this->GetWorld()->GetCurrentLevel()->Actors)
 		{
-			// if (Actor && Actor->IsA(AMatineeActor::StaticClass())) // AMatineeActor is deprecated 
+			// if (Actor && Actor->IsA(AMatineeActor::StaticClass())) // AMatineeActor is deprecated
 			if (Actor && Actor->IsA(ACineCameraActor::StaticClass()))
 			{
 				bIsMatinee = true;
@@ -212,7 +213,7 @@ FExecStatus FCameraCommandHandler::GetCameraLocation(const TArray<FString>& Args
 		ACineCameraActor* CineCameraActor = nullptr;
 		for (AActor* Actor : this->GetWorld()->GetCurrentLevel()->Actors)
 		{
-			// if (Actor && Actor->IsA(AMatineeActor::StaticClass())) // AMatineeActor is deprecated 
+			// if (Actor && Actor->IsA(AMatineeActor::StaticClass())) // AMatineeActor is deprecated
 			if (Actor && Actor->IsA(ACineCameraActor::StaticClass()))
 			{
 				bIsMatinee = true;
@@ -316,30 +317,33 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 			}
 		});
 		FString Message = FString::Printf(TEXT("File will be saved to %s"), *Filename);
-		return FExecStatus::AsyncQuery(FPromise(PromiseDelegate), Message);
+		return FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
 		// The filename here is just for message, not the fullname on the disk, because we can not know that due to sandbox issue.
 	}
 	return FExecStatus::InvalidArgument;
 }
 
+/** vget /camera/[id]/screenshot */
 FExecStatus FCameraCommandHandler::GetScreenshot(const TArray<FString>& Args)
 {
-	if (Args.Num() <= 2)
+	int32 CameraId = FCString::Atoi(*Args[0]);
+
+	FString Filename;
+	if (Args.Num() == 1)
 	{
-		int32 CameraId = FCString::Atoi(*Args[0]);
-
-		FString Filename;
-		if (Args.Num() == 1)
+		Filename = GenerateSeqFilename();
+	}
+	if (Args.Num() == 2)
+	{
+		Filename = Args[1];
+		if (Filename.ToLower() == TEXT("png"))
 		{
-			Filename = GenerateSeqFilename();
+			return ScreenCaptureAsyncByQuery(); // return the binary data
 		}
-		if (Args.Num() == 2)
+		else
 		{
-			Filename = Args[1];
+			return ScreenCaptureAsyncByQuery(Filename);
 		}
-
-		// FString FullFilename = GetDiskFilename(Filename);
-		return FScreenCapture::GetCameraViewAsyncQuery(Filename);
 	}
 	return FExecStatus::InvalidArgument;
 }

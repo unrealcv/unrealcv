@@ -54,7 +54,7 @@ public:
 	/** Pending : Message */
 	static FExecStatus Pending(FString Message=""); // Useful for async task
 	/** Binary : A binary array */
-	static FExecStatus Binary(TArray<uint8>& BinaryData);
+	static FExecStatus Binary(TArray<uint8>& InBinaryData);
 
 	/**
 	 * For an async task, return a special pending FExecStatus
@@ -62,7 +62,7 @@ public:
 	 * If the CheckStatus function returns no longer pending, means the async task finished
 	 * see UE4CVCommandsCamera.cpp : GetCameraViewAsyncQuery for an example
 	 */
-	static FExecStatus AsyncQuery(FPromise Promise, FString Message="");
+	static FExecStatus AsyncQuery(FPromise Promise);
 
 	/** The message body of this ExecStatus, the full message will also include the ExecStatusType */
 	FString MessageBody;
@@ -89,9 +89,9 @@ private:
 	FPromise Promise;
 	FExecStatus(FExecStatusType InExecStatusType, FString Message);
 	// For query
-	FExecStatus(FExecStatusType InExecStatusType, FPromise Promise, FString Message="");
+	FExecStatus(FExecStatusType InExecStatusType, FPromise Promise);
 	/** Construct from binary data */
-	FExecStatus(FExecStatusType InExecStatusType, TArray<uint8>& BinaryData);
+	FExecStatus(FExecStatusType InExecStatusType, TArray<uint8>& InBinaryData);
 	/** Binary data */
 	TArray<uint8> BinaryData;
 };
