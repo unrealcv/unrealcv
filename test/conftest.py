@@ -26,3 +26,11 @@ def env(request):
         time.sleep(2)
         yield runner
         runner.stop()
+
+# =============================
+# Define some utility functions
+def iserror(res):
+    return (res is None) or res.startswith('error')
+
+def isok(res):
+    return res == 'ok'
