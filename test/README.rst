@@ -25,6 +25,10 @@ Run the test for your python
 
 Show more diagnositic information, :code:`pytest -s .`
 
+4. Run some specific test
+
+:code:`pytest filename::test_name`
+
 
 Files
 =====

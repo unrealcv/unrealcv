@@ -12,3 +12,12 @@ def test_gt(env):
         print(im.shape)
 
     # Make sure the dimension is right
+
+from PIL import Image
+import io
+def test_video_stream(env):
+    client.connect()
+    res = client.request('vget /camera/0/lit_raw')
+    image = Image.open(io.BytesIO(res))
+    # print image
+    # print len(res)
