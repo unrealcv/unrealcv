@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import os, sys, glob, shutil, subprocess
+import os, sys, glob, shutil, subprocess, hashlib
 doc_dir = os.path.dirname(os.path.abspath(__file__))
 project_dir = os.path.dirname(doc_dir)
 sys.path.insert(0, doc_dir)
@@ -32,7 +32,7 @@ sphinx_gallery_conf = {
     'filename_pattern': 'tutorial.py',
     'backreferences_dir': False,
 }
-plot_gallery = False
+# plot_gallery = False, this is not useful because it will use the no picture version
 
 for i in range(len(sphinx_gallery_conf['examples_dirs'])):
     gallery_dir = sphinx_gallery_conf['gallery_dirs'][i]
@@ -44,6 +44,23 @@ for i in range(len(sphinx_gallery_conf['examples_dirs'])):
     # Copy rst files from source dir to gallery dir
     for f in glob.glob(os.path.join(source_dir, '*.rst')):
         shutil.copy(f, gallery_dir)
+
+def get_md5sum(src_file):
+    """Returns md5sum of file, from https://github.com/sphinx-gallery/sphinx-gallery/blob/master/sphinx_gallery/gen_rst.py#L201"""
+    with open(src_file, 'rb') as src_data:
+        src_content = src_data.read()
+        src_md5 = hashlib.md5(src_content).hexdigest()
+    return src_md5
+
+if on_rtd or os.name == 'nt': # windows or rtd
+    # Use a hacky way to skip the tutorial generation
+    skipping_files = [
+        './tutorials_source/generate_images_tutorial.py',
+    ]
+    for f in skipping_files:
+        with open(f.replace('_source', '') + '.md5', 'w') as file_checksum:
+            file_checksum.write(get_md5sum(f))
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
