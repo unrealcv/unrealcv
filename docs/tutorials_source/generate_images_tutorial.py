@@ -23,11 +23,11 @@ def imread8(im_file):
     im = np.asarray(Image.open(im_file))
     return im
 
-####################
-# Start the docker image
-# ======================
-from docker_util import runner
-runner.start()
+def imread_binary(res):
+    import io
+    img = Image.open(io.BytesIO(res))
+    return np.asarray(img)
+
 
 ####################
 # Connect to the game
@@ -40,52 +40,49 @@ if not client.isconnected():
 # Make sure the connection works well
 res = client.request('vget /unrealcv/status')
 print(res)
+res = client.request('vrun setres 640x480') # Resize the window
 
 ####################
 # Load a camera trajectory
 import json; camera_trajectory = json.load(open('camera_traj.json'))
+# We will show how to record a camera trajectory in another tutorial
+
+####################
+# Ground truth generation
+# =======================
+# Capture an image
+idx = 0
+loc, rot = camera_trajectory[idx]
+# Set position of the first camera
+client.request('vset /camera/0/location {x} {y} {z}'.format(**loc))
+client.request('vset /camera/0/rotation {pitch} {yaw} {roll}'.format(**rot))
+# Get image and ground truth
+res = client.request('vget /camera/0/lit png')
+
+# Visualize the image we captured
+image = imread_binary(res)
+plt.imshow(image)
+
+####################
+# It is also easy to save the image to a file
+res = client.request('vget /camera/0/lit output.png')
+print('The file is saved to %s' % res)
 
 
 ####################
-# Move the camera to a new location and capture an image
-frames = []
-N = len(camera_trajectory)
-N = 1
-for idx in range(N):
-    loc, rot = camera_trajectory[idx]
-    # Set position of the first camera
-    client.request('vset /camera/0/location {x} {y} {z}'.format(**loc))
-    client.request('vset /camera/0/rotation {pitch} {yaw} {roll}'.format(**rot))
-    # Get image and ground truth
-    modes = ['lit', 'depth', 'object_mask']
-    frame = dict()
-    for m in modes:
-        res = client.request('vget /camera/0/{type} output/{idx}_{type}.png'.format(type = m, idx=idx))
-        print(res)
-        # TODO: this is a temporary hack, fix it later
-        res = os.path.join('output', os.path.basename(res))
-        msg = '%s is saved to %s' % (m, res)
-        frame[m] = res
+# Generate ground truth from this virtual scene
+res = client.request('vget /camera/0/depth png')
+depth = imread_binary(res)
+res = client.request('vget /camera/0/object_mask png')
+object_mask = imread_binary(res)
+res = client.request('vget /camera/0/normal png')
+normal = imread_binary(res)
 
-    frames.append(frame)
-
-####################
-# Visualize a frame
 # =================
-def plot_frame(frame):
-    def subplot(sub_index, image, param=None):
-        if isinstance(image, str):
-            image = imread(image)
-        plt.subplot(sub_index)
-        plt.imshow(image, param)
-        plt.axis('off')
-
-    subplot(131, frame['lit'])
-    subplot(132, frame['depth'])
-    subplot(133, frame['object_mask'])
-    plt.tight_layout()
-
-plot_frame(frames[0])
+# Visualize the captured ground truth
+plt.subplot(131); plt.imshow(depth)
+plt.subplot(132); plt.imshow(object_mask)
+plt.subplot(133); plt.imshow(normal)
 
 ####################
 # List all the objects appeared in this frame
@@ -120,9 +117,7 @@ for idx in range(num_objects):
 
 ####################
 # How many objects in this frame
-frame = frames[0]
-mask_file = frame['object_mask']
-mask = imread8(mask_file)
+mask = object_mask
 mask_idx = mask[:,:,0] * 256 * 256 + mask[:,:,1] * 256 + mask[:,:,2]
 
 unique_idx = list(set(mask_idx.flatten()))
@@ -145,6 +140,4 @@ plt.imshow(mask)
 ####################
 # Clean up resources
 # ==================
-# Stop docker image
-runner.stop()
 client.disconnect()

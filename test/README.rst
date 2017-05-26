@@ -1,5 +1,8 @@
 The test utilize docker to run test automatically. The test script will start a docker image containing unrealcv binary automatically.
 
+The test scripts should be ended by a suffix '_test.py'
+
+Run :code:`simple_test.py` to make the downloaded binary can work correctly.
 
 1. Install dependencies first
 
@@ -24,6 +27,10 @@ Run the test for your python
 :code:`pytest --no-docker` if you want to run the virtual environment by yourself, for example in windows.
 
 Show more diagnositic information, :code:`pytest -s .`
+
+4. Run some specific test
+
+:code:`pytest filename::test_name`
 
 
 Files

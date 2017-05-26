@@ -59,3 +59,8 @@ Download link (required):
 
 Related paper or project page (optional):
     If this game binary is related to a research project, make a link to here.
+
+Packaging binaries automatically
+================================
+
+In the UnrealCV team, we use a set of packaging scripts to automate the packaging and testing. These scripts are hosted in <qiuwch/unrealcv-packaging>.

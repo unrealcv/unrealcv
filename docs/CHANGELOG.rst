@@ -5,6 +5,8 @@ CHANGELOG
 Development branch
 ==================
 
+- v0.3.7 :
+    - Add :code:`vget /camera/lit png` to retrieve binary data without saving it.
 - v0.3.6 :
     - Change docs from markdown to reStructuredText
     - Add docker to automate tests

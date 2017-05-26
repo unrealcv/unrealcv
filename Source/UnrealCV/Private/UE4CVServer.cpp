@@ -147,6 +147,8 @@ bool FUE4CVServer::InitWorld()
 	return true;
 }
 
+
+
 // Each tick of GameThread.
 void FUE4CVServer::ProcessPendingRequest()
 {
@@ -163,8 +165,13 @@ void FUE4CVServer::ProcessPendingRequest()
 		CallbackDelegate.BindLambda([this, RequestId](FExecStatus ExecStatus)
 		{
 			UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
-			FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), RequestId, *ExecStatus.GetMessage());
-			SendClientMessage(ReplyRawMessage);
+			
+			FString Header = FString::Printf(TEXT("%d:"), RequestId);
+			TArray<uint8> ReplyData;
+			FExecStatus::BinaryArrayFromString(Header, ReplyData);
+
+			ReplyData += ExecStatus.GetData();
+			NetworkManager->SendData(ReplyData);
 		});
 		CommandDispatcher->ExecAsync(Request.Message, CallbackDelegate);
 	}

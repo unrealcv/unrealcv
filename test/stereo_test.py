@@ -1,7 +1,7 @@
 # pytest -s stereo.py -k [name]
 from unrealcv import client
 import math, random
-from common import iserror, isok
+from conftest import iserror, isok, Version
 
 def get_version():
     res = client.request('vget /unrealcv/version')
@@ -9,19 +9,6 @@ def get_version():
         return '0.3.0' # or earlier
     else:
         return res
-
-class Version:
-    def __init__(self, data):
-        if isinstance(data, str):
-            # parse vx.y.z
-            [self.x, self.y, self.z] = [int(v) for v in data.lstrip('v').split('.')]
-
-    def __cmp__(self, v):
-        if self.x != v.x:
-            return cmp(self.x, v.x)
-        if self.y != v.y:
-            return cmp(self.y, v.y)
-        return cmp(self.z, v.z)
 
 class Vec3:
     def __init__(self, data):
