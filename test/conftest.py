@@ -6,7 +6,7 @@ import os, time
 from docker_util import DockerRunner
 
 def pytest_addoption(parser):
-    parser.addoption('--no-docker', action='store_true', help='Do not run docker fixture')
+    parser.addoption('--docker', action='store_true', help='Run docker fixture')
 
 
 @pytest.fixture(scope='module')
@@ -15,9 +15,7 @@ def env(request):
     Return docker instance if use docker
     Return an empty environment if --no-docker is set
     '''
-    if request.config.getoption('--no-docker'):
-        yield None
-    else:
+    if request.config.getoption('docker'):
         docker_cmd = '/home/unrealcv/LinuxNoEditor/RealisticRendering/Binaries/Linux/RealisticRendering'
         volumes = [(os.path.abspath('output'), '/home/unrealcv/LinuxNoEditor/RealisticRendering/Binaries/Linux/output')]
         # The path needs to be absolute
@@ -26,6 +24,9 @@ def env(request):
         time.sleep(2)
         yield runner
         runner.stop()
+    else:
+        yield None
+
 
 # =============================
 # Define some utility functions
