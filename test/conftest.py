@@ -26,3 +26,27 @@ def env(request):
         time.sleep(2)
         yield runner
         runner.stop()
+
+# =============================
+# Define some utility functions
+def iserror(res):
+    return (res is None) or res.startswith('error')
+
+def isok(res):
+    return res == 'ok'
+
+class Version:
+    '''
+    Represent the version information, can be used for comparison
+    '''
+    def __init__(self, data):
+        if isinstance(data, str):
+            # parse vx.y.z
+            [self.x, self.y, self.z] = [int(v) for v in data.lstrip('v').split('.')]
+
+    def __cmp__(self, v):
+        if self.x != v.x:
+            return cmp(self.x, v.x)
+        if self.y != v.y:
+            return cmp(self.y, v.y)
+        return cmp(self.z, v.z)
