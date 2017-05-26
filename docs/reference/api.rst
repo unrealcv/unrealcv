@@ -25,10 +25,23 @@ The matlab client
 
 Core
 ----
+
+`FUE4CVServer` uses `FCommandDispatcher` to execute commands. All CommandHandlers are registered.
+
 .. doxygenclass:: FUE4CVServer
     :members:
 
 .. doxygenclass:: UNetworkManager
+
+.. doxygenclass:: FExecStatus
+
+.. doxygenclass:: FPromise
+
+.. doxygenclass:: FCommandDispatcher
+
+.. doxygenclass:: FAsyncWatcher
+
+The execution result of a command
 
 Basic
 -----

@@ -23,9 +23,6 @@ class DockerRunner():
         image_name: the docker image to run
         volumes: volume mapping
         '''
-        self.docker_client = docker.from_env()
-        self.check_image(image_name)
-
         if volumes:
             volume_args = []
             for (k, v) in volumes:
@@ -37,6 +34,9 @@ class DockerRunner():
         self.host_cmd = host_cmd.format(image_name = image_name, volume_args = volume_args)
 
     def start(self, docker_cmd = docker_cmd):
+        self.docker_client = docker.from_env()
+        self.check_image(image_name)
+
         cmd = '%s %s' % (self.host_cmd, docker_cmd)
         os.system(cmd)
         time.sleep(2)

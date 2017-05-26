@@ -63,8 +63,11 @@ public:
 	// TODO: Handle port in use exception
 	bool Start(int32 InPortNum);
 
-	/** Send a message to connected client, return false if false to send. Will fail if no connection available */
+	/** Send a string to connected client, return false if false to send. Will fail if no connection available */
 	bool SendMessage(const FString& Message);
+
+	/** Send a byte array to connected client, return false if failed to send. */
+	bool SendData(const TArray<uint8>& Payload);
 
 	FReceivedEvent& OnReceived() { return ReceivedEvent;  } // The reference can not be changed
 

@@ -24,11 +24,8 @@ bool operator!=(const FExecStatus& ExecStatus, const FExecStatusType& ExecStatus
 
 FExecStatus& FExecStatus::operator+=(const FExecStatus& Src)
 {
+	this->BinaryData += Src.BinaryData;
 	this->MessageBody += "\n" + Src.MessageBody;
-	if (Src.ExecStatusType == FExecStatusType::OK)
-	{
-
-	}
 	return *this;
 }
 
@@ -54,9 +51,9 @@ FExecStatus FExecStatus::Pending(FString InMessage)
 	return FExecStatus(FExecStatusType::Pending, InMessage);
 }
 
-FExecStatus FExecStatus::AsyncQuery(FPromise InPromise, FString InMessage)
+FExecStatus FExecStatus::AsyncQuery(FPromise InPromise)
 {
-	return FExecStatus(FExecStatusType::AsyncQuery, InPromise, InMessage);
+	return FExecStatus(FExecStatusType::AsyncQuery, InPromise);
 }
 
 FExecStatus FExecStatus::Error(FString ErrorMessage)
@@ -87,11 +84,10 @@ FString FExecStatus::GetMessage() const // Define how to format the reply string
 	return Message;
 }
 
-FExecStatus::FExecStatus(FExecStatusType InExecStatusType, FPromise InPromise, FString InMessage)
+FExecStatus::FExecStatus(FExecStatusType InExecStatusType, FPromise InPromise)
 {
 	ExecStatusType = InExecStatusType;
 	Promise = InPromise;
-	MessageBody = InMessage;
 }
 
 FExecStatus::FExecStatus(FExecStatusType InExecStatusType, FString InMessage)
@@ -102,4 +98,57 @@ FExecStatus::FExecStatus(FExecStatusType InExecStatusType, FString InMessage)
 
 FExecStatus::~FExecStatus()
 {
+}
+
+FExecStatus FExecStatus::Binary(TArray<uint8>& BinaryData)
+{
+	return FExecStatus(FExecStatusType::OK, BinaryData);
+}
+
+FExecStatus::FExecStatus(FExecStatusType InExecStatusType, TArray<uint8>& InBinaryData)
+{
+	ExecStatusType = InExecStatusType;
+	BinaryData = InBinaryData;
+}
+
+TArray<uint8> FExecStatus::GetData() const // Define how to format the reply string
+{
+	if (this->BinaryData.Num() != 0)
+	{
+		return BinaryData;
+	}
+	FString TypeName;
+	FString Message;
+	switch (ExecStatusType)
+	{
+	case FExecStatusType::OK:
+		if (MessageBody == "")
+			Message = "ok";
+		else
+			Message = MessageBody;
+	case FExecStatusType::Error:
+		TypeName = "error"; break;
+	case FExecStatusType::AsyncQuery:
+		TypeName = "async"; break;
+	case FExecStatusType::Pending:
+		TypeName = "pending"; break;
+	default:
+		TypeName = "unknown FExecStatus Type";
+	}
+	if (ExecStatusType != FExecStatusType::OK)
+	{
+		Message = FString::Printf(TEXT("%s %s"), *TypeName, *MessageBody);
+	}
+	TArray<uint8> FormatedBinaryData;
+	BinaryArrayFromString(Message, FormatedBinaryData);
+	
+	return FormatedBinaryData;
+}
+
+
+void FExecStatus::BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray)
+{
+	FTCHARToUTF8 Convert(*Message);
+	OutBinaryArray.Empty();
+	OutBinaryArray.Append((UTF8CHAR*)Convert.Get(), Convert.Length());
 }

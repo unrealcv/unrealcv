@@ -230,6 +230,43 @@ FAsyncRecord* UGTCaptureComponent::Capture(FString Mode, FString InFilename)
 	return AsyncRecord;
 }
 
+
+TArray<uint8> UGTCaptureComponent::Capture(FString Mode)
+{
+	// Flush location and rotation
+	check(CaptureComponents.Num() != 0);
+	USceneCaptureComponent2D* CaptureComponent = CaptureComponents.FindRef(Mode);
+	
+	TArray<uint8> ImgData;
+	if (CaptureComponent == nullptr)
+		return ImgData;
+
+	// Attach this to something, for example, a real camera
+	const FRotator PawnViewRotation = Pawn->GetViewRotation();
+	if (!PawnViewRotation.Equals(CaptureComponent->GetComponentRotation()))
+	{
+		CaptureComponent->SetWorldRotation(PawnViewRotation);
+	}
+
+	UTextureRenderTarget2D* RenderTarget = CaptureComponent->TextureTarget;
+	static IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
+	static IImageWrapperPtr ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG);
+	int32 Width = RenderTarget->SizeX, Height = RenderTarget->SizeY;
+	TArray<FColor> Image;
+	FTextureRenderTargetResource* RenderTargetResource;
+	Image.AddZeroed(Width * Height);
+	RenderTargetResource = RenderTarget->GameThread_GetRenderTargetResource();
+
+	FReadSurfaceDataFlags ReadSurfaceDataFlags;
+	ReadSurfaceDataFlags.SetLinearToGamma(false); // This is super important to disable this!
+														  // Instead of using this flag, we will set the gamma to the correct value directly
+	RenderTargetResource->ReadPixels(Image, ReadSurfaceDataFlags);
+	ImageWrapper->SetRaw(Image.GetData(), Image.GetAllocatedSize(), Width, Height, ERGBFormat::BGRA, 8);
+	ImgData = ImageWrapper->GetCompressed(ImageCompression::Uncompressed);
+
+	return ImgData;
+}
+
 void UGTCaptureComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 // void UGTCaptureComponent::Tick(float DeltaTime) // This tick function should be called by the scene instead of been
 {

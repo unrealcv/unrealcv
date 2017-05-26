@@ -43,43 +43,45 @@ private:
 	FRunnableThread* Thread;
 	virtual uint32 Run() override
 	{
+		/** FIXME: Find a more efficient implementation for this */
 		while (!Stopping)
 		{
-			while (IsActive())
+			if (!IsActive())
 			{
-				SCOPE_CYCLE_COUNTER(STAT_WaitAsync);
-				FPromise Promise;
-				PendingPromise.Peek(Promise);
-				FExecStatus ExecStatus = Promise.CheckStatus();
-				if (ExecStatus != FExecStatusType::Pending) // Job is finished
-				{
-					FPromise CompletedPromise;
-					FCallbackDelegate CompletedCallback;
-					PendingPromise.Dequeue(CompletedPromise); // Dequeue in the same thread
-					PendingCompletedCallback.Dequeue(CompletedCallback);
+				continue;
+			}
+			SCOPE_CYCLE_COUNTER(STAT_WaitAsync);
+			FPromise Promise;
+			PendingPromise.Peek(Promise);
+			FExecStatus ExecStatus = Promise.CheckStatus();
+			if (ExecStatus != FExecStatusType::Pending) // Job is finished
+			{
+				FPromise CompletedPromise;
+				FCallbackDelegate CompletedCallback;
+				PendingPromise.Dequeue(CompletedPromise); // Dequeue in the same thread
+				PendingCompletedCallback.Dequeue(CompletedCallback);
 
-					// This needs to be sent back to game thread
-					AsyncTask(ENamedThreads::GameThread, [CompletedCallback, ExecStatus]() {
-						CompletedCallback.ExecuteIfBound(ExecStatus);
-						// CompletedCallback.Unbind();
-					});
-					// Stop the timer
-				}
-				if (Promise.GetRunningTime() > 5) // Kill pending task that takes too long
-				{
-					UE_LOG(LogUnrealCV, Warning, TEXT("An async task failed to finish and timeout after 5 seconds"));
-					// This is a failed task
-					FPromise FailedPromise;
-					FCallbackDelegate CompletedCallback;
-					PendingPromise.Dequeue(FailedPromise); // Dequeue in the same thread
-					PendingCompletedCallback.Dequeue(CompletedCallback);
+				// This needs to be sent back to game thread
+				AsyncTask(ENamedThreads::GameThread, [CompletedCallback, ExecStatus]() {
+					CompletedCallback.ExecuteIfBound(ExecStatus);
+					// CompletedCallback.Unbind();
+				});
+				// Stop the timer
+			}
+			if (Promise.GetRunningTime() > 5) // Kill pending task that takes too long
+			{
+				UE_LOG(LogUnrealCV, Warning, TEXT("An async task failed to finish and timeout after 5 seconds"));
+				// This is a failed task
+				FPromise FailedPromise;
+				FCallbackDelegate CompletedCallback;
+				PendingPromise.Dequeue(FailedPromise); // Dequeue in the same thread
+				PendingCompletedCallback.Dequeue(CompletedCallback);
 
-					// This needs to be sent back to game thread
-					AsyncTask(ENamedThreads::GameThread, [CompletedCallback]() {
-						CompletedCallback.ExecuteIfBound(FExecStatus::Error("Task took too long, timeout"));
-						// CompletedCallback.Unbind();
-					});
-				}
+				// This needs to be sent back to game thread
+				AsyncTask(ENamedThreads::GameThread, [CompletedCallback]() {
+					CompletedCallback.ExecuteIfBound(FExecStatus::Error("Task took too long, timeout"));
+					// CompletedCallback.Unbind();
+				});
 			}
 		}
 		return 0; // This thread will exit
@@ -244,7 +246,7 @@ const TMap<FString, FString>& FCommandDispatcher::GetUriDescription()
 }
 
 void FCommandDispatcher::ExecAsync(const FString Uri, const FCallbackDelegate Callback)
-// TODO: This is a stupid implementation to use a new thread to check whether the task is completed.
+// FIXME: This is a stupid implementation to use a new thread to check whether the task is completed.
 // ExecAsync can not guarantee the execuation order, this needs to be enforced in the client.
 // Which means later tasks can finish earlier
 {

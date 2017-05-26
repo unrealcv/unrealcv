@@ -2,12 +2,6 @@
 #include "CommandHandler.h"
 #include "GTCaptureComponent.h"
 
-class FScreenCapture
-{
-public:
-	static FExecStatus GetCameraViewAsyncQuery(const FString& FullFilename);
-};
-
 class FCameraCommandHandler : public FCommandHandler
 {
 public:
@@ -53,4 +47,7 @@ public:
 
 	/** Get ViewMode data by switching to this viewmode then switch back, can not support multi-camera */
 	FExecStatus GetObjectInstanceMask(const TArray<FString>& Args);
+
+	/** Get raw binary image data instead of filename */
+	FExecStatus GetPngBinary(const TArray<FString>& Args);
 };
