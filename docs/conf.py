@@ -35,6 +35,8 @@ sphinx_gallery_conf = {
     'gallery_dirs': ['tutorials'],
     'filename_pattern': 'tutorial.py',
     'backreferences_dir': False,
+    'download_section_examples': False,
+    'download_all_examples': False,
 }
 # plot_gallery = False, this is not useful because it will use the no picture version
 
