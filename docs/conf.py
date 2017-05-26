@@ -32,6 +32,7 @@ sphinx_gallery_conf = {
     'filename_pattern': 'tutorial.py',
     'backreferences_dir': False,
 }
+plot_gallery = False
 
 for i in range(len(sphinx_gallery_conf['examples_dirs'])):
     gallery_dir = sphinx_gallery_conf['gallery_dirs'][i]
