@@ -6,9 +6,7 @@ We tried our best to make the software stable and easy to use, but accidents som
 
 - The binary can not run
 
-:issue: #30
-
-Error message..
+python3 support. See issue :issue:`49`, Thanks to :user:`jskinn` for the idea!
 
 .. _supported:
 

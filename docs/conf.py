@@ -24,7 +24,11 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx_gallery.gen_gallery',
     'breathe',
+    'sphinx_issues',
 ]
+
+# Github repo
+issues_github_path = 'unrealcv/unrealcv'
 
 sphinx_gallery_conf = {
     'examples_dirs': ['tutorials_source'],
