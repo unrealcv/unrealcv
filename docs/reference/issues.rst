@@ -1,6 +1,6 @@
-======
-Issues
-======
+================
+Trouble Shooting
+================
 
 We tried our best to make the software stable and easy to use, but accidents sometimes happen. Here are a list of issues that you might find. Use the search function :kbd:`ctrl+f` to search your error message. If you can not find useful information here, post a new issue.
 
@@ -45,6 +45,24 @@ Here are a list of Unreal projects that we tried and verified.
 
 Known issues
 ============
+- The binary can not run
+
+    For example an error like this.
+
+.. code::
+
+    [2017.05.25-04.14.33:476][  0]LogLinux:Error: appError called: Assertion failed: Assertion failed:  [File:/UE4/Engine/Source/Runtime/OpenGLDrv/Private/Linux/OpenGLLinux.cpp] [Line: 842]
+Unable to dynamically load libGL: Could not retrieve EGL extension function eglQueryDevicesEXT
+
+    It is very likely an issue with the OpenGL of the system.
+
+    :code:`sudo apt-get install mesa-utils` and run :code:`glxgears`. Make sure you can see a window with gears running in it.
+
+- The screen resolution is not what I want
+
+    - In editor, change `Editor preference -> Level Editor -> Play`
+    - In the game mode, use console command `setres 640x480`
+    - Change the config file shown in `vget /unrealcv/status`
 
 - The speed of UnrealCV
 
