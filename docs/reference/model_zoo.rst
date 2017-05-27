@@ -22,7 +22,7 @@ Run the downloaded binary
 
 :Preview:
 
-.. image:: /images/realistic_rendering.png
+.. image:: ../images/realistic_rendering.png
 
 :Description:
 
