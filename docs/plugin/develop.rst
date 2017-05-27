@@ -2,7 +2,7 @@
 Development
 ===========
 
-:author: :user:`ized10`, :user:`qiuwch`
+:author: :user:`Ized06`, :user:`qiuwch`
 
 UnrealCV can be compiled as a plugin as shown in the :ref:`compile_plugin`, but it you want to modify the plugin source code, compiling it together with an UE4 C++ project will make debug much easier.
 
