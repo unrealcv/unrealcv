@@ -30,14 +30,11 @@ Realistic Rendering is a demo created by Epic Games to show the rendering power 
 
 :Download:
 
-- `Windows <http://www.cs.jhu.edu/~qiuwch/unrealcv/binaries//RealisticRendering-Win64-65d6144-171cd97.zip>`__
+- `Windows`_, `Linux`_ (Tested in Ubuntu 14.04), `Mac`_
 
-- `Linux <http://www.cs.jhu.edu/~qiuwch/unrealcv/binaries//RealisticRendering-Linux-65d6144-171cd97.zip>`__
+.. _windows: http://www.cs.jhu.edu/~qiuwch/unrealcv/binaries//RealisticRendering-Win64-65d6144-171cd97.zip
 
-(Tested in Ubuntu 14.04)
-
-
-- `Mac`_
+.. _Linux: http://www.cs.jhu.edu/~qiuwch/unrealcv/binaries//RealisticRendering-Linux-65d6144-171cd97.zip
 
 .. _mac: http://www.cs.jhu.edu/~qiuwch/unrealcv/binaries//RealisticRendering-Mac-65d6144-c25660b.zip
 
