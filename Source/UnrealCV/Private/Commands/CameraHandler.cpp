@@ -104,10 +104,12 @@ void FCameraCommandHandler::RegisterCommands()
 	// Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetBuffer);
 	// CommandDispatcher->BindCommand("vget /camera/[uint]/buffer", Cmd, "Get buffer of this camera");
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetPngBinary);
 	Help = "Return raw binary image data, instead of the image filename";
+	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetPngBinary(Args, TEXT("lit")); });
 	CommandDispatcher->BindCommand("vget /camera/[uint]/lit png", Cmd, Help);
+	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetPngBinary(Args, TEXT("depth")); });
 	CommandDispatcher->BindCommand("vget /camera/[uint]/depth png", Cmd, Help);
+	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetPngBinary(Args, TEXT("normal")); });
 	CommandDispatcher->BindCommand("vget /camera/[uint]/normal png", Cmd, Help);
 	// object_mask will be handled differently
 }
@@ -395,7 +397,7 @@ FExecStatus FCameraCommandHandler::GetActorLocation(const TArray<FString>& Args)
 	return FExecStatus::OK(Message);
 }
 
-FExecStatus FCameraCommandHandler::GetPngBinary(const TArray<FString>& Args)
+FExecStatus FCameraCommandHandler::GetPngBinary(const TArray<FString>& Args, const FString& ViewMode)
 {
 	int32 CameraId = FCString::Atoi(*Args[0]);
 
@@ -405,6 +407,6 @@ FExecStatus FCameraCommandHandler::GetPngBinary(const TArray<FString>& Args)
 		return FExecStatus::Error(FString::Printf(TEXT("Invalid camera id %d"), CameraId));
 	}
 
-	TArray<uint8> ImgData = GTCapturer->Capture("lit");
+	TArray<uint8> ImgData = GTCapturer->Capture(ViewMode);
 	return FExecStatus::Binary(ImgData);
 }

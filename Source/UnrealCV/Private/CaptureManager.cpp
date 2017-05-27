@@ -15,7 +15,7 @@ void FCaptureManager::AttachGTCaptureComponentToCamera(APawn* Pawn)
 	SupportedModes.Add(TEXT("depth"));
 	// SupportedModes.Add(TEXT("debug"));
 	SupportedModes.Add(TEXT("object_mask"));
-	// SupportedModes.Add(TEXT("normal"));
+	SupportedModes.Add(TEXT("normal"));
 	// SupportedModes.Add(TEXT("wireframe"));
 	SupportedModes.Add(TEXT("default"));
 	// TODO: Get the list from GTCaptureComponent
