@@ -15,8 +15,11 @@ You can download compiled UnrealCV binaries from our `github release page`_. The
 - Install to Unreal Engine
     - Go to the plugin folder of Unreal Engine which is ``Engine/Plugins``
     - Put ``UnrealCV`` folder into the ``Plugins`` folder.
+.. note::
 
-Open ``Menu -> Edit -> Plugins``, make sure UnrealCV is installed and enabled.
+    If you choose to install to Unreal Engine, please make sure the version of the Unreal Engine is identical to the version of the compiled binaries downloaded.
+
+Open ``Menu -> Edit -> Plugins``, make sure UnrealCV is installed and enabled. You have to be in play mode before you type the commands.
 
 .. image:: ../images/plugin.png
 
