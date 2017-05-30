@@ -15,3 +15,4 @@ When use ``play -> selected viewport`` the resolution can not be changed, use `p
 
 Change the server port
 ----------------------
+Use :code:`vget /unrealcv/status` to get the directory of the configuration file. Then open the configuration file and modify the server port.
