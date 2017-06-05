@@ -6,6 +6,8 @@ We provide compiled virtual worlds to play with. All the digital contents belong
 .. TODO: add more formal license information
     The community maintained games will be hosted in the [github wiki page](http://).
 
+.. Make sure links in this page is always accesible. If I need to move files to a new place, link the new place. Do not use version in the filename, use _master.zip as suffix. So that when others share the link, they always share the _master link.
+
 Run the downloaded binary
 
 - In Mac: Run :code:`[ProjectName].app`

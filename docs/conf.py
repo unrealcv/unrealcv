@@ -58,7 +58,10 @@ def get_md5sum(src_file):
         src_md5 = hashlib.md5(src_content).hexdigest()
     return src_md5
 
-if on_rtd or os.name == 'nt': # windows or rtd
+build_tutorial = os.environ.get('build_tutorial')
+print('Build tutorial? : %s' % build_tutorial)
+if not build_tutorial:
+# if on_rtd or os.name == 'nt': # windows or rtd
     # Use a hacky way to skip the tutorial generation
     skipping_files = [
         './tutorials_source/generate_images_tutorial.py',
@@ -88,6 +91,7 @@ author = 'UnrealCV contributors'
 #
 # The short X.Y version.
 version = ''
+# TODO: Read this from the plugin file.
 # The full version, including alpha/beta/rc tags.
 release = ''
 
@@ -110,7 +114,8 @@ print(exclude_patterns)
 pygments_style = 'sphinx'
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
-todo_include_todos = False
+# todo_include_todos = False
+todo_include_todos = True
 
 
 html_static_path = ['_static']
@@ -131,3 +136,7 @@ breathe_projects = {
     "unrealcv": "./doxygen/xml/",
 }
 breathe_default_project = 'unrealcv'
+
+# Some extra configurations of sphinx
+# Reference: http://www.sphinx-doc.org/en/stable/config.html
+numfig = True
