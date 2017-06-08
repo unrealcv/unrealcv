@@ -37,6 +37,9 @@ If you want to try a version of UnrealCV not provided in our `github release pag
 
 To compile UnrealCV plugin, use :code:`build.sh` for linux and mac, use :code:`build.bat` for windows, remember to set the path of Unreal Engine by following instructions of the script. After running this command you should see ``Automation.Execute: BUILD SUCCESSFUL`` and the plugin binaries will be produced in the ``Plugins/UnrealCV`` folder. Then you can copy the compiled plugin to a UE4 project.
 
+.. note::
+    It will take some time to run this command. For windows, we suggest you use ``cmd`` to run `build.bat` to make sure the path is set correctly.
+
 If you want to modify UnrealCV code and add new features. Please refer to the :doc:`development setup </plugin/develop>`. Setting up a dev environment takes a bit more time but will make it much easier to debug and modify code.
 
 .. note::
