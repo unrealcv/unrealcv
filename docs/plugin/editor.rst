@@ -9,7 +9,7 @@ In UE4 editor, you can edit the scene and change the material properties. We sho
 Edit Object Specularity
 -----------------------
 
-Select an object, e.g. the wooden floor, you want to edit in UE4 editor, and double click the image of `Element 0` at `Details -> Materials` tab to edit its property. 
+Select an object, e.g. the wooden floor, you want to edit in UE4 editor, and double click the image of ``Element 0`` at ``Details -> Materials`` tab to edit its property. 
 
 .. image:: https://image.ibb.co/eQDuTF/editor1.png
 
@@ -20,12 +20,6 @@ Edit `SpecularWood` property, e.g. increase the value to make it more specular.
 The results are as follows,
 
 .. image:: https://image.ibb.co/mhoNYF/specular.png
-
-
-If you want to change the display resolution.
-In game mode, use console command :code:`r.setres 320x240`
-
-When use ``play -> selected viewport`` the resolution can not be changed, use `play -> new window editor` instead.
 
 Edit Object Color
 -----------------
