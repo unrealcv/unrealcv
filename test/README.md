@@ -4,7 +4,7 @@ The development of UnrealCV is supported by a set of test to ensure the correctn
 
 After downloading a game binary or installing the plugin, it is recommended to run some basic tests first to ensure UnrealCV works correctly.
 
-Install dependencies first, `pip install -r requirements.txt`, then run the elementary test with `pytest .`
+Install dependencies first, `pip install -r requirements.txt`, then run the elementary test with `pytest . -x`
 
 If you want to run a single test, use `pytest [filename].py`, or more specifically `pytest filename::test_name`.
 

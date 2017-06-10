@@ -28,13 +28,18 @@ def env(request):
         yield None
 
 
-# =============================
-# Define some utility functions
-def iserror(res):
-    return (res is None) or res.startswith('error')
+class ResChecker:
+    # Define some utility functions to check whether the response is as expected
+    def is_error(self, res):
+        return (res is None) or res.startswith('error')
 
-def isok(res):
-    return res == 'ok'
+    def is_ok(self, res):
+        return res == 'ok'
+
+    def not_error(self, res):
+        return not self.is_error(res)
+
+checker = ResChecker()
 
 class Version:
     '''
