@@ -42,3 +42,4 @@ Use `pytest --docker` if you want to run the virtual environment in docker. Unre
 
 ## Wishlist
 TODO: Add tox to support test of python3.
+TODO: Verify whether pytest runs tests simultaneously or serially.
