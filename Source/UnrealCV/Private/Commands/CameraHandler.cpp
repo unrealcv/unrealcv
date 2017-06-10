@@ -111,7 +111,11 @@ void FCameraCommandHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vget /camera/[uint]/depth png", Cmd, Help);
 	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetPngBinary(Args, TEXT("normal")); });
 	CommandDispatcher->BindCommand("vget /camera/[uint]/normal png", Cmd, Help);
-	// object_mask will be handled differently
+
+	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetNpyBinary(Args, TEXT("depth")); });
+	CommandDispatcher->BindCommand("vget /camera/[uint]/depth npy", Cmd, Help);
+
+	// TODO: object_mask will be handled differently
 }
 
 FExecStatus FCameraCommandHandler::GetCameraProjMatrix(const TArray<FString>& Args)
@@ -407,6 +411,20 @@ FExecStatus FCameraCommandHandler::GetPngBinary(const TArray<FString>& Args, con
 		return FExecStatus::Error(FString::Printf(TEXT("Invalid camera id %d"), CameraId));
 	}
 
-	TArray<uint8> ImgData = GTCapturer->Capture(ViewMode);
+	TArray<uint8> ImgData = GTCapturer->CapturePng(ViewMode);
+	return FExecStatus::Binary(ImgData);
+}
+
+FExecStatus FCameraCommandHandler::GetNpyBinary(const TArray<FString>& Args, const FString& ViewMode)
+{
+	int32 CameraId = FCString::Atoi(*Args[0]);
+
+	UGTCaptureComponent* GTCapturer = FCaptureManager::Get().GetCamera(CameraId);
+	if (GTCapturer == nullptr)
+	{
+		return FExecStatus::Error(FString::Printf(TEXT("Invalid camera id %d"), CameraId));
+	}
+
+	TArray<uint8> ImgData = GTCapturer->CaptureNpy(ViewMode);
 	return FExecStatus::Binary(ImgData);
 }

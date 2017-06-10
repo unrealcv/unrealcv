@@ -5,6 +5,9 @@ CHANGELOG
 Development branch
 ==================
 
+- v0.3.8 :
+    - Integrate cnpy into unrealcv
+    - Add :code:`vget /camera/depth npy`, which can return tensor as a numpy binary.
 - v0.3.7 :
     - Add :code:`vget /camera/lit png` to retrieve binary data without saving it.
 - v0.3.6 :

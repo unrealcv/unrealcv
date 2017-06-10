@@ -36,8 +36,11 @@ public:
 	/** Save image to a file */
 	FAsyncRecord* Capture(FString Mode, FString Filename);
 	
-	/** Read binary data directly */
-	TArray<uint8> Capture(FString Mode);
+	/** Read binary data in png format */
+	TArray<uint8> CapturePng(FString Mode);
+
+	/** Read binary data in uncompressed numpy array */
+	TArray<uint8> CaptureNpy(FString Mode);
 private:
 	const bool bIsTicking = true;
 
