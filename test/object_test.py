@@ -2,7 +2,6 @@
 Test object related functions
 '''
 from unrealcv import client
-import cv2
 from conftest import env, checker
 
 def test_object_list(env):

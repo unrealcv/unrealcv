@@ -3,12 +3,6 @@ from unrealcv import client
 import math, random
 from conftest import checker, Version
 
-def get_version():
-    res = client.request('vget /unrealcv/version')
-    if checker.is_error(res):
-        return '0.3.0' # or earlier
-    else:
-        return res
 
 class Vec3:
     def __init__(self, data):
