@@ -1,14 +1,8 @@
 # pytest -s stereo.py -k [name]
 from unrealcv import client
 import math, random
-from conftest import checker, Version
-
-def get_version():
-    res = client.request('vget /unrealcv/version')
-    if checker.is_error(res):
-        return '0.3.0' # or earlier
-    else:
-        return res
+from conftest import checker, ver
+import pytest
 
 class Vec3:
     def __init__(self, data):
@@ -35,6 +29,7 @@ def random_vec3(min=-90, max=90):
 def approx(a, b, tol = 0.01):
     return abs(a - b) < tol
 
+@pytest.mark.skipif(ver < (0, 3, 2), reason = 'eyes_distance is implemented before v0.3.2')
 def test_camera_distance():
     client.connect()
 
@@ -55,12 +50,18 @@ def test_camera_distance():
             actor_cam0_distance = (actor_loc - loc1).l2norm()
             assert approx(actor_cam0_distance, 0)
 
+@pytest.mark.skipif(ver < (0, 3, 2), reason = 'pause is implemented before v0.3.2')
 def test_pause():
     client.connect()
-    print client.request('vset /action/game/pause')
-    print client.request('vget /camera/0/lit')
-    print client.request('vget /camera/1/lit')
-    print client.request('vset /action/game/pause')
+    cmds = [
+        'vset /action/game/pause',
+        'vget /camera/0/lit',
+        'vget /camera/1/lit',
+        'vset /action/game/pause',
+    ]
+    for cmd in cmds:
+        res = client.request(cmd)
+        assert checker.not_error(res)
 
 if __name__ == '__main__':
     def test_vec3():
@@ -68,12 +69,3 @@ if __name__ == '__main__':
         b = Vec3([1, 1, 1])
         assert(approx((a-b).l2norm(), math.sqrt(3)))
         assert(approx((a+b).l2norm(), math.sqrt(3)))
-
-    def test_version():
-        a = Version('v0.3.0')
-        b = Version('v0.3.1')
-        c = Version('v0.2.3')
-        d = Version('v0.3.0')
-        assert a < b
-        assert a > c
-        assert a == d

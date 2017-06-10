@@ -8,7 +8,7 @@ Install dependencies first, `pip install -r requirements.txt`, then run the elem
 
 If you want to run a single test, use `pytest [filename].py`, or more specifically `pytest filename::test_name`.
 
-Other tips of pytest: `pytest -x`, the `-x` parameter will stop when encounter the first error. Use `pytest -v` if you prefer a verbose output. Show more diagnositic information, try `pytest -s .`
+Other tips of pytest: `pytest -x`, the `-x` parameter will stop when encounter the first error. Use `pytest -v` if you prefer a verbose output. Show more diagnositic information, try `pytest -s .` Use ipdb module in pytest.
 
 Make sure either 1. The game binary is started. or 2. The editor has UnrealCV installed, and is in `Play` mode.
 

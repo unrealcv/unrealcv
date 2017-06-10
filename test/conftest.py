@@ -4,10 +4,10 @@ Configuration file for pytest
 import pytest
 import os, time
 from docker_util import DockerRunner
+from unrealcv import client
 
 def pytest_addoption(parser):
     parser.addoption('--docker', action='store_true', help='Run docker fixture')
-
 
 @pytest.fixture(scope='module')
 def env(request):
@@ -41,18 +41,19 @@ class ResChecker:
 
 checker = ResChecker()
 
-class Version:
-    '''
-    Represent the version information, can be used for comparison
-    '''
-    def __init__(self, data):
-        if isinstance(data, str):
-            # parse vx.y.z
-            [self.x, self.y, self.z] = [int(v) for v in data.lstrip('v').split('.')]
+def get_version():
+    client.connect()
+    res = client.request('vget /unrealcv/version')
+    client.connect()
+    if res and res.startswith('error Can not find a handler'):
+        return (0, 3, 0) # or earlier
+    elif checker.is_error(res):
+        print('Fail to connect to the game, make sure the game is running.')
+        exit(-1)
+    else:
+        version = [int(v) for v in res.lstrip('v').split('.')]
+        return tuple(version)
 
-    def __cmp__(self, v):
-        if self.x != v.x:
-            return cmp(self.x, v.x)
-        if self.y != v.y:
-            return cmp(self.y, v.y)
-        return cmp(self.z, v.z)
+ver = get_version()
+# Version is represent as a python tuple (a, b, c)
+# Comparing two tuples are done by comparing a, b, c in order

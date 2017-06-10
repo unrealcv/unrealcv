@@ -5,12 +5,16 @@ These tests can not verify whether the results are generated correctly, since we
 Every test function starts with prefix `test_`, so that pytest can automatically discover these functions during execution.
 '''
 from unrealcv import client
-from conftest import env, checker
-import cv2
+from conftest import env, checker, ver
 from StringIO import StringIO
 import numpy as np
 from PIL import Image
-
+import pytest
+try:
+    import cv2
+    no_opencv = False
+except ImportError:
+    no_opencv = True
 
 def imread_png(res):
     PILimg = Image.open(StringIO(res))
@@ -35,6 +39,7 @@ def test_camera_control(env):
         res = client.request(cmd)
         assert checker.not_error(res)
 
+@pytest.mark.skipif(ver < (0,3,7), reason = 'Png mode is implemented in v0.3.7')
 def test_png_mode(env):
     '''
     Get image as a png binary, make sure no exception happened
@@ -50,6 +55,7 @@ def test_png_mode(env):
         assert checker.not_error(res)
         im = imread_png(res)
 
+@pytest.mark.skipif(ver < (0,3,8), reason = 'Npy mode is implemented in v0.3.8')
 def test_npy_mode(env):
     '''
     Get data as a numpy array
@@ -62,6 +68,7 @@ def test_npy_mode(env):
     # Do these but without assert, if exception happened, this test failed
     arr = imread_npy(res)
 
+@pytest.mark.skipif(no_opencv, reason = 'Can non find OpenCV')
 def test_file_mode(env):
     '''
     Save data to disk as image file
@@ -83,5 +90,6 @@ def test_file_mode(env):
 
 
 if __name__ == '__main__':
-    test_binary_mode(None)
-    # test_file_mode(None)
+    test_png_mode(None)
+    test_npy_mode(None)
+    test_file_mode(None)
