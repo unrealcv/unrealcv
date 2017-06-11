@@ -4,7 +4,7 @@ CHANGELOG
 
 Development branch
 ==================
-
+- head : Fix a bug that prevents object mask generation
 - v0.3.8 :
     - Integrate cnpy into unrealcv
     - Add :code:`vget /camera/depth npy`, which can return tensor as a numpy binary.
