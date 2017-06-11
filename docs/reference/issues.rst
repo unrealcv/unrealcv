@@ -70,6 +70,20 @@ Unable to dynamically load libGL: Could not retrieve EGL extension function eglQ
 
 - The image and ground truth not aligned
 
+Build
+=====
+
+Mac
+---
+Native error= Cannot find the specified file
+
+https://answers.unrealengine.com/questions/574562/cannot-package-a-plugin-in-415mac.html
+
+Invalid SDK MacOSX.sdk, not found in /Library/Developer/CommandLineTools/Platforms/MacOSX.platform/Developer/SDKs
+
+https://answers.unrealengine.com/questions/316117/missing-project-modules-1.html
+https://github.com/nodejs/node-gyp/issues/569#issuecomment-255589932
+
 Issues and workarounds
 ======================
 
