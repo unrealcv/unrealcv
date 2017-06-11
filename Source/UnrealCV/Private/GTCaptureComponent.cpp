@@ -272,17 +272,12 @@ TArray<uint8> NpySerialization(TArray<FFloat16Color> ImageData, int32 Width, int
 {
 	float *TypePointer = nullptr; // Only used for determing the type
 
-	const unsigned int Shape[] = { Height, Width, Channel}; // Height, Width, Channel
-	int Ndims;
-	switch (Channel)
-	{
-		case 1: Ndims = 2; break; // Only Height and Width
-		case 3: Ndims = 3; break;
-	default:
-		break;
-	}
+	std::vector<int> Shape;
+	Shape.push_back(Height);
+	Shape.push_back(Width);
+	if (Channel != 1) Shape.push_back(Channel);
 
-	std::vector<char> NpyHeader = cnpy::create_npy_header(TypePointer, Shape, Ndims);
+	std::vector<char> NpyHeader = cnpy::create_npy_header(TypePointer, Shape);
 
 	// Append the actual data
 	// FIXME: A slow implementation to convert TArray<FFloat16Color> to binary.
@@ -317,7 +312,7 @@ TArray<uint8> NpySerialization(TArray<FFloat16Color> ImageData, int32 Width, int
 	check(FloatData.size() == Width * Height * Channel);
 	// Convert to binary array
 	const unsigned char* bytes = reinterpret_cast<const unsigned char*>(&FloatData[0]);
-	
+
 	// https://stackoverflow.com/questions/22629728/what-is-the-difference-between-char-and-unsigned-char
 	// https://stackoverflow.com/questions/11022099/convert-float-vector-to-byte-vector-and-back
 	std::vector<unsigned char> NpyData(bytes, bytes + sizeof(float) * FloatData.size());
