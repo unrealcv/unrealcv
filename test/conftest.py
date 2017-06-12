@@ -41,10 +41,11 @@ class ResChecker:
 
 checker = ResChecker()
 
-def get_version():
+def ver():
     client.connect()
     res = client.request('vget /unrealcv/version')
     client.connect()
+
     if res and res.startswith('error Can not find a handler'):
         return (0, 3, 0) # or earlier
     elif checker.is_error(res):
@@ -54,6 +55,6 @@ def get_version():
         version = [int(v) for v in res.lstrip('v').split('.')]
         return tuple(version)
 
-ver = get_version()
+# ver = get_version()
 # Version is represent as a python tuple (a, b, c)
 # Comparing two tuples are done by comparing a, b, c in order

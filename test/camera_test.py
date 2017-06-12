@@ -39,7 +39,7 @@ def test_camera_control(env):
         res = client.request(cmd)
         assert checker.not_error(res)
 
-@pytest.mark.skipif(ver < (0,3,7), reason = 'Png mode is implemented in v0.3.7')
+@pytest.mark.skipif(ver() < (0,3,7), reason = 'Png mode is implemented in v0.3.7')
 def test_png_mode(env):
     '''
     Get image as a png binary, make sure no exception happened
@@ -55,7 +55,7 @@ def test_png_mode(env):
         assert checker.not_error(res)
         im = imread_png(res)
 
-@pytest.mark.skipif(ver < (0,3,8), reason = 'Npy mode is implemented in v0.3.8')
+@pytest.mark.skipif(ver() < (0,3,8), reason = 'Npy mode is implemented in v0.3.8')
 def test_npy_mode(env):
     '''
     Get data as a numpy array

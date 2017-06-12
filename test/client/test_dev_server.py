@@ -42,3 +42,8 @@ def test_client_side_close():
         time.sleep(0.5) # How long will the server should detect the client side loss
 
     server.shutdown()
+
+if __name__ == '__main__':
+    test_server()
+    test_release()
+    test_client_side_close()
