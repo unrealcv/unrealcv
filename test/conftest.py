@@ -4,10 +4,10 @@ Configuration file for pytest
 import pytest
 import os, time
 from docker_util import DockerRunner
+from unrealcv import client
 
 def pytest_addoption(parser):
     parser.addoption('--docker', action='store_true', help='Run docker fixture')
-
 
 @pytest.fixture(scope='module')
 def env(request):
@@ -28,26 +28,33 @@ def env(request):
         yield None
 
 
-# =============================
-# Define some utility functions
-def iserror(res):
-    return (res is None) or res.startswith('error')
+class ResChecker:
+    # Define some utility functions to check whether the response is as expected
+    def is_error(self, res):
+        return (res is None) or res.startswith('error')
 
-def isok(res):
-    return res == 'ok'
+    def is_ok(self, res):
+        return res == 'ok'
 
-class Version:
-    '''
-    Represent the version information, can be used for comparison
-    '''
-    def __init__(self, data):
-        if isinstance(data, str):
-            # parse vx.y.z
-            [self.x, self.y, self.z] = [int(v) for v in data.lstrip('v').split('.')]
+    def not_error(self, res):
+        return not self.is_error(res)
 
-    def __cmp__(self, v):
-        if self.x != v.x:
-            return cmp(self.x, v.x)
-        if self.y != v.y:
-            return cmp(self.y, v.y)
-        return cmp(self.z, v.z)
+checker = ResChecker()
+
+def ver():
+    client.connect()
+    res = client.request('vget /unrealcv/version')
+    client.connect()
+
+    if res and res.startswith('error Can not find a handler'):
+        return (0, 3, 0) # or earlier
+    elif checker.is_error(res):
+        print('Fail to connect to the game, make sure the game is running.')
+        exit(-1)
+    else:
+        version = [int(v) for v in res.lstrip('v').split('.')]
+        return tuple(version)
+
+# ver = get_version()
+# Version is represent as a python tuple (a, b, c)
+# Comparing two tuples are done by comparing a, b, c in order

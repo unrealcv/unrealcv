@@ -15,8 +15,11 @@ You can download compiled UnrealCV binaries from our `github release page`_. The
 - Install to Unreal Engine
     - Go to the plugin folder of Unreal Engine which is ``Engine/Plugins``
     - Put ``UnrealCV`` folder into the ``Plugins`` folder.
+.. note::
 
-Open ``Menu -> Edit -> Plugins``, make sure UnrealCV is installed and enabled.
+    If you choose to install to Unreal Engine, please make sure the version of the Unreal Engine is identical to the version of the compiled binaries downloaded.
+
+Open ``Menu -> Edit -> Plugins``, make sure UnrealCV is installed and enabled. You have to be in play mode before you type the commands.
 
 .. image:: ../images/plugin.png
 
@@ -33,6 +36,9 @@ Compile from source code
 If you want to try a version of UnrealCV not provided in our `github release page`_, for example, you want to try some experimental features not released yet. Compiling the plugin code from source code is the only choice.
 
 To compile UnrealCV plugin, use :code:`build.sh` for linux and mac, use :code:`build.bat` for windows, remember to set the path of Unreal Engine by following instructions of the script. After running this command you should see ``Automation.Execute: BUILD SUCCESSFUL`` and the plugin binaries will be produced in the ``Plugins/UnrealCV`` folder. Then you can copy the compiled plugin to a UE4 project.
+
+.. note::
+    It will take some time to run this command. For windows, we suggest using ``cmd`` to run `build.bat` to make sure the path is set correctly.
 
 If you want to modify UnrealCV code and add new features. Please refer to the :doc:`development setup </plugin/develop>`. Setting up a dev environment takes a bit more time but will make it much easier to debug and modify code.
 

@@ -8,3 +8,5 @@ docker
 pytest
 git-lfs
 sphinx-issues
+pillow
+unrealcv

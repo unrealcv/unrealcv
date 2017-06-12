@@ -50,4 +50,7 @@ public:
 
 	/** Get raw binary image data instead of filename */
 	FExecStatus GetPngBinary(const TArray<FString>& Args, const FString& ViewMode);
+
+	/** Get raw binary data as an uncompressed numpy array */
+	FExecStatus GetNpyBinary(const TArray<FString>& Args, const FString& ViewMode);
 };

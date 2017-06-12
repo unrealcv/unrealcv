@@ -120,6 +120,9 @@ class NULLTCPHandler(SocketServer.BaseRequestHandler):
                 break
 
 class EchoServer(ThreadedServer):
+    '''
+    Everything will be sent back
+    '''
     def __init__(self, endpoint):
         self.endpoint = endpoint
 
@@ -128,6 +131,9 @@ class EchoServer(ThreadedServer):
         self.server = SocketServer.ThreadingTCPServer(self.endpoint, EchoTCPHandler)
 
 class MessageServer(ThreadedServer):
+    '''
+    Simulate sending a message with the correct format
+    '''
     def __init__(self, endpoint):
         self.endpoint = endpoint
         self.server = SocketServer.ThreadingTCPServer(self.endpoint, MessageTCPHandler)

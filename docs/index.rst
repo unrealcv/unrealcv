@@ -10,7 +10,7 @@ UnrealCV helps computer vision researchers build virtual worlds using Unreal Eng
 .. figure:: images/homepage_teaser.png
     :align: center
 
-    Fig.1: Images generated from the technical demo :ref:`rr`
+    Images generated from the technical demo :ref:`rr`
 
 Currently, UnrealCV plugin supports UE4 (4.12, 4.13, 4.14) in Windows, Linux and Mac, more details about supported platforms in :ref:`this page <supported>`. UnrealCV client supports python and MATLAB (experimental). Read :doc:`getting started <tutorials/getting_started>` to learn how to use UnrealCV.
 

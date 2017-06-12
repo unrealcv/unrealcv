@@ -2,25 +2,14 @@
 Test object related functions
 '''
 from unrealcv import client
-import cv2
-from common import isok, iserror
-from conftest import env
-
-# def test_seg_mask(docker_runner):
-#     client.connect()
-#
-#     client.request('vrun setres 640x480')
-#     f1 = client.request('vget /camera/0/lit')
-#     f2 = client.request('vget /camera/0/object_mask')
-#     assert (not iserror(f1)) and (not iserror(f2))
-#     im = cv2.imread(f1)
-#     seg = cv2.imread(f2)
-#     assert(im.shape[:2] == seg.shape[:2]) # Make sure the width and height the same.
+from conftest import env, checker
 
 def test_object_list(env):
     client.connect()
-    obj_ids = client.request('vget /objects').split(' ')
+    res = client.request('vget /objects')
+    obj_ids = res.split(' ')
+    assert checker.not_error(res)
 
     for obj_id in obj_ids:
         color = client.request('vget /object/%s/color' % obj_id)
-        print color
+        assert checker.not_error(color)

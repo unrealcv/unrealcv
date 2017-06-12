@@ -17,7 +17,7 @@ First you need to download a game binary from :doc:`our model zoo </reference/mo
     :width: 300px
     :align: center
 
-    Fig.1. Initial screen of the game
+    Initial screen of the game
 
 Use mouse to look around and use keys :kbd:`w a s d` to navigate, use :kbd:`q e` to level the camera up and down. If you want to release mouse cursor from the game, press \` (the key on top of tab).
 
@@ -41,13 +41,13 @@ Try UnrealCV commands
 ---------------------
 
 Unreal Engine provides a built-in console to help developers to debug games. This built-in console is a convenient way of trying UnrealCV commands. To open the console, press \`
-(the key on top of tab) twice, a console will pop out, as shown in :ref:`this figure <fig_console>`. Type in :code:`vset /viewmode object_mask` you are expected to see the object instance mask. Use :code:`vset /viewmode lit` to switch back to normal rendering setting.
+(the key on top of tab) twice, a console will pop out, as shown in :numref:`fig_console`. Type in :code:`vset /viewmode object_mask` you are expected to see the object instance mask. Use :code:`vset /viewmode lit` to switch back to normal rendering setting.
 
 .. _fig_console:
 .. figure:: ../images/console.png
     :align: center
 
-    Fig.2 Use console to try UnrealCV commands
+    Use console to try UnrealCV commands
 
 Use python client to execute commands
 =====================================
