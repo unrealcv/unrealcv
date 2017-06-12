@@ -11,7 +11,7 @@ Guide to submit a binary
 
 1. Modify UE4 config file
 2. Package your game project into a binary
-3. Make a pull request to modify the `model zoo page`_
+3. Make a pull request to modify the :doc:`/reference/model_zoo`
 4. We will review your pull request and merge the changes to the UnrealCV website
 
 1. Modify an UE4 config file
@@ -40,7 +40,7 @@ Another approach is used the packaging script contained in unrealcv repository.
 3. Make a pull request
 ----------------------
 
-The last step is making a pull request to modify the :doc:`model zoo page </reference/model_zoo`> and add your content. We list some information that should be provided in the pull request. These information can help others better utilize the game binary. This is :ref:`an example <rr>`.
+The last step is making a pull request to modify the :doc:`model zoo page </reference/model_zoo>` and add your content. We list some information that should be provided in the pull request. These information can help others better utilize the game binary. This is :ref:`an example <rr>`.
 
 Binary name (required):
     An easy to remember name that people can refer to the binary you created

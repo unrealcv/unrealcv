@@ -66,3 +66,4 @@ For the doc of a specific version of unrealcv, please see `the version page`_
     CHANGELOG
     contribute
     reference/contact
+    reference/ue4_resources

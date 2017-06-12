@@ -74,33 +74,32 @@ print(im.shape)
 # Visualize the image we just captured
 plt.imshow(im)
 
+
+##############################
 # Ground truth generation
 # =======================
-# Capture an image
-
-####################
-# It is also easy to save the image to a file
-res = client.request('vget /camera/0/lit output.png')
-print('The file is saved to %s' % res)
-
-
-####################
 # Generate ground truth from this virtual scene
-res = client.request('vget /camera/0/depth png')
-depth = read_png(res)
 res = client.request('vget /camera/0/object_mask png')
 object_mask = read_png(res)
 res = client.request('vget /camera/0/normal png')
 normal = read_png(res)
 
-# =================
 # Visualize the captured ground truth
-plt.subplot(131); plt.imshow(depth)
-plt.subplot(132); plt.imshow(object_mask)
-plt.subplot(133); plt.imshow(normal)
+plt.imshow(object_mask)
+plt.figure()
+plt.imshow(normal)
 
-####################
-# List all the objects appeared in this frame
+###############################
+# Depth is retrieved as a numpy array
+# For UnrealCV < v0.3.8, the depth is saved as an exr file, but this has two issues. 1. Exr is not well supported in Linux 2. It depends on OpenCV to read exr file, which is hard to install
+res = client.request('vget /camera/0/depth npy')
+depth = read_npy(res)
+plt.imshow(depth)
+
+##############################
+# Get object information
+# ======================
+# List all the objects appeared in the virtual scene
 scene_objects = client.request('vget /objects').split(' ')
 print('There are %d objects in this scene' % len(scene_objects))
 
@@ -130,7 +129,7 @@ for idx in range(num_objects):
         sys.stdout.write('.')
         sys.stdout.flush()
 
-####################
+##############################
 # How many objects in this frame
 mask = object_mask
 mask_idx = mask[:,:,0] * 256 * 256 + mask[:,:,1] * 256 + mask[:,:,2]
@@ -142,7 +141,7 @@ obj_names = [inverse_color_mapping.get(k) for k in unique_idx]
 print(obj_names)
 
 
-####################
+##############################
 # Show info of an object
 # ======================
 # Print an object
@@ -152,7 +151,7 @@ print('Show the object mask of %s' % obj_name)
 mask = (mask_idx == unique_idx[obj_idx])
 plt.imshow(mask)
 
-####################
+##############################
 # Clean up resources
 # ==================
 client.disconnect()
