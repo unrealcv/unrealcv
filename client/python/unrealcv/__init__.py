@@ -129,22 +129,21 @@ class BaseClient(object):
         endpoint: a tuple (ip, port)
         message_handler: a function defined as `def message_handler(msg)` to handle incoming message, msg is a string
         '''
-        self.running = True
-
         self.endpoint = endpoint
         self.raw_message_handler = raw_message_handler
         self.socket = None # if socket == None, means client is not connected
         self.wait_connected = threading.Event()
 
+        # Start a thread to get data from the socket
+        receiving_thread = threading.Thread(target = self.__receiving)
+        receiving_thread.setDaemon(1)
+        receiving_thread.start()
+
+
     def connect(self, timeout = 1):
         '''
         Try to connect to server, return whether connection successful
         '''
-        # Start a thread to get data from the socket
-        self.receiving_thread = threading.Thread(target = self.__receiving)
-        self.receiving_thread.setDaemon(1)
-        self.receiving_thread.start()
-
         if not self.isconnected():
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -174,7 +173,6 @@ class BaseClient(object):
         return self.socket != None
 
     def disconnect(self):
-        self.running = False
         if self.isconnected():
             _L.debug("BaseClient, request disconnect from server in %s", threading.current_thread().name)
 
@@ -192,7 +190,7 @@ class BaseClient(object):
         Also check whether client is still connected
         '''
         _L.debug('BaseClient start receiving in %s', threading.current_thread().name)
-        while (self.running):
+        while (1):
             if self.isconnected():
                 # Only this thread is allowed to read from socket, otherwise need lock to avoid competing
                 message = SocketMessage.ReceivePayload(self.socket)
@@ -225,7 +223,7 @@ class BaseClient(object):
             _L.error('Fail to send message, client is not connected')
             return False
 
-class Client(BaseClient):
+class Client(object):
     '''
     Client can be used to send request to a game and get response
     Currently only one client is allowed at a time
@@ -253,13 +251,16 @@ class Client(BaseClient):
                 _L.error('No message handler to handle message %s', raw_message)
 
     def __init__(self, endpoint, message_handler=None):
-        super(Client, self).__init__(endpoint, self.__raw_message_handler)
-
         self.raw_message_regexp = re.compile('(\d{1,8}):(.*)')
+        self.message_client = BaseClient(endpoint, self.__raw_message_handler)
         self.message_handler = message_handler
         self.message_id = 0
         self.wait_response = threading.Event()
         self.response = ''
+
+        self.isconnected = self.message_client.isconnected
+        self.connect = self.message_client.connect
+        self.disconnect = self.message_client.disconnect
 
         self.queue = Queue()
         self.main_thread = threading.Thread(target = self.worker)
@@ -267,7 +268,7 @@ class Client(BaseClient):
         self.main_thread.start()
 
     def worker(self):
-        while self.running:
+        while True:
             task = self.queue.get()
             task()
             self.queue.task_done()
@@ -294,7 +295,7 @@ class Client(BaseClient):
         def do_request():
             raw_message = '%d:%s' % (self.message_id, message)
             _L.debug('Request: %s', raw_message)
-            if not self.send(raw_message):
+            if not self.message_client.send(raw_message):
                 return None
 
         # request can only be sent in the main thread, do not support multi-thread submitting request together
@@ -315,7 +316,6 @@ class Client(BaseClient):
         else:
             _L.error('Can not receive a response from server, timeout after %.2f seconds', timeout)
             return None
-
 
 (HOST, PORT) = ('localhost', 9000)
 client = Client((HOST, PORT), None)
