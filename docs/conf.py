@@ -51,6 +51,10 @@ for i in range(len(sphinx_gallery_conf['examples_dirs'])):
     for f in glob.glob(os.path.join(source_dir, '*.rst')):
         shutil.copy(f, gallery_dir)
 
+
+build_tutorial = os.environ.get('build_tutorial')
+print('Build tutorial? : %s' % build_tutorial)
+
 def get_md5sum(src_file):
     """Returns md5sum of file, from https://github.com/sphinx-gallery/sphinx-gallery/blob/master/sphinx_gallery/gen_rst.py#L201"""
     with open(src_file, 'rb') as src_data:
@@ -58,18 +62,17 @@ def get_md5sum(src_file):
         src_md5 = hashlib.md5(src_content).hexdigest()
     return src_md5
 
-build_tutorial = os.environ.get('build_tutorial')
-print('Build tutorial? : %s' % build_tutorial)
-if not build_tutorial:
-# if on_rtd or os.name == 'nt': # windows or rtd
-    # Use a hacky way to skip the tutorial generation
-    skipping_files = [
-        './tutorials_source/generate_images_tutorial.py',
-    ]
-    for f in skipping_files:
-        with open(f.replace('_source', '') + '.md5', 'w') as file_checksum:
+tutorial_files = [
+    './tutorials_source/generate_images_tutorial.py',
+]
+# Use a hacky way to skip the tutorial generation
+for f in tutorial_files:
+    md5_file = f.replace('_source', '') + '.md5'
+    if not build_tutorial:
+        with open(md5_file, 'w') as file_checksum:
             file_checksum.write(get_md5sum(f))
-
+    else:
+        os.remove(md5_file)
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
