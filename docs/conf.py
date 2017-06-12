@@ -72,7 +72,8 @@ for f in tutorial_files:
         with open(md5_file, 'w') as file_checksum:
             file_checksum.write(get_md5sum(f))
     else:
-        os.remove(md5_file)
+        if os.path.isfile(md5_file):
+            os.remove(md5_file)
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
