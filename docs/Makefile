@@ -9,10 +9,10 @@ doxygen:
 
 tutorial:
 	# Start the docker container
-	./env.sh start_mac
+	./env.sh start_docker
 	sleep 2
 	build_tutorial=True sphinx-build -n -b html . _build/html
-	./env.sh stop_mac
+	./env.sh stop_docker
 
 .PHONY: doxygen tutorial
 
