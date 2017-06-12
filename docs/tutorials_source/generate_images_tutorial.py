@@ -10,26 +10,29 @@ ground truth from a virtual environment.
 
 ####################
 # Load some python libraries
+# The dependencies for this tutorials are
+# PIL, Numpy, Matplotlib
 from __future__ import division, absolute_import, print_function
 import os, sys, time, re, json
 import numpy as np
-# Load matplotlib for plotting
 import matplotlib.pyplot as plt
-imread = plt.imread
-from PIL import Image # Use pillow
 
+imread = plt.imread
 def imread8(im_file):
-    # Read image as a 8-bit numpy array
+    ''' Read image as a 8-bit numpy array '''
     im = np.asarray(Image.open(im_file))
     return im
 
-def imread_binary(res):
-    import io
-    img = Image.open(io.BytesIO(res))
+def read_png(res):
+    import StringIO, PIL.Image
+    img = PIL.Image.open(StringIO.StringIO(res))
     return np.asarray(img)
 
+def read_npy(res):
+    import StringIO
+    return np.load(StringIO.StringIO(res))
 
-####################
+###############################
 # Connect to the game
 # ===================
 # Load unrealcv python client, do :code:`pip install unrealcv` first.
@@ -37,31 +40,43 @@ from unrealcv import client
 client.connect()
 if not client.isconnected():
     print('UnrealCV server is not running. Run the game downloaded from http://unrealcv.github.io first.')
+
+###############################
 # Make sure the connection works well
 res = client.request('vget /unrealcv/status')
 print(res)
-res = client.request('vrun setres 640x480') # Resize the window
 
-####################
+##############################
 # Load a camera trajectory
-import json; camera_trajectory = json.load(open('camera_traj.json'))
+# ========================
+traj_file = './camera_traj.json' # Relative to this python script
+import json; camera_trajectory = json.load(open(traj_file))
 # We will show how to record a camera trajectory in another tutorial
 
-####################
-# Ground truth generation
-# =======================
-# Capture an image
-idx = 0
+##############################
+# Render an image
+# ===============
+idx = 1
 loc, rot = camera_trajectory[idx]
 # Set position of the first camera
 client.request('vset /camera/0/location {x} {y} {z}'.format(**loc))
 client.request('vset /camera/0/rotation {pitch} {yaw} {roll}'.format(**rot))
-# Get image and ground truth
-res = client.request('vget /camera/0/lit png')
 
-# Visualize the image we captured
-image = imread_binary(res)
-plt.imshow(image)
+# Get image
+res = client.request('vget /camera/0/lit lit.png')
+print('The image is saved to %s' % res)
+
+# It is also possible to get the png directly without saving to a file
+res = client.request('vget /camera/0/lit png')
+im = read_png(res)
+print(im.shape)
+
+# Visualize the image we just captured
+plt.imshow(im)
+
+# Ground truth generation
+# =======================
+# Capture an image
 
 ####################
 # It is also easy to save the image to a file
@@ -72,11 +87,11 @@ print('The file is saved to %s' % res)
 ####################
 # Generate ground truth from this virtual scene
 res = client.request('vget /camera/0/depth png')
-depth = imread_binary(res)
+depth = read_png(res)
 res = client.request('vget /camera/0/object_mask png')
-object_mask = imread_binary(res)
+object_mask = read_png(res)
 res = client.request('vget /camera/0/normal png')
-normal = imread_binary(res)
+normal = read_png(res)
 
 # =================
 # Visualize the captured ground truth
