@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name = 'UnrealCV',
     packages = ['unrealcv'],
-    version = '0.2',
+    version = '0.2.1',
     description = 'UnrealCV client for python. see http://unrealcv.github.io for more detail.',
     author = 'Weichao Qiu',
     author_email = 'qiuwch@gmail.com',
@@ -12,3 +12,7 @@ setup(
     keywords = ['computer vision', 'unreal engine', 'ue4', 'synthetic', 'simulator', 'robotics'],
     classifiers = [],
 )
+
+# CHANGELOG
+# v0.2.1
+# Make thread stopable
