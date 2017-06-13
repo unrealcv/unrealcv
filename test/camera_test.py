@@ -5,10 +5,8 @@ These tests can not verify whether the results are generated correctly, since we
 Every test function starts with prefix `test_`, so that pytest can automatically discover these functions during execution.
 '''
 from unrealcv import client
-from conftest import env, checker, ver
-from StringIO import StringIO
+from conftest import checker, ver
 import numpy as np
-from PIL import Image
 import pytest
 try:
     import cv2
@@ -17,17 +15,18 @@ except ImportError:
     no_opencv = True
 
 def imread_png(res):
-    PILimg = Image.open(StringIO(res))
-    img = np.array(PILimg)
-    return img
+    import StringIO, PIL.Image
+    PILimg = PIL.Image.open(StringIO.StringIO(res))
+    return np.array(PILimg)
 
 def imread_npy(res):
-    return np.load(StringIO(res))
+    import StringIO
+    return np.load(StringIO.StringIO(res))
 
 def imread_file(res):
     return cv2.imread(res)
 
-def test_camera_control(env):
+def test_camera_control():
     client.connect()
     cmds = [
         'vget /camera/0/location',
@@ -40,7 +39,7 @@ def test_camera_control(env):
         assert checker.not_error(res)
 
 @pytest.mark.skipif(ver() < (0,3,7), reason = 'Png mode is implemented in v0.3.7')
-def test_png_mode(env):
+def test_png_mode():
     '''
     Get image as a png binary, make sure no exception happened
     '''
@@ -56,7 +55,7 @@ def test_png_mode(env):
         im = imread_png(res)
 
 @pytest.mark.skipif(ver() < (0,3,8), reason = 'Npy mode is implemented in v0.3.8')
-def test_npy_mode(env):
+def test_npy_mode():
     '''
     Get data as a numpy array
     '''
@@ -69,7 +68,7 @@ def test_npy_mode(env):
     arr = imread_npy(res)
 
 @pytest.mark.skipif(no_opencv, reason = 'Can non find OpenCV')
-def test_file_mode(env):
+def test_file_mode():
     ''' Save data to disk as image file '''
     client.connect()
     cmds = [
@@ -85,7 +84,7 @@ def test_file_mode(env):
         im = imread_file(res)
 
 @pytest.mark.skip(reason = 'Need to explicitly ignore this test for linux')
-def test_exr_file(env):
+def test_exr_file():
     cmds = [
         'vget /camera/0/depth test.exr', # This is very likely to fail in Linux
     ]
@@ -93,7 +92,7 @@ def test_exr_file(env):
     for cmd in cmds:
         res = client.request(cmd)
         assert checker.not_error(res)
-        
+
         im = imread_file(res)
 
 

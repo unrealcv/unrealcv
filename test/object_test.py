@@ -2,9 +2,9 @@
 Test object related functions
 '''
 from unrealcv import client
-from conftest import env, checker
+from conftest import checker
 
-def test_object_list(env):
+def test_object_list():
     client.connect()
     res = client.request('vget /objects')
     obj_ids = res.split(' ')
