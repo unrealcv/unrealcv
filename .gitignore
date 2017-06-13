@@ -1,21 +1,18 @@
-*.pyc
 *~
+*.pyc
 *.swp
-.DS_Store
+*.log
 *.zip
+.DS_Store
 
 Binaries/
 Intermediate/
 Config/
-built/
 
 *.ipynb_checkpoints/
+
 # Core dump
 core
-
-# Markdown files converted from *.ipynb
-docs/ipynb
-site/
 
 # The built result
 Plugins/
