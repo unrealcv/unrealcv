@@ -52,6 +52,7 @@ for i in range(len(sphinx_gallery_conf['examples_dirs'])):
         shutil.copy(f, gallery_dir)
 
 
+'''
 build_tutorial = os.environ.get('build_tutorial')
 print('Build tutorial? : %s' % build_tutorial)
 
@@ -74,6 +75,7 @@ for f in tutorial_files:
     else:
         if os.path.isfile(md5_file):
             os.remove(md5_file)
+'''
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

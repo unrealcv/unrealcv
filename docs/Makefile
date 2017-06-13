@@ -3,19 +3,16 @@ html:
 	-xdg-open _build/html/index.html
 
 doxygen:
-	doxygen Doxyfile
+	-doxygen Doxyfile
 
-tutorial:
-	# Start the docker container
-	./env.sh start_docker
-	build_tutorial=True sphinx-build -n -b html . _build/html
-	./env.sh stop_docker
+tutorial: doxygen
+	../test/docker-run.sh sphinx-build -n -b html . _build/html
 	-xdg-open _build/html/index.html
 
 test_tutorial:
-	./env.sh start_docker
-	cd tutorials_source && python generate_images_tutorial.py
-	./env.sh stop_docker
+	# Run the tutorial only, without populating the sphinx, for test only.
+	cd tutorials_source && \
+	../../test/docker-run.sh python generate_images_tutorial.py
 
 .PHONY: doxygen tutorial
 
