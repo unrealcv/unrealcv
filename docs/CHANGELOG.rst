@@ -4,9 +4,12 @@ CHANGELOG
 
 Development branch
 ==================
+
 - head (changes not tagged yet):
-  Fix a bug that prevents object mask generation, which is introduced in v0.3.7
-  Fix #53 that the painting of object does not work
+- v0.3.9
+    - Fix a bug that prevents object mask generation, which is introduced in v0.3.7
+    - Fix #53 that the painting of object does not work
+    - Fix #49 python3 support, thanks to @jskinn and @befelix
 - v0.3.8 :
     - Integrate cnpy into unrealcv
     - Add :code:`vget /camera/depth npy`, which can return tensor as a numpy binary.
