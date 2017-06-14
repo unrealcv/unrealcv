@@ -40,6 +40,10 @@ RealisticRendering
 
     `nvidia-docker run --name rr --rm -p 9000:9000 --env="DISPLAY" --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" qiuwch/rr:0.3.8`
 
+.. warning: 
+
+    The virtual worlds below are still on progress. You might find they have incorrect texture of object mask, we are working on them.
+
 ArchinteriorsVol2Scene1
 -----------------------
 
