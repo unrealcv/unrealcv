@@ -5,6 +5,6 @@ python:
 install:
     - pip install unrealcv
 script:
-    - pytest test/client
+    - py.test test/client
     # There is no way to test ipc and commands with travis, they need to be tested locally
     # Because travis can not run the UE4 binary.

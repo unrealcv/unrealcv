@@ -7,6 +7,7 @@
 *.ipynb_checkpoints/
 .cache/
 .DS_Store/
+.tox/
 
 Binaries/
 Intermediate/
