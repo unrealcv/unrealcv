@@ -3,13 +3,15 @@
 *.swp
 *.log
 *.zip
-.DS_Store
+
+*.ipynb_checkpoints/
+.cache/
+.DS_Store/
+.tox/
 
 Binaries/
 Intermediate/
 Config/
-
-*.ipynb_checkpoints/
 
 # Core dump
 core

@@ -262,7 +262,6 @@ FExecStatus FCameraCommandHandler::GetObjectInstanceMask(const TArray<FString>& 
 {
 	if (Args.Num() <= 2) // The first is camera id, the second is ViewMode
 	{
-		FObjectPainter::Get().PaintColors();
 		// Use command dispatcher is more universal
 		FExecStatus ExecStatus = CommandDispatcher->Exec(TEXT("vset /viewmode object_mask"));
 		if (ExecStatus != FExecStatusType::OK)

@@ -18,4 +18,8 @@ docker_run() {
     docker stop rr
 }
 
-docker_run ${script}
+if type nvidia-docker; then
+    docker_run ${script}
+else
+    ${script}
+fi

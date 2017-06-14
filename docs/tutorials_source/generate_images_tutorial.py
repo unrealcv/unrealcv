@@ -7,6 +7,8 @@ Generate Images
 This ipython notebook demonstrates how to generate an image dataset with rich
 ground truth from a virtual environment.
 """
+####################
+import time; print(time.strftime("The last update of this file: %Y-%m-%d %H:%M:%S", time.gmtime()))
 
 ####################
 # Load some python libraries
@@ -40,10 +42,12 @@ from unrealcv import client
 client.connect()
 if not client.isconnected():
     print('UnrealCV server is not running. Run the game downloaded from http://unrealcv.github.io first.')
+    sys.exit(-1)
 
 ###############################
 # Make sure the connection works well
 res = client.request('vget /unrealcv/status')
+# The image resolution and port is configured in the config file.
 print(res)
 
 ##############################
@@ -119,6 +123,7 @@ id2color = {} # Map from object id to the labeling color
 for obj_id in scene_objects:
     color = Color(client.request('vget /object/%s/color' % obj_id))
     id2color[obj_id] = color
+    # print('%s : %s' % (obj_id, str(color)))
 
 #############################
 # Parse the segmentation mask
@@ -127,7 +132,7 @@ def match_color(object_mask, target_color, tolerance=3):
     for c in range(3): # r,g,b
         min_val = target_color[c] - tolerance
         max_val = target_color[c] + tolerance
-        channel_region = (object_mask[:,:,c] >= min_val) & (object_mask[:,:,c] >= max_val)
+        channel_region = (object_mask[:,:,c] >= min_val) & (object_mask[:,:,c] <= max_val)
         match_region &= channel_region
 
     if match_region.sum() != 0:
@@ -163,6 +168,16 @@ for category in categories:
         print('%20s : %s' % (category, objects))
 
 ##############################
+# Show the annotation color of some objects
+ids = ['SM_Couch_1seat_5', 'SM_Vase_17', 'SM_Shelving_6', 'SM_Plant_8']
+# for obj_id in ids:
+obj_id = ids[0]
+color = id2color[obj_id]
+print('%s : %s' % (obj_id, str(color)))
+# color_block = np.zeros((100,100, 3)) + np.array([color.R, color.G, color.B]) / 255.0
+# plt.figure(); plt.imshow(color_block); plt.title(obj_id)
+
+##############################
 # Plot only one object
 mask = id2mask['SM_Plant_8']
 plt.figure(); plt.imshow(mask)
@@ -172,6 +187,15 @@ plt.figure(); plt.imshow(mask)
 couch_instance = [v for v in image_objects if id2category.get(v) == 'Couch']
 mask = sum(id2mask[v] for v in couch_instance)
 plt.figure(); plt.imshow(mask)
+
+##############################
+# Change the annotation color, fixed in v0.3.9
+# You can use this to make objects you don't care the same color
+client.request('vset /object/SM_Couch_1seat_5/color 255 0 0') # Change to pure red
+client.request('vget /object/SM_Couch_1seat_5/color')
+res = client.request('vget /camera/0/object_mask png')
+object_mask = read_png(res)
+plt.imshow(object_mask)
 
 ##############################
 # Clean up resources

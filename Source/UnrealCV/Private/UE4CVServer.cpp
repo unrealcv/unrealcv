@@ -135,9 +135,9 @@ bool FUE4CVServer::InitWorld()
 		// This will happen when the game is stopped and restart in the UE4Editor
 		APlayerController* PlayerController = World->GetFirstPlayerController();
 		check(PlayerController);
-		FObjectPainter::Get().Reset(GetPawn()->GetLevel());
 
-		FCaptureManager::Get().AttachGTCaptureComponentToCamera(GetPawn());
+		FObjectPainter::Get().Reset(GetPawn()->GetLevel());
+		FCaptureManager::Get().AttachGTCaptureComponentToCamera(GetPawn()); // TODO: Make this configurable in the editor
 
 		FEngineShowFlags ShowFlags = World->GetGameViewport()->EngineShowFlags;
 		FPlayerViewMode::Get().SaveGameDefault(ShowFlags);

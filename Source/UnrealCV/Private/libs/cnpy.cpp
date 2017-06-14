@@ -110,7 +110,7 @@ template<typename T> std::vector<char> cnpy::create_npy_header(const T* data, co
 	dict += tostring(shape[0]);
 
 	int ndims = shape.size();
-	for (unsigned int i = 1; i < ndims; i++) {
+	for (int i = 1; i < ndims; i++) {
 		dict += ", ";
 		dict += tostring(shape[i]);
 	}

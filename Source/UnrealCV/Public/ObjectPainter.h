@@ -10,37 +10,32 @@ class UNREALCV_API FObjectPainter
 private:
 	/** The level this ObjectPainter associated with */
 	ULevel* Level;
-	FObjectPainter(ULevel* InLevel);
+
+	FObjectPainter() {}
 	/** The assigned color for each object */
-	TMap<FString, FColor> ObjectColorMap;
+	TMap<FString, FColor> Id2Color;
 	/** A list of paintable objects */
-	TMap<FString, AActor*> ObjectMap;
+	TMap<FString, AActor*> Id2Actor;
 
 public:
+	/** Return the singleton of FObjectPainter */
+	static FObjectPainter& Get();
+
 	/** Reset this to uninitialized state */
 	void Reset(ULevel* InLevel);
-
-	/** A list of paintable objects in a level */
-	TMap<FString, AActor*>& GetObjectMap();
 
 	/** Vertex paint one object with Flood-Fill */
 	bool PaintObject(AActor* Actor, const FColor& Color, bool IsColorGammaEncoded = true);
 
-	/** Paint all objects */
-	bool PaintColors();
-
-	/** Return the singleton of FObjectPainter */
-	static FObjectPainter& Get();
+	/** Get a pointor to an object */
+	AActor* GetObject(FString ObjectName);
 
 	/** Return a list of actors in the level */
 	FExecStatus GetObjectList();
 
 	/** Get the object color */
-	FExecStatus GetActorColor(FString ObjectName);
+	FExecStatus GetActorColor(FString ActorId);
 
 	/** Functions to support CommandDispatcher */
-	FExecStatus SetActorColor(FString ObjectName, FColor Color);
-
-	/** Get a pointor to an object */
-	AActor* GetObject(FString ObjectName);
+	FExecStatus SetActorColor(FString ActorId, FColor Color);
 };

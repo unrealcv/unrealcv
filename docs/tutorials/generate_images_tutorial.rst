@@ -11,6 +11,22 @@ This ipython notebook demonstrates how to generate an image dataset with rich
 ground truth from a virtual environment.
 
 
+
+.. code-block:: python
+
+    import time; print(time.strftime("The last update of this file: %Y-%m-%d %H:%M:%S", time.gmtime()))
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out::
+
+    The last update of this file: 2017-06-14 01:53:46
+
+
 Load some python libraries
 The dependencies for this tutorials are
 PIL, Numpy, Matplotlib
@@ -57,6 +73,7 @@ Load unrealcv python client, do :code:`pip install unrealcv` first.
     client.connect()
     if not client.isconnected():
         print('UnrealCV server is not running. Run the game downloaded from http://unrealcv.github.io first.')
+        sys.exit(-1)
 
 
 
@@ -71,6 +88,7 @@ Make sure the connection works well
 .. code-block:: python
 
     res = client.request('vget /unrealcv/status')
+    # The image resolution and port is configured in the config file.
     print(res)
 
 
@@ -85,7 +103,7 @@ Make sure the connection works well
     Client Connected
     9000
     Configuration
-    Config file: /home/unrealcv/LinuxNoEditor/RealisticRendering/Binaries/Linux/unrealcv.ini
+    Config file: C:/Program Files/Epic Games/UE_4.14/Engine/Binaries/Win64/unrealcv.ini
     Port: 9000
     Width: 640
     Height: 480
@@ -145,7 +163,7 @@ Render an image
 
  Out::
 
-    The image is saved to /home/unrealcv/LinuxNoEditor/RealisticRendering/Binaries/Linux/lit.png
+    The image is saved to C:/Program Files/Epic Games/UE_4.14/Engine/Binaries/Win64/lit.png
     (480, 640, 4)
 
 
@@ -208,14 +226,14 @@ For UnrealCV < v0.3.8, the depth is saved as an exr file, but this has two issue
 
 Get object information
 ======================
-List all the objects appeared in the virtual scene
+List all the objects of this virtual scene
 
 
 
 .. code-block:: python
 
     scene_objects = client.request('vget /objects').split(' ')
-    print('There are %d objects in this scene' % len(scene_objects))
+    print('Number of objects in this scene:', len(scene_objects))
 
     # TODO: replace this with a better implementation
     class Color(object):
@@ -229,19 +247,11 @@ List all the objects appeared in the virtual scene
         def __repr__(self):
             return self.color_str
 
-    color_mapping = {}
-    inverse_color_mapping = {}
-    num_objects = len(scene_objects)
-    for idx in range(num_objects):
-        objname = scene_objects[idx]
-        color = Color(client.request('vget /object/%s/color' % objname))
-        idx = color.R * 256 * 256 + color.G * 256 + color.B
-        color_mapping[objname] = idx
-        inverse_color_mapping[idx] = objname
-
-        if idx % (num_objects / 10) == 0:
-            sys.stdout.write('.')
-            sys.stdout.flush()
+    id2color = {} # Map from object id to the labeling color
+    for obj_id in scene_objects:
+        color = Color(client.request('vget /object/%s/color' % obj_id))
+        id2color[obj_id] = color
+        # print('%s : %s' % (obj_id, str(color)))
 
 
 
@@ -251,25 +261,64 @@ List all the objects appeared in the virtual scene
 
  Out::
 
-    There are 296 objects in this scene
-    .
+    Number of objects in this scene: 299
 
 
-How many objects in this frame
+Parse the segmentation mask
 
 
 
 .. code-block:: python
 
-    mask = object_mask
-    mask_idx = mask[:,:,0] * 256 * 256 + mask[:,:,1] * 256 + mask[:,:,2]
+    def match_color(object_mask, target_color, tolerance=3):
+        match_region = np.ones(object_mask.shape[0:2], dtype=bool)
+        for c in range(3): # r,g,b
+            min_val = target_color[c] - tolerance
+            max_val = target_color[c] + tolerance
+            channel_region = (object_mask[:,:,c] >= min_val) & (object_mask[:,:,c] <= max_val)
+            match_region &= channel_region
 
-    unique_idx = list(set(mask_idx.flatten()))
-    print('There are %d objects in this image' % len(unique_idx))
+        if match_region.sum() != 0:
+            return match_region
+        else:
+            return None
 
-    obj_names = [inverse_color_mapping.get(k) for k in unique_idx]
-    print(obj_names)
+    id2mask = {}
+    for obj_id in scene_objects:
+        color = id2color[obj_id]
+        mask = match_color(object_mask, [color.R, color.G, color.B], tolerance = 3)
+        if mask is not None:
+            id2mask[obj_id] = mask
+    # This may take a while
+    # TODO: Need to find a faster implementation for this
 
+
+
+
+
+
+
+Print statistics of this virtual scene and this image
+=====================================================
+Load information of this scene
+
+
+
+.. code-block:: python
+
+    with open('object_category.json') as f:
+        id2category = json.load(f)
+    categories = set(id2category.values())
+    # Show statistics of this frame
+    image_objects = id2mask.keys()
+    print('Number of objects in this image:', len(image_objects))
+    print('%20s : %s' % ('Category name', 'Object name'))
+    for category in categories:
+        objects = [v for v in image_objects if id2category.get(v) == category]
+        if len(objects) > 6: # Trim the list if too long
+            objects[6:] = ['...']
+        if len(objects) != 0:
+            print('%20s : %s' % (category, objects))
 
 
 
@@ -279,23 +328,63 @@ How many objects in this frame
 
  Out::
 
-    There are 48 objects in this image
-    [None, 'Mug_30', 'Carpet_5', 'BookLP_142', None, 'BookLP_140', 'Couch_13', None, 'SM_Shelving_10', 'BookLP_141', None, None, 'SM_Railing_35', 'BookLP_176', None, 'SM_Railing_33', 'Switch_2', 'BookLP_104', 'SM_CoffeeTable_14', None, 'SM_Railing_34', None, 'SM_Shelving_9', None, None, 'SM_Shelving_8', None, None, None, None, None, None, None, None, None, 'BookLP_108', 'BookLP_106', 'EditorPlane_34', 'BookLP_144', None, 'SM_Room_7', None, 'BookLP_105', 'EditorPlane_24', None, 'EditorPlane_31', None, 'EditorPlane_25']
+    Number of objects in this image: 118
+           Category name : Object name
+                Shelving : ['SM_Shelving_7', 'SM_Shelving_6', 'SM_Shelving_9', 'SM_Shelving_8']
+                    Bowl : ['SM_Bowl_29']
+                   Couch : ['SM_Couch_1seat_5', 'Couch_13']
+                    Book : ['BookLP_139', 'BookLP_134', 'BookLP_136', 'BookLP_137', 'BookLP_130', 'BookLP_131', '...']
+                DeskLamp : ['SM_DeskLamp_5']
+         CoatHookBacking : ['CoatHookBacking_7']
+                   Plant : ['SM_Plant_8']
+                    Door : ['SM_Door_39']
+              Trim_Floor : ['S_Trim_Floor_10']
+                    Vase : ['SM_Vase_22', 'SM_Vase_21', 'SM_Vase_20', 'SM_Vase_18', 'SM_Vase_16', 'SM_Vase_17']
+                  Carpet : ['Carpet_5', 'Carpet_7']
+                    Room : ['SM_Room_7']
+               FloorLamp : ['SM_FloorLamp_7']
+                  Switch : ['Switch_7']
+             EditorPlane : ['EditorPlane_27']
+                   Frame : ['SM_Frame_39']
+               WallPiece : ['WallPiece6_32', 'WallPiece2_24', 'WallPiece1_22', 'WallPiece3_26']
+                CoatHook : ['CoatHook_17', 'CoatHook_16']
+       RoundCeilingLight : ['SM_RoundCeilingLight_4']
+             CoffeeTable : ['SM_CoffeeTable_14']
 
 
-Show info of an object
-======================
-Print an object
+Show the annotation color of some objects
 
 
 
 .. code-block:: python
 
-    obj_idx = 0
-    obj_name = obj_names[obj_idx]
-    print('Show the object mask of %s' % obj_name)
-    mask = (mask_idx == unique_idx[obj_idx])
-    plt.imshow(mask)
+    ids = ['SM_Couch_1seat_5', 'SM_Vase_17', 'SM_Shelving_6', 'SM_Plant_8']
+    # for obj_id in ids:
+    obj_id = ids[0]
+    color = id2color[obj_id]
+    print('%s : %s' % (obj_id, str(color)))
+    # color_block = np.zeros((100,100, 3)) + np.array([color.R, color.G, color.B]) / 255.0
+    # plt.figure(); plt.imshow(color_block); plt.title(obj_id)
+
+
+
+
+
+.. rst-class:: sphx-glr-script-out
+
+ Out::
+
+    SM_Couch_1seat_5 : (R=255,G=0,B=255,A=255)
+
+
+Plot only one object
+
+
+
+.. code-block:: python
+
+    mask = id2mask['SM_Plant_8']
+    plt.figure(); plt.imshow(mask)
 
 
 
@@ -304,11 +393,47 @@ Print an object
     :align: center
 
 
-.. rst-class:: sphx-glr-script-out
 
- Out::
 
-    Show the object mask of None
+Show all sofas in this image
+
+
+
+.. code-block:: python
+
+    couch_instance = [v for v in image_objects if id2category.get(v) == 'Couch']
+    mask = sum(id2mask[v] for v in couch_instance)
+    plt.figure(); plt.imshow(mask)
+
+
+
+
+.. image:: /tutorials/images/sphx_glr_generate_images_tutorial_006.png
+    :align: center
+
+
+
+
+Change the annotation color, fixed in v0.3.9
+You can use this to make objects you don't care the same color
+
+
+
+.. code-block:: python
+
+    client.request('vset /object/SM_Couch_1seat_5/color 255 0 0') # Change to pure red
+    client.request('vget /object/SM_Couch_1seat_5/color')
+    res = client.request('vget /camera/0/object_mask png')
+    object_mask = read_png(res)
+    plt.imshow(object_mask)
+
+
+
+
+.. image:: /tutorials/images/sphx_glr_generate_images_tutorial_007.png
+    :align: center
+
+
 
 
 Clean up resources
@@ -325,7 +450,7 @@ Clean up resources
 
 
 
-**Total running time of the script:** ( 0 minutes  11.202 seconds)
+**Total running time of the script:** ( 0 minutes  6.542 seconds)
 
 
 
@@ -344,4 +469,4 @@ Clean up resources
 
 .. rst-class:: sphx-glr-signature
 
-    `Generated by Sphinx-Gallery <http://sphinx-gallery.readthedocs.io>`_
+    `Generated by Sphinx-Gallery <https://sphinx-gallery.readthedocs.io>`_
