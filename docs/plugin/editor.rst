@@ -31,3 +31,10 @@ Following similar steps, you can edit the color of an object.
 The results are as follows,
 
 .. image:: https://image.ibb.co/mq1RtF/color2.png
+
+Use UnrealCV commands in the editor
+-----------------------------------
+
+.. image:: https://ibb.co/e97BF5
+
+You can use UnrealCV commands the same way as in a standalone binary.
