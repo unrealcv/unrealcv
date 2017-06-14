@@ -49,7 +49,7 @@ ArchinteriorsVol2Scene1
 
 :Description: ArchinteriorsVol2Scene1 is a scene of a 2 floors apartment.
 
-:Download: `Windows <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene1-Windows-0.3.6.zip>`__, `Linux <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene1-Linux-0.3.6.zip>`__
+:Download: `Windows <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene1-Windows-0.3.6.zip>`__, `Linux <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene1-Linux-0.3.8.zip>`__
 
 
 ArchinteriorsVol2Scene2
@@ -63,7 +63,7 @@ ArchinteriorsVol2Scene2
 
 :Description: ArchinteriorsVol2Scene2 is a scene of a house with 1 bedroom and 1 bathroom.
 
-:Download: `Windows <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene2-Windows-0.3.6.zip>`__, `Linux <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene2-Linux-0.3.6.zip>`__
+:Download: `Windows <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene2-Windows-0.3.6.zip>`__, `Linux <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene2-Linux-0.3.8.zip>`__
 
 
 ArchinteriorsVol2Scene3
@@ -77,7 +77,7 @@ ArchinteriorsVol2Scene3
 
 :Description: ArchinteriorsVol2Scene3 is a scene of an office.
 
-:Download: `Windows <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene3-Windows-0.3.6.zip>`__, `Linux <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene3-Linux-0.3.6.zip>`__
+:Download: `Windows <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene3-Windows-0.3.6.zip>`__, `Linux <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene3-Linux-0.3.8.zip>`__
 
 
 UrbanCity
