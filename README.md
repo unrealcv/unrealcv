@@ -1,9 +1,10 @@
 # UnrealCV
 
 [![Join the chat at https://gitter.im/unrealcv/unrealcv](https://badges.gitter.im/unrealcv/unrealcv.svg)](https://gitter.im/unrealcv/unrealcv?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-<!-- [![Build Status](https://travis-ci.org/unrealcv/unrealcv.svg?branch=master)](https://travis-ci.org/unrealcv/unrealcv) -->
 [![Docs Status](https://readthedocs.org/projects/unrealcv/badge/?version=latest
-)](https://docs.unrealcv.org)
+)](http://docs.unrealcv.org)
+
+<!-- [![Build Status](https://travis-ci.org/unrealcv/unrealcv.svg?branch=master)](https://travis-ci.org/unrealcv/unrealcv) -->
 
 UnrealCV is a project to help computer vision researchers build virtual worlds using Unreal Engine 4 (UE4). It extends UE4 with a plugin by providing:
 
