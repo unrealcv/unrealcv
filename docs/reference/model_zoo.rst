@@ -29,7 +29,9 @@ RealisticRendering
 
 :Description: Realistic Rendering is a demo created by Epic Games to show the rendering power of Unreal Engine 4. Here we provide an extended version of this demo with UnrealCV embedded.
 
-:Download: `Windows <http://www.cs.jhu.edu/~qiuwch/unrealcv/binaries/RealisticRendering-Win64-65d6144-171cd97.zip>`__, `Linux <http://www.cs.jhu.edu/~qiuwch/unrealcv/binaries/RealisticRendering-Linux-65d6144-171cd97.zip>`__ (tested in Ubuntu 14.04), `Mac <http://www.cs.jhu.edu/~qiuwch/unrealcv/binaries//RealisticRendering-Mac-65d6144-c25660b.zip>`__
+:Plugin: 0.3.9
+
+:Download: `Windows <http://www.cs.jhu.edu/~qiuwch/release/unrealcv/RealisticRendering-Windows-0.3.9.zip>`__, `Linux <http://www.cs.jhu.edu/~qiuwch/release/unrealcv/RealisticRendering-Linux-0.3.9.zip>`__ , `Mac <http://www.cs.jhu.edu/~qiuwch/unrealcv/binaries//RealisticRendering-Mac-65d6144-c25660b.zip>`__ (old version)
 
 
 - `Docker`
@@ -49,6 +51,8 @@ ArchinteriorsVol2Scene1
 
 :Description: ArchinteriorsVol2Scene1 is a scene of a 2 floors apartment.
 
+:Plugin: 0.3.6
+
 :Download: `Windows <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene1-Windows-0.3.6.zip>`__, `Linux <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene1-Linux-0.3.6.zip>`__
 
 
@@ -62,6 +66,8 @@ ArchinteriorsVol2Scene2
 .. image:: https://image.ibb.co/hwmkCa/arch2.png
 
 :Description: ArchinteriorsVol2Scene2 is a scene of a house with 1 bedroom and 1 bathroom.
+
+:Plugin: 0.3.6
 
 :Download: `Windows <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene2-Windows-0.3.6.zip>`__, `Linux <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene2-Linux-0.3.6.zip>`__
 
@@ -77,6 +83,8 @@ ArchinteriorsVol2Scene3
 
 :Description: ArchinteriorsVol2Scene3 is a scene of an office.
 
+:Plugin: 0.3.6
+
 :Download: `Windows <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene3-Windows-0.3.6.zip>`__, `Linux <http://cs.jhu.edu/~qiuwch/release/unrealcv/ArchinteriorsVol2Scene3-Linux-0.3.6.zip>`__
 
 
@@ -90,6 +98,8 @@ UrbanCity
 .. image:: https://image.ibb.co/kgrJXa/urbancity.png
 
 :Description: UrbanCity is a scene of a block of street.
+
+:Plugin: 0.3.6
 
 :Download: `Windows <http://cs.jhu.edu/~qiuwch/release/unrealcv/UrbanCity-Windows-0.3.6.zip>`__, `Linux <http://cs.jhu.edu/~qiuwch/release/unrealcv/UrbanCity-Linux-0.3.6.zip>`__
 
