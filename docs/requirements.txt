@@ -2,6 +2,7 @@ sphinx
 sphinx_rtd_theme
 sphinx-gallery
 numpy
+# Install the pkg-config to build matplotlib
 matplotlib
 breathe
 docker
