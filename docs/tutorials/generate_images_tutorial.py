@@ -7,6 +7,8 @@ Generate Images
 This ipython notebook demonstrates how to generate an image dataset with rich
 ground truth from a virtual environment.
 """
+####################
+import time; print(time.strftime("The last update of this file: %Y-%m-%d %H:%M:%S", time.gmtime()))
 
 ####################
 # Load some python libraries
@@ -99,9 +101,9 @@ plt.imshow(depth)
 ##############################
 # Get object information
 # ======================
-# List all the objects appeared in the virtual scene
+# List all the objects of this virtual scene
 scene_objects = client.request('vget /objects').split(' ')
-print('There are %d objects in this scene' % len(scene_objects))
+print('Number of objects in this scene:', len(scene_objects))
 
 # TODO: replace this with a better implementation
 class Color(object):
@@ -115,41 +117,74 @@ class Color(object):
     def __repr__(self):
         return self.color_str
 
-color_mapping = {}
-inverse_color_mapping = {}
-num_objects = len(scene_objects)
-for idx in range(num_objects):
-    objname = scene_objects[idx]
-    color = Color(client.request('vget /object/%s/color' % objname))
-    idx = color.R * 256 * 256 + color.G * 256 + color.B
-    color_mapping[objname] = idx
-    inverse_color_mapping[idx] = objname
+id2color = {} # Map from object id to the labeling color
+for obj_id in scene_objects:
+    color = Color(client.request('vget /object/%s/color' % obj_id))
+    id2color[obj_id] = color
+    # print('%s : %s' % (obj_id, str(color)))
 
-    if idx % (num_objects / 10) == 0:
-        sys.stdout.write('.')
-        sys.stdout.flush()
+#############################
+# Parse the segmentation mask
+def match_color(object_mask, target_color, tolerance=3):
+    match_region = np.ones(object_mask.shape[0:2], dtype=bool)
+    for c in range(3): # r,g,b
+        min_val = target_color[c] - tolerance
+        max_val = target_color[c] + tolerance
+        channel_region = (object_mask[:,:,c] >= min_val) & (object_mask[:,:,c] <= max_val)
+        match_region &= channel_region
+
+    if match_region.sum() != 0:
+        return match_region
+    else:
+        return None
+
+id2mask = {}
+for obj_id in scene_objects:
+    color = id2color[obj_id]
+    mask = match_color(object_mask, [color.R, color.G, color.B], tolerance = 3)
+    if mask is not None:
+        id2mask[obj_id] = mask
+# This may take a while
+# TODO: Need to find a faster implementation for this
 
 ##############################
-# How many objects in this frame
-mask = object_mask
-mask_idx = mask[:,:,0] * 256 * 256 + mask[:,:,1] * 256 + mask[:,:,2]
-
-unique_idx = list(set(mask_idx.flatten()))
-print('There are %d objects in this image' % len(unique_idx))
-
-obj_names = [inverse_color_mapping.get(k) for k in unique_idx]
-print(obj_names)
-
+# Print statistics of this virtual scene and this image
+# =====================================================
+# Load information of this scene
+with open('object_category.json') as f:
+    id2category = json.load(f)
+categories = set(id2category.values())
+# Show statistics of this frame
+image_objects = id2mask.keys()
+print('Number of objects in this image:', len(image_objects))
+print('%20s : %s' % ('Category name', 'Object name'))
+for category in categories:
+    objects = [v for v in image_objects if id2category.get(v) == category]
+    if len(objects) > 6: # Trim the list if too long
+        objects[6:] = ['...']
+    if len(objects) != 0:
+        print('%20s : %s' % (category, objects))
 
 ##############################
-# Show info of an object
-# ======================
-# Print an object
-obj_idx = 0
-obj_name = obj_names[obj_idx]
-print('Show the object mask of %s' % obj_name)
-mask = (mask_idx == unique_idx[obj_idx])
-plt.imshow(mask)
+# Show the annotation color of some objects
+ids = ['SM_Couch_1seat_5', 'SM_Vase_17', 'SM_Shelving_6', 'SM_Plant_8']
+# for obj_id in ids:
+obj_id = ids[0]
+color = id2color[obj_id]
+# print('%s : %s' % (obj_id, str(color)))
+color_block = np.zeros((100,100, 3)) + np.array([color.R, color.G, color.B]) / 255.0
+plt.figure(); plt.imshow(color_block); plt.title(obj_id)
+
+##############################
+# Plot only one object
+mask = id2mask['SM_Plant_8']
+plt.figure(); plt.imshow(mask)
+
+##############################
+# Show all sofas in this image
+couch_instance = [v for v in image_objects if id2category.get(v) == 'Couch']
+mask = sum(id2mask[v] for v in couch_instance)
+plt.figure(); plt.imshow(mask)
 
 ##############################
 # Clean up resources
