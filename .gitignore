@@ -1,13 +1,18 @@
-*.pyc
 *~
-.DS_Store
-*.txt
+*.pyc
+*.swp
+*.log
 *.zip
+.DS_Store
 
 Binaries/
 Intermediate/
 Config/
-built/
 
 *.ipynb_checkpoints/
+
+# Core dump
 core
+
+# The built result
+Plugins/

@@ -1,14 +1,9 @@
 #include "UnrealCVPrivate.h"
-#include "Commands/CameraHandler.h"
+#include "ScreenCapture.h"
+#include "UE4CVServer.h"
 
-/** Deprecated: Get camera view in a sync way, can not work in standalone mode */
-// FExecStatus GetCameraViewSync(const FString& Fullfilename);
-/** Get camera view in async way, the return FExecStaus is in pending status and need to check the promise to get result */
-// FExecStatus GetCameraViewAsyncQuery(const FString& Fullfilename);
-// FExecStatus GetCameraViewAsyncCallback(const FString& Fullfilename);
-
-// Sync operation for screen capture
-bool DoCaptureScreen(UGameViewportClient *ViewportClient, const FString& CaptureFilename)
+/** Sync operation for screen capture */
+bool CaptureWithSync(UGameViewportClient *ViewportClient, const FString& CaptureFilename)
 {
 		bool bScreenshotSuccessful = false;
 		FViewport* InViewport = ViewportClient->Viewport;
@@ -57,39 +52,15 @@ bool DoCaptureScreen(UGameViewportClient *ViewportClient, const FString& Capture
 
 extern FString GetDiskFilename(FString Filename);
 
-FExecStatus FScreenCapture::GetCameraViewAsyncQuery(const FString& Filename)
+/**
+	Capture the screen with a customize viewport
+*/
+void CaptureWithCustomViewport()
 {
 		// Method 1: Use custom ViewportClient
 		// UMyGameViewportClient* ViewportClient = (UMyGameViewportClient*)Character->GetWorld()->GetGameViewport();
 		// ViewportClient->CaptureScreen(FullFilename);
 
-		// Method2: System screenshot function
-		const FString Dir = FPlatformProcess::BaseDir(); // TODO: Change this to screen capture folder
-		FString FullFilename = FPaths::Combine(*Dir, *Filename);
-
-		FScreenshotRequest::RequestScreenshot(FullFilename, false, false); // This is an async operation
-		// It is important to pass in the FullFilename
-
-		// Implement 2, Start async and query
-		// FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateRaw(this, &FCameraCommandHandler::CheckStatusScreenshot);
-		FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([FullFilename]()
-		{
-			if (FScreenshotRequest::IsScreenshotRequested())
-			{
-				return FExecStatus::Pending();
-			}
-			else
-			{
-				FString DiskFilename = IFileManager::Get().GetFilenameOnDisk(*FullFilename); // This is important
-				// FString DiskFilename = IFileManager::Get().GetFilenameOnDisk(*FullFilename); // This is important
-				// See: https://wiki.unrealengine.com/Packaged_Game_Paths,_Obtain_Directories_Based_on_Executable_Location.
-				return FExecStatus::OK(DiskFilename);
-			}
-		});
-
-		// Method3: USceneCaptureComponent2D, inspired by StereoPanorama plugin
-
-		FExecStatus ExecStatusQuery = FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
 		/* This is only valid within custom viewport client
 		UGameViewportClient* ViewportClient = Character->GetWorld()->GetGameViewport();
 		ViewportClient->OnScreenshotCaptured().Clear(); // This is required to handle the filename issue.
@@ -108,11 +79,78 @@ FExecStatus FScreenCapture::GetCameraViewAsyncQuery(const FString& Filename)
 			FFileHelper::SaveArrayToFile(CompressedBitmap, *FullFilename);
 		});
 		*/
-		return ExecStatusQuery;
-
 }
 
-/*
+/**
+	Capture the screen with the built-in implementation of UE4
+*/
+FExecStatus CaptureWithBuiltIn(const FString& Filename)
+{
+	// Method2: System screenshot function
+	const FString Dir = FPlatformProcess::BaseDir(); // TODO: Change this to screen capture folder
+	FString FullFilename = FPaths::Combine(*Dir, *Filename);
+
+	FScreenshotRequest::RequestScreenshot(FullFilename, false, false); // This is an async operation
+	// It is important to pass in the FullFilename
+
+	// Implement 2, Start async and query
+	FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([FullFilename]()
+	{
+		if (FScreenshotRequest::IsScreenshotRequested())
+		{
+			return FExecStatus::Pending();
+		}
+		else
+		{
+			FString DiskFilename = IFileManager::Get().GetFilenameOnDisk(*FullFilename); // This is very important
+			// See: https://wiki.unrealengine.com/Packaged_Game_Paths,_Obtain_Directories_Based_on_Executable_Location.
+			return FExecStatus::OK(DiskFilename);
+		}
+	});
+
+	FExecStatus ExecStatusQuery = FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
+	return ExecStatusQuery;
+}
+
+
+
+// Method3: USceneCaptureComponent2D, inspired by StereoPanorama plugin
+void CaptureWithUSceneCaptureComponent()
+{
+	// See CaptureManager.cpp for more details
+}
+
+FExecStatus ScreenCaptureAsyncByQuery(const FString& Filename)
+{
+	return CaptureWithBuiltIn(Filename);
+}
+
+FExecStatus ScreenCaptureAsyncByQuery()
+{
+	/* FIXME: This is a hacky way to get binary, better to get rid of saving the file */
+	const FString Dir = FPlatformProcess::BaseDir();
+	FString FullFilename = FPaths::Combine(*Dir, TEXT("tmp.png"));
+	FScreenshotRequest::RequestScreenshot(FullFilename, false, false);
+
+	FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([FullFilename]()
+	{
+		if (FScreenshotRequest::IsScreenshotRequested())
+		{
+			return FExecStatus::Pending();
+		}
+		else
+		{
+			TArray<uint8> Binary;
+			FFileHelper::LoadFileToArray(Binary, *FullFilename);
+			return FExecStatus::Binary(Binary);
+		}
+	});
+
+	FExecStatus ExecStatusQuery = FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
+	return ExecStatusQuery;
+}
+
+/* This is an unfinished implementation
 FExecStatus FCameraCommandHandler::GetCameraViewAsyncCallback(const FString& FullFilename)
 {
 		FScreenshotRequest::RequestScreenshot(FullFilename, false, false); // This is an async operation
@@ -142,14 +180,14 @@ FExecStatus FCameraCommandHandler::GetCameraViewAsyncCallback(const FString& Ful
 }
 */
 
-FExecStatus GetCameraViewSync(const FString& FullFilename)
+FExecStatus ScreenCaptureSync(const FString& FullFilename)
 {
-	// This can only work within editor
+	// Warning: This can only work within editor
 	// Reimplement a GameViewportClient is required according to the discussion from here
 	// https://forums.unrealengine.com/showthread.php?50857-FViewPort-ReadPixels-crash-while-play-on-quot-standalone-Game-quot-mode
 	UWorld* World = FUE4CVServer::Get().GetGameWorld();
 	UGameViewportClient* ViewportClient = World->GetGameViewport();
-	if (DoCaptureScreen(ViewportClient, FullFilename))
+	if (CaptureWithSync(ViewportClient, FullFilename))
 	{
 		return FExecStatus::OK(FullFilename);
 	}

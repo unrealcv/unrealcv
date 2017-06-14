@@ -3,14 +3,16 @@ class FServerConfig
 {
 private:
 	FString ConfigFile;
+	FString CoreSection;
 public:
 	int Port;
 	int Width;
 	int Height;
 
-	FServerConfig() : ConfigFile(GGameUserSettingsIni), Port(9000), Width(640), Height(480)
-	{
-	}
+	FServerConfig();
+
+	/** Serialize this configuration to a string for debugging */
+	FString ToString();
 
 	/** Save FServerConfig to file */
 	bool Save();

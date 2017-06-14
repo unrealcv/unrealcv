@@ -1,0 +1,12 @@
+sphinx
+sphinx_rtd_theme
+sphinx-gallery
+numpy
+matplotlib
+breathe
+docker
+pytest
+git-lfs
+sphinx-issues
+pillow
+unrealcv

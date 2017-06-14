@@ -14,4 +14,9 @@ public:
 	/** Get the help message of defined commands */
 	FExecStatus GetCommands(const TArray<FString>& Args);
 	FExecStatus Echo(const TArray<FString>& Args);
+	/** vget /unrealcv/version */
+	FExecStatus GetVersion(const TArray<FString>& Args);
+
+	/** vget /scene/name */
+	FExecStatus GetSceneName(const TArray<FString>& Args);
 };

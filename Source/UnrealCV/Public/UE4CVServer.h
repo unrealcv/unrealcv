@@ -2,11 +2,12 @@
 
 #pragma once
 
-#include "CommandHandler.h"
-#include "CommandDispatcher.h"
 #include "TcpServer.h"
 #include "Tickable.h"
 #include "ServerConfig.h"
+
+class FCommandDispatcher;
+class FCommandHandler;
 
 class FAsyncRecord
 {
@@ -66,8 +67,7 @@ public:
 
 	virtual bool IsTickableWhenPaused() const
 	{
-		// return bIsTicking;
-		return false; // Not processing request when game is paused.
+		return bIsTicking; // Need to keep processing commands when game is paused
 	}
 
 	virtual TStatId GetStatId() const

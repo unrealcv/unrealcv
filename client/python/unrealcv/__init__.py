@@ -69,7 +69,7 @@ class SocketMessage(object):
         _L.debug('Receive payload size %d', payload_size)
 
         # if the message is incomplete, should wait until all the data received
-        payload = ""
+        payload = b""
         remain_size = payload_size
         while remain_size > 0:
             data = rfile.read(remain_size)
@@ -84,7 +84,7 @@ class SocketMessage(object):
 
         rfile.close()
 
-        return payload
+        return payload.decode('UTF-8')
 
     @classmethod
     def WrapAndSendPayload(cls, socket, payload):
@@ -106,7 +106,7 @@ class SocketMessage(object):
             wfile.write(struct.pack(fmt, socket_message.payload_size))
             # print 'Sent ', socket_message.payload_size
 
-            wfile.write(payload)
+            wfile.write(payload.encode('UTF-8'))
             # print 'Sent ', payload
             wfile.flush()
             wfile.close() # Close file object, not close the socket

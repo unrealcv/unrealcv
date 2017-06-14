@@ -63,9 +63,6 @@ void FUE4CVServer::RegisterCommandHandlers()
 
 FUE4CVServer::FUE4CVServer()
 {
-	Config.Load();
-	Config.Save(); // Save the configuration back to disk
-
 	// Code defined here should not use FUE4CVServer::Get();
 	NetworkManager = NewObject<UNetworkManager>();
 	CommandDispatcher = new FCommandDispatcher();
@@ -134,15 +131,14 @@ bool FUE4CVServer::InitWorld()
 	static UWorld *CurrentWorld = nullptr;
 	if (CurrentWorld != World)
 	{
-		// Invoke this everytime when the GWorld changes
+		// Invoke this everytime when the World changes
 		// This will happen when the game is stopped and restart in the UE4Editor
 		APlayerController* PlayerController = World->GetFirstPlayerController();
 		check(PlayerController);
 		FObjectPainter::Get().Reset(GetPawn()->GetLevel());
-		FObjectPainter::Get().PaintColors();
 
 		FCaptureManager::Get().AttachGTCaptureComponentToCamera(GetPawn());
-		
+
 		FEngineShowFlags ShowFlags = World->GetGameViewport()->EngineShowFlags;
 		FPlayerViewMode::Get().SaveGameDefault(ShowFlags);
 
@@ -150,6 +146,8 @@ bool FUE4CVServer::InitWorld()
 	}
 	return true;
 }
+
+
 
 // Each tick of GameThread.
 void FUE4CVServer::ProcessPendingRequest()
@@ -167,8 +165,13 @@ void FUE4CVServer::ProcessPendingRequest()
 		CallbackDelegate.BindLambda([this, RequestId](FExecStatus ExecStatus)
 		{
 			UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
-			FString ReplyRawMessage = FString::Printf(TEXT("%d:%s"), RequestId, *ExecStatus.GetMessage());
-			SendClientMessage(ReplyRawMessage);
+			
+			FString Header = FString::Printf(TEXT("%d:"), RequestId);
+			TArray<uint8> ReplyData;
+			FExecStatus::BinaryArrayFromString(Header, ReplyData);
+
+			ReplyData += ExecStatus.GetData();
+			NetworkManager->SendData(ReplyData);
 		});
 		CommandDispatcher->ExecAsync(Request.Message, CallbackDelegate);
 	}

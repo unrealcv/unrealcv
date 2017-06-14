@@ -13,10 +13,10 @@ void FCaptureManager::AttachGTCaptureComponentToCamera(APawn* Pawn)
 	TArray<FString> SupportedModes;
 	SupportedModes.Add(TEXT("lit")); // This is lit
 	SupportedModes.Add(TEXT("depth"));
-	SupportedModes.Add(TEXT("debug"));
+	// SupportedModes.Add(TEXT("debug"));
 	SupportedModes.Add(TEXT("object_mask"));
 	SupportedModes.Add(TEXT("normal"));
-	SupportedModes.Add(TEXT("wireframe"));
+	// SupportedModes.Add(TEXT("wireframe"));
 	SupportedModes.Add(TEXT("default"));
 	// TODO: Get the list from GTCaptureComponent
 
@@ -26,7 +26,8 @@ void FCaptureManager::AttachGTCaptureComponentToCamera(APawn* Pawn)
 	CaptureComponentList.Add(Capturer);
 
 	UGTCaptureComponent* RightEye = UGTCaptureComponent::Create(Pawn, SupportedModes);
-	RightEye->AddLocalOffset(FVector(0, 40, 0)); // TODO: make this configurable
+	RightEye->SetRelativeLocation(FVector(0, 40, 0));
+	// RightEye->AddLocalOffset(FVector(0, 40, 0)); // TODO: make this configurable
 	CaptureComponentList.Add(RightEye);
 }
 

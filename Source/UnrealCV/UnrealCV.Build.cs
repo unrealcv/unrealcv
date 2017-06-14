@@ -20,7 +20,8 @@ namespace UnrealBuildTool.Rules
 
 			PrivateIncludePaths.AddRange(
 				new string[] {
-					"UnrealCV/Private/Commands"
+					"UnrealCV/Private/Commands",
+					"UnrealCV/Private/libs", // For 3rd-party libs
 				}
 			);
 
@@ -35,6 +36,7 @@ namespace UnrealBuildTool.Rules
 				"Slate",
 				"ImageWrapper",
 				"CinematicCamera",
+				"Projects", // Support IPluginManager
 			});
 
 			// PrivateDependency only available in Private folder

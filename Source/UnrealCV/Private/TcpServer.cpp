@@ -315,6 +315,16 @@ bool UNetworkManager::SendMessage(const FString& Message)
 	return false;
 }
 
+bool UNetworkManager::SendData(const TArray<uint8>& Payload)
+{
+	if (ConnectionSocket)
+	{
+		FSocketMessageHeader::WrapAndSendPayload(Payload, ConnectionSocket);
+		return true;
+	}
+	return false;
+}
+
 UNetworkManager::~UNetworkManager()
 {
 	if (ConnectionSocket)

@@ -33,7 +33,14 @@ public:
 	// virtual void Tick(float DeltaTime) override; // TODO
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override; // TODO
 
+	/** Save image to a file */
 	FAsyncRecord* Capture(FString Mode, FString Filename);
+	
+	/** Read binary data in png format */
+	TArray<uint8> CapturePng(FString Mode);
+
+	/** Read binary data in uncompressed numpy array */
+	TArray<uint8> CaptureNpy(FString Mode);
 private:
 	const bool bIsTicking = true;
 
