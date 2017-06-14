@@ -35,6 +35,6 @@ The results are as follows,
 Use UnrealCV commands in the editor
 -----------------------------------
 
-.. image:: https://ibb.co/e97BF5
+.. image:: https://preview.ibb.co/mavL8Q/editor_mask.png
 
 You can use UnrealCV commands the same way as in a standalone binary.
