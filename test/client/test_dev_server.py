@@ -24,6 +24,8 @@ def test_release():
     for i in range(10):
         server = MessageServer((host, port))
         server.start() # Make sure the port has been released, otherwith this will fail
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((host, port))
         server.shutdown()
 
 def test_client_side_close():

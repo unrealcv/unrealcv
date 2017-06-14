@@ -20,8 +20,8 @@ echo_port = 9010
 
 def test_request():
     ''' Simple test for basic functions '''
-    echo_server = MessageServer((localhost, echo_port))
-    echo_server.start()
+    server = MessageServer((localhost, echo_port))
+    server.start()
     client = unrealcv.Client((localhost, echo_port))
     cmds = [
         'hi', 'hello', 'asdf' * 70
@@ -31,7 +31,8 @@ def test_request():
     for cmd in cmds:
         res = client.request(cmd)
         assert res == cmd
-    echo_server.shutdown()
+    client.disconnect() # TODO: What if forgot to disconnect
+    server.shutdown()
 
 def test_multi_connection():
     '''
@@ -50,6 +51,7 @@ def test_multi_connection():
         client.connect(0.1)
         # print client.connect()
         assert client.isconnected() == False
+    client.disconnect()
     echo_server.shutdown()
 
 @pytest.mark.skip(reason = 'Not a stable test yet.')
@@ -102,7 +104,7 @@ def test_client_release():
         res = client.request(req)
         assert req == res, msg
 
-        client.disconnect()
+        client.disconnect() # Make sure the server can correctly handle the disconnection signal
         assert client.isconnected() == False, msg
         print('Trial %d is finished.' % i)
     echo_server.shutdown()
@@ -133,12 +135,12 @@ def test_no_server():
         assert res == None
 
 @pytest.mark.skip(reason = 'Not implemented yet')
-def test_server_shutdown(self):
+def test_server_shutdown():
     ''' Close on the server side and check whether client can detect it '''
     pass
 
 @pytest.mark.skip(reason = 'Not implemented yet')
-def test_stress(self):
+def test_stress():
     ''' Create very large payload to see whether the connection is stable '''
     pass
 

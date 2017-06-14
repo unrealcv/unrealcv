@@ -2,22 +2,24 @@
 A python server to mimic the behavior of unrealcv server
 Useful for development
 '''
-import threading, logging, sys
+import threading, logging, sys, socket
 if (sys.version_info > (3, 0)):
     import socketserver as SocketServer
 else:
     import SocketServer
 # import MySocketServer as SocketServer
 SocketServer.ThreadingMixIn.daemon_threads = True
-SocketServer.TCPServer.allow_reuse_address = True
-# from common_conf import *
+# SocketServer.TCPServer.allow_reuse_address = True
+SocketServer.TCPServer.allow_reuse_address = False
+
+import time
 import unrealcv
 
 _L = logging.getLogger(__name__)
 _L.setLevel(logging.INFO)
 _L.addHandler(logging.NullHandler())
 
-class ThreadedServer:
+class ThreadedServer(object):
     def start(self):
         def _():
             cur_thread = threading.current_thread()
@@ -27,21 +29,25 @@ class ThreadedServer:
             # Activate the server; this will keep running until you
             # interrupt the program with Ctrl-C
 
-        import threading
-        server_thread = threading.Thread(target = _)
-        server_thread.setDaemon(1)
-        server_thread.start() # TODO: stop this thread
-        # time.sleep(0.1) # Wait for the server started
+        self.server_thread = threading.Thread(target = _)
+        self.server_thread.setDaemon(1)
+        self.server_thread.start() # TODO: stop this thread
+        time.sleep(0.1) # Wait for the server started
 
     def shutdown(self):
         cur_thread = threading.current_thread()
         _L.debug('Shutdown in %s' % cur_thread.name)
-        self.server.shutdown()
-        # try:
-        #     self.server.socket.shutdown(socket.SHUT_RDWR)
-        # except:
-        #     pass
-        self.server.server_close() # Close socket
+        # According to https://github.com/python/cpython/blob/master/Lib/socketserver.py
+        self.server.shutdown() # Make a shutdown request
+        self.server.server_close() # Do nothing, need to be override
+        # This will try to stop the extra thread.
+
+        try:
+            self.server.socket.shutdown(socket.SHUT_RDWR)
+        except:
+            pass
+        self.server.socket.close() # Explicitly close the socket
+        time.sleep(0.5)
         _L.debug('Shutdown completed')
 
 
@@ -67,34 +73,32 @@ class EchoTCPHandler(SocketServer.BaseRequestHandler):
             self.request.sendall(data)
         # print 'Close data thread ', cur_thread.name
 
-# connected = False
-connected_lock = threading.RLock()
 class MessageTCPHandler(SocketServer.BaseRequestHandler):
+    # An unusual implementation
     connected = False
-    socket = None
-    def handle(self):
-        thread_name = threading.current_thread().name
-        _L.debug('Got a new connection from %s in %s' % (  self.request.getpeername(), thread_name))
-        with connected_lock:
-            if MessageTCPHandler.connected:
-                # SocketMessage.WrapAndSendPayload(self.request, "Only accept one connection")
-                # Close socket, Disconnect request
-                self.request.close()
-                # self.request.close()
-                _L.debug('Reject, only accept one connection')
-                return
-            else:
-                unrealcv.SocketMessage.WrapAndSendPayload(self.request, 'connected to Python Message Server')
-                _L.debug('Accept new connection')
-                MessageTCPHandler.connected = True
-                MessageTCPHandler.socket = self.request
+    client_socket = None
 
-        # t = threading.Thread(target = self.ticking_message)
-        # t.setDaemon(True)
-        # t.start()
+    def handle(self):
+        client_socket = self.request
+
+        thread_name = threading.current_thread().name
+        _L.debug('Got a new connection from %s in %s' % (  client_socket.getpeername(), thread_name))
+        # This client_socket must be able to handle the remote disconnection!
+        client_socket.setblocking(1)
+
+        if MessageTCPHandler.connected:
+            client_socket.close()
+            print('Reject, only accept one connection')
+            return
+        else:
+            unrealcv.SocketMessage.WrapAndSendPayload(client_socket, 'connected to Python Message Server')
+            print('Accept new connection')
+            MessageTCPHandler.connected = True
+            MessageTCPHandler.socket = client_socket
+
         while 1: # Main loop to receive message
             _L.debug('Server looping in %s' % thread_name)
-            message = unrealcv.SocketMessage.ReceivePayload(self.request)
+            message = unrealcv.SocketMessage.ReceivePayload(client_socket)
             _L.debug('Server looping finished in %s' % thread_name)
             if not message:
                 _L.debug('Server release connection in %s' % thread_name)
@@ -102,14 +106,13 @@ class MessageTCPHandler(SocketServer.BaseRequestHandler):
                 MessageTCPHandler.socket = None
                 break
             # SocketMessage.WrapAndSendPayload(self.request, 'reply')
-            unrealcv.SocketMessage.WrapAndSendPayload(self.request, message)
+            unrealcv.SocketMessage.WrapAndSendPayload(client_socket, message)
             # SocketMessage.WrapAndSendPayload(self.request, 'got2')
-        MessageTCPHandler.connected = False
 
     @classmethod
     def send(cls, message):
         if cls.connected:
-            unrealcv.SocketMessage.WrapAndSendPayload(cls.socket, message)
+            unrealcv.SocketMessage.WrapAndSendPayload(cls.client_socket, message)
 
 class NULLTCPHandler(SocketServer.BaseRequestHandler):
     def handle(self):
@@ -140,6 +143,10 @@ class MessageServer(ThreadedServer):
 
     def send(self, message):
         MessageTCPHandler.send(message)
+
+    def shutdown(self):
+        super(MessageServer, self).shutdown()
+        MessageTCPHandler.connected = False # FIXME: This is a very tricky implementation
 
 
 class NullServer(ThreadedServer):
