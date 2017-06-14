@@ -38,7 +38,7 @@ RealisticRendering
 
 .. code:: bash
 
-    `nvidia-docker run -it --rm --env="DISPLAY=:0.0" --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" -p 9000:9000 -v /home/qiuwch/workspace/unrealcv-develop-branch/test/output:/home/unrealcv/LinuxNoEditor/RealisticRendering/Binaries/Linux/output qiuwch/rr /home/unrealcv/LinuxNoEditor/RealisticRendering/Binaries/Linux/RealisticRendering`
+    `nvidia-docker run --name rr --rm -p 9000:9000 --env="DISPLAY" --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" qiuwch/rr:0.3.8`
 
 ArchinteriorsVol2Scene1
 -----------------------
