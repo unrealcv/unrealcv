@@ -1,6 +1,6 @@
 '''
 UnrealCV
-===
+========
 Provides functions to interact with games built using Unreal Engine.
 
 >>> import unrealcv
@@ -37,7 +37,8 @@ class SocketMessage(object):
     @classmethod
     def ReceivePayload(cls, socket):
         '''
-        Return only payload, not the raw message, None if failed
+        Return only payload, not the raw message, None if failed.
+        socket: a blocking socket for read data.
         '''
         # rbufsize = -1 # From SocketServer.py
         rbufsize = 0
@@ -278,16 +279,16 @@ class Client(object):
         Send a request to server and wait util get a response from server or timeout.
 
         Parameters
-        ---
+        ----------
         cmd : string, command to control the game
         More info can be seen from http://unrealcv.github.io/commands.html
 
         Returns
-        ---
+        -------
         response: plain text message from server
 
         Examples
-        ---
+        --------
         >>> client = Client('localhost', 9000)
         >>> client.connect()
         >>> response = client.request('vget /camera/0/view')
