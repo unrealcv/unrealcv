@@ -24,7 +24,7 @@ ground truth from a virtual environment.
 
  Out::
 
-    The last update of this file: 2017-06-14 01:07:25
+    The last update of this file: 2017-06-14 01:31:07
 
 
 Load some python libraries
@@ -87,6 +87,7 @@ Make sure the connection works well
 .. code-block:: python
 
     res = client.request('vget /unrealcv/status')
+    # The image resolution and port is configured in the config file.
     print(res)
 
 
@@ -326,7 +327,7 @@ Load information of this scene
 
  Out::
 
-    Number of objects in this image: 118
+    Number of objects in this image: 119
            Category name : Object name
                 Shelving : ['SM_Shelving_7', 'SM_Shelving_6', 'SM_Shelving_9', 'SM_Shelving_8']
                     Bowl : ['SM_Bowl_29']
@@ -339,7 +340,7 @@ Load information of this scene
               Trim_Floor : ['S_Trim_Floor_10']
                     Vase : ['SM_Vase_22', 'SM_Vase_21', 'SM_Vase_20', 'SM_Vase_18', 'SM_Vase_16', 'SM_Vase_17']
                   Carpet : ['Carpet_5', 'Carpet_7']
-                    Room : ['SM_Room_7']
+                    Room : ['SM_Room_OuterShell_14', 'SM_Room_7']
                FloorLamp : ['SM_FloorLamp_7']
                   Switch : ['Switch_7']
              EditorPlane : ['EditorPlane_27']
@@ -410,6 +411,28 @@ Show all sofas in this image
 
 
 
+Change the annotation color, fixed in v0.3.9
+You can use this to make objects you don't care the same color
+
+
+
+.. code-block:: python
+
+    client.request('vset /object/SM_Couch_1seat_5/color 255 0 0') # Change to pure red
+    client.request('vget /object/SM_Couch_1seat_5/color')
+    res = client.request('vget /camera/0/object_mask png')
+    object_mask = read_png(res)
+    plt.imshow(object_mask)
+
+
+
+
+.. image:: /tutorials/images/sphx_glr_generate_images_tutorial_008.png
+    :align: center
+
+
+
+
 Clean up resources
 ==================
 
@@ -424,7 +447,7 @@ Clean up resources
 
 
 
-**Total running time of the script:** ( 0 minutes  7.717 seconds)
+**Total running time of the script:** ( 0 minutes  6.046 seconds)
 
 
 

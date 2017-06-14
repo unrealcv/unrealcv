@@ -188,6 +188,15 @@ mask = sum(id2mask[v] for v in couch_instance)
 plt.figure(); plt.imshow(mask)
 
 ##############################
+# Change the annotation color, fixed in v0.3.9
+# You can use this to make objects you don't care the same color
+client.request('vset /object/SM_Couch_1seat_5/color 255 0 0') # Change to pure red
+client.request('vget /object/SM_Couch_1seat_5/color')
+res = client.request('vget /camera/0/object_mask png')
+object_mask = read_png(res)
+plt.imshow(object_mask)
+
+##############################
 # Clean up resources
 # ==================
 client.disconnect()
