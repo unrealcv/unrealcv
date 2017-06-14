@@ -24,7 +24,7 @@ ground truth from a virtual environment.
 
  Out::
 
-    The last update of this file: 2017-06-14 01:31:07
+    The last update of this file: 2017-06-14 01:53:46
 
 
 Load some python libraries
@@ -73,6 +73,7 @@ Load unrealcv python client, do :code:`pip install unrealcv` first.
     client.connect()
     if not client.isconnected():
         print('UnrealCV server is not running. Run the game downloaded from http://unrealcv.github.io first.')
+        sys.exit(-1)
 
 
 
@@ -327,7 +328,7 @@ Load information of this scene
 
  Out::
 
-    Number of objects in this image: 119
+    Number of objects in this image: 118
            Category name : Object name
                 Shelving : ['SM_Shelving_7', 'SM_Shelving_6', 'SM_Shelving_9', 'SM_Shelving_8']
                     Bowl : ['SM_Bowl_29']
@@ -340,7 +341,7 @@ Load information of this scene
               Trim_Floor : ['S_Trim_Floor_10']
                     Vase : ['SM_Vase_22', 'SM_Vase_21', 'SM_Vase_20', 'SM_Vase_18', 'SM_Vase_16', 'SM_Vase_17']
                   Carpet : ['Carpet_5', 'Carpet_7']
-                    Room : ['SM_Room_OuterShell_14', 'SM_Room_7']
+                    Room : ['SM_Room_7']
                FloorLamp : ['SM_FloorLamp_7']
                   Switch : ['Switch_7']
              EditorPlane : ['EditorPlane_27']
@@ -361,17 +362,19 @@ Show the annotation color of some objects
     # for obj_id in ids:
     obj_id = ids[0]
     color = id2color[obj_id]
-    # print('%s : %s' % (obj_id, str(color)))
-    color_block = np.zeros((100,100, 3)) + np.array([color.R, color.G, color.B]) / 255.0
-    plt.figure(); plt.imshow(color_block); plt.title(obj_id)
+    print('%s : %s' % (obj_id, str(color)))
+    # color_block = np.zeros((100,100, 3)) + np.array([color.R, color.G, color.B]) / 255.0
+    # plt.figure(); plt.imshow(color_block); plt.title(obj_id)
 
 
 
 
-.. image:: /tutorials/images/sphx_glr_generate_images_tutorial_005.png
-    :align: center
 
+.. rst-class:: sphx-glr-script-out
 
+ Out::
+
+    SM_Couch_1seat_5 : (R=255,G=0,B=255,A=255)
 
 
 Plot only one object
@@ -386,7 +389,7 @@ Plot only one object
 
 
 
-.. image:: /tutorials/images/sphx_glr_generate_images_tutorial_006.png
+.. image:: /tutorials/images/sphx_glr_generate_images_tutorial_005.png
     :align: center
 
 
@@ -405,7 +408,7 @@ Show all sofas in this image
 
 
 
-.. image:: /tutorials/images/sphx_glr_generate_images_tutorial_007.png
+.. image:: /tutorials/images/sphx_glr_generate_images_tutorial_006.png
     :align: center
 
 
@@ -427,7 +430,7 @@ You can use this to make objects you don't care the same color
 
 
 
-.. image:: /tutorials/images/sphx_glr_generate_images_tutorial_008.png
+.. image:: /tutorials/images/sphx_glr_generate_images_tutorial_007.png
     :align: center
 
 
@@ -447,7 +450,7 @@ Clean up resources
 
 
 
-**Total running time of the script:** ( 0 minutes  6.046 seconds)
+**Total running time of the script:** ( 0 minutes  6.542 seconds)
 
 
 

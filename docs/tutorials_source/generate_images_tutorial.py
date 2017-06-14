@@ -173,9 +173,9 @@ ids = ['SM_Couch_1seat_5', 'SM_Vase_17', 'SM_Shelving_6', 'SM_Plant_8']
 # for obj_id in ids:
 obj_id = ids[0]
 color = id2color[obj_id]
-# print('%s : %s' % (obj_id, str(color)))
-color_block = np.zeros((100,100, 3)) + np.array([color.R, color.G, color.B]) / 255.0
-plt.figure(); plt.imshow(color_block); plt.title(obj_id)
+print('%s : %s' % (obj_id, str(color)))
+# color_block = np.zeros((100,100, 3)) + np.array([color.R, color.G, color.B]) / 255.0
+# plt.figure(); plt.imshow(color_block); plt.title(obj_id)
 
 ##############################
 # Plot only one object
