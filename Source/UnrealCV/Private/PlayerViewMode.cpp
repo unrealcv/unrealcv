@@ -129,21 +129,8 @@ void FPlayerViewMode::DebugMode()
 	ApplyPostProcess("debug");
 }
 
-// TODO: Clean up this messy function.
-void PaintObjects()
-{
-	UWorld* World = FUE4CVServer::Get().GetGameWorld();
-	APlayerController* PlayerController = World->GetFirstPlayerController();
-	check(PlayerController);
-	APawn* Pawn = PlayerController->GetPawn();
-	check(Pawn);
-	FObjectPainter::Get().Reset(Pawn->GetLevel());
-	FObjectPainter::Get().PaintColors();
-}
-
 void FPlayerViewMode::Object()
 {
-	PaintObjects();
 	UWorld* World = FUE4CVServer::Get().GetGameWorld();
 	auto Viewport = World->GetGameViewport();
 	FViewMode::VertexColor(Viewport->EngineShowFlags);
