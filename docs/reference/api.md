@@ -1,1 +1,0 @@
-The C++ code of the plugin is documented with doxygen. You can generate the API document with `cd docs/doxygen; doxygen`. An online version is hosted in [here](https://codedocs.xyz/unrealcv/unrealcv/).
