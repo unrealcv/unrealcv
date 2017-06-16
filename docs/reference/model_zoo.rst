@@ -3,7 +3,7 @@ Model Zoo
 
 We provide compiled virtual worlds to play with. All the digital contents belong to the original author. 
 
-- Notice: Model Zoo is in experiment now. If you are beginners, we highly recommend you to try RealisitcRendering first to avoid some unknown bugs. If any bugs you found, you can report `an issue <https://github.com/unrealcv/unrealcv/issues>`__. We will fix reported bugs as soon as possible.
+- :Notice: Model Zoo is in experiment now. If you are beginners, we highly recommend you to try RealisitcRendering first to avoid some unknown bugs. If any bugs you found, you can report `an issue <https://github.com/unrealcv/unrealcv/issues>`__. We will fix reported bugs as soon as possible.
 
 .. TODO: add more formal license information
     The community maintained games will be hosted in the [github wiki page](http://).
