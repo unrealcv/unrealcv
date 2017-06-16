@@ -1,12 +1,16 @@
 Model Zoo
 =========
 
-We provide compiled virtual worlds to play with. All the digital contents belong to the original author. If the program crash for any reason, you can report `an issue <https://github.com/unrealcv/unrealcv/issues>`__.
+We provide compiled virtual worlds to play with. All the digital contents belong to the original author. 
+
+- Notice: Model Zoo is in experiment now. If you are beginners, we highly recommend you try RealisitcRendering first to avoid some unknown bugs. If any bugs you found, you can report `an issue <https://github.com/unrealcv/unrealcv/issues>`__. We will fix reported bugs as soon as possible.
 
 .. TODO: add more formal license information
     The community maintained games will be hosted in the [github wiki page](http://).
 
 .. Make sure links in this page is always accesible. If I need to move files to a new place, link the new place. Do not use version in the filename, use _master.zip as suffix. So that when others share the link, they always share the _master link.
+
+
 
 Run the downloaded binary
 
@@ -15,6 +19,9 @@ Run the downloaded binary
 - In Windows: Run :code:`[ProjectName]/[ProjectName].exe`
 
 Read :doc:`/plugin/package`, if you are interested in sumbitting a binary to the model zoo.
+
+
+
 
 .. _rr:
 
