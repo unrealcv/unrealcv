@@ -64,9 +64,15 @@ Linux
 
 Mac
 
+- Install Xcode.
+
+- To generate Xcode Project, right click :file:`playground.uproject` and choose :code:`Service->Generate Xcode Project`.
+
+- Open the :file:`*.xcworkspace` file and build. The plugin code will be compiled together with the game project.
+
 .. note::
 
-    Need help for writing this section
+    Please make sure that you have installed the UnrealCV plugin to Unreal Engine. If you wish to install the plugin in the project, please install the plugin in the project before you generate Xcode Project. To switch the version, you can right click :file:`playground.uproject` and choose :code:`Service->Switch Unreal Engine Version`.
 
 
 Useful resources for development include:
