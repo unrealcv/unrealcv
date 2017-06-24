@@ -2,16 +2,14 @@
 UE4 Resources
 =============
 
-.. todo:: Link this document to model_zoo.
-
 If you are interested in research projects, please see the `synthetic-computer-vision <github.com/unrealcv/synthetic-computer-vision>`__ repository.
 
 UE4 is a good choice for research for various reasons:
 
-1. Rich 3D resources
-2. Open source
-4. Cross-platform
-3. Physically based material system
+- Rich 3D resources
+- Open source
+- Cross-platform
+- Physically based material system
 
 Here we collect some resources to help you use UE4 and UnrealCV in your research.
 
