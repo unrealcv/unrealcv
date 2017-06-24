@@ -17,6 +17,7 @@ Here we collect some resources to help you use UE4 and UnrealCV in your research
 =============================
 
 - `Unreal Marketplace <https://www.unrealengine.com/marketplace>`__ - The official marketplace of Unreal Engine
+
   - The `architectural visualization section <https://www.unrealengine.com/marketplace/content-cat/assets/archvis>`__
   - `Unreal Engine feature examples <https://docs.unrealengine.com/latest/INT/Resources/Showcases/index.html>`__
 
