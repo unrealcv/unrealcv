@@ -64,9 +64,15 @@ Linux
 
 Mac
 
+- Install Xcode.
+
+- To generate Xcode Project, right click :file:`playground.uproject` and choose :code:`Service->Generate Xcode Project`.
+
+- Open the :file:`*.xcworkspace` file and build. The plugin code will be compiled together with the game project.
+
 .. note::
 
-    Need help for writing this section
+    Please make sure that you have installed the UnrealCV plugin to Unreal Engine. If you wish to install the plugin in the project, please install the plugin in the project before you generate Xcode Project. To switch the version, you can right click :file:`playground.uproject` and choose :code:`Service->Switch Unreal Engine Version`.
 
 
 Useful resources for development include:
@@ -85,6 +91,42 @@ The benefit of implementing an UnrealCV command are:
 
 1. You can use the communication protocol provided by UnrealCV to exchange data between your program and UE4.
 2. You can share your code with other researchers, so that it can be used by others.
+
+First we go through a very simple example which prints a message. Assume that we want to add a commamd :code:`vget /object/helloworld` to print "Hello World!". We need to modify two files: :file:`ObjectHandler.h` and :file:`ObjectHandler.cpp`.
+
+In :file:`ObjectHandler.h`, we need to add a member function:
+
+.. code:: c
+
+    FExecStatus HelloWorld(const TArray<FString>& Args);
+    
+In :file:`ObjectHandler.cpp`, we define this member function:
+
+.. code:: c
+
+    FExecStatus FObjectCommandHandler::HelloWorld(const TArray<FString>& Args)
+    {
+	    FString Msg;
+	    Msg += "Hello World!";
+	    return FExecStatus::OK(Msg);
+    }
+
+Then we need to bind the command with the function:
+
+.. code:: c
+
+    void FObjectCommandHandler::RegisterCommands()
+    {
+            ...
+        
+    	    Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::HelloWorld);
+	    Help = "Print Hello World";
+	    CommandDispatcher->BindCommand(TEXT("vget /object/helloworld"), Cmd, Help);
+        
+            ...
+    }
+
+After the modification, we can compile and use the new command. 
 
 Here we will walk you through how to implement a command :code:`vset /object/[id]/rotation` to enable you set the rotation of an object.
 
