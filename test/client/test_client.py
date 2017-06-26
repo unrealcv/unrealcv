@@ -3,12 +3,19 @@
 Use python dummy server to test the robustness of unrealcv.Client, Pass the test of DevServer first
 '''
 
-import unittest, threading, random, logging, time
+import unittest, threading, random, logging, time, sys
 import unrealcv
-from unrealcv import client
 from dev_server import EchoServer, MessageServer, NullServer
-logger = logging.getLogger(__name__)
 import pytest
+
+# Configure the logging level of this test script
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler(sys.stdout))
+
+# Configure unrealcv logging verbose level
+logging.getLogger('unrealcv').setLevel(logging.CRITICAL)
+logging.getLogger('dev_server').setLevel(logging.DEBUG)
 
 def random_payload():
     len = random.randrange(1024)
@@ -83,31 +90,37 @@ def test_random_operation():
         assert client.isconnected() == False
     echo_server.shutdown()
 
-@pytest.mark.skip(reason = 'This test will fail in windows for an unknown reason.')
+# @pytest.mark.skip(reason = 'This test will fail in windows for an unknown reason.')
 def test_client_release():
     '''
     If the previous client release the connection, further connection should be accepted. This will also test the server code
     '''
-    echo_server = MessageServer((localhost, echo_port))
-    echo_server.start()
+    server = MessageServer((localhost, echo_port))
+    server.start()
     client = unrealcv.Client((localhost, echo_port))
 
     num_release_trial = 10
-    print('Try to release client %d times', num_release_trial)
+    logger.info('Try to release client %d times' % num_release_trial)
     for i in range(num_release_trial):
-        msg = 'Trial %d' % i
+        msg = 'Running trial %d' % i
         client.connect()
-        assert client.isconnected() == True, msg
+        assert client.isconnected() == True, \
+            'Client is not successfully connected in trial %d' % i
 
         # Do something
         req = 'ok'
         res = client.request(req)
         assert req == res, msg
 
-        client.disconnect() # Make sure the server can correctly handle the disconnection signal
-        assert client.isconnected() == False, msg
-        print('Trial %d is finished.' % i)
-    echo_server.shutdown()
+        client.disconnect()
+        # Make sure the server can correctly handle the disconnection signal
+        assert client.isconnected() == False, \
+            'Client is not successfully disconnected in trial %d' % i
+        # Make sure the server can detect client connection also
+        assert server.is_client_connected() == False, \
+            'Server can not detect client disconnect event.'
+        logger.info('Trial %d is finished.' % i)
+    server.shutdown()
 
 def test_request_timeout():
     ''' What if the server did not respond with a correct reply. '''
