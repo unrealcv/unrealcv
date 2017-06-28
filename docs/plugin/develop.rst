@@ -70,10 +70,6 @@ Mac
 
 - Open the :file:`*.xcworkspace` file and build. The plugin code will be compiled together with the game project.
 
-.. note::
-
-    Please make sure that you have installed the UnrealCV plugin to Unreal Engine. If you wish to install the plugin in the project, please install the plugin in the project before you generate Xcode Project. To switch the version, you can right click :file:`playground.uproject` and choose :code:`Service->Switch Unreal Engine Version`.
-
 
 Useful resources for development include:
 
@@ -91,6 +87,12 @@ The benefit of implementing an UnrealCV command are:
 
 1. You can use the communication protocol provided by UnrealCV to exchange data between your program and UE4.
 2. You can share your code with other researchers, so that it can be used by others.
+
+
+.. note::
+
+    You are supposed to edit your code in `playground->Plugins->UnrealCV` intead of `UE4->Plugins->UnrealCV`.
+
 
 First we go through a very simple example which prints a message. Assume that we want to add a commamd :code:`vget /object/helloworld` to print "Hello World!". We need to modify two files: :file:`ObjectHandler.h` and :file:`ObjectHandler.cpp`.
 
