@@ -10,6 +10,7 @@ Basic usage in a new project
 This tutorial assumes the basic knowledge of using a command line. If you are a windows user and do not have much knowledge of using command line and find it difficult to understand, please let us know.
 
 1. Install the plugin (build from source code in this tutorial)
+---------------------------------------------------------------
 
 In this tutorial the project and plugin folders are refered as the console varialbe :code:`plugin_folder` and :code:`project_folder`
 
@@ -34,6 +35,7 @@ Build the plugin binary
 More details about the plugin installation can be found in :doc:`/plugin/install`.
 
 2. Create a new project and copy the plugin to the project folder
+-----------------------------------------------------------------
 
 Creat a 'Blueprint - First Person' project.
 
@@ -50,6 +52,7 @@ Copy the compiled plugin to the project folder to install it.
 Restart the UE4 project and make sure the plugin is successfully loaded
 
 3. Open the Unreal project and make sure the plugin is installed
+----------------------------------------------------------------
 
 :code:`cd ${project_folder}`
 
@@ -58,9 +61,11 @@ Restart the UE4 project and make sure the plugin is successfully loaded
 .. image:: http://i.imgur.com/hAWJHqt.png
 
 4. Try the command in UE4Editor
+-------------------------------
 
 .. image:: http://i.imgur.com/AcONETx.png
 
 5. Try the command is the python console
+----------------------------------------
 
 .. image:: http://i.imgur.com/er986gI.png
