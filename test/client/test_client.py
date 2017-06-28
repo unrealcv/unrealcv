@@ -29,9 +29,10 @@ echo_port = 9010
 def server():
     server = MessageServer((localhost, echo_port))
     server.start() # Wait until the server is started
-    yield server  # provide the fixture value
-    print("teardown server")
-    server.shutdown
+    return server
+    # yield server  # provide the fixture value
+    # print("teardown server")
+    # server.shutdown()
 
 def test_request(server):
     ''' Simple test for basic functions '''
