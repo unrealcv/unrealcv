@@ -25,10 +25,16 @@ def random_payload():
 localhost = 'localhost'
 echo_port = 9010
 
-def test_request():
-    ''' Simple test for basic functions '''
+@pytest.fixture(scope="module")
+def server():
     server = MessageServer((localhost, echo_port))
-    server.start()
+    server.start() # Wait until the server is started
+    yield server  # provide the fixture value
+    print("teardown server")
+    server.shutdown
+
+def test_request(server):
+    ''' Simple test for basic functions '''
     client = unrealcv.Client((localhost, echo_port))
     cmds = [
         'hi', 'hello', 'asdf' * 70
@@ -39,67 +45,38 @@ def test_request():
         res = client.request(cmd)
         assert res == cmd
     client.disconnect() # TODO: What if forgot to disconnect
-    server.shutdown()
+    # server.shutdown()
 
-def test_multi_connection():
+def test_multi_connection(server):
     '''
     Only one client is allowed for the server
     Make a second connection to the server, when one connection exists
     '''
-    echo_server = MessageServer((localhost, echo_port))
-    echo_server.start()
+    # server = MessageServer((localhost, echo_port))
+    # server.start()
     client = unrealcv.Client((localhost, echo_port))
     client.connect(timeout = 0.1)
     assert client.isconnected() == True
     response = client.request('hi')
     assert response == 'hi'
     for i in range(10):
-        client = unrealcv.Client((localhost, echo_port))
-        client.connect(0.1)
+        _client = unrealcv.Client((localhost, echo_port))
+        _client.connect(0.1)
         # print client.connect()
-        assert client.isconnected() == False
+        assert _client.isconnected() == False
     client.disconnect()
-    echo_server.shutdown()
-
-@pytest.mark.skip(reason = 'Not a stable test yet.')
-def test_random_operation():
-    ''' Randomly connect and disconnect the client, this is very likely to fail '''
-    echo_server = MessageServer((localhost, echo_port))
-    echo_server.start()
-    client = unrealcv.Client((localhost, echo_port))
-
-    num_random_trial = 10
-    print('Try random operation %d times' % num_random_trial)
-    for i in range(num_random_trial):
-        msg = 'Trial %d' % i
-        choice = random.randrange(2)
-        if choice == 1:
-            client.connect()
-            time.sleep(0.1)
-            assert client.isconnected() == True, msg
-        elif choice == 0:
-            client.disconnect()
-            time.sleep(0.1)
-            assert client.isconnected() == False, msg
-
-    for i in range(10):
-        client.connect()
-        assert client.isconnected() == True
-    for i in range(10):
-        client.disconnect()
-        assert client.isconnected() == False
-    echo_server.shutdown()
+    # server.shutdown()
 
 # @pytest.mark.skip(reason = 'This test will fail in windows for an unknown reason.')
-def test_client_release():
+def test_client_release(server):
     '''
     If the previous client release the connection, further connection should be accepted. This will also test the server code
     '''
-    server = MessageServer((localhost, echo_port))
-    server.start()
+    # server = MessageServer((localhost, echo_port))
+    # server.start()
     client = unrealcv.Client((localhost, echo_port))
 
-    num_release_trial = 10
+    num_release_trial = 3
     logger.info('Try to release client %d times' % num_release_trial)
     for i in range(num_release_trial):
         msg = 'Running trial %d' % i
@@ -117,10 +94,38 @@ def test_client_release():
         assert client.isconnected() == False, \
             'Client is not successfully disconnected in trial %d' % i
         # Make sure the server can detect client connection also
-        assert server.is_client_connected() == False, \
+        time.sleep(0.5) # Wait for the server to detect the disconnection
+        assert server.get_client_socket() == None, \
             'Server can not detect client disconnect event.'
         logger.info('Trial %d is finished.' % i)
-    server.shutdown()
+    # server.shutdown()
+
+def test_random_operation(server):
+    ''' Randomly connect and disconnect the client, this is very likely to fail '''
+    # server = MessageServer((localhost, echo_port))
+    # server.start()
+    client = unrealcv.Client((localhost, echo_port))
+
+    num_random_trial = 3
+    print('Try random operation %d times' % num_random_trial)
+    for i in range(num_random_trial):
+        msg = 'Trial %d' % i
+        choice = random.randrange(2)
+        if choice == 1:
+            client.connect()
+            assert client.isconnected() == True, msg
+        elif choice == 0:
+            client.disconnect()
+            assert client.isconnected() == False, msg
+
+    for i in range(3):
+        client.connect()
+        assert client.isconnected() == True
+    for i in range(3):
+        client.disconnect()
+        assert client.isconnected() == False
+    # server.shutdown()
+
 
 def test_request_timeout():
     ''' What if the server did not respond with a correct reply. '''
@@ -147,22 +152,20 @@ def test_no_server():
         res = client.request(cmd)
         assert res == None
 
-@pytest.mark.skip(reason = 'Not implemented yet')
 def test_server_shutdown():
     ''' Close on the server side and check whether client can detect it '''
     pass
 
-@pytest.mark.skip(reason = 'Not implemented yet')
 def test_stress():
     ''' Create very large payload to see whether the connection is stable '''
     pass
 
 
-def test_message_handler():
+def test_message_handler(server):
     ''' Check message handler can correctly handle events from the server.
     And the thread is correctly handled that we can do something in the message_handler '''
-    echo_server = MessageServer((localhost, echo_port))
-    echo_server.start()
+    # echo_server = MessageServer((localhost, echo_port))
+    # echo_server.start()
     client = unrealcv.Client((localhost, echo_port))
 
     def handle_message(msg):
@@ -178,10 +181,8 @@ def test_message_handler():
     res = client.request('ok')
     assert res == 'ok'
 
-    echo_server.send('Hello from server')
-    time.sleep(5)
-    echo_server.shutdown()
+    server.send('Hello from server')
+    # echo_server.shutdown()
 
-@pytest.mark.skip(reason = 'Not implemented yet.')
 def test_change_port():
     pass
