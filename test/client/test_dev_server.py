@@ -55,46 +55,5 @@ def test_server_close():
     # server.socket.close() # Explicitly release the server socket
     server.shutdown()
 
-@pytest.mark.skip('Moved to test_client.py')
-def test_client_close():
-    '''
-    Check whether the server can correctly detect
-    - client connection and
-    - client disconnection
-    '''
-    server = MessageServer((host, port))
-    server.start()
-
-    # Need to wait a while for the server to handle to connection and disconnection, it depends on your speed
-
-    # for i in range(10):
-    for i in range(3): # NOTE: Too many iterations like 10 is very likely to fail and not neccessary
-        logger.debug('Trial %d' % i)
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        logger.debug('Connect to remote socket')
-        s.connect((host, port))
-        # return until the remote accept the socket or not
-        # But the socket has not been correctly handled in the Handler
-        # which means the server status has not been updated yet!
-        logger.debug('Connected to remote server socket')
-
-        # Wait until the socket is correctly handled
-        assert server.get_client_socket() != None
-
-        unrealcv.SocketMessage.WrapAndSendPayload(s, 'hello')
-        logger.debug('Close client socket')
-        s.close() # It will take some time to notify the server.
-        # There is no way to tell whether the server already detected the client socket behavior
-
-        time.sleep(0.5)
-        # NOTE: The server needs to be able to detect the client disconnection is a very short time, but there is no guarantee for it.
-        # So it might be possible to get an invalid client socket.
-        assert server.get_client_socket() == None
-
-    # server.socket.close()
-    # server.stop()
-    server.shutdown()
-
 if __name__ == '__main__':
     test_server_close()
-    test_client_close()
