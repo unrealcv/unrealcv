@@ -107,7 +107,9 @@ class SocketMessage(object):
             wfile.write(struct.pack(fmt, socket_message.payload_size))
             # print 'Sent ', socket_message.payload_size
 
-            wfile.write(payload.encode('UTF-8'))
+            if isinstance(payload, str):
+                payload = payload.encode('utf-8')
+            wfile.write(payload)
             # print 'Sent ', payload
             wfile.flush()
             wfile.close() # Close file object, not close the socket
