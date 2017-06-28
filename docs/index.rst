@@ -49,6 +49,7 @@ For the doc of a specific version of unrealcv, please see `the version page`_
     :caption: UE4 Plugin
 
     plugin/install
+    plugin/custom_scene
     plugin/editor
     plugin/develop
     plugin/config
