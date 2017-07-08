@@ -85,7 +85,7 @@ class SocketMessage(object):
 
         rfile.close()
 
-        return payload.decode('UTF-8')
+        return payload
 
     @classmethod
     def WrapAndSendPayload(cls, socket, payload):
@@ -107,7 +107,9 @@ class SocketMessage(object):
             wfile.write(struct.pack(fmt, socket_message.payload_size))
             # print 'Sent ', socket_message.payload_size
 
-            wfile.write(payload.encode('UTF-8'))
+            if isinstance(payload, str):
+                payload = payload.encode('utf-8')
+            wfile.write(payload)
             # print 'Sent ', payload
             wfile.flush()
             wfile.close() # Close file object, not close the socket
@@ -115,6 +117,7 @@ class SocketMessage(object):
         except Exception as e:
             _L.error('Fail to send message %s', e)
             return False
+
 
 class BaseClient(object):
     '''
@@ -171,7 +174,7 @@ class BaseClient(object):
                 self.socket = None
 
     def isconnected(self):
-        return self.socket != None
+        return self.socket is not None
 
     def disconnect(self):
         if self.isconnected():
@@ -191,7 +194,7 @@ class BaseClient(object):
         Also check whether client is still connected
         '''
         _L.debug('BaseClient start receiving in %s', threading.current_thread().name)
-        while (1):
+        while True:
             if self.isconnected():
                 # Only this thread is allowed to read from socket, otherwise need lock to avoid competing
                 message = SocketMessage.ReceivePayload(self.socket)
@@ -201,8 +204,8 @@ class BaseClient(object):
                     self.socket = None
                     continue
 
-                if message.startswith('connected'):
-                    _L.info('Got connection confirm: %s', repr(message))
+                if message.startswith(b'connected'):
+                    _L.info('Got connection confirm: %s', repr(message.decode('utf-8')))
                     self.wait_connected.set()
                     # self.wait_connected.clear()
                     continue
@@ -224,6 +227,7 @@ class BaseClient(object):
             _L.error('Fail to send message, client is not connected')
             return False
 
+
 class Client(object):
     '''
     Client can be used to send request to a game and get response
@@ -233,9 +237,15 @@ class Client(object):
     def __raw_message_handler(self, raw_message):
         # print 'Waiting for message id %d' % self.message_id
         match = self.raw_message_regexp.match(raw_message)
+
         if match:
             [message_id, message_body] = (int(match.group(1)), match.group(2)) # TODO: handle multiline response
             message_body = raw_message[len(match.group(1))+1:]
+            # Convert to utf-8 if it's not a byte array (as is the case for images)
+            try:
+                message_body = message_body.decode('utf-8')
+            except UnicodeDecodeError:
+                pass
             # print 'Received message id %s' % message_id
             if message_id == self.message_id:
                 self.response = message_body
@@ -252,7 +262,7 @@ class Client(object):
                 _L.error('No message handler to handle message %s', raw_message)
 
     def __init__(self, endpoint, message_handler=None):
-        self.raw_message_regexp = re.compile('(\d{1,8}):(.*)')
+        self.raw_message_regexp = re.compile(b'(\d{1,8}):(.*)')
         self.message_client = BaseClient(endpoint, self.__raw_message_handler)
         self.message_handler = message_handler
         self.message_id = 0
