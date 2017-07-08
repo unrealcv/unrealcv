@@ -3,6 +3,7 @@
 // Simplied by Weichao Qiu (qiuwch@gmail.com) from https://github.com/rogersce/cnpy
 #pragma once
 #include <vector>
+#include <string>
 
 namespace cnpy {
 	template<typename T>
