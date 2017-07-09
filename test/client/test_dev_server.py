@@ -10,9 +10,8 @@ from dev_server import MessageServer, MessageTCPHandler
 import unrealcv, pytest
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
-# logging.getLogger('dev_server').setLevel(logging.INFO)
 
 host = 'localhost'
 port = 9001
@@ -26,11 +25,12 @@ def is_port_open(port):
         s.close()
         return True
     except socket.error as e:
-        if e.errno == 98 or e.errno == 10048:
-            print('Port %d in use' % port)
+        errnos = [98, 48, 10048]
+        if e.errno in errnos:
+            logger.debug('Port %d in use' % port)
         else:
-            print('Something unexpected happened in check_port')
-            print(e)
+            logger.debug('Something unexpected happened in check_port')
+            logger.debug(e)
         s.close()
         return False
 
@@ -52,34 +52,8 @@ def test_server_close():
         logger.debug('Stop server, trial %d' % i)
         server.stop() # TODO: If server is stopped, we can not connect to it, use unrealcv client to test it!
         # time.sleep(0.1) # Wait until the connection is started
-    server.socket.close() # Explicitly release the server socket
-
-def test_client_close():
-    '''
-    Check whether the server can correctly detect
-    - client connection and
-    - client disconnection
-    '''
-    server = MessageServer((host, port))
-    server.start()
-
-    wait = 0.1
-    # Need to wait a while for the server to handle to connection and disconnection, it depends on your speed
-
-    for i in range(10):
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((host, port))
-        time.sleep(wait)
-        assert server.client_socket != None
-
-        unrealcv.SocketMessage.WrapAndSendPayload(s, 'hello')
-        s.close() # It will take some time to notify the server
-        time.sleep(wait) # Need to wait a while for the server to handle to connection
-        assert server.client_socket == None
-
-    server.socket.close()
-    # server.stop()
+    # server.socket.close() # Explicitly release the server socket
+    server.shutdown()
 
 if __name__ == '__main__':
     test_server_close()
-    test_client_close()

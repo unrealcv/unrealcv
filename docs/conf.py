@@ -52,21 +52,6 @@ for i in range(len(sphinx_gallery_conf['examples_dirs'])):
         shutil.copy(f, gallery_dir)
 
 
-'''
-build_tutorial = os.environ.get('build_tutorial')
-print('Build tutorial? : %s' % build_tutorial)
-
-tutorial_files = [ './tutorials_source/generate_images_tutorial.py']
-# Use a hacky way to skip the tutorial generation
-for f in tutorial_files:
-    md5_file = f.replace('_source', '') + '.md5'
-    if not build_tutorial:
-        with open(md5_file, 'w') as file_checksum:
-            file_checksum.write(get_md5sum(f))
-    else:
-        if os.path.isfile(md5_file):
-            os.remove(md5_file)
-'''
 # Use a hacky way to skip the tutorial generation for ReadTheDocs
 def get_md5sum(src_file):
     """Returns md5sum of file, from https://github.com/sphinx-gallery/sphinx-gallery/blob/master/sphinx_gallery/gen_rst.py#L201"""

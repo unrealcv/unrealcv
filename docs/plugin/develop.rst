@@ -13,7 +13,7 @@ UE4 has two types of game projects. Blueprint project and C++ project. We need a
 
 In a C++ project, the plugin code will be compiled together with the game project.
 
-The simplest way to start is using the `playground project`_. Playground project is a simple UE4 project to show basic features or UE4 and UnrealCV, it serves as a development base and test platform for UnrealCV team.
+The simplest way to start is using the `playground project`_. Playground project is a simple UE4 project to show basic features or UE4 and UnrealCV. It serves as a development base and test platform for UnrealCV team.
 
 .. _playground project: https://github.com/unrealcv/playground
 
@@ -70,10 +70,6 @@ Mac
 
 - Open the :file:`*.xcworkspace` file and build. The plugin code will be compiled together with the game project.
 
-.. note::
-
-    Please make sure that you have installed the UnrealCV plugin to Unreal Engine. If you wish to install the plugin in the project, please install the plugin in the project before you generate Xcode Project. To switch the version, you can right click :file:`playground.uproject` and choose :code:`Service->Switch Unreal Engine Version`.
-
 
 Useful resources for development include:
 
@@ -85,12 +81,18 @@ Useful resources for development include:
 Add a new command
 =================
 
-UnrealCV provides a set of commands for accomplishing tasks and the list is growing. But it might not be sufficient for your task. If you need any functions that is missing, you can try to implement it yourself.
+UnrealCV provides a set of commands for accomplishing tasks and the list is growing. But it might not be sufficient for your task. If you need any function that is missing, you can try to implement it yourself.
 
-The benefit of implementing an UnrealCV command are:
+The benefits of implementing an UnrealCV command are:
 
 1. You can use the communication protocol provided by UnrealCV to exchange data between your program and UE4.
 2. You can share your code with other researchers, so that it can be used by others.
+
+
+.. note::
+
+    You are supposed to edit your code in `playground->Plugins->UnrealCV` instead of `UE4->Plugins->UnrealCV`.
+
 
 First we go through a very simple example which prints a message. Assume that we want to add a commamd :code:`vget /object/helloworld` to print "Hello World!". We need to modify two files: :file:`ObjectHandler.h` and :file:`ObjectHandler.cpp`.
 
@@ -134,4 +136,4 @@ Here we will walk you through how to implement a command :code:`vset /object/[id
 
 Available variables for a command are :code:`GetWorld()`, :code:`GetActor()`, , :code:`GetLevel()`.
 
-A new functions will be implemented in a CommandHandler. CommandDispatcher will use CommandHandler.
+A new function will be implemented in a CommandHandler. CommandDispatcher will use CommandHandler.

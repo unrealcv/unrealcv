@@ -18,13 +18,20 @@ else:
 # import MySocketServer as SocketServer
 SocketServer.ThreadingMixIn.daemon_threads = True
 # SocketServer.TCPServer.allow_reuse_address = True
-SocketServer.TCPServer.allow_reuse_address = False
+SocketServer.TCPServer.allow_reuse_address = True  # What is the meaning of reuse_address?
+# Can I wait until the port is released?
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-class ThreadedServer(SocketServer.TCPServer):
+class RejectionHandler(SocketServer.BaseRequestHandler):
+    def handle(self):
+        assert self.request != None
+        logger.debug('Reject, only accept one connection')
+        self.request.close()
+
+class ThreadedServer(SocketServer.ThreadingTCPServer, object):
     # ThreadingTCPSever will use one thread for each client, this is not what I need, I need the server itself start in another thread
     '''
     Why a threaded server is needed. This server needs to be started in another thread and be used to notify the client.
@@ -35,39 +42,56 @@ class ThreadedServer(SocketServer.TCPServer):
         The socket will be released when this variable is released
         '''
         # similar to https://hg.python.org/cpython/file/2.7/Lib/SocketServer.py#L411
-        SocketServer.TCPServer.__init__(self, server_address, RequestHandlerClass)
+        super(ThreadedServer, self).__init__(server_address, RequestHandlerClass)
 
         def _():
             cur_thread = threading.current_thread()
             logger.info('Started in thread %s' % cur_thread.name)
 
-            # self.serve_forever() # Copy from the definition from serve_forever
-            while True:
-                if self.running:
-                    try:
-                        request, client_address = self.get_request()
-                    except socket.error:
-                        return
-                    self.RequestHandlerClass(request, client_address, self) # It might hang over here
-                else:
-                    pass
-                    # logger.debug('Do nothing because it is stopped')
+            self.serve_forever() # Copy from the definition from serve_forever
+
+            # This is a simple thread implementation, which can only handle one client
+            # ----
+            # while True:
+            #     if self.running:
+            #         try:
+            #             request, client_address = self.get_request()
+            #         except socket.error:
+            #             return
+            #         self.RequestHandlerClass(request, client_address, self) # It might hang over here
+            #     else:
+            #         pass
+            # ---
             logger.info("The server thread is stopped")
 
-        self.running = False
+        self.RunningHandler = RequestHandlerClass
+
         self.server_thread = threading.Thread(target = _)
         self.server_thread.setDaemon(1)
         self.server_thread.start() # Start can be only called once, even the _target has finished
+        logger.debug('Request to start the thread')
+        # The thread started to run, once a server is constructed
+        # The when stop, the server will not accept any new connection!
+        self.request_verified = threading.Event()
+        self._client_socket = None # Do not access this directly, use get_client_socket!!
+
+        self.message_handled = threading.Event()
+
+    # def get_request(self):
+    #     # The poll function wait for socket
+    #     logger.debug('Ticking to get_request')
+    #     self.ticking.clear() # Make sure the poll operation in BaseServer has triggered here
+    #     logger.debug('Clear the ticking event in thread %s' % threading.current_thread().name)
+        # super(ThreadedServer, self).get_request()
 
     def start(self):
-        '''
-        Receive new connections
-        '''
+        ''' Start to receive new connections '''
+
+        # In python, no way to control the start/stop of a running thread, which is annoying
         # Activate the server; this will keep running until you
         # interrupt the program with Ctrl-C
-        self.running = True
-        time.sleep(0.1)
-        # time.sleep(0.1) # Wait for the server started
+        self.RequestHandlerClass = self.RunningHandler
+        # Wait until the server really started
 
     def stop(self):
         '''
@@ -75,8 +99,7 @@ class ThreadedServer(SocketServer.TCPServer):
         This will not release existing connections
         Stop should not release the server socket, but the socket binding is done in __init__, not in start
         '''
-        self.running = False
-        time.sleep(0.1)
+        self.RequestHandlerClass = RejectionHandler
         # Make sure we can successfully stop the serve_forever loop.
         # self.shutdown() # Make a shutdown request
         # self.server_close() # Do nothing, need to be override
@@ -87,8 +110,39 @@ class ThreadedServer(SocketServer.TCPServer):
         # except:
         #     pass
         # self.socket.close() # Explicitly close the socket
-        # time.sleep(0.1)
         # logger.debug('Shutdown completed')
+
+    def get_request(self):
+        # Start to verify a request
+        self.request_verified.clear()
+        return self.socket.accept()
+
+    def verify_request(self, request, client_address):
+        # The socket has been accepted, but might be closed in here.
+        # Reject if we already has a connection
+        logger.debug('Got a connection from %s' % str(client_address))
+        if self._client_socket:
+            logger.debug('Reject, only accept one connection')
+            accepted = False
+        else:
+            logger.debug('Accept, new connection')
+            self._client_socket = request
+            unrealcv.SocketMessage.WrapAndSendPayload(self._client_socket, 'connected to Python Message Server')
+            accepted = True
+
+        self.request_verified.set()
+        return accepted
+
+    def get_client_socket(self):
+        # Make sure we are not verifying any request!
+        logger.debug('Wait for request verification')
+        self.request_verified.wait()
+        # logger.debug('Wait for any unhandled message')
+        # self.message_handled.wait()
+        # Make the request is closed
+        logger.debug('Return client socket')
+        return self._client_socket
+
 
 class NULLTCPHandler(SocketServer.BaseRequestHandler):
     ''' Request handler that do nothing '''
@@ -125,35 +179,38 @@ class EchoServer(ThreadedServer):
     def __init__(self, endpoint):
         ThreadedServer.__init__(self, endpoint, EchoTCPHandler)
 
+
+
 class MessageTCPHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         # Can we update the server information from the TCP handler?
         # Yes, use self.server
         assert self.request != None
-        logger.debug('Got a connection from %s' % str(self.request.getpeername()))
-        if self.server.client_socket:
-            logger.debug('Reject, only accept one connection')
-            self.request.close()
-            return
-        else:
-            logger.debug('Accept, new connection')
-            self.server.client_socket = self.request
-            # self.request.setblocking(1)
-            unrealcv.SocketMessage.WrapAndSendPayload(self.request, 'connected to Python Message Server')
 
         while True: # Main loop to receive message
             try:
+                logger.debug('Start to handle message')
+                self.server.message_handled.clear()
                 message = unrealcv.SocketMessage.ReceivePayload(self.request)
+
+                if message:
+                    unrealcv.SocketMessage.WrapAndSendPayload(self.request, message)
+                    self.server.message_handled.set()
+                else:
+                    # Peacefully closed
+                    logger.debug('Client release connection')
+                    self.server._client_socket = None
+                    self.server.message_handled.set()
+                    break
             except Exception as e:
                 if e.errno == 10054:
                     logger.debug('Remote connection is forcibly closed')
-                    message = None
-            if message:
-                unrealcv.SocketMessage.WrapAndSendPayload(self.request, message)
-            else:
-                logger.debug('Client release connection')
-                self.server.client_socket = None
-                break
+                    self.server._client_socket = None
+                    self.server.message_handled.set()
+                else:
+                    logger.debug('Unknown exception %s' % str(e))
+                    self.server.message_handled.set()
+
 
 class MessageServer(ThreadedServer):
     ''' Simulate sending a message with the correct format '''
@@ -172,12 +229,14 @@ class MessageServer(ThreadedServer):
         # if self.client_socket:
         #     self.client_socket.shutdown(socket.SHUT_RDWR)
         #     self.client_socket.close()
-        # time.sleep(0.5) # Make sure the handler stops
         #
         # print('Close server socket')
         # self.socket.close()
         # Shutdown will wait until the handle function returns
         ThreadedServer.shutdown(self)
+
+    def client_socket(self):
+        pass
 
 
 if __name__ == '__main__':
