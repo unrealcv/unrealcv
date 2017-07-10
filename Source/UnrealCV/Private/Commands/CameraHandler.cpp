@@ -90,10 +90,6 @@ void FCameraCommandHandler::RegisterCommands()
 
 	Cmd = FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::SetMode);
 	Help = "Set ViewMode to (lit, normal, depth, object_mask)";
-	// CommandDispatcher->BindCommand("vset /viewmode lit", Cmd, Help); // Better to check the correctness at compile time
-	// CommandDispatcher->BindCommand("vset /viewmode normal", Cmd, Help); // Better to check the correctness at compile time
-	// CommandDispatcher->BindCommand("vset /viewmode depth", Cmd, Help); // Better to check the correctness at compile time
-	// CommandDispatcher->BindCommand("vset /viewmode object_mask", Cmd, Help); // Better to check the correctness at compile time
 	CommandDispatcher->BindCommand("vset /viewmode [str]", Cmd, Help); // Better to check the correctness at compile time
 
 	Cmd = FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::GetMode);
@@ -107,9 +103,6 @@ void FCameraCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetActorRotation);
 	Help = "Get actor rotation [pitch, yaw, roll]";
 	CommandDispatcher->BindCommand("vget /actor/rotation", Cmd, Help);
-
-	// Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetBuffer);
-	// CommandDispatcher->BindCommand("vget /camera/[uint]/buffer", Cmd, "Get buffer of this camera");
 
 	Help = "Return raw binary image data, instead of the image filename";
 	Cmd = FDispatcherDelegate::CreateLambda([](const TArray<FString>& Args) { return GetPngBinary(Args, TEXT("lit")); });
@@ -375,29 +368,6 @@ FExecStatus FCameraCommandHandler::GetScreenshot(const TArray<FString>& Args)
 	{
 		return ScreenCaptureAsyncByQuery(Filename);
 	}
-}
-
-FExecStatus FCameraCommandHandler::GetBuffer(const TArray<FString>& Args)
-{
-	// Initialize console variables.
-	static IConsoleVariable* ICVar1 = IConsoleManager::Get().FindConsoleVariable(TEXT("r.BufferVisualizationDumpFrames"));
-	// r.BufferVisualizationDumpFramesAsHDR
-	ICVar1->Set(1, ECVF_SetByCode);
-	static IConsoleVariable* ICVar2 = IConsoleManager::Get().FindConsoleVariable(TEXT("r.BufferVisualizationDumpFramesAsHDR"));
-	ICVar2->Set(1, ECVF_SetByCode);
-
-	/*
-	FHighResScreenshotConfig Config = GetHighResScreenshotConfig();
-	Config.bCaptureHDR = true;
-	Config.bDumpBufferVisualizationTargets = true;
-	*/
-
-	GIsHighResScreenshot = true;
-
-	// Get the viewport
-	// FSceneViewport* SceneViewport = this->GetWorld()->GetGameViewport()->GetGameViewport();
-	// SceneViewport->TakeHighResScreenShot();
-	return FExecStatus::OK();
 }
 
 FExecStatus FCameraCommandHandler::GetActorRotation(const TArray<FString>& Args)
