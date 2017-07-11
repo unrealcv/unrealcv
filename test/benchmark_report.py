@@ -1,10 +1,28 @@
 '''
 Make a report showing the speed of some critical commands
 Check whether it is fast enough for your application
+TODO: Add machine configuration, os, UnrealCV version, etc.
 '''
 from __future__ import print_function
 from unrealcv import client
 import time, json, argparse
+
+def sys_info():
+    def _unrealcv_info():
+        plugin_descriptor = '../UnrealCV.uplugin'
+        with open(plugin_descriptor) as f:
+            description = json.load(f)
+        plugin_version = description['VersionName']
+        return plugin_version
+
+    def _platform_info():
+        import platform
+        return platform.system()
+
+    return 'Platform: {platform}     UnreaCV: {unrealcv}'.format(
+        platform = _platform_info(),
+        unrealcv = _unrealcv_info()
+    )
 
 def run_count(cmd, count):
     tic = time.time()
@@ -58,6 +76,7 @@ def main():
     tasks = data.get('Tasks')
 
     report_file = open(report_filename, 'w')
+    log(sys_info())
 
     client.connect()
     for task in tasks:
@@ -77,7 +96,7 @@ def main():
         log(task_text)
         log(task_result)
         log(sample_output)
-        print('-' * 80)
+        log('-' * 80)
 
     report_file.close()
 
