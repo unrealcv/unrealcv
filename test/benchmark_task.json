@@ -1,0 +1,37 @@
+{
+  "Tasks":
+  [
+    {
+      "Cmd": "vget /unrealcv/status",
+      "Duration": 1
+    },
+    {
+      "Cmd": "vget /scene/name",
+      "Duration": 3
+    },
+    {
+      "Cmd": "vget /camera/0/lit test.png",
+      "Duration": 3
+    },
+    {
+      "Cmd": "vget /camera/0/lit png",
+      "Duration": 3
+    },
+    {
+      "Cmd": "vget /camera/0/depth depth.exr",
+      "Duration": 3
+    },
+    {
+      "Cmd": "vget /camera/0/depth npy",
+      "Duration": 3
+    },
+    {
+      "Cmd": "vget /camera/0/normal normal.png",
+      "Duration": 3
+    },
+    {
+      "Cmd": "vget /camera/0/normal npy",
+      "Duration": 3
+    }
+  ]
+}
