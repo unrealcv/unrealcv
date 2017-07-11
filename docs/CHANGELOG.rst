@@ -6,6 +6,8 @@ Development branch
 ==================
 
 - head (changes not tagged yet):
+    - Add :code:`vget /object/[id]/mobility`
+    - Add :code:`vget /camera/[id]/normal npy`
 - v0.3.9
     - Fix a bug that prevents object mask generation, which is introduced in v0.3.7
     - Fix #53 that the painting of object does not work

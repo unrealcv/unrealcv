@@ -3,6 +3,8 @@
 #include "ObjectPainter.h"
 
 
+FExecStatus GetObjectMobility(const TArray<FString>& Args);
+
 void FObjectCommandHandler::RegisterCommands()
 {
 	FDispatcherDelegate Cmd;
@@ -43,6 +45,10 @@ void FObjectCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectRotation);
 	Help = "Set object rotation [pitch, yaw, roll]";
 	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/rotation [float] [float] [float]"), Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateStatic(GetObjectMobility);
+	Help = "Is the object static or movable?";
+	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/mobility"), Cmd, Help);
 }
 
 FExecStatus FObjectCommandHandler::GetObjects(const TArray<FString>& Args)
@@ -222,6 +228,33 @@ FExecStatus FObjectCommandHandler::SetObjectRotation(const TArray<FString>& Args
 		FRotator Rotator = FRotator(Pitch, Yaw, Roll);
 		bool Success = Object->SetActorRotation(Rotator);
 		return FExecStatus::OK();
+	}
+	return FExecStatus::InvalidArgument;
+}
+
+// TODO: Write parse object
+
+FExecStatus GetObjectMobility(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		FString ObjectName = Args[0];
+		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
+		if (Object == NULL)
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Can not find object %s"), *ObjectName));
+		}
+
+		FString MobilityName = "";
+		EComponentMobility::Type Mobility = Object->GetRootComponent()->Mobility.GetValue();
+		switch (Mobility)
+		{
+		case EComponentMobility::Type::Movable: MobilityName = "Movable"; break;
+		case EComponentMobility::Type::Static: MobilityName = "Static"; break;
+		case EComponentMobility::Type::Stationary: MobilityName = "Stationary"; break;
+		default: MobilityName = "Unknown";
+		}
+		return FExecStatus::OK(MobilityName);
 	}
 	return FExecStatus::InvalidArgument;
 }
