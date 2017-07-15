@@ -84,7 +84,7 @@ project = 'UnrealCV'
 copyright = '2017, UnrealCV team'
 author = 'UnrealCV contributors'
 
-def parse_unrealcv_version():
+def parse_unrealcv_version(unrealcv_folder):
     plugin_descriptor = os.path.join(unrealcv_folder, 'UnrealCV.uplugin')
     with open(plugin_descriptor) as f:
         description = json.load(f)

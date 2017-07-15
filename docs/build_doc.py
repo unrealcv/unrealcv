@@ -1,4 +1,4 @@
-import argparse, subprocess, platform, os
+import argparse, subprocess, platform, os, shutil
 
 def open_url(url):
     ''' Utility function '''
@@ -13,8 +13,16 @@ def open_url(url):
         return
     subprocess.call([browser, url])
 
+def clean():
+    files = []
+    folders = ['_build', 'doxygen/html', 'doxygen/latex', 'doxygen/xml']
+    for f in files:
+        os.remove(f)
 
-if __name__ == '__main__':
+    for f in folders:
+        shutil.rmtree(f)
+
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--build_tutorial', action='store_true',
         default=False, help='Whether we should run the ipython notebook')
@@ -22,11 +30,18 @@ if __name__ == '__main__':
         default=False)
     parser.add_argument('--rtd', action='store_true',
         default=False, help='Simulate running on RTD')
+    parser.add_argument('--clean', action='store_true',
+        default=False, help='Remove build artifacts')
 
     args = parser.parse_args()
     is_build_tutorial = args.build_tutorial
     is_build_doxygen = args.build_doxygen
     is_on_rtd = args.rtd
+    is_clean = args.clean
+
+    if is_clean:
+        clean()
+        return
 
     if is_build_doxygen:
         try:
@@ -54,3 +69,7 @@ if __name__ == '__main__':
 
     index_file = os.path.join('_build', 'html', 'index.html')
     open_url(index_file)
+
+
+if __name__ == '__main__':
+    main()
