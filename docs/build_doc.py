@@ -52,4 +52,5 @@ if __name__ == '__main__':
     subprocess.call(cmd, env = env)
     # subprocess.call(cmd, env = os.environ)
 
-    open_url('_build/html/index.html')
+    index_file = os.path.join('_build', 'html', 'index.html')
+    open_url(index_file)
