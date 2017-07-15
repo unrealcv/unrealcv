@@ -1,11 +1,14 @@
 *
-!Content/
-!Config/
-!Resources/
-!Source/
-!client/
-!docs/
-!test/
+!*/
+
+.cache/
+.DS_Store/
+.tox/
+
+Binaries/
+Intermediate/
+Plugins/
+
 
 !*.py
 !*.cpp

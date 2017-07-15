@@ -61,7 +61,7 @@ if os.environ.get('UNREALCV_BUILD_TUTORIAL'):
     print('Build tutorials')
     for f in tutorial_files:
         md5_file = f.replace('_source', '') + '.md5'
-        os.remove(md5_file)
+        if os.path.isfile(md5_file): os.remove(md5_file)
 else:
     # Use a hacky way to skip the tutorial generation
     print('Skip tutorials')
