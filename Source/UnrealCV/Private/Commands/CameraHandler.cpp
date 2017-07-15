@@ -11,6 +11,11 @@
 #include "CineCameraActor.h"
 #include "ObjectPainter.h"
 #include "ScreenCapture.h"
+#include "Serialization.h"
+
+FExecStatus GetPngBinary(const TArray<FString>& Args, const FString& Mode);
+FExecStatus GetDepthNpy(const TArray<FString>& Args);
+FExecStatus GetNormalNpy(const TArray<FString>& Args);
 
 FString GetDiskFilename(FString Filename)
 {
@@ -107,15 +112,20 @@ void FCameraCommandHandler::RegisterCommands()
 	// CommandDispatcher->BindCommand("vget /camera/[uint]/buffer", Cmd, "Get buffer of this camera");
 
 	Help = "Return raw binary image data, instead of the image filename";
-	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetPngBinary(Args, TEXT("lit")); });
+	Cmd = FDispatcherDelegate::CreateLambda([](const TArray<FString>& Args) { return GetPngBinary(Args, TEXT("lit")); });
 	CommandDispatcher->BindCommand("vget /camera/[uint]/lit png", Cmd, Help);
-	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetPngBinary(Args, TEXT("depth")); });
+
+	Cmd = FDispatcherDelegate::CreateLambda([](const TArray<FString>& Args) { return GetPngBinary(Args, TEXT("depth")); });
 	CommandDispatcher->BindCommand("vget /camera/[uint]/depth png", Cmd, Help);
-	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetPngBinary(Args, TEXT("normal")); });
+
+	Cmd = FDispatcherDelegate::CreateLambda([](const TArray<FString>& Args) { return GetPngBinary(Args, TEXT("normal")); });
 	CommandDispatcher->BindCommand("vget /camera/[uint]/normal png", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetNpyBinary(Args, TEXT("depth")); });
+	Cmd = FDispatcherDelegate::CreateStatic(GetDepthNpy);
 	CommandDispatcher->BindCommand("vget /camera/[uint]/depth npy", Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateStatic(GetNormalNpy);
+	CommandDispatcher->BindCommand("vget /camera/[uint]/normal npy", Cmd, Help);
 
 	// TODO: object_mask will be handled differently
 }
@@ -406,30 +416,70 @@ FExecStatus FCameraCommandHandler::GetActorLocation(const TArray<FString>& Args)
 	return FExecStatus::OK(Message);
 }
 
-FExecStatus FCameraCommandHandler::GetPngBinary(const TArray<FString>& Args, const FString& ViewMode)
+FExecStatus ParseCamera(const TArray<FString>& Args, UGTCaptureComponent* &OutCamera)
 {
 	int32 CameraId = FCString::Atoi(*Args[0]);
-
-	UGTCaptureComponent* GTCapturer = FCaptureManager::Get().GetCamera(CameraId);
-	if (GTCapturer == nullptr)
+	OutCamera = FCaptureManager::Get().GetCamera(CameraId);
+	if (OutCamera == nullptr)
 	{
 		return FExecStatus::Error(FString::Printf(TEXT("Invalid camera id %d"), CameraId));
 	}
-
-	TArray<uint8> ImgData = GTCapturer->CapturePng(ViewMode);
-	return FExecStatus::Binary(ImgData);
+	return FExecStatus::OK();
 }
 
-FExecStatus FCameraCommandHandler::GetNpyBinary(const TArray<FString>& Args, const FString& ViewMode)
+FExecStatus GetPngBinary(const TArray<FString>& Args, const FString& Mode)
 {
-	int32 CameraId = FCString::Atoi(*Args[0]);
+	UGTCaptureComponent* Camera;
+	FExecStatus Status = ParseCamera(Args, Camera);
+	if (Status != FExecStatusType::OK) return Status;
 
-	UGTCaptureComponent* GTCapturer = FCaptureManager::Get().GetCamera(CameraId);
-	if (GTCapturer == nullptr)
+	TArray<FColor> ImageData;
+	int32 Height = 0, Width = 0;
+	Camera->CaptureImage(Mode, ImageData, Width, Height);
+	if (ImageData.Num() == 0)
 	{
-		return FExecStatus::Error(FString::Printf(TEXT("Invalid camera id %d"), CameraId));
+		return FExecStatus::Error(FString::Printf(TEXT("Failed to read %s data."), *Mode));
 	}
 
-	TArray<uint8> ImgData = GTCapturer->CaptureNpy(ViewMode);
-	return FExecStatus::Binary(ImgData);
+	TArray<uint8> PngBinaryData = SerializationUtils::Image2Png(ImageData, Width, Height);
+	return FExecStatus::Binary(PngBinaryData);
+}
+
+FExecStatus GetDepthNpy(const TArray<FString>& Args)
+{
+	UGTCaptureComponent* Camera;
+	FExecStatus Status = ParseCamera(Args, Camera);
+	if (Status != FExecStatusType::OK) return Status;
+
+	TArray<FFloat16Color> FloatImageData;
+	int32 Height = 0, Width = 0;
+	Camera->CaptureFloat16Image("depth", FloatImageData, Width, Height);
+	if (FloatImageData.Num() == 0)
+	{
+		return FExecStatus::Error("Failed to read depth data.");
+	}
+
+	TArray<uint8> NpyBinaryData = SerializationUtils::Array2Npy(FloatImageData, Width, Height, 1);
+
+	return FExecStatus::Binary(NpyBinaryData);
+}
+
+FExecStatus GetNormalNpy(const TArray<FString>& Args)
+{
+	UGTCaptureComponent* Camera;
+	FExecStatus Status = ParseCamera(Args, Camera);
+	if (Status != FExecStatusType::OK) return Status;
+
+	TArray<FFloat16Color> FloatImageData;
+	int32 Height = 0, Width = 0;
+	Camera->CaptureFloat16Image("normal", FloatImageData, Width, Height);
+	if (FloatImageData.Num() == 0)
+	{
+		return FExecStatus::Error("Failed to read normal data.");
+	}
+
+	TArray<uint8> NpyBinaryData = SerializationUtils::Array2Npy(FloatImageData, Width, Height, 3);
+
+	return FExecStatus::Binary(NpyBinaryData);
+
 }

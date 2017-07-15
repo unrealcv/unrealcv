@@ -6,15 +6,13 @@ project_dir = os.path.dirname(doc_dir)
 sys.path.insert(0, doc_dir)
 
 # If runs on ReadTheDocs environment
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-
 # Hack for lacking git-lfs support ReadTheDocs
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
     print('Fetching files with git_lfs for %s' % project_dir)
     from git_lfs import fetch
     fetch(project_dir)
-
-    subprocess.call('doxygen Doxyfile', shell=True)
+    subprocess.call(['doxygen', 'Doxyfile'])
     # Generate xml from doxygen
 
 import sphinx_rtd_theme
@@ -38,7 +36,6 @@ sphinx_gallery_conf = {
     'download_section_examples': False,
     'download_all_examples': False,
 }
-# plot_gallery = False, this is not useful because it will use the no picture version
 
 for i in range(len(sphinx_gallery_conf['examples_dirs'])):
     gallery_dir = sphinx_gallery_conf['gallery_dirs'][i]
@@ -60,8 +57,12 @@ def get_md5sum(src_file):
         src_md5 = hashlib.md5(src_content).hexdigest()
     return src_md5
 
-tutorial_files = [ './tutorials_source/generate_images_tutorial.py']
-if on_rtd:
+# if tags.has('build_tutorial'):
+if os.environ.get('UNREALCV_BUILD_TUTORIAL'):
+    print('Build tutorials')
+else:
+    print('Skip tutorials')
+    tutorial_files = [ './tutorials_source/generate_images_tutorial.py']
     for f in tutorial_files:
         md5_file = f.replace('_source', '') + '.md5'
         with open(md5_file, 'w') as file_checksum:

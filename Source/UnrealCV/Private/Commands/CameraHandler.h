@@ -48,9 +48,4 @@ public:
 	/** Get ViewMode data by switching to this viewmode then switch back, can not support multi-camera */
 	FExecStatus GetObjectInstanceMask(const TArray<FString>& Args);
 
-	/** Get raw binary image data instead of filename */
-	FExecStatus GetPngBinary(const TArray<FString>& Args, const FString& ViewMode);
-
-	/** Get raw binary data as an uncompressed numpy array */
-	FExecStatus GetNpyBinary(const TArray<FString>& Args, const FString& ViewMode);
 };

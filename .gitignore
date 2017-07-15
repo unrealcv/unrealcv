@@ -1,20 +1,15 @@
-*~
-*.pyc
-*.swp
-*.log
-*.zip
+*
+!Content/
+!Config/
+!Resources/
+!Source/
+!client/
+!docs/
+!test/
 
-*.ipynb_checkpoints/
-.cache/
-.DS_Store/
-.tox/
-
-Binaries/
-Intermediate/
-Config/
-
-# Core dump
-core
-
-# The built result
-Plugins/
+!*.py
+!*.cpp
+!*.h
+!*.tox
+!*.rst
+!*.md
