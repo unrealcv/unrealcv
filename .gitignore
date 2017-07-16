@@ -1,20 +1,29 @@
 *
 !*/
 
-.cache/
-.DS_Store/
-.tox/
-
+# Binary folders produced by UE4
 Binaries/
 Intermediate/
 Plugins/
 
-docs/_build/
+# Some cache folders
+**/.cache/
+**/__pycache__/
+**/.tox/
+**/.DS_Store
 
+# Binary folders produced by sphinx and doxygen
+docs/_build/
+docs/doxygen/
+
+# Files to track
+!.gitignore
+!LICENSE
 !*.py
+*.pyc
 !*.cpp
 !*.h
-!*.tox
 !*.rst
 !*.md
 !*.ini
+!*.uplugin
