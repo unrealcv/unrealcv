@@ -9,6 +9,7 @@ Binaries/
 Intermediate/
 Plugins/
 
+docs/_build/
 
 !*.py
 !*.cpp
