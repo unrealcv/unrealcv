@@ -16,3 +16,4 @@ Plugins/
 !*.tox
 !*.rst
 !*.md
+!*.ini
