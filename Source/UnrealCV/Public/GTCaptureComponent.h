@@ -35,12 +35,15 @@ public:
 
 	/** Save image to a file */
 	FAsyncRecord* Capture(FString Mode, FString Filename);
-	
+
 	/** Read binary data in png format */
-	TArray<uint8> CapturePng(FString Mode);
+	// TArray<uint8> CapturePng(FString Mode);
 
 	/** Read binary data in uncompressed numpy array */
-	TArray<uint8> CaptureNpy(FString Mode);
+	// TArray<uint8> CaptureNpy(FString Mode);
+
+	void CaptureImage(const FString& Mode, TArray<FColor>& OutImageData, int32& OutWidth, int32& OutHeight);
+	void CaptureFloat16Image(const FString& Mode, TArray<FFloat16Color>& OutImageData, int32& OutWidth, int32& OutHeight);
 private:
 	const bool bIsTicking = true;
 

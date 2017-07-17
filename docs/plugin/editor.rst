@@ -44,3 +44,7 @@ Use UnrealCV commands in the editor
 .. image:: https://preview.ibb.co/mavL8Q/editor_mask.png
 
 You can use UnrealCV commands the same way as in a standalone binary.
+
+Reference
+---------
+This page is contributed by the `UnrealStereo <https://arxiv.org/abs/1612.04647>`_  project and the tool and images will be released soon.
