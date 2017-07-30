@@ -29,7 +29,7 @@ def random_vec3(min=-90, max=90):
 def approx(a, b, tol = 0.01):
     return abs(a - b) < tol
 
-@pytest.mark.skipif(ver < (0, 3, 2), reason = 'eyes_distance is implemented before v0.3.2')
+@pytest.mark.skipif(ver() < (0, 3, 2), reason = 'eyes_distance is implemented before v0.3.2')
 def test_camera_distance():
     client.connect()
 
@@ -42,7 +42,7 @@ def test_camera_distance():
             actor_loc = Vec3(client.request('vget /actor/location'))
             loc1 = Vec3(client.request('vget /camera/0/location'))
             loc2 = Vec3(client.request('vget /camera/1/location'))
-            print actor_loc, loc1, loc2
+            print('%s %s %s' % (actor_loc, loc1, loc2))
 
             actual_dist = (loc1 - loc2).l2norm()
             expect_dist = test_distance
@@ -50,7 +50,7 @@ def test_camera_distance():
             actor_cam0_distance = (actor_loc - loc1).l2norm()
             assert approx(actor_cam0_distance, 0)
 
-@pytest.mark.skipif(ver < (0, 3, 2), reason = 'pause is implemented before v0.3.2')
+@pytest.mark.skipif(ver() < (0, 3, 2), reason = 'pause is implemented before v0.3.2')
 def test_pause():
     client.connect()
     cmds = [

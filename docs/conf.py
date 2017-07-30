@@ -5,17 +5,16 @@ doc_dir = os.path.dirname(os.path.abspath(__file__))
 project_dir = os.path.dirname(doc_dir)
 sys.path.insert(0, doc_dir)
 
-# If runs on ReadTheDocs environment
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-
-# Hack for lacking git-lfs support ReadTheDocs
 if on_rtd:
+    # If runs on ReadTheDocs environment
     print('Fetching files with git_lfs for %s' % project_dir)
-    from git_lfs import fetch
-    fetch(project_dir)
+    # Hack for lacking git-lfs support ReadTheDocs
+    import git_lfs
+    git_lfs.fetch(project_dir)
 
-    subprocess.call('doxygen Doxyfile', shell=True)
     # Generate xml from doxygen
+    subprocess.call(['doxygen', 'Doxyfile'])
 
 import sphinx_rtd_theme
 
@@ -38,7 +37,6 @@ sphinx_gallery_conf = {
     'download_section_examples': False,
     'download_all_examples': False,
 }
-# plot_gallery = False, this is not useful because it will use the no picture version
 
 for i in range(len(sphinx_gallery_conf['examples_dirs'])):
     gallery_dir = sphinx_gallery_conf['gallery_dirs'][i]
@@ -51,8 +49,6 @@ for i in range(len(sphinx_gallery_conf['examples_dirs'])):
     for f in glob.glob(os.path.join(source_dir, '*.rst')):
         shutil.copy(f, gallery_dir)
 
-
-# Use a hacky way to skip the tutorial generation for ReadTheDocs
 def get_md5sum(src_file):
     """Returns md5sum of file, from https://github.com/sphinx-gallery/sphinx-gallery/blob/master/sphinx_gallery/gen_rst.py#L201"""
     with open(src_file, 'rb') as src_data:
@@ -61,7 +57,14 @@ def get_md5sum(src_file):
     return src_md5
 
 tutorial_files = [ './tutorials_source/generate_images_tutorial.py']
-if on_rtd:
+if os.environ.get('UNREALCV_BUILD_TUTORIAL'):
+    print('Build tutorials')
+    for f in tutorial_files:
+        md5_file = f.replace('_source', '') + '.md5'
+        if os.path.isfile(md5_file): os.remove(md5_file)
+else:
+    # Use a hacky way to skip the tutorial generation
+    print('Skip tutorials')
     for f in tutorial_files:
         md5_file = f.replace('_source', '') + '.md5'
         with open(md5_file, 'w') as file_checksum:
@@ -81,7 +84,7 @@ project = 'UnrealCV'
 copyright = '2017, UnrealCV team'
 author = 'UnrealCV contributors'
 
-def parse_unrealcv_version(unrealcv_folder='./unrealcv'):
+def parse_unrealcv_version(unrealcv_folder):
     plugin_descriptor = os.path.join(unrealcv_folder, 'UnrealCV.uplugin')
     with open(plugin_descriptor) as f:
         description = json.load(f)
@@ -94,7 +97,6 @@ def parse_unrealcv_version(unrealcv_folder='./unrealcv'):
 #
 # The short X.Y version.
 version = parse_unrealcv_version('..')
-# TODO: Read this from the plugin file.
 # The full version, including alpha/beta/rc tags.
 release = version
 

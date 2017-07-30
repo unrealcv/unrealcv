@@ -5,6 +5,13 @@ Development
 :author: :user:`Ized06`, :user:`qiuwch`
 
 UnrealCV can be compiled as a plugin as shown in the :ref:`compile_plugin`, but it you want to modify the plugin source code, compiling it together with an UE4 C++ project will make debug much easier.
+For development, we need to :
+
+- :Create a C++ game project
+- :Get the corresponding plugin
+- :Compile the C++ project
+- :Add a new command
+
 
 Create a C++ game project
 =========================
@@ -13,17 +20,20 @@ UE4 has two types of game projects. Blueprint project and C++ project. We need a
 
 In a C++ project, the plugin code will be compiled together with the game project.
 
-The simplest way to start is using the `playground project`_. Playground project is a simple UE4 project to show basic features or UE4 and UnrealCV. It serves as a development base and test platform for UnrealCV team.
+The simplest way to start is using the `playground project`_. Playground project is a simple UE4 project to show basic features of UE4 and UnrealCV. It serves as a development base and test platform for UnrealCV team.
 
 .. _playground project: https://github.com/unrealcv/playground
 
-Get the playground project by
+We use git-lfs to manage large binary files. Please make sure you have installed git-lfs on your computer. Then you can get the playground project by
 
 .. code:: shell
 
-    git clone --recursive https://github.com/unrealcv/playground.git
+    git lfs clone https://github.com/unrealcv/playground.git
 
-UnrealCV is a submodule of this repository. If you cloned the project without :code:`--recursive` and found the folder :file:`Plugins/unrealcv` empty. You can use :code:`git submodule init; git submodule update` to get the UnrealCV code.
+Get the corresponding plugin
+============================
+
+Now the folder :file:`Plugins/UnrealCV` in the repository is empty. Please refer to :doc:`/plugin/install` to get the corresponding plugin and put it in the folder.
 
 Compile the C++ project
 =======================

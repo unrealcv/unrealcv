@@ -11,6 +11,6 @@ for [loc, rot] in camera_trajectory:
     client.request('vset /camera/0/location {x} {y} {z}'.format(**loc))
     client.request('vset /camera/0/rotation {pitch} {yaw} {roll}'.format(**rot))
     # Get image and ground truth
-    modes = ['lit', 'depth', 'object_mask']
+    modes = ['lit', 'object_mask']
     [im, dep, obj] = [client.request('vget /camera/0/%s' % m) for m in modes]
     print ['%s is saved to %s' % (k, v) for (k,v) in zip(modes, [im, dep, obj])]
