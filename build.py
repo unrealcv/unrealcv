@@ -66,6 +66,7 @@ def install(UE4_dir):
         else:
             shutil.rmtree(abs_tgt_unrealcv_folder)
 
+    print('Copy the plugin from %s to %s' % (abs_src_unrealcv_folder, abs_tgt_unrealcv_folder))
     shutil.copytree(abs_src_unrealcv_folder, abs_tgt_unrealcv_folder)
     print('Installation of UnrealCV is successful.')
 
@@ -88,12 +89,16 @@ if __name__ == '__main__':
     platform_name = get_platform_name()
     script_dir = os.path.dirname(os.path.realpath(__file__))
 
-    subprocess.call([
-        abs_UAT_path, 'BuildPlugin',
-        '-plugin=%s' % abs_unrealcv_descriptor,
-        '-package=%s' % abs_output_folder,
-        '-rocket', '-targetplatforms=%s' % platform_name
-    ], cwd = script_dir)
+    if os.path.isdir(abs_output_folder):
+        print('Output folder "%s" already exists, skip compilation.' % abs_output_folder)
+        print('Remove this folder if you want to compile the plugin with a different UE4 version.')
+    else:
+        subprocess.call([
+            abs_UAT_path, 'BuildPlugin',
+            '-plugin=%s' % abs_unrealcv_descriptor,
+            '-package=%s' % abs_output_folder,
+            '-rocket', '-targetplatforms=%s' % platform_name
+        ], cwd = script_dir)
 
     if need_install:
         install(UE4_dir)
