@@ -31,8 +31,10 @@ def UE4_discover():
         'C:\Program Files\Epic Games\UE_4.??',
         'D:\Program Files\Epic Games\UE_4.??',]
     linux_candidates = [
-        os.path.expanduser('~/UnrealEngine'), os.path.expanduser('~/workspace/UnrealEngine'),]
-    mac_candidates = []
+        os.path.expanduser('~/UnrealEngine'),
+        os.path.expanduser('~/workspace/UnrealEngine'),
+        os.path.expanduser('~/workspace/UE4??'),]
+    mac_candidates = ['/Users/Shared/Epic Games/UE_4.??',]
     search_candidates = {'Linux': linux_candidates, 'Mac': mac_candidates, 'Win64': win_candidates}
     candidates = search_candidates.get(get_platform_name())
 
