@@ -20,6 +20,7 @@ void InitCaptureComponent(USceneCaptureComponent2D* CaptureComponent)
 	CaptureComponent->TextureTarget = NewObject<UTextureRenderTarget2D>();
 	FServerConfig& Config = FUE4CVServer::Get().Config;
 	CaptureComponent->TextureTarget->InitAutoFormat(Config.Width, Config.Height);
+    CaptureComponent->FOVAngle = Config.FOV;
 
 	/*
 	UGameViewportClient* GameViewportClient = World->GetGameViewport();
@@ -208,6 +209,14 @@ UGTCaptureComponent::UGTCaptureComponent()
 }
 
 // Each GTCapturer can serve as one camera of the scene
+
+void UGTCaptureComponent::SetFOVAngle(float FOV)
+{
+    for (auto Iterator = CaptureComponents.CreateIterator(); Iterator; ++Iterator)
+    {
+        Iterator.Value()->FOVAngle = FOV;
+    }
+}
 
 FAsyncRecord* UGTCaptureComponent::Capture(FString Mode, FString InFilename)
 {
@@ -422,3 +431,11 @@ void UGTCaptureComponent::TickComponent(float DeltaTime, enum ELevelTick TickTyp
 		Task.AsyncRecord->bIsCompleted = true;
 	}
 }
+
+USceneCaptureComponent2D* UGTCaptureComponent::GetCaptureComponent(FString Mode)
+{
+	check(CaptureComponents.Num() != 0);
+	USceneCaptureComponent2D* CaptureComponent = CaptureComponents.FindRef(Mode);
+    return CaptureComponent;
+}
+

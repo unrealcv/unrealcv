@@ -136,6 +136,10 @@ bool FUE4CVServer::InitWorld()
 		APlayerController* PlayerController = World->GetFirstPlayerController();
 		check(PlayerController);
 
+        // Update camera FOV
+        FServerConfig& Config = FUE4CVServer::Get().Config;
+        PlayerController->PlayerCameraManager->SetFOV(Config.FOV);
+
 		FObjectPainter::Get().Reset(GetPawn()->GetLevel());
 		FCaptureManager::Get().AttachGTCaptureComponentToCamera(GetPawn()); // TODO: Make this configurable in the editor
 

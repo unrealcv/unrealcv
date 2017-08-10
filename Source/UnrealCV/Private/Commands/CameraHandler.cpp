@@ -70,6 +70,14 @@ void FCameraCommandHandler::RegisterCommands()
 	Help = "Teleport camera to location [x, y, z]";
 	CommandDispatcher->BindCommand("vset /camera/[uint]/location [float] [float] [float]", Cmd, Help);
 
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraHorizontalFieldOfView);
+	Help = "Get camera horizontal field of view";
+	CommandDispatcher->BindCommand("vget /camera/[uint]/horizontal_fieldofview", Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::SetCameraHorizontalFieldOfView);
+	Help = "Set camera horizontal field of view";
+	CommandDispatcher->BindCommand("vset /camera/[uint]/horizontal_fieldofview [float]", Cmd, Help);
+
 	/** This is different from SetLocation (which is teleport) */
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::MoveTo);
 	Help = "Move camera to location [x, y, z], will be blocked by objects";
@@ -213,6 +221,107 @@ FExecStatus FCameraCommandHandler::GetCameraRotation(const TArray<FString>& Args
 		}
 
 		FString Message = FString::Printf(TEXT("%.3f %.3f %.3f"), CameraRotation.Pitch, CameraRotation.Yaw, CameraRotation.Roll);
+
+		return FExecStatus::OK(Message);
+	}
+	return FExecStatus::Error("Number of arguments incorrect");
+}
+
+FExecStatus FCameraCommandHandler::SetCameraHorizontalFieldOfView(const TArray<FString>& Args)
+{
+    if (Args.Num() == 2)
+    {
+        int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
+        if (CameraId != 0)
+        {
+        	return FExecStatus::Error("Setting field of view is only supported for camera 0");
+        }
+
+		float FieldOfView = FCString::Atof(*Args[1]);
+
+        bool bIsMatinee = false;
+
+        for (AActor* Actor : this->GetWorld()->GetCurrentLevel()->Actors)
+        {
+            // if (Actor && Actor->IsA(AMatineeActor::StaticClass())) // AMatineeActor is deprecated
+            bool FoundCamera = false;
+            if (Actor && Actor->IsA(ACameraActor::StaticClass()))
+            {
+                bIsMatinee = true;
+                UCameraComponent* CameraComponent = Actor->FindComponentByClass<UCameraComponent>();
+                if (CameraComponent != nullptr) {
+                    UE_LOG(LogUnrealCV, Warning, TEXT("Setting field of view to: %f"), FieldOfView);
+                    CameraComponent->SetFieldOfView(FieldOfView);
+                    FoundCamera = true;
+                    APlayerCameraManager* CameraManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
+                    CameraManager->SetFOV(FieldOfView);
+                    break;
+                }
+            }
+        }
+
+		UGTCaptureComponent* CaptureComponent = FCaptureManager::Get().GetCamera(CameraId);
+		if (CaptureComponent == nullptr)
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Camera %d can not be found."), CameraId));
+		}
+        UGTCaptureComponent* GTCapturer = FCaptureManager::Get().GetCamera(CameraId);
+        if (GTCapturer == nullptr)
+        {
+            return FExecStatus::Error(FString::Printf(TEXT("Invalid camera id %d"), CameraId));
+        }
+        GTCapturer->SetFOVAngle(FieldOfView);
+
+		return FExecStatus::OK();
+
+	}
+	return FExecStatus::Error("Number of arguments incorrect");
+}
+
+FExecStatus FCameraCommandHandler::GetCameraHorizontalFieldOfView(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		bool bIsMatinee = false;
+
+        float FieldOfView = 0.0f;
+
+		/*for (AActor* Actor : this->GetWorld()->GetCurrentLevel()->Actors)
+		{
+			// if (Actor && Actor->IsA(AMatineeActor::StaticClass())) // AMatineeActor is deprecated
+			if (Actor && Actor->IsA(ACameraActor::StaticClass()))
+			{
+				bIsMatinee = true;
+                UCameraComponent* CameraComponent = Actor->FindComponentByClass<UCameraComponent>();
+                if (CameraComponent != nullptr) {
+                    FieldOfView = CameraComponent->FieldOfView;
+                }
+                UE_LOG(LogUnrealCV, Warning, TEXT("Got FOV from Matinee"));
+				break;
+			}
+		}*/
+
+		int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
+		// APawn* Pawn = FUE4CVServer::Get().GetPawn();
+		// CameraLocation = Pawn->GetActorLocation();
+		UGTCaptureComponent* CaptureComponent = FCaptureManager::Get().GetCamera(CameraId);
+		if (CaptureComponent == nullptr)
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Camera %d can not be found."), CameraId));
+		}
+        UGTCaptureComponent* GTCapturer = FCaptureManager::Get().GetCamera(CameraId);
+        if (GTCapturer == nullptr)
+        {
+            return FExecStatus::Error(FString::Printf(TEXT("Invalid camera id %d"), CameraId));
+        }
+        USceneCaptureComponent2D* SceneCaptureComponent = GTCapturer->GetCaptureComponent(TEXT("lit"));
+        if (SceneCaptureComponent == nullptr)
+        {
+            return FExecStatus::Error(FString::Printf(TEXT("Unexpected error: Capture component not found.")));
+        }
+        FieldOfView = SceneCaptureComponent->FOVAngle;
+
+		FString Message = FString::Printf(TEXT("%.3f"), FieldOfView);
 
 		return FExecStatus::OK(Message);
 	}

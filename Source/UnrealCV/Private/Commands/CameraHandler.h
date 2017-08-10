@@ -9,6 +9,10 @@ public:
 	{}
 	void RegisterCommands();
 
+	/** vget /camera/horizontal_fieldofview */
+	FExecStatus GetCameraHorizontalFieldOfView(const TArray<FString>& Args);
+	/** vset /camera/horizontal_fieldofview */
+	FExecStatus SetCameraHorizontalFieldOfView(const TArray<FString>& Args);
 	/** vget /camera/location */
 	FExecStatus GetCameraLocation(const TArray<FString>& Args);
 	/** vset /camera/location */

@@ -8,6 +8,7 @@ public:
 	int Port;
 	int Width;
 	int Height;
+    float FOV;
 
 	FServerConfig();
 
