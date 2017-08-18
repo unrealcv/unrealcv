@@ -1,14 +1,14 @@
 Model Zoo
 =========
 
-We provide compiled virtual worlds to play with. All the digital contents belong to the original author. 
+We provide compiled virtual worlds to play with. All the digital contents belong to the original author. If you want to use UnrealCV plugin in the editor, you can find UE4 projects in :doc:`/reference/ue4_resources`
 
-.. Hint:: Model Zoo is in experiment now. If you are beginners, we highly recommend you to try RealisitcRendering first to avoid some unknown bugs. If any bugs you found, you can report `an issue <https://github.com/unrealcv/unrealcv/issues>`__. We will fix reported bugs as soon as possible.
+.. Hint:: Model Zoo is still experimental. If you are a beginner, we highly recommend you start with RealisitcRendering to avoid unknown bugs. If you found any bugs, you can report `an issue <https://github.com/unrealcv/unrealcv/issues>`__. We will fix them as soon as possible.
 
 .. TODO: add more formal license information
     The community maintained games will be hosted in the [github wiki page](http://).
 
-.. Make sure links in this page is always accesible. If I need to move files to a new place, link the new place. Do not use version in the filename, use _master.zip as suffix. So that when others share the link, they always share the _master link.
+.. Make sure links (all versions) in this page is always accesible. If I need to move files to a new place, link the new place. Do not use version in the filename, use _master.zip as suffix. So that when others share the link, they always share the _master link.
 
 Run the downloaded binary
 
