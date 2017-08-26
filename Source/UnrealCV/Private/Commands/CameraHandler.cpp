@@ -11,6 +11,8 @@
 #include "CineCameraActor.h"
 #include "ObjectPainter.h"
 #include "ScreenCapture.h"
+#include "CvCameraManager.h"
+#include "CvCameraComponent.h"
 
 FString GetDiskFilename(FString Filename)
 {
@@ -116,6 +118,9 @@ void FCameraCommandHandler::RegisterCommands()
 
 	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetNpyBinary(Args, TEXT("depth")); });
 	CommandDispatcher->BindCommand("vget /camera/[uint]/depth npy", Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraList);
+	CommandDispatcher->BindCommand("vget /cameras", Cmd, Help);
 
 	// TODO: object_mask will be handled differently
 }
@@ -275,16 +280,21 @@ FExecStatus FCameraCommandHandler::GetObjectInstanceMask(const TArray<FString>& 
 	return FExecStatus::InvalidArgument;
 }
 
+/** vget /camera/[id]/lit [filename] */
 FExecStatus FCameraCommandHandler::GetLitViewMode(const TArray<FString>& Args)
 {
-	if (Args.Num() <= 3)
+	if (Args.Num() <= 2)
 	{
-		// For this viewmode, The post-effect material needs to be explictly cleared
-		FPlayerViewMode::Get().Lit();
+		int CameraId = FCString::Atoi(*Args[0]);
+		FString Filename = Args[1];
 
-		TArray<FString> ExtraArgs(Args);
-		ExtraArgs.Insert(TEXT("lit"), 1);
-		return GetCameraViewMode(ExtraArgs);
+		static ACvCameraManager *CvCameraManager = NewObject<ACvCameraManager>();
+		CvCameraManager->AddToRoot();
+		
+		TArray<UCvCameraComponent*> Cameras = CvCameraManager->GetCameras();
+		UCvCameraComponent* Camera = Cameras[CameraId];
+		Camera->CaptureImageToFile(Filename);
+		return FExecStatus::OK(FPaths::ConvertRelativePathToFull(Filename));
 	}
 	return FExecStatus::InvalidArgument;
 }
@@ -432,4 +442,19 @@ FExecStatus FCameraCommandHandler::GetNpyBinary(const TArray<FString>& Args, con
 
 	TArray<uint8> ImgData = GTCapturer->CaptureNpy(ViewMode);
 	return FExecStatus::Binary(ImgData);
+}
+
+
+FExecStatus FCameraCommandHandler::GetCameraList(const TArray<FString>& Args)
+{
+	static ACvCameraManager *CvCameraManager = NewObject<ACvCameraManager>();
+	CvCameraManager->AddToRoot();
+
+	TArray<UCvCameraComponent*> Cameras = CvCameraManager->GetCameras();
+	FString Res = "";
+	for (int i = 0; i < Cameras.Num(); i++)
+	{
+		Res += Cameras[i]->GetName() + " ";
+	}
+	return FExecStatus::OK(Res);
 }

@@ -53,4 +53,6 @@ public:
 
 	/** Get raw binary data as an uncompressed numpy array */
 	FExecStatus GetNpyBinary(const TArray<FString>& Args, const FString& ViewMode);
+
+	FExecStatus GetCameraList(const TArray<FString>& Args);
 };
