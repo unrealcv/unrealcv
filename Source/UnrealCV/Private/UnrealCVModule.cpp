@@ -41,7 +41,42 @@ void FUnrealCVPlugin::StartupModule()
 		Server.Config.FOV = OverrideFOV;
 	}
 
-	Server.NetworkManager->Start(Server.Config.Port);
+	bool OverrideEnableInput = Server.Config.EnableInput;
+	if (FParse::Bool(FCommandLine::Get(), TEXT("UnrealCVEnableInput"), OverrideEnableInput)) {
+		if (OverrideEnableInput)
+		{
+			UE_LOG(LogUnrealCV, Warning, TEXT("Overriding EnableInput to true"));
+		}
+		else
+		{
+			UE_LOG(LogUnrealCV, Warning, TEXT("Overriding EnableInput to false"));
+		}
+		Server.Config.EnableInput = OverrideEnableInput;
+	}
+
+	bool OverrideExitOnFailure = Server.Config.ExitOnFailure;
+	if (FParse::Bool(FCommandLine::Get(), TEXT("UnrealCVExitOnFailure"), OverrideExitOnFailure)) {
+		if (OverrideExitOnFailure)
+		{
+			UE_LOG(LogUnrealCV, Warning, TEXT("Overriding ExitOnFailure to true"));
+		}
+		else
+		{
+			UE_LOG(LogUnrealCV, Warning, TEXT("Overriding ExitOnFailure to false"));
+		}
+		Server.Config.ExitOnFailure = OverrideExitOnFailure;
+	}
+
+	bool StartSuccess = Server.NetworkManager->Start(Server.Config.Port);
+	if (!StartSuccess)
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("Failed to start network server"));
+		if (Server.Config.ExitOnFailure)
+		{
+			UE_LOG(LogUnrealCV, Error, TEXT("Requesting exit"));
+			FGenericPlatformMisc::RequestExit(false);
+		}
+	}
 }
 
 void FUnrealCVPlugin::ShutdownModule()

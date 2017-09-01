@@ -8,7 +8,9 @@ public:
 	int Port;
 	int Width;
 	int Height;
-    float FOV;
+	float FOV;
+	bool EnableInput;
+	bool ExitOnFailure;
 
 	FServerConfig();
 
