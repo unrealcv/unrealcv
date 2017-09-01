@@ -30,4 +30,10 @@ public:
 
 	/** Set object rotation */
 	FExecStatus SetObjectRotation(const TArray<FString>& Args);
+
+	/** Show object */
+	FExecStatus ShowObject(const TArray<FString>& Args);
+
+	/** Hide object */
+	FExecStatus HideObject(const TArray<FString>& Args);
 };

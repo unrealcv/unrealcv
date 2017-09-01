@@ -136,12 +136,13 @@ bool FUE4CVServer::InitWorld()
 		APlayerController* PlayerController = World->GetFirstPlayerController();
 		check(PlayerController);
 
-        // Update camera FOV
-        FServerConfig& Config = FUE4CVServer::Get().Config;
-        PlayerController->PlayerCameraManager->SetFOV(Config.FOV);
+		// Update camera FOV
+		PlayerController->PlayerCameraManager->SetFOV(Config.FOV);
 
 		FObjectPainter::Get().Reset(GetPawn()->GetLevel());
 		FCaptureManager::Get().AttachGTCaptureComponentToCamera(GetPawn()); // TODO: Make this configurable in the editor
+
+		UpdateInput(Config.EnableInput);
 
 		FEngineShowFlags ShowFlags = World->GetGameViewport()->EngineShowFlags;
 		FPlayerViewMode::Get().SaveGameDefault(ShowFlags);
@@ -151,7 +152,28 @@ bool FUE4CVServer::InitWorld()
 	return true;
 }
 
+void FUE4CVServer::UpdateInput(bool Enable)
+{
+	APlayerController* PlayerController = GetGameWorld()->GetFirstPlayerController();
+	check(PlayerController);
+	if (Enable)
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Enabling input"));
+		PlayerController->GetPawn()->EnableInput(PlayerController);
+	}
+	else
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Disabling input"));
+		PlayerController->GetPawn()->DisableInput(PlayerController);
+	}
+}
 
+void FUE4CVServer::OpenLevel(FName LevelName)
+{
+	UGameplayStatics::OpenLevel(GetGameWorld(), LevelName);
+	UGameplayStatics::FlushLevelStreaming(GetGameWorld());
+	UE_LOG(LogUnrealCV, Warning, TEXT("Level loaded"));
+}
 
 // Each tick of GameThread.
 void FUE4CVServer::ProcessPendingRequest()

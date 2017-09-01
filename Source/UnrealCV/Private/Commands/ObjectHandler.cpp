@@ -43,6 +43,14 @@ void FObjectCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectRotation);
 	Help = "Set object rotation [pitch, yaw, roll]";
 	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/rotation [float] [float] [float]"), Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::ShowObject);
+	Help = "Show object";
+	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/show"), Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::HideObject);
+	Help = "Hide object";
+	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/hide"), Cmd, Help);
 }
 
 FExecStatus FObjectCommandHandler::GetObjects(const TArray<FString>& Args)
@@ -199,9 +207,16 @@ FExecStatus FObjectCommandHandler::SetObjectLocation(const TArray<FString>& Args
 		// TODO: Check whether this object is movable
 		float X = FCString::Atof(*Args[1]), Y = FCString::Atof(*Args[2]), Z = FCString::Atof(*Args[3]);
 		FVector NewLocation = FVector(X, Y, Z);
-		bool Success = Object->SetActorLocation(NewLocation);
+		bool Success = Object->SetActorLocation(NewLocation, false, nullptr, ETeleportType::TeleportPhysics);
 
-		return FExecStatus::OK();
+		if (Success)
+		{
+			return FExecStatus::OK();
+		}
+		else
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Failed to move object %s"), *ObjectName));
+		}
 	}
 	return FExecStatus::InvalidArgument;
 }
@@ -221,6 +236,40 @@ FExecStatus FObjectCommandHandler::SetObjectRotation(const TArray<FString>& Args
 		float Pitch = FCString::Atof(*Args[1]), Yaw = FCString::Atof(*Args[2]), Roll = FCString::Atof(*Args[3]);
 		FRotator Rotator = FRotator(Pitch, Yaw, Roll);
 		bool Success = Object->SetActorRotation(Rotator);
+		return FExecStatus::OK();
+	}
+	return FExecStatus::InvalidArgument;
+}
+
+FExecStatus FObjectCommandHandler::ShowObject(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		FString ObjectName = Args[0];
+		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
+		if (Object == NULL)
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Can not find object %s"), *ObjectName));
+		}
+
+		Object->SetActorHiddenInGame(false);
+		return FExecStatus::OK();
+	}
+	return FExecStatus::InvalidArgument;
+}
+
+FExecStatus FObjectCommandHandler::HideObject(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		FString ObjectName = Args[0];
+		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
+		if (Object == NULL)
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Can not find object %s"), *ObjectName));
+		}
+
+		Object->SetActorHiddenInGame(true);
 		return FExecStatus::OK();
 	}
 	return FExecStatus::InvalidArgument;

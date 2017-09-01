@@ -237,7 +237,7 @@ FExecStatus FCameraCommandHandler::SetCameraHorizontalFieldOfView(const TArray<F
         	return FExecStatus::Error("Setting field of view is only supported for camera 0");
         }
 
-		float FieldOfView = FCString::Atof(*Args[1]);
+        float FieldOfView = FCString::Atof(*Args[1]);
 
         bool bIsMatinee = false;
 
@@ -260,22 +260,21 @@ FExecStatus FCameraCommandHandler::SetCameraHorizontalFieldOfView(const TArray<F
             }
         }
 
-		UGTCaptureComponent* CaptureComponent = FCaptureManager::Get().GetCamera(CameraId);
-		if (CaptureComponent == nullptr)
-		{
-			return FExecStatus::Error(FString::Printf(TEXT("Camera %d can not be found."), CameraId));
-		}
-        UGTCaptureComponent* GTCapturer = FCaptureManager::Get().GetCamera(CameraId);
-        if (GTCapturer == nullptr)
+        UGTCaptureComponent* CaptureComponent = FCaptureManager::Get().GetCamera(CameraId);
+        if (CaptureComponent == nullptr)
         {
-            return FExecStatus::Error(FString::Printf(TEXT("Invalid camera id %d"), CameraId));
+          return FExecStatus::Error(FString::Printf(TEXT("Camera %d can not be found."), CameraId));
         }
-        GTCapturer->SetFOVAngle(FieldOfView);
+            UGTCaptureComponent* GTCapturer = FCaptureManager::Get().GetCamera(CameraId);
+            if (GTCapturer == nullptr)
+            {
+                return FExecStatus::Error(FString::Printf(TEXT("Invalid camera id %d"), CameraId));
+            }
+            GTCapturer->SetFOVAngle(FieldOfView);
 
-		return FExecStatus::OK();
-
-	}
-	return FExecStatus::Error("Number of arguments incorrect");
+        return FExecStatus::OK();
+    }
+    return FExecStatus::Error("Number of arguments incorrect");
 }
 
 FExecStatus FCameraCommandHandler::GetCameraHorizontalFieldOfView(const TArray<FString>& Args)

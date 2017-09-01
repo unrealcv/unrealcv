@@ -83,6 +83,12 @@ public:
 	/** Return the GameWorld of the editor or of the game */
 	UWorld* GetGameWorld();
 
+	/** Update input mode */
+	void UpdateInput(bool Enable);
+
+	/** Open new level */
+	void OpenLevel(FName LevelName);
+
 	/** The config of UE4CVServer */
 	FServerConfig Config;
 
