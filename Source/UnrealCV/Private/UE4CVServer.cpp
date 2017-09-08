@@ -70,6 +70,7 @@ FUE4CVServer::FUE4CVServer()
 
 	NetworkManager->AddToRoot(); // Avoid GC
 	NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::HandleRawMessage);
+	NetworkManager->OnError().AddRaw(this, &FUE4CVServer::HandleError);
 }
 
 FUE4CVServer::~FUE4CVServer()
@@ -225,6 +226,16 @@ void FUE4CVServer::HandleRawMessage(const FString& InRawMessage)
 	else
 	{
 		SendClientMessage(FString::Printf(TEXT("error: Malformat raw message '%s'"), *InRawMessage));
+	}
+}
+
+/** Error handler for server */
+void FUE4CVServer::HandleError(const FString& InErrorMessage)
+{
+	if (Config.ExitOnFailure)
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("Unexpected error from server. Requesting exit. Error message: %s"), *InErrorMessage);
+		FGenericPlatformMisc::RequestExit(false);
 	}
 }
 

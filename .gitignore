@@ -3,6 +3,7 @@
 *.swp
 *.log
 *.zip
+.idea/
 
 *.ipynb_checkpoints/
 .cache/
