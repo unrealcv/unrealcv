@@ -245,6 +245,7 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 bool UNetworkManager::Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
 	bool ServiceStatus = false;
+	BroadcastConnected(*ClientEndpoint.ToString());
 	// ServiceStatus = StartEchoService(ClientSocket, ClientEndpoint);
 	ServiceStatus = StartMessageService(ClientSocket, ClientEndpoint);
 	return ServiceStatus;

@@ -34,6 +34,7 @@ public:
 
 DECLARE_EVENT_OneParam(UNetworkManager, FReceivedEvent, const FString&)
 DECLARE_EVENT_OneParam(UNetworkManager, FErrorEvent, const FString&)
+DECLARE_EVENT_OneParam(UNetworkManager, FConnectedEvent, const FString&)
 
 /**
  * Server to send and receive message
@@ -101,6 +102,9 @@ private:
 	/** Event handler for event `Error` */
 	FErrorEvent ErrorEvent;
 
+	/** Event handler for event `Connected` */
+	FConnectedEvent ConnectedEvent;
+
 	/** Broadcast event `Received` */
 	void BroadcastReceived(const FString& Message)
 	{
@@ -111,5 +115,11 @@ private:
 	void BroadcastError(const FString& Message)
 	{
 		ErrorEvent.Broadcast(Message);
+	}
+
+/** Broadcast event `Connected` */
+	void BroadcastConnected(const FString& Message)
+	{
+		ConnectedEvent.Broadcast(Message);
 	}
 };
