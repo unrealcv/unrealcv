@@ -85,7 +85,11 @@ class SocketMessage(object):
 
         rfile.close()
 
-        return payload.decode('UTF-8')
+        # Python 3 compatibility
+        if sys.version_info[0] < 3:
+            return payload
+        else:
+            return payload.decode('utf-8')
 
     @classmethod
     def WrapAndSendPayload(cls, socket, payload):
@@ -107,7 +111,11 @@ class SocketMessage(object):
             wfile.write(struct.pack(fmt, socket_message.payload_size))
             # print 'Sent ', socket_message.payload_size
 
-            wfile.write(payload.encode('UTF-8'))
+            # Python 3 compatibility
+            if sys.version_info[0] < 3:
+                wfile.write(payload)
+            else:
+                wfile.write(payload.encode('utf-8'))
             # print 'Sent ', payload
             wfile.flush()
             wfile.close() # Close file object, not close the socket
