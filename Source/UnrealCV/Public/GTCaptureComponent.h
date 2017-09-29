@@ -25,6 +25,9 @@ private:
 	UGTCaptureComponent();
 	APawn* Pawn;
 
+	TArray<uint8> NpySerialization(TArray<FColor> ImageData, int32 Width, int32 Height, int32 Channel);
+	TArray<uint8> NpySerialization(TArray<FFloat16Color> ImageData, int32 Width, int32 Height, int32 Channel);
+
 public:
 	static UGTCaptureComponent* Create(APawn* Pawn, TArray<FString> Modes);
 
@@ -42,9 +45,12 @@ public:
 	TArray<uint8> CapturePng(FString Mode);
 
 	/** Read binary data in uncompressed numpy array */
-	TArray<uint8> CaptureNpy(FString Mode);
+	TArray<uint8> CaptureNpyUint8(FString Mode, int32 Channels);
 
-    USceneCaptureComponent2D* GetCaptureComponent(FString Mode);
+	/** Read binary data in uncompressed numpy array */
+	TArray<uint8> CaptureNpyFloat16(FString Mode, int32 Channels);
+
+	USceneCaptureComponent2D* GetCaptureComponent(FString Mode);
 
 private:
 	const bool bIsTicking = true;
