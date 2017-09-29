@@ -15,10 +15,33 @@ FServerConfig::FServerConfig()
 	Height = 480;
 	FOV = 90.0f;
 	EnableInput = true;
-	ExitOnFailure = true;
+	ExitOnFailure = false;
+	EnableRightEye = false;
+
+	SupportedModes.Add(TEXT("lit"));
+	SupportedModes.Add(TEXT("depth"));
+//	SupportedModes.Add(TEXT("vis_depth"));
+//	SupportedModes.Add(TEXT("plane_depth"));
+	// SupportedModes.Add(TEXT("debug"));
+	SupportedModes.Add(TEXT("object_mask"));
+	SupportedModes.Add(TEXT("normal"));
+	// SupportedModes.Add(TEXT("wireframe"));
+//	SupportedModes.Add(TEXT("default"));
 
 	this->Load(); 
 	this->Save(); // Flush the default config to the disk if file not exist.
+}
+
+FString FServerConfig::BoolToString(bool Value) const
+{
+	if (Value)
+	{
+		return FString::Printf(TEXT("true"));
+	}
+	else
+	{
+		return FString::Printf(TEXT("false"));
+	}
 }
 
 FString FServerConfig::ToString() {
@@ -29,22 +52,8 @@ FString FServerConfig::ToString() {
 	Msg += FString::Printf(TEXT("Width: %d\n"), this->Width);
 	Msg += FString::Printf(TEXT("Height: %d\n"), this->Height);
 	Msg += FString::Printf(TEXT("FOV: %f\n"), this->FOV);
-	if (this->EnableInput)
-	{
-		Msg += FString::Printf(TEXT("EnableInput: true\n"));
-	}
-	else
-	{
-		Msg += FString::Printf(TEXT("EnableInput: false\n"));
-	}
-	if (this->ExitOnFailure)
-	{
-		Msg += FString::Printf(TEXT("ExitOnFailure: true\n"));
-	}
-	else
-	{
-		Msg += FString::Printf(TEXT("ExitOnFailure: false\n"));
-	}
+	Msg += FString::Printf(TEXT("EnableInput: %s\n"), *BoolToString(this->EnableInput));
+	Msg += FString::Printf(TEXT("EnableRightEye: %s\n"), *BoolToString(this->EnableRightEye));
 	return Msg;
 }
 
@@ -59,28 +68,14 @@ bool FServerConfig::Load() {
 	GConfig->GetInt(*CoreSection, TEXT("Height"), this->Height, this->ConfigFile);
 	GConfig->GetFloat(*CoreSection, TEXT("FOV"), this->FOV, this->ConfigFile);
 	GConfig->GetBool(*CoreSection, TEXT("EnableInput"), this->EnableInput, this->ConfigFile);
-	GConfig->GetBool(*CoreSection, TEXT("ExitOnFailure"), this->ExitOnFailure, this->ConfigFile);
+	GConfig->GetBool(*CoreSection, TEXT("EnableRightEye"), this->EnableRightEye, this->ConfigFile);
 
 	UE_LOG(LogUnrealCV, Warning, TEXT("Port: %d"), this->Port);
 	UE_LOG(LogUnrealCV, Warning, TEXT("Width: %d"), this->Width);
 	UE_LOG(LogUnrealCV, Warning, TEXT("Height: %d"), this->Height);
 	UE_LOG(LogUnrealCV, Warning, TEXT("FOV: %f"), this->FOV);
-	if (this->EnableInput)
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("EnableInput: true"));
-	}
-	else
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("EnableInput: false"));
-	}
-	if (this->EnableInput)
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("ExitOnFailure: true"));
-	}
-	else
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("ExitOnFailure: false"));
-	}
+	UE_LOG(LogUnrealCV, Warning, TEXT("EnableInput: %s"), *BoolToString(this->EnableInput));
+	UE_LOG(LogUnrealCV, Warning, TEXT("EnableRightEye: %s"), *BoolToString(this->EnableRightEye));
 
 	return true;
 }
@@ -95,7 +90,7 @@ bool FServerConfig::Save()
 	GConfig->SetInt(*CoreSection, TEXT("Height"), this->Height, this->ConfigFile);
 	GConfig->SetFloat(*CoreSection, TEXT("FOV"), this->FOV, this->ConfigFile);
 	GConfig->SetBool(*CoreSection, TEXT("EnableInput"), this->EnableInput, this->ConfigFile);
-	GConfig->SetBool(*CoreSection, TEXT("ExitOnFailure"), this->ExitOnFailure, this->ConfigFile);
+	GConfig->SetBool(*CoreSection, TEXT("EnableRightEye"), this->EnableRightEye, this->ConfigFile);
 
 	bool Read = false;
 	GConfig->Flush(Read, this->ConfigFile);
