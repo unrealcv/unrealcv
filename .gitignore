@@ -1,18 +1,21 @@
+# Ignore all files by default
 *
+# Allow folder to enable recursive file discovery
 !*/
 
-# Binary folders produced by UE4
+# Ignore binary folders produced by UE4
 Binaries/
 Intermediate/
 Plugins/
 
-# Some cache folders
+# Recursively ignore some cache folders
 **/.cache/
 **/__pycache__/
 **/.tox/
 **/.DS_Store
+**/.ipynb_checkpoints/
 
-# Binary folders produced by sphinx and doxygen
+# Ignore binary folders produced by sphinx and doxygen
 docs/_build/
 docs/doxygen/
 
@@ -28,3 +31,4 @@ docs/doxygen/
 !*.json
 !*.ini
 !*.uplugin
+!*.ipynb
