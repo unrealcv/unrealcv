@@ -21,54 +21,12 @@ import sphinx_rtd_theme
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.mathjax',
-    'sphinx_gallery.gen_gallery',
-    'breathe',
+    'breathe', # Support doxygen
     'sphinx_issues',
 ]
 
 # Github repo
 issues_github_path = 'unrealcv/unrealcv'
-
-sphinx_gallery_conf = {
-    'examples_dirs': ['tutorials_source'],
-    'gallery_dirs': ['tutorials'],
-    'filename_pattern': 'tutorial.py',
-    'backreferences_dir': False,
-    'download_section_examples': False,
-    'download_all_examples': False,
-}
-
-for i in range(len(sphinx_gallery_conf['examples_dirs'])):
-    gallery_dir = sphinx_gallery_conf['gallery_dirs'][i]
-    source_dir = sphinx_gallery_conf['examples_dirs'][i]
-    # Create gallery dirs if it doesn't exist
-    if not os.path.isdir(gallery_dir):
-        os.mkdir(gallery_dir)
-
-    # Copy rst files from source dir to gallery dir
-    for f in glob.glob(os.path.join(source_dir, '*.rst')):
-        shutil.copy(f, gallery_dir)
-
-def get_md5sum(src_file):
-    """Returns md5sum of file, from https://github.com/sphinx-gallery/sphinx-gallery/blob/master/sphinx_gallery/gen_rst.py#L201"""
-    with open(src_file, 'rb') as src_data:
-        src_content = src_data.read()
-        src_md5 = hashlib.md5(src_content).hexdigest()
-    return src_md5
-
-tutorial_files = [ './tutorials_source/generate_images_tutorial.py']
-if os.environ.get('UNREALCV_BUILD_TUTORIAL'):
-    print('Build tutorials')
-    for f in tutorial_files:
-        md5_file = f.replace('_source', '') + '.md5'
-        if os.path.isfile(md5_file): os.remove(md5_file)
-else:
-    # Use a hacky way to skip the tutorial generation
-    print('Skip tutorials')
-    for f in tutorial_files:
-        md5_file = f.replace('_source', '') + '.md5'
-        with open(md5_file, 'w') as file_checksum:
-            file_checksum.write(get_md5sum(f))
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -111,7 +69,6 @@ language = None
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-exclude_patterns += sphinx_gallery_conf['examples_dirs']
 exclude_patterns += ['*/index.rst']
 print(exclude_patterns)
 
