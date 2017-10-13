@@ -13,17 +13,32 @@ def clean():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--build_doxygen', action='store_true',
-        default=False)
-    parser.add_argument('--rtd', action='store_true',
-        default=False, help='Simulate running on RTD')
-    parser.add_argument('--clean', action='store_true',
-        default=False, help='Remove build artifacts')
+    parser.add_argument('--build_doxygen',
+        action='store_true', default=False
+    )
+
+    parser.add_argument('--rtd',
+        action='store_true', default=False,
+        help='Simulate running on RTD server'
+    )
+
+    parser.add_argument('--clean',
+        action='store_true', default=False,
+        help='Remove build artifacts'
+    )
+
+    parser.add_argument('--rebuild',
+        action='store_true', default=False,
+        help='Rebuild all the files to see all the warnings. By default only diffs are built to save time.'
+    )
+    # build diff takes about less than 1 second
+    # a full rebuild takes about 5 minutes
 
     args = parser.parse_args()
     is_build_doxygen = args.build_doxygen
     is_on_rtd = args.rtd
     is_clean = args.clean
+    rebuild = args.rebuild
 
     if is_clean:
         clean()
@@ -45,8 +60,12 @@ def main():
         'sphinx-build', '-n',
         '-b', 'html', # build format
         '.', '_build/html', # input, output folder
-        '-a',
+        '-j', '16', # build in parallel
     ]
+
+    if rebuild:
+        clean()
+        # cmd.append('-a')
     print(cmd)
     subprocess.call(cmd, env = env)
     # subprocess.call(cmd, env = os.environ)

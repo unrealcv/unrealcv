@@ -49,10 +49,11 @@ Known issues and solutions
 
     For example an error like this.
 
-.. code::
+    .. code:: bash
 
-    [2017.05.25-04.14.33:476][  0]LogLinux:Error: appError called: Assertion failed: Assertion failed:  [File:/UE4/Engine/Source/Runtime/OpenGLDrv/Private/Linux/OpenGLLinux.cpp] [Line: 842]
-Unable to dynamically load libGL: Could not retrieve EGL extension function eglQueryDevicesEXT
+        [2017.05.25-04.14.33:476][  0]LogLinux:Error: appError called: Assertion failed: Assertion failed:  [File:/UE4/Engine/Source/Runtime/OpenGLDrv/Private/Linux/OpenGLLinux.cpp] [Line: 842]
+
+        Unable to dynamically load libGL: Could not retrieve EGL extension function eglQueryDevicesEXT
 
     It is very likely an issue with the OpenGL of the system.
 

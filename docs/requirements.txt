@@ -1,6 +1,5 @@
 sphinx
 sphinx_rtd_theme
-sphinx-gallery
 numpy
 # Install the pkg-config to build matplotlib
 matplotlib
@@ -10,4 +9,5 @@ pytest
 git-lfs
 sphinx-issues
 pillow
-unrealcv
+nbsphinx
+numpydoc

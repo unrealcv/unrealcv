@@ -61,9 +61,10 @@ For the doc of a specific version of unrealcv, please see `the version page`_
 
     reference/architecture
     reference/commands
+    reference/commands_demo
     reference/model_zoo
     reference/issues
-    reference/api
+    reference/python_api
     CHANGELOG
     contribute
     reference/contact

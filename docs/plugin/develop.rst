@@ -81,10 +81,9 @@ Mac
 - Open the :file:`*.xcworkspace` file and build. The plugin code will be compiled together with the game project.
 
 
-Useful resources for development include:
+Useful resources for development, :doc:`UnrealCV architecture </reference/architecture>`
 
-- :doc:`The code API documentation </reference/api>`
-- :doc:`UnrealCV architecture </reference/architecture>`
+.. - :doc:`The code API documentation </reference/api>`
 
 .. _add_new_command:
 
@@ -111,7 +110,7 @@ In :file:`ObjectHandler.h`, we need to add a member function:
 .. code:: c
 
     FExecStatus HelloWorld(const TArray<FString>& Args);
-    
+
 In :file:`ObjectHandler.cpp`, we define this member function:
 
 .. code:: c
@@ -130,15 +129,15 @@ Then we need to bind the command with the function:
     void FObjectCommandHandler::RegisterCommands()
     {
             ...
-        
+
     	    Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::HelloWorld);
 	    Help = "Print Hello World";
 	    CommandDispatcher->BindCommand(TEXT("vget /object/helloworld"), Cmd, Help);
-        
+
             ...
     }
 
-After the modification, we can compile and use the new command. 
+After the modification, we can compile and use the new command.
 
 Here we will walk you through how to implement a command :code:`vset /object/[id]/rotation` to enable you set the rotation of an object.
 

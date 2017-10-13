@@ -21,8 +21,11 @@ import sphinx_rtd_theme
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.mathjax',
-    'breathe', # Support doxygen
     'sphinx_issues',
+    'nbsphinx',
+    'sphinx.ext.napoleon',
+    # support doc string with section titles
+    'sphinx.ext.autosummary',
 ]
 
 # Github repo
@@ -65,11 +68,14 @@ release = version
 # Usually you set "language" from the command line for these cases.
 language = None
 
-# List of patterns, relative to source directory, that match files and
-# directories to ignore when looking for source files.
-# This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-exclude_patterns += ['*/index.rst']
+# Folder can not end with /
+exclude_patterns = [
+    '_build/',
+    '**/Thumbs.db',
+    '**/.DS_Store/',
+    '**/.ipynb_checkpoints'
+]
+
 print(exclude_patterns)
 
 # The name of the Pygments (syntax highlighting) style to use.
@@ -94,12 +100,18 @@ html_theme_options = {
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'UnrealCVDoc'
 
-breathe_projects = {
-    "unrealcv": "./doxygen/xml/",
-}
-breathe_default_project = 'unrealcv'
+# extensions.append('breathe') # Support doxygen
+# breathe_projects = {
+#     "unrealcv": "./doxygen/xml/",
+# }
+# breathe_default_project = 'unrealcv'
 
 # Some extra configurations of sphinx
 # Reference: http://www.sphinx-doc.org/en/stable/config.html
 numfig = True
+
+suppress_warnings = ['image.nonlocal_uri']
+# Some images are hosted outside this project to reduce the repo size, so I don't care about this warning.
+
 nitpicky = True
+nitpick_ignore = [('py:obj', 'str')]

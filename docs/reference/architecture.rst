@@ -23,7 +23,7 @@ The initialization procedure of UnrealCV. The module loaded and start a TCP serv
 Project Layout
 --------------
 
-.. code::
+.. code:: bash
 
     client/            # Client code for Python and MATLAB
         examples/      # Examples showing how to use client code to do tasks

@@ -18,7 +18,7 @@ Guide to submit a binary
 ----------------------------
 First, you need to add a line to UE4 engine config file :code:`Engine\Config\ConsoleVariables.ini` by adding this line to the end.
 
-.. code::
+.. code:: ini
 
     r.ForceDebugViewModes = 1
 
