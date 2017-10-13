@@ -49,7 +49,7 @@ def main():
 
         # Install the plugin if requested
         if need_install:
-            ue4.install()
+            ue4.install(plugin_folder = abs_output_folder, overwrite = True)
 
     elif descriptor_file.endswith('.uproject'):
         project_name = os.path.basename(descriptor_file)
