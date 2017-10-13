@@ -19,6 +19,10 @@ def main():
         action='store_true'
     )
     parser.add_argument(
+        '--output',
+        help='Output folder for this script'
+    )
+    parser.add_argument(
         '--UE4',
         help='Specify the engine path. If left empty, default installation locations will be used'
     )
@@ -32,7 +36,9 @@ def main():
     descriptor_file = args.descriptor_file
     abs_descriptor_file = os.path.abspath(descriptor_file)
     if descriptor_file.endswith('.uplugin'):
-        abs_output_folder = os.path.abspath('Plugins/UnrealCV')
+        output_folder = 'Plugins/UnrealCV'
+        abs_output_folder = os.path.abspath(output_folder)
+        
         ue4.build_plugin(abs_descriptor_file, abs_output_folder)
 
         # Install the plugin if requested
@@ -41,7 +47,9 @@ def main():
 
     elif descriptor_file.endswith('.uproject'):
         project_name = os.path.basename(descriptor_file)
-        abs_output_folder = os.path.abspath('Binaries/%s' % project_name)
+        output_folder = 'Binaries/%s' % project_name
+        abs_output_folder = os.path.abspath(output_folder)
+
         ue4.package(abs_descriptor_file, abs_output_folder)
 
 if __name__ == '__main__':
