@@ -285,17 +285,19 @@ class Client(object):
             self.queue.task_done()
 
     def request(self, message, timeout=5):
+        # docstring in numpy style
         """
         Send a request to server and wait util get a response from server or timeout.
 
         Parameters
         ----------
-        cmd : string, command to control the game
-        More info can be seen from http://unrealcv.github.io/commands.html
+        cmd : str
+            command to control the game. More info can be seen from http://docs.unrealcv.org/en/master/reference/commands.html
 
         Returns
         -------
-        response: plain text message from server
+        str
+            plain text message from server
 
         Examples
         --------
