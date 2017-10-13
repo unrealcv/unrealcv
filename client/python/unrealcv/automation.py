@@ -5,21 +5,6 @@ import subprocess, sys, os, argparse, platform, logging, glob, shutil
 try: input = raw_input # to support python3
 except NameError: pass
 
-def get_platform_name():
-    ''''
-    Python and UE4 use different names for platform, in this script we will use UE4 platform name exclusively
-    '''
-    py2UE4 = {
-        # pyname : ue4name
-        "Darwin": "Mac",
-        "Windows": "Win64",
-        "Linux": "Linux"
-    }
-    # Key: python platform name, Value: UE4
-    platform_name = py2UE4.get(platform.system())
-    if not platform_name:
-        print('Can not recognize platform %s' % platform.system())
-    return platform_name
 
 class UE4Automation:
     ''' UE4 engine wrapper '''
@@ -30,6 +15,22 @@ class UE4Automation:
         else:
             self.UE4_dir = self._get_UE4_dir()
         self.abs_UAT_path = self._get_UATPath()
+
+    def _get_platform_name(self):
+        ''''
+        Python and UE4 use different names for platform, in this script we will use UE4 platform name exclusively
+        '''
+        py2UE4 = {
+            # pyname : ue4name
+            "Darwin": "Mac",
+            "Windows": "Win64",
+            "Linux": "Linux"
+        }
+        # Key: python platform name, Value: UE4
+        platform_name = py2UE4.get(platform.system())
+        if not platform_name:
+            print('Can not recognize platform %s' % platform.system())
+        return platform_name
 
     def build_plugin(self, plugin_descriptor, output_folder, overwrite = False):
         '''
