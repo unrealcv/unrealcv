@@ -85,11 +85,7 @@ class SocketMessage(object):
 
         rfile.close()
 
-        # Python 3 compatibility
-        if sys.version_info[0] < 3:
-            return payload
-        else:
-            return payload.decode('utf-8')
+        return payload
 
     @classmethod
     def WrapAndSendPayload(cls, socket, payload):
@@ -111,11 +107,7 @@ class SocketMessage(object):
             wfile.write(struct.pack(fmt, socket_message.payload_size))
             # print 'Sent ', socket_message.payload_size
 
-            # Python 3 compatibility
-            if sys.version_info[0] < 3:
-                wfile.write(payload)
-            else:
-                wfile.write(payload.encode('utf-8'))
+            wfile.write(payload)
             # print 'Sent ', payload
             wfile.flush()
             wfile.close() # Close file object, not close the socket
@@ -209,7 +201,7 @@ class BaseClient(object):
                     self.socket = None
                     continue
 
-                if message.startswith('connected'):
+                if message.startswith(b'connected'):
                     _L.info('Got connection confirm: %s', repr(message))
                     self.wait_connected.set()
                     # self.wait_connected.clear()
@@ -260,7 +252,7 @@ class Client(object):
                 _L.error('No message handler to handle message %s', raw_message)
 
     def __init__(self, endpoint, message_handler=None):
-        self.raw_message_regexp = re.compile('(\d{1,8}):(.*)')
+        self.raw_message_regexp = re.compile(b'(\d{1,8}):(.*)')
         self.message_client = BaseClient(endpoint, self.__raw_message_handler)
         self.message_handler = message_handler
         self.message_id = 0
@@ -302,7 +294,7 @@ class Client(object):
         >>> response = client.request('vget /camera/0/view')
         """
         def do_request():
-            raw_message = '%d:%s' % (self.message_id, message)
+            raw_message = b'%d:%b' % (self.message_id, message)
             _L.debug('Request: %s', raw_message)
             if not self.message_client.send(raw_message):
                 return None
