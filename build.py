@@ -32,13 +32,19 @@ def main():
 
     ue4 = UE4Automation(args.UE4)
 
+    if args.output:
+        output_folder = args.output
+    else:
+        output_folder = None
+
     # Build the plugin
     descriptor_file = args.descriptor_file
     abs_descriptor_file = os.path.abspath(descriptor_file)
     if descriptor_file.endswith('.uplugin'):
-        output_folder = 'Plugins/UnrealCV'
+        if not output_folder:
+            output_folder = 'Plugins/UnrealCV'
         abs_output_folder = os.path.abspath(output_folder)
-        
+
         ue4.build_plugin(abs_descriptor_file, abs_output_folder)
 
         # Install the plugin if requested
@@ -47,7 +53,8 @@ def main():
 
     elif descriptor_file.endswith('.uproject'):
         project_name = os.path.basename(descriptor_file)
-        output_folder = 'Binaries/%s' % project_name
+        if not output_folder:
+            output_folder = 'Binaries/%s' % project_name
         abs_output_folder = os.path.abspath(output_folder)
 
         ue4.package(abs_descriptor_file, abs_output_folder)
