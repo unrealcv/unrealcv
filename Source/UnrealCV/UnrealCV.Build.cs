@@ -7,6 +7,7 @@ namespace UnrealBuildTool.Rules
 	{
 		public UnrealCV(TargetInfo Target)
 		{
+			bEnforceIWYU = false;
 			// This trick is from https://answers.unrealengine.com/questions/258689/how-to-include-private-header-files-of-other-modul.html
 			string EnginePath = Path.GetFullPath(BuildConfiguration.RelativeEnginePath);
 
