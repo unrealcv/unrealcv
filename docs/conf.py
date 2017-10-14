@@ -115,3 +115,11 @@ suppress_warnings = ['image.nonlocal_uri']
 
 nitpicky = True
 nitpick_ignore = [('py:obj', 'str')]
+
+# Fix lexer issue for anaconda ipython
+# from https://github.com/tomoh1r/symfony-docs-trans-env/issues/6
+# and https://github.com/ContinuumIO/anaconda-issues/issues/1430
+from sphinx.highlighting import lexers
+from pygments.lexers.python import PythonLexer
+lexers['ipython2'] = PythonLexer()
+lexers['ipython3'] = PythonLexer()
