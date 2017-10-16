@@ -56,10 +56,12 @@ def main():
     if is_on_rtd:
         env['READTHEDOCS'] = 'True'
 
+    doc_folder = os.path.dirname(os.path.realpath(__file__))
+    output_folder = os.path.join(doc_folder, '_build/html')
     cmd = [
         'sphinx-build', '-n',
         '-b', 'html', # build format
-        '.', '_build/html', # input, output folder
+        doc_folder, output_folder, # input, output folder
         '-j', '16', # build in parallel
     ]
 
@@ -70,7 +72,7 @@ def main():
     subprocess.call(cmd, env = env)
     # subprocess.call(cmd, env = os.environ)
 
-    index_file = os.path.join('_build', 'html', 'index.html')
+    index_file = os.path.join(output_folder, 'index.html')
     webbrowser.open_new(index_file)
 
 if __name__ == '__main__':

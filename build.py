@@ -52,7 +52,7 @@ def main():
             ue4.install(plugin_folder = abs_output_folder, overwrite = True)
 
     elif descriptor_file.endswith('.uproject'):
-        project_name = os.path.basename(descriptor_file)
+        project_name = os.path.basename(descriptor_file).split('.')[0]
         if not output_folder:
             output_folder = 'Binaries/%s' % project_name
         abs_output_folder = os.path.abspath(output_folder)

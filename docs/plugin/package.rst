@@ -1,6 +1,6 @@
-==================
-Package a new game
-==================
+=====================
+Package a game binary
+=====================
 
 In some scenarios you will want to package your game projects into a binary, instead of using it in the editor, for example you want to deploy the game to a deep learning server without UE4 installed or share your game project with other researchers
 
@@ -18,6 +18,8 @@ Guide to submit a binary
 ----------------------------
 First, you need to add a line to UE4 engine config file :code:`Engine\Config\ConsoleVariables.ini` by adding this line to the end.
 
+.. https://answers.unrealengine.com/questions/544978/cant-change-viewmodes-in-packaged-build-not-allowe.html
+
 .. code:: ini
 
     r.ForceDebugViewModes = 1
@@ -33,9 +35,12 @@ UE4 makes it easy to release your project as a game binary. You can use the edit
 
 .. TODO: Add a screenshot
 
-- (advanced) use script to package a game
+- Use script to package a game
 
-Another approach is used the packaging script contained in unrealcv repository.
+.. code:: python
+    python build.py --UE4 {UE4 instal path} {uproject path}
+
+For example, :code:`python build.py --UE4 "C:\Program Files\Epic Games\UE_4.16" C:\qiuwch\workspace\uprojects\UE4ArchinteriorsVol2Scene1\ArchinteriorsVol2Scene1.uproject`
 
 3. Make a pull request
 ----------------------
