@@ -1,11 +1,7 @@
 Basic usage in a new project
 ============================
 
-:ue4: 4.14
-:unrealcv: v0.3.9
-:os: mac
-:level: basic
-:updated: 06/27/2017
+**ue4**: 4.14, **unrealcv**: v0.3.9, **level**: basic, **updated**: 06/27/2017
 
 This tutorial assumes the basic knowledge of using a command line. If you are a windows user and do not have much knowledge of using command line and find it difficult to understand, please let us know.
 

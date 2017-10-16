@@ -12,3 +12,8 @@ The python client
     :members:
 
 .. automodule:: unrealcv.automation
+
+.. autoclass:: UE4Automation
+    :members:
+
+.. automodule:: unrealcv.util

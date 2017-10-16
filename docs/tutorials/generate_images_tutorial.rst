@@ -1,8 +1,3 @@
-
-
-.. _sphx_glr_tutorials_generate_images_tutorial.py:
-
-
 ===============
 Generate Images
 ===============
@@ -451,5 +446,3 @@ Clean up resources
 
 
 **Total running time of the script:** ( 0 minutes  6.542 seconds)
-
-
