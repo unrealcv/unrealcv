@@ -56,6 +56,24 @@ vset /viewmode [viewmode]
 vget /viewmode
     (v0.2) Get current ViewMode
 
+vget /camera/[id]/pose
+    (v0.3.10) Get camera location [x, y, z] and rotation [pitch, yaw, roll]
+
+vset /camera/[id]/pose [x] [y] [z] [pitch] [yaw] [roll]
+    (v0.3.10) Teleport camera to location [x, y, z] and rotation [pitch, yaw, roll]
+
+vget /camera/[uint]/horizontal_fieldofview
+    (v0.3.10) Get camera horizontal field of view
+
+vset /camera/[uint]/horizontal_fieldofview [FOV]
+    (v0.3.10) Set camera horizontal field of view
+
+vget /camera/[uint]/vis_depth npy
+    (v0.3.10)
+
+vget /camera/[uint]/plane_depth npy
+    (v0.3.10)
+
 2. Object interaction
 ---------------------
 
@@ -69,6 +87,12 @@ vget /object/[obj_name]/color
 
 vset /object/[obj_name]/color [r] [g] [b]
     (v0.2) Set the labeling color of an object
+
+vset /object/[str]/show
+    (v0.3.10) Show object
+
+vset /object/[str]/hide
+    (v0.3.10) Hide object
 
 3. Plugin commands
 ------------------
@@ -88,6 +112,21 @@ See :file:`Source/UnrealCV/Private/Commands/ActionHandler.h(.cpp)`
 
 vset /action/keyboard [key_name] [delta]
     (v0.3.6) Valid key_name can be found in `here <https://wiki.unrealengine.com/List_of_Key/Gamepad_Input_Names>`__
+
+vset /action/game/pause
+    (v0.3.10) Pause the game
+
+vset /action/game/level [level_name]
+    (v0.3.10) Open a new level
+
+vset /action/input/enable
+    (v0.3.10) Enable input
+
+vset /action/input/disable
+    (v0.3.10) Disable input
+
+vset /action/eyes_distance [eye_distance]
+    (v0.3.10) Set the eye distance between left eye and right eye (camera 1). This command might be marked as deprecated when we finish multiple camera support.
 
 Run UE4 built-in commands
 -------------------------
