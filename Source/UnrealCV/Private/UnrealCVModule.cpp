@@ -70,10 +70,10 @@ void FUnrealCVPlugin::StartupModule()
 	bool StartSuccess = Server.NetworkManager->Start(Server.Config.Port);
 	if (!StartSuccess)
 	{
-		UE_LOG(LogUnrealCV, Error, TEXT("Failed to start network server"));
+		UE_LOG(LogUnrealCV, Warning, TEXT("Failed to start network server"));
 		if (Server.Config.ExitOnFailure)
 		{
-			UE_LOG(LogUnrealCV, Error, TEXT("Requesting exit"));
+			UE_LOG(LogUnrealCV, Warning, TEXT("Requesting exit"));
 			FGenericPlatformMisc::RequestExit(false);
 		}
 	}
