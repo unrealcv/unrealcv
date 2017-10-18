@@ -14,6 +14,15 @@ public:
 	/** vset /action/game/resume */
 	FExecStatus ResumeGame(const TArray<FString>& Args);
 
+	/** vset /action/game/level */
+	FExecStatus OpenLevel(const TArray<FString>& Args);
+
+	/** vset /action/input/enable */
+	FExecStatus EnableInput(const TArray<FString>& Args);
+
+	/** vset /action/input/disable */
+	FExecStatus DisableInput(const TArray<FString>& Args);
+
 	/** vset /action/eyes_distance [float] */
 	FExecStatus SetStereoDistance(const TArray<FString>& Args);
 
