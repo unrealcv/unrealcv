@@ -38,7 +38,7 @@ RealisticRendering
 
 :Plugin: 0.3.9
 
-:Download: `Windows <http://www.cs.jhu.edu/~qiuwch/release/unrealcv/RealisticRendering-Windows-0.3.9.zip>`__, `Linux <http://www.cs.jhu.edu/~qiuwch/release/unrealcv/RealisticRendering-Linux-0.3.9.zip>`__ , `Mac <http://www.cs.jhu.edu/~qiuwch/unrealcv/binaries//RealisticRendering-Mac-65d6144-c25660b.zip>`__ (old version)
+:Download: `Windows <http://www.cs.jhu.edu/~qiuwch/release/unrealcv/RealisticRendering-Win64-0.3.9.zip>`__, `Linux <http://www.cs.jhu.edu/~qiuwch/release/unrealcv/RealisticRendering-Linux-0.3.9.zip>`__ , `Mac <http://www.cs.jhu.edu/~qiuwch/unrealcv/binaries//RealisticRendering-Mac-65d6144-c25660b.zip>`__ (old version)
 
 
 - `Docker`

@@ -2,12 +2,20 @@
 class FServerConfig
 {
 private:
+	FString BoolToString(bool Value) const;
+
 	FString ConfigFile;
 	FString CoreSection;
 public:
 	int Port;
 	int Width;
 	int Height;
+	float FOV;
+	bool EnableInput;
+	bool ExitOnFailure;
+	bool EnableRightEye;
+
+	TArray<FString> SupportedModes;
 
 	FServerConfig();
 
