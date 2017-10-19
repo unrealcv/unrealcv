@@ -29,7 +29,7 @@ class Logger:
         imageio.imwrite(abs_filename, img)
 
 def normalize(src):
-    normalized = (src - src.min()) / (src.max() - src.min())
+    normalized = (src.astype('float') - src.min()) / (src.max() - src.min())
     return normalized
 
 def run_commands_demo(logger):
