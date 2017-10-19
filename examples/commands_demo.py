@@ -16,10 +16,11 @@ class Logger:
     def writelines(self, text):
         self.log_file.writelines(str(text))
 
-    def request(self, cmd):
+    def request(self, cmd, log = True):
         self.writelines('Request: ' + cmd + '\n')
         res = client.request(cmd)
-        self.writelines('Response: ' + str(res[:50]) + '\n')
+        if log:
+            self.writelines('Response: ' + str(res) + '\n')
         # Trancate too long value
         return res
 
@@ -35,9 +36,8 @@ def normalize(src):
 def run_commands_demo(logger):
     logger.client.connect()
     logger.request('vget /unrealcv/status')
-    res = logger.request('vget /camera/0/lit png')
-    img = read_png(res)
-    # plt.imshow(img)
+    logger.request('vget /unrealcv/version')
+    logger.request('vget /scene/name')
 
     res = logger.request('vget /camera/0/location')
     res = logger.request('vget /camera/0/rotation')
@@ -45,20 +45,20 @@ def run_commands_demo(logger):
     # res = logger.request('vset /camera/0/location -162 -126 90')
     # res = logger.request('vset /camera/0/rotation 348 60 0')
 
-    res = logger.request('vget /camera/0/lit png')
+    res = logger.request('vget /camera/0/lit png', log = False)
     img = read_png(res)
-    res = logger.request('vget /camera/0/depth npy')
+    res = logger.request('vget /camera/0/depth npy', log = False)
     depth = read_npy(res)
     clip_far = np.median(depth) * 5 # use median instead of mean
-    print('Before clip, max=%f, mean=%f' % (depth.max(), depth.mean()))
+    logger.writelines('Before clip, max=%f, mean=%f' % (depth.max(), depth.mean()))
     depth[depth > clip_far] = clip_far
-    print('Before clip, max=%f, mean=%f' % (depth.max(), depth.mean()))
+    logger.writelines('Before clip, max=%f, mean=%f' % (depth.max(), depth.mean()))
     # Trancate the depth of the window and sky to make it easier to see
 
-    res = logger.request('vget /camera/0/normal npy')
+    res = logger.request('vget /camera/0/normal npy', log = False)
     normal = read_npy(res)
 
-    res = logger.request('vget /camera/0/object_mask png')
+    res = logger.request('vget /camera/0/object_mask png', log = False)
     object_mask = read_png(res)
 
     logger.save_image("img.png", img)
@@ -70,7 +70,7 @@ def run_commands_demo(logger):
     res = logger.request('vget /camera/0/depth depth.png')
     res = logger.request('vget /camera/0/object_mask object_mask.png')
 
-    res = logger.request('vget /objects')
+    res = logger.request('vget /objects', log = False)
     object_names = res.split(' ')
     logger.writelines(object_names[:5])
 
@@ -103,6 +103,7 @@ def main():
     log_filename = os.path.join(output_folder, 'output.txt')
 
     logger = Logger(client, log_filename, output_folder)
+    logger.writelines('Test binary %s' % binary_path)
     if binary:
         with binary:
             run_commands_demo(logger)
