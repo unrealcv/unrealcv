@@ -54,7 +54,7 @@ def main():
     elif descriptor_file.endswith('.uproject'):
         project_name = os.path.basename(descriptor_file).split('.')[0]
         if not output_folder:
-            output_folder = 'Binaries/%s' % project_name
+            output_folder = 'UE4Binaries/%s' % project_name
         abs_output_folder = os.path.abspath(output_folder)
 
         ue4.package(abs_descriptor_file, abs_output_folder)
