@@ -8,6 +8,9 @@ Binaries/
 Intermediate/
 Plugins/
 
+# Ignore model_zoo binaries
+UE4Binaries/
+
 # Recursively ignore some cache folders
 **/.cache/
 **/__pycache__/

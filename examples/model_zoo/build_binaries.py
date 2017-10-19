@@ -13,6 +13,14 @@ win_uprojects = [
     r'D:\workspace\uprojects\PhotorealisticCharacter\PhotorealisticCharacter2.uproject',
 ]
 
+linux_uprojects = [
+    os.path.expanduser('~/workspace/uprojects/UE4RealisticRendering/RealisticRendering.uproject'),
+    os.path.expanduser('~/workspace/uprojects/UE4ArchinteriorsVol2Scene1/ArchinteriorsVol2Scene1.uproject'),
+    os.path.expanduser('~/workspace/uprojects/UE4ArchinteriorsVol2Scene2/ArchinteriorsVol2Scene2.uproject'),
+    os.path.expanduser('~/workspace/uprojects/UE4ArchinteriorsVol2Scene3/ArchinteriorsVol2Scene3.uproject'),
+    os.path.expanduser("~/workspace/uprojects/UE4UrbanCity/UrbanCity.uproject"),
+]
+
 uprojects = []
 
 for uproject_path in win_uprojects:
@@ -25,8 +33,24 @@ for uproject_path in win_uprojects:
         ),
     )
 
+for uproject_path in linux_uprojects:
+    uproject_name = os.path.basename(uproject_path).split('.')[0]
+    uprojects.append(
+        dict(
+            uproject_path = uproject_path,
+            ue4_path = ue4_linux,
+            log_file = 'log/linux_%s.log' % uproject_name
+        ),
+    )
+
+
 if __name__ == '__main__':
     for uproject in uprojects:
+        uproject_path = uproject['uproject_path']
+        if not os.path.isfile(uproject_path):
+            print("Can not find uproject file %s, skip this project" % uproject_path)
+            continue
+
         cmd = [
                 'python', 'build.py',
                 '--UE4', uproject['ue4_path'],
