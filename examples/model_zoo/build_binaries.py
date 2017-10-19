@@ -1,35 +1,29 @@
-import subprocess
+import subprocess, os
 
 ue4_win = r"C:\Program Files\Epic Games\UE_4.16"
 ue4_linux = "/home/qiuwch/workspace/UE416"
 
-uprojects = [
-    dict(
-        uproject_path = r'C:\qiuwch\workspace\uprojects\UE4ArchinteriorsVol2Scene1\ArchinteriorsVol2Scene1.uproject',
-        ue4_path = ue4_win,
-        log_file = 'log/win_scene1.log'
-    ),
-    dict(
-        uproject_path = r'C:\qiuwch\workspace\uprojects\UE4ArchinteriorsVol2Scene2\ArchinteriorsVol2Scene2.uproject',
-        ue4_path = ue4_win,
-        log_file = 'log/win_scene2.log'
-    ),
-    dict(
-        uproject_path = r'C:\qiuwch\workspace\uprojects\UE4ArchinteriorsVol2Scene3\ArchinteriorsVol2Scene3.uproject',
-        ue4_path = ue4_win,
-        log_file = 'log/win_scene3.log'
-    ),
-    dict(
-        uproject_path = r'C:\qiuwch\workspace\uprojects\UE4RealisticRendering\RealisticRendering.uproject',
-        ue4_path = ue4_win,
-        log_file = 'log/win_rr.log'
-    ),
-    dict(
-        uproject_path = r'C:\qiuwch\workspace\uprojects\UE4UrbanCity\UrbanCity.uproject',
-        ue4_path = ue4_win,
-        log_file = 'log/win_urbancity.log'
-    ),
+win_uprojects = [
+    r'C:\qiuwch\workspace\uprojects\UE4RealisticRendering\RealisticRendering.uproject',
+    r'C:\qiuwch\workspace\uprojects\UE4ArchinteriorsVol2Scene1\ArchinteriorsVol2Scene1.uproject',
+    r'C:\qiuwch\workspace\uprojects\UE4ArchinteriorsVol2Scene2\ArchinteriorsVol2Scene2.uproject',
+    r'C:\qiuwch\workspace\uprojects\UE4ArchinteriorsVol2Scene3\ArchinteriorsVol2Scene3.uproject',
+    r'C:\qiuwch\workspace\uprojects\UE4UrbanCity\UrbanCity.uproject',
+    r'D:\workspace\uprojects\Matinee\Matinee.uproject',
+    r'D:\workspace\uprojects\PhotorealisticCharacter\PhotorealisticCharacter2.uproject',
 ]
+
+uprojects = []
+
+for uproject_path in win_uprojects:
+    uproject_name = os.path.basename(uproject_path).split('.')[0]
+    uprojects.append(
+        dict(
+            uproject_path = uproject_path,
+            ue4_path = ue4_win,
+            log_file = 'log/win_%s.log' % uproject_name
+        ),
+    )
 
 if __name__ == '__main__':
     for uproject in uprojects:
