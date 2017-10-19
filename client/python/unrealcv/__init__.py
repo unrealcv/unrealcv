@@ -7,7 +7,7 @@ Provides functions to interact with games built using Unreal Engine.
 >>> (HOST, PORT) = ('localhost', 9000)
 >>> client = unrealcv.Client((HOST, PORT))
 '''
-import ctypes, struct, threading, socket, re, time, logging
+import sys, ctypes, struct, threading, socket, re, time, logging
 try:
     from Queue import Queue
 except:
@@ -107,8 +107,6 @@ class SocketMessage(object):
             wfile.write(struct.pack(fmt, socket_message.payload_size))
             # print 'Sent ', socket_message.payload_size
 
-            if isinstance(payload, str):
-                payload = payload.encode('utf-8')
             wfile.write(payload)
             # print 'Sent ', payload
             wfile.flush()
@@ -205,7 +203,7 @@ class BaseClient(object):
                     continue
 
                 if message.startswith(b'connected'):
-                    _L.info('Got connection confirm: %s', repr(message.decode('utf-8')))
+                    _L.info('Got connection confirm: %s', repr(message))
                     self.wait_connected.set()
                     # self.wait_connected.clear()
                     continue
@@ -305,9 +303,12 @@ class Client(object):
         >>> client.connect()
         >>> response = client.request('vget /camera/0/view')
         """
+        if sys.version_info[0] == 3:
+          if not isinstance(message, bytes):
+            message = message.encode("utf-8")
         def do_request():
-            raw_message = '%d:%s' % (self.message_id, message)
-            _L.debug('Request: %s', raw_message)
+            raw_message = b'%d:%s' % (self.message_id, message)
+            _L.debug('Request: %s', raw_message.decode("utf-8"))
             if not self.message_client.send(raw_message):
                 return None
 

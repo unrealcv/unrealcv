@@ -29,10 +29,12 @@ public:
 	/** Add header to payload and send it out */
 	static bool WrapAndSendPayload(const TArray<uint8>& Payload, FSocket* Socket);
 	/** Receive packages and strip header */
-	static bool ReceivePayload(FArrayReader& OutPayload, FSocket* Socket);
+	static bool ReceivePayload(FArrayReader& OutPayload, FSocket* Socket, bool* unknown_error);
 };
 
 DECLARE_EVENT_OneParam(UNetworkManager, FReceivedEvent, const FString&)
+DECLARE_EVENT_OneParam(UNetworkManager, FErrorEvent, const FString&)
+DECLARE_EVENT_OneParam(UNetworkManager, FConnectedEvent, const FString&)
 
 /**
  * Server to send and receive message
@@ -71,6 +73,8 @@ public:
 
 	FReceivedEvent& OnReceived() { return ReceivedEvent;  } // The reference can not be changed
 
+	FErrorEvent& OnError() { return ErrorEvent;  } // The reference can not be changed
+
 private:
 	/** Is the listening socket running */
 	bool bIsListening = false;
@@ -95,9 +99,27 @@ private:
 	/** Event handler for event `Received` */
 	FReceivedEvent ReceivedEvent;
 
+	/** Event handler for event `Error` */
+	FErrorEvent ErrorEvent;
+
+	/** Event handler for event `Connected` */
+	FConnectedEvent ConnectedEvent;
+
 	/** Broadcast event `Received` */
 	void BroadcastReceived(const FString& Message)
 	{
 		ReceivedEvent.Broadcast(Message);
+	}
+
+	/** Broadcast event `Error` */
+	void BroadcastError(const FString& Message)
+	{
+		ErrorEvent.Broadcast(Message);
+	}
+
+/** Broadcast event `Connected` */
+	void BroadcastConnected(const FString& Message)
+	{
+		ConnectedEvent.Broadcast(Message);
 	}
 };

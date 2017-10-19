@@ -26,6 +26,9 @@ private:
 	UGTCaptureComponent();
 	APawn* Pawn;
 
+	TArray<uint8> NpySerialization(TArray<FColor> ImageData, int32 Width, int32 Height, int32 Channel);
+	TArray<uint8> NpySerialization(TArray<FFloat16Color> ImageData, int32 Width, int32 Height, int32 Channel);
+
 public:
 	static UGTCaptureComponent* Create(APawn* Pawn, TArray<FString> Modes);
 
@@ -34,17 +37,22 @@ public:
 	// virtual void Tick(float DeltaTime) override; // TODO
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override; // TODO
 
+	void SetFOVAngle(float FOV);
+
 	/** Save image to a file */
 	FAsyncRecord* Capture(FString Mode, FString Filename);
 
 	/** Read binary data in png format */
-	// TArray<uint8> CapturePng(FString Mode);
+	TArray<uint8> CapturePng(FString Mode);
 
 	/** Read binary data in uncompressed numpy array */
-	// TArray<uint8> CaptureNpy(FString Mode);
+	TArray<uint8> CaptureNpyUint8(FString Mode, int32 Channels);
 
-	void CaptureImage(const FString& Mode, TArray<FColor>& OutImageData, int32& OutWidth, int32& OutHeight);
-	void CaptureFloat16Image(const FString& Mode, TArray<FFloat16Color>& OutImageData, int32& OutWidth, int32& OutHeight);
+	/** Read binary data in uncompressed numpy array */
+	TArray<uint8> CaptureNpyFloat16(FString Mode, int32 Channels);
+
+	USceneCaptureComponent2D* GetCaptureComponent(FString Mode);
+
 private:
 	const bool bIsTicking = true;
 

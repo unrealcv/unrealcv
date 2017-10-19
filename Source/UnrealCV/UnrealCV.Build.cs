@@ -5,9 +5,15 @@ namespace UnrealBuildTool.Rules
 {
 	public class UnrealCV: ModuleRules
 	{
-		public UnrealCV(TargetInfo Target)
+#if WITH_FORWARDED_MODULE_RULES_CTOR
+		public UnrealCV(ReadOnlyTargetRules Target) : base(Target)
+		// 4.16 or better
 		{
 			bEnforceIWYU = false;
+#else
+		public UnrealCV(TargetInfo Target) //4.15 or lower
+		{
+#endif
 			// This trick is from https://answers.unrealengine.com/questions/258689/how-to-include-private-header-files-of-other-modul.html
 			string EnginePath = Path.GetFullPath(BuildConfiguration.RelativeEnginePath);
 

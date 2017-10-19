@@ -14,6 +14,7 @@ Plugins/
 **/.tox/
 **/.DS_Store
 **/.ipynb_checkpoints/
+**/.idea/
 
 # Ignore binary folders produced by sphinx and doxygen
 docs/_build/

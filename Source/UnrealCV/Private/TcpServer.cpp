@@ -25,7 +25,7 @@ bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, FSoc
 }
 
 /* Waiting for data, return false only when disconnected */
-bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
+bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize, bool* unknown_error)
 {
 	int32 Offset = 0;
 	while (ExpectedSize > 0)
@@ -74,20 +74,23 @@ bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
 		}
 
 		const TCHAR* LastErrorMsg = ISocketSubsystem::Get()->GetSocketError(LastError);
-		UE_LOG(LogUnrealCV, Error, TEXT("Expected error of socket happend, error %s"), LastErrorMsg);
+		UE_LOG(LogUnrealCV, Error, TEXT("Unexpected error of socket happend, error %s"), LastErrorMsg);
+    if (unknown_error != nullptr) {
+      *unknown_error = true;
+    }
 		return false;
 	}
 	return true;
 }
 
 
-bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Socket)
+bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Socket, bool* unknown_error)
 {
 	TArray<uint8> HeaderBytes;
 	int32 Size = sizeof(FSocketMessageHeader);
 	HeaderBytes.AddZeroed(Size);
 
-	if (!SocketReceiveAll(Socket, HeaderBytes.GetData(), Size))
+	if (!SocketReceiveAll(Socket, HeaderBytes.GetData(), Size, unknown_error))
 	{
 		// false here means socket disconnected.
 		// UE_LOG(LogUnrealCV, Error, TEXT("Unable to read header, Socket disconnected."));
@@ -115,7 +118,7 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 
 	int32 PayloadOffset = OutPayload.AddUninitialized(PayloadSize);
 	OutPayload.Seek(PayloadOffset);
-	if (!SocketReceiveAll(Socket, OutPayload.GetData() + PayloadOffset, PayloadSize))
+	if (!SocketReceiveAll(Socket, OutPayload.GetData() + PayloadOffset, PayloadSize, unknown_error))
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("Unable to read full payload, Socket disconnected."));
 		return false;
@@ -211,9 +214,13 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 		while (this->ConnectionSocket) // Listening thread, while the client is still connected
 		{
 			FArrayReader ArrayReader;
-			if (!FSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket))
+      bool unknown_error = false;
+			if (!FSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket, &unknown_error))
 				// Wait forever until got a message, or return false when error happened
 			{
+        if (unknown_error) {
+          BroadcastError(FString("ReceivePayload failed with unknown error"));
+        }
 				this->ConnectionSocket = NULL;
 				return false; // false will release the ClientSocket
 				break; // Remote socket disconnected
@@ -238,6 +245,7 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 bool UNetworkManager::Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
 	bool ServiceStatus = false;
+	BroadcastConnected(*ClientEndpoint.ToString());
 	// ServiceStatus = StartEchoService(ClientSocket, ClientEndpoint);
 	ServiceStatus = StartMessageService(ClientSocket, ClientEndpoint);
 	return ServiceStatus;
@@ -280,7 +288,7 @@ bool UNetworkManager::Start(int32 InPortNum) // Restart the server if configurat
 	else
 	{
 		this->bIsListening = false;
-		UE_LOG(LogUnrealCV, Warning, TEXT("Can not start listening on port %d, Port might be in use"), PortNum);
+		UE_LOG(LogUnrealCV, Warning, TEXT("Cannot start listening on port %d, Port might be in use"), PortNum);
 		return false;
 	}
 

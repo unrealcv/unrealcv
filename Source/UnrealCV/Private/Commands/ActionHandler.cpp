@@ -11,6 +11,18 @@ void FActionCommandHandler::RegisterCommands()
 	Help = "Pause the game";
 	CommandDispatcher->BindCommand("vset /action/game/pause", Cmd, Help);
 
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::OpenLevel);
+	Help = "Open level";
+	CommandDispatcher->BindCommand("vset /action/game/level [str]", Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::EnableInput);
+	Help = "Enable input";
+	CommandDispatcher->BindCommand("vset /action/input/enable", Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::DisableInput);
+	Help = "Disable input";
+	CommandDispatcher->BindCommand("vset /action/input/disable", Cmd, Help);
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::SetStereoDistance);
 	Help = "Set the distance of binocular stereo camera";
 	CommandDispatcher->BindCommand("vset /action/eyes_distance [float]", Cmd, Help);
@@ -31,6 +43,32 @@ FExecStatus FActionCommandHandler::PauseGame(const TArray<FString>& Args)
 {
 	APlayerController* PlayerController = this->GetWorld()->GetFirstPlayerController();
 	PlayerController->Pause();
+	return FExecStatus::OK();
+}
+
+FExecStatus FActionCommandHandler::OpenLevel(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1) // Level name
+	{
+		FString LevelName = Args[0];
+		FUE4CVServer::Get().OpenLevel(FName(*LevelName));
+		return FExecStatus::OK();
+	}
+	else
+	{
+		return FExecStatus::Error("Expect argument: level name");
+	}
+}
+
+FExecStatus FActionCommandHandler::EnableInput(const TArray<FString>& Args)
+{
+	FUE4CVServer::Get().UpdateInput(true);
+	return FExecStatus::OK();
+}
+
+FExecStatus FActionCommandHandler::DisableInput(const TArray<FString>& Args)
+{
+	FUE4CVServer::Get().UpdateInput(false);
 	return FExecStatus::OK();
 }
 

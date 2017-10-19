@@ -83,6 +83,12 @@ public:
 	/** Return the GameWorld of the editor or of the game */
 	UWorld* GetGameWorld();
 
+	/** Update input mode */
+	void UpdateInput(bool Enable);
+
+	/** Open new level */
+	void OpenLevel(FName LevelName);
+
 	/** The config of UE4CVServer */
 	FServerConfig Config;
 
@@ -108,5 +114,8 @@ private:
 
 	/** Handle the raw message from NetworkManager and parse raw message to a FRequest */
 	void HandleRawMessage(const FString& RawMessage);
+
+	/** Handle errors from NetworkManager */
+	void HandleError(const FString& ErrorMessage);
 
 };

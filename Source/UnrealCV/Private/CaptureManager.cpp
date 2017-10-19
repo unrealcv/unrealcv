@@ -8,27 +8,22 @@
   */
 void FCaptureManager::AttachGTCaptureComponentToCamera(APawn* Pawn)
 {
+	FServerConfig& Config = FUE4CVServer::Get().Config;
 	// TODO: Only support one camera at the beginning
 	// TODO: Make this automatic from material loader.
-	TArray<FString> SupportedModes;
-	SupportedModes.Add(TEXT("lit")); // This is lit
-	SupportedModes.Add(TEXT("depth"));
-	// SupportedModes.Add(TEXT("debug"));
-	SupportedModes.Add(TEXT("object_mask"));
-	SupportedModes.Add(TEXT("normal"));
-	// SupportedModes.Add(TEXT("wireframe"));
-	SupportedModes.Add(TEXT("default"));
-	// TODO: Get the list from GTCaptureComponent
 
 	CaptureComponentList.Empty();
 
-	UGTCaptureComponent* Capturer = UGTCaptureComponent::Create(Pawn, SupportedModes);
+	UGTCaptureComponent* Capturer = UGTCaptureComponent::Create(Pawn, Config.SupportedModes);
 	CaptureComponentList.Add(Capturer);
 
-	UGTCaptureComponent* RightEye = UGTCaptureComponent::Create(Pawn, SupportedModes);
-	RightEye->SetRelativeLocation(FVector(0, 40, 0));
-	// RightEye->AddLocalOffset(FVector(0, 40, 0)); // TODO: make this configurable
-	CaptureComponentList.Add(RightEye);
+	if (Config.EnableRightEye)
+	{
+		UGTCaptureComponent *RightEye = UGTCaptureComponent::Create(Pawn, Config.SupportedModes);
+		RightEye->SetRelativeLocation(FVector(0, 40, 0));
+		// RightEye->AddLocalOffset(FVector(0, 40, 0)); // TODO: make this configurable
+		CaptureComponentList.Add(RightEye);
+	}
 }
 
 UGTCaptureComponent* FCaptureManager::GetCamera(int32 CameraId)
