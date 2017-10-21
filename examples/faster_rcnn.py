@@ -1,4 +1,5 @@
 from unrealcv import client
+from unrealcv.util import read_png
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.animation as animation
@@ -85,11 +86,6 @@ def faster_rcnn_detect(ax, image):
 
 
 def main(img_processor):
-    def read_png(res):
-        import StringIO, PIL.Image
-        img = PIL.Image.open(StringIO.StringIO(res))
-        return np.asarray(img)
-
     def capture_frame(func=None):
         res = client.request('vget /camera/0/lit png')
         im = read_png(res)
@@ -97,7 +93,7 @@ def main(img_processor):
 
     def updatefig(*args):
         frame = capture_frame(img_processor)
-        faster_rcnn_detect(ax, frame)
+        img_processor(ax, frame)
         # im.set_array()
 
         fig.canvas.draw()

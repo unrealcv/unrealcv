@@ -4,13 +4,16 @@ from unrealcv import client
 # import matplotlib.pyplot as plt
 import imageio
 import numpy as np
-import argparse, os
+import argparse, os, time
 
 class Logger:
     def __init__(self, client, log_filename, output_folder):
         self.client = client
         self.log_filename = log_filename
         self.output_folder = output_folder
+
+        if not os.path.isdir(output_folder):
+            os.mkdir(output_folder)
         self.log_file = open(log_filename, 'w')
 
     def writelines(self, text):
@@ -34,7 +37,8 @@ def normalize(src):
     return normalized
 
 def run_commands_demo(logger):
-    logger.client.connect()
+    time.sleep(10)
+
     logger.request('vget /unrealcv/status')
     logger.request('vget /unrealcv/version')
     logger.request('vget /scene/name')
@@ -99,16 +103,25 @@ def main():
     if os.path.isdir(output_folder):
         print('Output folder "%s" already exists' % output_folder)
         return
-    os.mkdir(output_folder)
-    log_filename = os.path.join(output_folder, 'output.txt')
 
+    log_filename = os.path.join(output_folder, 'output.txt')
     logger = Logger(client, log_filename, output_folder)
     logger.writelines('Test binary %s' % binary_path)
-    if binary:
+
+    if binary: # Binary mode
         with binary:
+            num_trial = 15
+            while not logger.client.connect() and num_trial > 0:
+                time.sleep(1)
+                num_trial -= 1
+                print('Waiting for the binary to launch')
+
+            if logger.client.connect():
+                run_commands_demo(logger)
+
+    else: # Editor mode
+        if logger.client.connect():
             run_commands_demo(logger)
-    else:
-        run_commands_demo(logger)
 
 
 if __name__ == '__main__':
