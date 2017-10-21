@@ -1,7 +1,7 @@
 # Build script of unrealcv, supports win, linux and mac.
 # A single file library
 # Weichao Qiu @ 2017
-import subprocess, sys, os, argparse, platform, logging, glob, shutil
+import subprocess, sys, os, argparse, platform, logging, glob, shutil, json
 try: input = raw_input # to support python3
 except NameError: pass
 
@@ -20,6 +20,12 @@ def get_platform_name():
     if not platform_name:
         print('Can not recognize platform %s' % platform.system())
     return platform_name
+
+def get_plugin_version(plugin_descriptor):
+    with open(plugin_descriptor) as f:
+        description = json.load(f)
+    plugin_version = description['VersionName']
+    return plugin_version
 
 class UE4Automation:
     ''' UE4 engine wrapper '''
