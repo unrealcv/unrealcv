@@ -34,11 +34,17 @@ issues_github_path = 'unrealcv/unrealcv'
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
-# source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_parsers = {
+   '.md': 'recommonmark.parser.CommonMarkParser',
+} # Markdown support
+
+source_suffix = ['.rst', '.md']
+# source_suffix = '.rst'
 
 # The master toctree document.
-master_doc = 'index'
+# master_doc = 'index'
+master_doc = 'contents'
+# master_doc = 'README'
 
 # General information about the project.
 project = 'UnrealCV'

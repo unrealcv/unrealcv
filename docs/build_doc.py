@@ -73,7 +73,8 @@ def main():
     # subprocess.call(cmd, env = os.environ)
 
     index_file = os.path.join(output_folder, 'index.html')
-    webbrowser.open_new(index_file)
+    print('Open compiled html in the browser')
+    webbrowser.open_new('file://' + os.path.realpath(index_file))
 
 if __name__ == '__main__':
     main()

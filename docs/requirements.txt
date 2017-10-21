@@ -11,3 +11,4 @@ sphinx-issues
 pillow
 nbsphinx
 numpydoc
+recommonmark
