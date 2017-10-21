@@ -2,6 +2,7 @@ import subprocess, os
 
 ue4_win = r"C:\Program Files\Epic Games\UE_4.16"
 ue4_linux = "/home/qiuwch/workspace/UE416"
+ue4_mac = '/Users/Shared/Epic Games/UE_4.16'
 
 win_uprojects = [
     r'C:\qiuwch\workspace\uprojects\UE4RealisticRendering\RealisticRendering.uproject',
@@ -19,6 +20,11 @@ linux_uprojects = [
     os.path.expanduser('~/workspace/uprojects/UE4ArchinteriorsVol2Scene2/ArchinteriorsVol2Scene2.uproject'),
     os.path.expanduser('~/workspace/uprojects/UE4ArchinteriorsVol2Scene3/ArchinteriorsVol2Scene3.uproject'),
     os.path.expanduser("~/workspace/uprojects/UE4UrbanCity/UrbanCity.uproject"),
+]
+
+mac_uprojects = [
+    os.path.expanduser('~/workspace/UnrealEngine/Templates/FP_FirstPerson/FP_FirstPerson.uproject'),
+    os.path.expanduser('~/workspace/uprojects/RealisticRendering/RealisticRendering.uproject'),
 ]
 
 uprojects = []
@@ -40,6 +46,16 @@ for uproject_path in linux_uprojects:
             uproject_path = uproject_path,
             ue4_path = ue4_linux,
             log_file = 'log/linux_%s.log' % uproject_name
+        ),
+    )
+
+for uproject_path in mac_uprojects:
+    uproject_name = os.path.basename(uproject_path).split('.')[0]
+    uprojects.append(
+        dict(
+            uproject_path = uproject_path,
+            ue4_path = ue4_mac,
+            log_file = 'log/mac_%s.log' % uproject_name
         ),
     )
 
