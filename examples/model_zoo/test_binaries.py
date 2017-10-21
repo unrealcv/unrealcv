@@ -16,7 +16,7 @@ binaries += [mac_binary_path.format(project_name = v) for v in project_names]
 
 if __name__ == '__main__':
     if not os.path.isdir('output'):
-        os.path.mkdir('output')
+        os.mkdir('output')
 
     for binary_path in binaries:
         project_name = os.path.basename(binary_path).split('.')[0]
