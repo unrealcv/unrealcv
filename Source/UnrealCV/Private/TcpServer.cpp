@@ -316,8 +316,9 @@ bool UNetworkManager::SendMessage(const FString& Message)
 	{
 		TArray<uint8> Payload;
 		BinaryArrayFromString(Message, Payload);
-
+		UE_LOG(LogUnrealCV, Verbose, TEXT("Send string message with size %d"), Payload.Num());
 		FSocketMessageHeader::WrapAndSendPayload(Payload, ConnectionSocket);
+		UE_LOG(LogUnrealCV, Verbose, TEXT("Payload sent"), Payload.Num());
 		return true;
 	}
 	return false;
@@ -327,7 +328,9 @@ bool UNetworkManager::SendData(const TArray<uint8>& Payload)
 {
 	if (ConnectionSocket)
 	{
+		UE_LOG(LogUnrealCV, Verbose, TEXT("Send binary payload with size %d"), Payload.Num());
 		FSocketMessageHeader::WrapAndSendPayload(Payload, ConnectionSocket);
+		UE_LOG(LogUnrealCV, Verbose, TEXT("Payload sent"), Payload.Num());
 		return true;
 	}
 	return false;
