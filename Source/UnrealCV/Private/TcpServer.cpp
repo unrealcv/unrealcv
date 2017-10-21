@@ -14,13 +14,33 @@ bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, FSoc
 	Ar << Header.PayloadSize;
 	Ar.Append(Payload);
 
-	int32 AmountSent;
-	Socket->Send(Ar.GetData(), Ar.Num(), AmountSent);
-	if (AmountSent != Ar.Num())
-	{
-		UE_LOG(LogUnrealCV, Error, TEXT("Unable to send."));
-		return false;
-	}
+	int32 TotalAmountSent = 0; // How many bytes have been sent
+    int32 AmountToSend = Ar.Num();
+    int NumTrial = 100; // Only try a limited amount of times
+    // int ChunkSize = 4096;
+    while (AmountToSend > 0)
+    {
+        int AmountSent = 0;
+        // GetData returns a uint8 pointer
+        Socket->Send(Ar.GetData() + TotalAmountSent, Ar.Num() - TotalAmountSent, AmountSent);
+        NumTrial--;
+        
+        if (AmountSent == -1)
+        {
+            continue;
+        }
+
+        if (NumTrial < 0)
+        {
+            UE_LOG(LogUnrealCV, Error, TEXT("Unable to send. Expect to send %d, sent %d"), Ar.Num(), TotalAmountSent);
+            return false;
+        }
+        
+        UE_LOG(LogUnrealCV, Verbose, TEXT("Sending bytes %d/%d, sent %d"), TotalAmountSent, Ar.Num(), AmountSent);
+        AmountToSend -= AmountSent;
+        TotalAmountSent += AmountSent;
+    }
+    check(AmountToSend == 0);
 	return true;
 }
 
