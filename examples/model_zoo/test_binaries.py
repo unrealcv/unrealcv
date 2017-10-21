@@ -22,10 +22,10 @@ if __name__ == '__main__':
         project_name = os.path.basename(binary_path).split('.')[0]
         output_folder = os.path.join('output', project_name)
         if not os.path.isfile(binary_path) and not os.path.isdir(binary_path):
-            print('Can not find binary %s, skip' % binary_path)
+            print('Can not find binary "%s", skip' % binary_path)
             continue
 
-        print('Testing %s ..., output will be saved to %s' % (binary_path, output_folder))
+        print('Testing %s ..., output will be saved to "%s"' % (binary_path, output_folder))
         subprocess.call([
             'python', 'examples/commands_demo.py',
             binary_path, '--output', output_folder

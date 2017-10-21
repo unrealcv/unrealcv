@@ -1,5 +1,5 @@
 from unrealcv.automation import UE4Automation, get_platform_name, get_plugin_version
-import os, json
+import os, json, zipfile
 
 def main():
     platform_name = get_platform_name()

@@ -97,7 +97,7 @@ def main():
         output_folder = binary_name
 
     if os.path.isdir(output_folder):
-        print('Output folder %s already exists' % output_folder)
+        print('Output folder "%s" already exists' % output_folder)
         return
     os.mkdir(output_folder)
     log_filename = os.path.join(output_folder, 'output.txt')
