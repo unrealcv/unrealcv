@@ -2,29 +2,26 @@ Table of Contents
 =================
 
 .. toctree::
-    :hidden:
     :includehidden:
     :caption: Tutorials
 
-    index
+    Welcome <index>
     tutorials/getting_started
     tutorials/generate_images_tutorial
-    tutorials/faster_rcnn
     tutorials/examples
 
 .. toctree::
-    :hidden:
+    :includehidden:
     :caption: UE4 Plugin
 
     plugin/install
     plugin/custom_scene
     plugin/editor
-    plugin/develop
     plugin/config
     plugin/package
-
+    
 .. toctree::
-    :hidden:
+    :includehidden:
     :caption: Reference
 
     reference/architecture
@@ -32,8 +29,14 @@ Table of Contents
     reference/commands_demo
     reference/model_zoo
     reference/issues
-    reference/python_api
     CHANGELOG
-    contribute
     reference/contact
     reference/ue4_resources
+
+.. toctree::
+    :includehidden:
+    :caption: Development
+
+    plugin/develop
+    reference/python_api
+    contribute
