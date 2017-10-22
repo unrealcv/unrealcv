@@ -146,30 +146,35 @@ class BaseClient(object):
         '''
         Try to connect to server, return whether connection successful
         '''
-        if not self.isconnected():
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.connect(self.endpoint)
-                self.socket = s
-                _L.debug('BaseClient: wait for connection confirm')
+        if self.isconnected():
+            return True
+            
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect(self.endpoint)
+            self.socket = s
+            _L.debug('BaseClient: wait for connection confirm')
 
-                self.wait_connected.clear()
-                isset = self.wait_connected.wait(timeout)
-                assert(isset != None) # in python prior to 2.7 wait will return None
-                if isset:
-                    return
-                else:
-                    self.socket = None
-                    _L.error('Socket is created, but can not get connection confirm from %s, timeout after %.2f seconds', self.endpoint, timeout)
-                # only assign self.socket to connected socket
-                # so it is safe to use self.socket != None to check connection status
-                # This does not neccessarily mean connection successful, might be closed by server
-                # Unless explicitly to tell the server to accept new socket
-
-            except Exception as e:
-                _L.error('Can not connect to %s', str(self.endpoint))
-                _L.error("Error %s", e)
+            self.wait_connected.clear()
+            isset = self.wait_connected.wait(timeout)
+            assert(isset != None) # in python prior to 2.7 wait will return None
+            if isset:
+                return True
+            else:
                 self.socket = None
+                _L.error('Socket is created, but can not get connection confirm from %s, timeout after %.2f seconds', self.endpoint, timeout)
+                return False
+            # only assign self.socket to connected socket
+            # so it is safe to use self.socket != None to check connection status
+            # This does not neccessarily mean connection successful, might be closed by server
+            # Unless explicitly to tell the server to accept new socket
+
+        except Exception as e:
+            _L.error('Can not connect to %s', str(self.endpoint))
+            _L.error("Error %s", e)
+            self.socket = None
+            return False
+
 
     def isconnected(self):
         return self.socket is not None
