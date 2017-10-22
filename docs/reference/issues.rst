@@ -2,11 +2,12 @@
 Trouble Shooting
 ================
 
-We tried our best to make the software stable and easy to use, but accidents sometimes happen. Here are a list of issues that you might find. Use the search function :kbd:`ctrl+f` to search your error message. If you can not find useful information here, post a new issue.
+Issues and workarounds
+======================
 
-- The binary can not run
+Issues and workaround can be found in `issue tracker <https://github.com/unrealcv/unrealcv/issues>`__. Please use the search function before posting your issue, your problem might have already been answered.
 
-python3 support. See issue :issue:`49`, Thanks to :user:`jskinn` for the idea!
+If the plugin crashed the editor, please send us your crash log to help us figure out what is going wrong. The crash log can be found in `Saved/CrashReport`. If you can not find the crash report, you can also send us the core dump file.
 
 .. _supported:
 
@@ -25,14 +26,10 @@ Supported Unreal Engine Version
 
 Client Support
 --------------
-Tested in Windows
-
-- Python 2
-- Python 3
-- MATLAB
+Python support for python 2 and 3 are verified with tox.
 
 Verified projects
-=================
+-----------------
 
 Unreal Engine projects are of dramatic different scales and complexity. It can be as simple as just a single room, or be a large city or outdoor scene. UnrealCV is far from perfect and it has compatible issues with some Unreal projects. Here are a few projects we are currently using and have verified that UnrealCV can work well with. If you want us to test a map (project), please let us know.
 
@@ -45,19 +42,10 @@ Here are a list of Unreal projects that we tried and verified.
 
 Known issues and solutions
 ==========================
-- The binary can not run
 
-    For example an error like this.
+We tried our best to make the software stable and easy to use, but accidents sometimes happen. Here are a list of issues that you might find. Use the search function :kbd:`ctrl+f` to search your error message. If you can not find useful information here, post a new issue. Subscribe to an issue if you want to get future notification.
 
-    .. code:: bash
-
-        [2017.05.25-04.14.33:476][  0]LogLinux:Error: appError called: Assertion failed: Assertion failed:  [File:/UE4/Engine/Source/Runtime/OpenGLDrv/Private/Linux/OpenGLLinux.cpp] [Line: 842]
-
-        Unable to dynamically load libGL: Could not retrieve EGL extension function eglQueryDevicesEXT
-
-    It is very likely an issue with the OpenGL of the system.
-
-    :code:`sudo apt-get install mesa-utils` and run :code:`glxgears`. Make sure you can see a window with gears running in it.
+- python3 support. See issue :issue:`49`, Thanks to :user:`jskinn` for the idea!
 
 - The screen resolution is not what I want
 
@@ -73,11 +61,17 @@ Known issues and solutions
 
 - The image and ground truth not aligned
 
-Build
-=====
+- Can not connect to the binary
+
+Use :code:`vget /unrealcv/status` to make sure the server is listening and no client is connected.
+
+Platform specific issues
+========================
 
 Mac
 ---
+When in mac, the server can not detect the socket disconnection. If the first time connection is successful and the second time is faile. Then please close and re-open it again.
+
 Native error= Cannot find the specified file
 
 https://answers.unrealengine.com/questions/574562/cannot-package-a-plugin-in-415mac.html
@@ -87,16 +81,18 @@ Invalid SDK MacOSX.sdk, not found in /Library/Developer/CommandLineTools/Platfor
 https://answers.unrealengine.com/questions/316117/missing-project-modules-1.html
 https://github.com/nodejs/node-gyp/issues/569#issuecomment-255589932
 
-Issues and workarounds
-======================
+Linux
+-----
+- The binary can not run
 
-Issues and workaround can be found in [issue tracker](https://github.com/unrealcv/unrealcv/issues). Please use the search function before posting your issue, your problem might have already been answered. Also you are welcome to chat with us in our [gitter channel](https://gitter.im/unrealcv/unrealcv).
+    For example an error like this.
 
-If the plugin crashed the editor, please send us your crash log to help us figure out what is going wrong. The crash log can be found in `Saved/CrashReport`. If you can not find the crash report, you can also send us the core dump file.
+    .. code:: bash
 
+        [2017.05.25-04.14.33:476][  0]LogLinux:Error: appError called: Assertion failed: Assertion failed:  [File:/UE4/Engine/Source/Runtime/OpenGLDrv/Private/Linux/OpenGLLinux.cpp] [Line: 842]
 
-- Can not connect to the binary
+        Unable to dynamically load libGL: Could not retrieve EGL extension function eglQueryDevicesEXT
 
-Use :code:`vget /unrealcv/status` to make sure the server is listening and no client is connected.
+    It is very likely an issue with the OpenGL of the system.
 
-Subscribe to an issue if you want to get future notification.
+    :code:`sudo apt-get install mesa-utils` and run :code:`glxgears`. Make sure you can see a window with gears running in it.

@@ -6,7 +6,7 @@ This page briefly describes how to install UnrealCV as a UE4 plugin. Make sure y
 Use compiled plugin binary
 --------------------------
 
-You can download compiled UnrealCV binaries from our `github release page`_. Then copy the compiled binaries to the plugins folder to install it. Build it yourself by following the :ref:`compile_plugin`. You can install the plugin to either a game project or to UE4 engine.
+You can download compiled UnrealCV binaries from our `github release page <https://github.com/unrealcv/unrealcv/releases>`_. Then copy the compiled binaries to the plugins folder to install it. Build it yourself by following the :ref:`compile_plugin`. You can install the plugin to either a game project or to UE4 engine.
 
 - Install to project
     - Go to project folder which contains :file:`[ProjectName].uproject`
@@ -32,7 +32,18 @@ Compile from source code
 
 If you want to try a version of UnrealCV not provided in our `github release page <https://github.com/unrealcv/unrealcv/releases>`__, for example, you want to try some experimental features not released yet. Compiling the plugin code from source code is the only choice.
 
-To compile UnrealCV plugin, use :code:`build.sh` for linux and mac, use :code:`build.bat` for windows, remember to set the path of Unreal Engine by following instructions of the script. After running this command you should see ``Automation.Execute: BUILD SUCCESSFUL`` and the plugin binaries will be produced in the ``Plugins/UnrealCV`` folder. Then you can copy the compiled plugin to a UE4 project.
+To compile UnrealCV plugin, use
+
+.. code:: bash
+
+    python build.py
+    # This script will search common Unreal Engine folders of Windows and Mac
+    # If this script fails to find UE4 installation path, you can also manually specify the engine path
+    python build.py --UE4 {UE4}
+    # For example
+    # python build.py --UE4 "/Users/Shared/Epic Games/UE_4.16"
+
+After running this command you should see ``Automation.Execute: BUILD SUCCESSFUL`` and the plugin binaries will be produced in the ``Plugins/UnrealCV`` folder. Then you can copy the compiled plugin to Plugins folder.
 
 If you want to modify UnrealCV code and add new features. Please refer to the :doc:`development setup </plugin/develop>`. Setting up a dev environment takes a bit more time but will make it much easier to debug and modify code.
 
@@ -45,8 +56,4 @@ Special tips for Linux
 
 In Linux, the Unreal Engine needs to be built from source code. How to compile from source code can be found in this official document `Building On Linux <https://wiki.unrealengine.com/Building_On_Linux>`__.
 
- But the Linux version currently does not contain OpenEXR support, which is required for getting accurate depth.
-
-Previous versions of unrealcv depends on using OpenEXR module to generate depth.
-
-.. _OpenEXR patch for linux: https://unrealcv.github.io/files/0001-Fix-openexr-support-for-linux-version.patch
+Previous versions of unrealcv depends on using OpenEXR module to generate depth, this requirement has been removed.

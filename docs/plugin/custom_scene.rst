@@ -10,23 +10,20 @@ This tutorial assumes the basic knowledge of using a command line. If you are a 
 
 In this tutorial the project and plugin folders are refered as the console varialbe :code:`plugin_folder` and :code:`project_folder`
 
-:code:`export plugin_folder=$HOME/workspace/unrealcv`
+.. code:: bash
 
-Clone the UnrealCV repository
+    export plugin_folder=$HOME/workspace/unrealcv
 
-:code:`git clone https://github.com/unrealcv/unrealcv ${plugin_folder}`
+    # Clone the UnrealCV repository
+    git clone https://github.com/unrealcv/unrealcv ${plugin_folder}
 
-Switch to version `v0.3.9`
+    # Switch to version `v0.3.10`
+    cd {plugin_folder}
+    git checkout v0.3.10
 
-:code:`cd {plugin_folder}`
-
-:code:`git checkout v0.3.9`
-
-Build the plugin binary
-
-:code:`export UE4="/Users/Shared/Epic Games/UE_4.14/"`
-
-:code:`./build.sh`
+    # Build the plugin binary
+    export UE4="/Users/Shared/Epic Games/UE_4.14/"
+    python build.py --UE4 ${UE4}
 
 More details about the plugin installation can be found in :doc:`/plugin/install`.
 
@@ -39,20 +36,18 @@ Creat a 'Blueprint - First Person' project.
 
 Refer the project folder with a `project_folder` variable
 
-:code:`export project_folder="$HOME/Documents/Unreal Projects/MyProject"`
 
-Copy the compiled plugin to the project folder to install it.
+.. code:: bash
 
-:code:`cp -r "${plugin_folder}"/Plugins/ "${project_folder}"/Plugins/`
+    export project_folder="$HOME/Documents/Unreal Projects/MyProject"
+
+    # Copy the compiled plugin to the project folder to install it.
+    cp -r "${plugin_folder}"/Plugins/ "${project_folder}"/Plugins/
 
 Restart the UE4 project and make sure the plugin is successfully loaded
 
 3. Open the Unreal project and make sure the plugin is installed
 ----------------------------------------------------------------
-
-:code:`cd ${project_folder}`
-
-:code:`open MyProject.uproject`
 
 .. image:: http://i.imgur.com/hAWJHqt.png
 

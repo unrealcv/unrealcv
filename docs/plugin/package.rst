@@ -38,6 +38,7 @@ UE4 makes it easy to release your project as a game binary. You can use the edit
 - Use script to package a game
 
 .. code:: python
+
     python build.py --UE4 {UE4 instal path} {uproject path}
 
 For example, :code:`python build.py --UE4 "C:\Program Files\Epic Games\UE_4.16" C:\qiuwch\workspace\uprojects\UE4ArchinteriorsVol2Scene1\ArchinteriorsVol2Scene1.uproject`

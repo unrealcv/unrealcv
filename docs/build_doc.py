@@ -11,6 +11,12 @@ def clean():
         if os.path.isdir(f):
             shutil.rmtree(f)
 
+def lfs_checkout():
+    import git_lfs
+    doc_dir = os.path.dirname(os.path.abspath(__file__))
+    project_dir = os.path.dirname(doc_dir)
+    git_lfs.fetch(project_dir)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--build_doxygen',
@@ -54,6 +60,7 @@ def main():
     env = dict(os.environ)
 
     if is_on_rtd:
+        lfs_checkout() # Run this here so that it is easier to debug
         env['READTHEDOCS'] = 'True'
 
     doc_folder = os.path.dirname(os.path.realpath(__file__))

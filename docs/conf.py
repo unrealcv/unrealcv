@@ -120,7 +120,7 @@ suppress_warnings = ['image.nonlocal_uri']
 # Some images are hosted outside this project to reduce the repo size, so I don't care about this warning.
 
 nitpicky = True
-nitpick_ignore = [('py:obj', 'str')]
+nitpick_ignore = [('py:obj', 'str'), ('py:obj', 'bool')]
 
 # Fix lexer issue for anaconda ipython
 # from https://github.com/tomoh1r/symfony-docs-trans-env/issues/6
