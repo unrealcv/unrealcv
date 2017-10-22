@@ -100,6 +100,7 @@ class UE4Automation:
         project_descriptor : str
             UE4 project file name ends with *.uproject
         overwrite : bool
+            Overwrite existing files
         '''
 
         abs_project_path = os.path.abspath(project_descriptor)
@@ -158,7 +159,19 @@ class UE4Automation:
 
 def UE4Binary(binary_path):
     '''
-    return a platform-dependent binary for user.
+    Return a platform-dependent binary for user.
+
+    Examples
+    --------
+    >>> binary = UE4Binary('./WindowsNoEditor/RealisticRendering.exe')  # For windows
+    >>> binary = UE4Binary('./LinuxNoEditor/RealisticRendering/Binaries/RealisticRendering') # For Linux
+    >>> binary = UE4Binary('./MacNoEditor/RealisticRendering.app') # For mac
+    >>> with binary: # Automatically launch and close the binary
+    >>>     client.request('vget /unrealcv/status')
+    >>> # Or alternatively
+    >>> binary.start()
+    >>> client.request('vget /unrealcv/status')
+    >>> binary.close()
     '''
     binary_wrapper_selection = {
         'Linux': LinuxBinary,
