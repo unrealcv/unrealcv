@@ -24,7 +24,11 @@ linux_uprojects = [
 
 mac_uprojects = [
     os.path.expanduser('~/workspace/UnrealEngine/Templates/FP_FirstPerson/FP_FirstPerson.uproject'),
-    os.path.expanduser('~/workspace/uprojects/RealisticRendering/RealisticRendering.uproject'),
+    os.path.expanduser('~/uprojects/RealisticRendering/RealisticRendering.uproject'),
+    os.path.expanduser('~/uprojects/UE4ArchinteriorsVol2Scene1/ArchinteriorsVol2Scene1.uproject'),
+    os.path.expanduser('~/uprojects/UE4ArchinteriorsVol2Scene2/ArchinteriorsVol2Scene2.uproject'),
+    os.path.expanduser('~/uprojects/UE4ArchinteriorsVol2Scene3/ArchinteriorsVol2Scene3.uproject'),
+    os.path.expanduser('~/uprojects/UE4UrbanCity/UrbanCity.uproject'),
 ]
 
 uprojects = []
