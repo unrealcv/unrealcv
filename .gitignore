@@ -25,6 +25,7 @@ docs/doxygen/
 
 # Files to track
 !.gitignore
+!.gitattributes
 !LICENSE
 !*.py
 *.pyc
@@ -35,5 +36,5 @@ docs/doxygen/
 !*.json
 !*.ini
 !*.uplugin
-!*.ipynb
 !*.bat
+# !*.ipynb  Add ipython notebook and png, jpg by force
