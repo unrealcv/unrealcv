@@ -5,9 +5,23 @@ CHANGELOG
 Development branch
 ==================
 
-- head (changes not tagged yet):
-    - Add :code:`vget /object/[id]/mobility`
-    - Add :code:`vget /camera/[id]/normal npy`
+- v0.3.10
+    - Commands contributed in pull request :issue:`91`, authored by :user:`bennihepp`
+        - Add :code:`vget /camera/[id]/pose`, :code:`vset /camera/[id]/pose`
+        - Add :code:`vget/vset /camera/[id]/horizontal_fieldofview`
+        - Add :code:`vget /camera/[id]/vis_depth npy` and :code:`vget /camera/[id]/plane_depth npy`
+        - Add :code:`vset /object/[id]/show`, :code:`vset /object/[id]/hide`
+        - Add :code:`vset /action/input/enable`, :code:`vset /action/input/disable`
+
+    - Add more commands
+        - Add :code:`vget /object/[id]/mobility`, :code:`vget /object/[id]/location`, :code:`vget /object/[id]/rotation`
+        - Add :code:`vget /camera/[id]/normal npy`
+        - Add :code:`vset /action/eyes_distance [eye_distance]`
+        - Add :code:`vset /action/game/pause`
+
+    - Update the python client to support python3
+    - Improve documentation
+
 - v0.3.9
     - Fix a bug that prevents object mask generation, which is introduced in v0.3.7
     - Fix #53 that the painting of object does not work
