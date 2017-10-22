@@ -11,8 +11,6 @@ This tutorial will use a game binary to demonstrate UnrealCV commands. You can a
 
 First you need to download a game binary from :doc:`our model zoo </reference/model_zoo>`. For this tutorial, please download :ref:`RealisticRendering <rr>`. After unzip and run the binary, you are expected to see a screen like this. The game will be started in a window mode with resolution 640x480, you can change the resolution by :doc:`changing the configuration file </plugin/config>` of UnrealCV.
 
-:ref:`rr`
-
 .. figure:: ../images/rr_init.png
     :width: 300px
     :align: center

@@ -12,7 +12,9 @@ Command cheatsheet
 
     This command list is growing and subject to change
 
-Reply [this thread](https://groups.google.com/d/topic/unrealcv/EuJlibmTN3c/discussion) to tell us what missing functions are needed for your project. We will consider adding it in the future release.
+See this `ipython notebook <https://github.com/unrealcv/unrealcv/blob/master/examples/commands_demo.ipynb>`__ to see an imcomplete demo of available commands.
+
+.. Reply [this thread](https://groups.google.com/d/topic/unrealcv/EuJlibmTN3c/discussion) to tell us what missing functions are needed for your project. We will consider adding it in the future release.
 
 
 1. Camera operation
