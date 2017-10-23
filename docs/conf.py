@@ -26,7 +26,13 @@ extensions = [
     'sphinx.ext.napoleon',
     # support doc string with section titles
     'sphinx.ext.autosummary',
+    'sphinx.ext.extlinks',
 ]
+
+extlinks = {
+    'bin': ('http://cs.jhu.edu/~qiuwch/release/unrealcv/%s', None),
+    'gitcode': ('https://github.com/unrealcv/unrealcv/blob/master/', '')
+}
 
 # Github repo
 issues_github_path = 'unrealcv/unrealcv'
