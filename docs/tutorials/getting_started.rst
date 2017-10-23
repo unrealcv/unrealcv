@@ -78,9 +78,7 @@ Generate some images from the scene
       filename = client.request('vget /camera/0/lit')
       filename = client.request('vget /camera/0/depth depth.exr')
 
-You can find this example in `client/examples/10lines.py`__.
-
-.. __: https://github.com/unrealcv/unrealcv/blob/master/client/examples/10lines.py
+You can find this example in :gitcode:`examples/10lines.py`.
 
 
 If you encountered any errors following this tutorial, please see :doc:`the diagnosis </reference/issues>` page to find a solution.
