@@ -13,6 +13,7 @@
     "EnabledByDefault" : true,
     "CanContainContent": true,
     "IsBetaVersion" : true,
+    "IsMod" : true,
     "Installed" : true,
     "Modules" :
     [
