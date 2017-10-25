@@ -26,11 +26,11 @@ Images generated from the technical demo <a href="http://docs.unrealcv.org/en/ma
 If you found this project useful, please consider citing our paper
 
 ```bibtex
-@article{qiu2016unrealcv,
-  Author = {Qiu, Weichao and Yuille, Alan},
-  Journal = {arXiv preprint arXiv:1609.01326},
-  Title = {UnrealCV: Connecting Computer Vision to Unreal Engine},
-  Year = {2016}
+@article{qiu2017unrealcv,
+  Author = {Weichao Qiu, Fangwei Zhong, Yi Zhang, Siyuan Qiao,Zihao Xiao, Tae Soo Kim, Yizhou Wang, Alan Yuille},
+  Journal = {ACM Multimedia Open Source Software Competition},
+  Title = {UnrealCV: Virtual Worlds for Computer Vision},
+  Year = {2017}
 }
 ```
 
