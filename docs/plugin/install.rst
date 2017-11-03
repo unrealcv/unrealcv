@@ -35,10 +35,9 @@ If you want to try a version of UnrealCV not provided in our `github release pag
 To compile UnrealCV plugin, use
 
 .. code:: bash
-    pip install unrealcv
-    # this command will install unrealcv client, which is depended while compile UnrealCV
-    #if you have installed previous version client, please update the client
-    # pip install unrealcv --upgrade
+
+    pip install -U unrealcv
+	# Install the latest version of unrealcv, the build.py depends on unrealcv.automation module
     python build.py
     # This script will search common Unreal Engine folders of Windows and Mac
     # If this script fails to find UE4 installation path, you can also manually specify the engine path
