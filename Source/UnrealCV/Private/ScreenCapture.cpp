@@ -1,6 +1,7 @@
 #include "UnrealCVPrivate.h"
 #include "ScreenCapture.h"
 #include "UE4CVServer.h"
+#include "IImageWrapperModule.h"
 
 /** Sync operation for screen capture */
 bool CaptureWithSync(UGameViewportClient *ViewportClient, const FString& CaptureFilename)
@@ -43,7 +44,7 @@ bool CaptureWithSync(UGameViewportClient *ViewportClient, const FString& Capture
 			IImageWrapperPtr ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::EXR);
 
 			ImageWrapper->SetRaw(FloatBitmap.GetData(), FloatBitmap.GetAllocatedSize(), Size.X, Size.Y, ERGBFormat::RGBA, 16);
-			const TArray<uint8>& PngData = ImageWrapper->GetCompressed(ImageCompression::Uncompressed);
+			const TArray<uint8>& PngData = ImageWrapper->GetCompressed();
 			FFileHelper::SaveArrayToFile(PngData, *CaptureFilename);
 		}
 

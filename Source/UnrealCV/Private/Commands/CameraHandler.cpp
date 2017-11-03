@@ -3,7 +3,7 @@
 #include "CameraHandler.h"
 #include "ViewMode.h"
 #include "ImageUtils.h"
-#include "ImageWrapper.h"
+#include "IImageWrapper.h"
 #include "GTCaptureComponent.h"
 #include "PlayerViewMode.h"
 #include "UE4CVServer.h"

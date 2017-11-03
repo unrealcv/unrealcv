@@ -3,6 +3,7 @@
 #include "ViewMode.h"
 #include "cnpy.h"
 #include "Serialization.h"
+#include "IImageWrapperModule.h"
 
 DECLARE_CYCLE_STAT(TEXT("SaveExr"), STAT_SaveExr, STATGROUP_UnrealCV);
 DECLARE_CYCLE_STAT(TEXT("SavePng"), STAT_SavePng, STATGROUP_UnrealCV);
@@ -255,7 +256,7 @@ TArray<uint8> UGTCaptureComponent::CapturePng(FString Mode)
 												  // Instead of using this flag, we will set the gamma to the correct value directly
 	RenderTargetResource->ReadPixels(Image, ReadSurfaceDataFlags);
 	ImageWrapper->SetRaw(Image.GetData(), Image.GetAllocatedSize(), Width, Height, ERGBFormat::BGRA, 8);
-	ImgData = ImageWrapper->GetCompressed(ImageCompression::Uncompressed);
+	ImgData = ImageWrapper->GetCompressed();
 
 	return ImgData;
 }
