@@ -24,7 +24,7 @@ bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, FSoc
         // GetData returns a uint8 pointer
         Socket->Send(Ar.GetData() + TotalAmountSent, Ar.Num() - TotalAmountSent, AmountSent);
         NumTrial--;
-        
+
         if (AmountSent == -1)
         {
             continue;
@@ -35,7 +35,7 @@ bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, FSoc
             UE_LOG(LogUnrealCV, Error, TEXT("Unable to send. Expect to send %d, sent %d"), Ar.Num(), TotalAmountSent);
             return false;
         }
-        
+
         UE_LOG(LogUnrealCV, Verbose, TEXT("Sending bytes %d/%d, sent %d"), TotalAmountSent, Ar.Num(), AmountSent);
         AmountToSend -= AmountSent;
         TotalAmountSent += AmountSent;
@@ -223,7 +223,7 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 
 		UE_LOG(LogUnrealCV, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
 		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
-		FString Confirm = FString::Printf(TEXT("connected to %s"), FApp::GetGameName());
+		FString Confirm = FString::Printf(TEXT("connected to %s"), *GetProjectName());
 		bool IsSent = this->SendMessage(Confirm); // Send a hello message
 		if (!IsSent)
 		{

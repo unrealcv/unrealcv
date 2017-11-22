@@ -26,6 +26,11 @@ def main():
         '--UE4',
         help='Specify the engine path. If left empty, default installation locations will be used'
     )
+    parser.add_argument(
+        '--overwrite',
+        type=bool,
+        help='Whether to overwrite the compiled binary'
+    )
 
     args = parser.parse_args()
     need_install = args.install
@@ -45,7 +50,7 @@ def main():
             output_folder = 'Plugins/UnrealCV'
         abs_output_folder = os.path.abspath(output_folder)
 
-        ue4.build_plugin(abs_descriptor_file, abs_output_folder)
+        ue4.build_plugin(abs_descriptor_file, abs_output_folder, args.overwrite)
 
         # Install the plugin if requested
         if need_install:

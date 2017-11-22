@@ -244,7 +244,7 @@ TArray<uint8> UGTCaptureComponent::CapturePng(FString Mode)
 
 	UTextureRenderTarget2D* RenderTarget = CaptureComponent->TextureTarget;
 	static IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
-	static IImageWrapperPtr ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG);
+	static TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG);
 	int32 Width = RenderTarget->SizeX, Height = RenderTarget->SizeY;
 	TArray<FColor> Image;
 	FTextureRenderTargetResource* RenderTargetResource;
