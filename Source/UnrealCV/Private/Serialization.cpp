@@ -1,6 +1,7 @@
 #include "UnrealCVPrivate.h"
 #include "Serialization.h"
-#include "ImageWrapper.h"
+#include "IImageWrapper.h"
+#include "IImageWrapperModule.h"
 #include "cnpy.h"
 
 TArray<uint8> SerializationUtils::Array2Npy(const TArray<FFloat16Color>& ImageData, int32 Width, int32 Height, int32 Channel)
@@ -70,9 +71,9 @@ TArray<uint8> SerializationUtils::Image2Png(const TArray<FColor>& Image, int Wid
 		return TArray<uint8>();
 	}
 	static IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
-	static IImageWrapperPtr ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG);
+	static TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG);
 	ImageWrapper->SetRaw(Image.GetData(), Image.GetAllocatedSize(), Width, Height, ERGBFormat::BGRA, 8);
-	const TArray<uint8>& ImgData = ImageWrapper->GetCompressed(ImageCompression::Uncompressed);
+	const TArray<uint8>& ImgData = ImageWrapper->GetCompressed();
 	return ImgData;
 }
 
@@ -83,8 +84,8 @@ TArray<uint8> SerializationUtils::Image2Exr(const TArray<FFloat16Color>& FloatIm
 		return TArray<uint8>();
 	}
 	static IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
-	static IImageWrapperPtr ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::EXR);
+	static TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::EXR);
 	ImageWrapper->SetRaw(FloatImage.GetData(), FloatImage.GetAllocatedSize(), Width, Height, ERGBFormat::RGBA, 16);
-	const TArray<uint8>& ExrData = ImageWrapper->GetCompressed(ImageCompression::Uncompressed);
+	const TArray<uint8>& ExrData = ImageWrapper->GetCompressed();
 	return ExrData;
 }
