@@ -6,19 +6,19 @@
 #include "Components/SceneCaptureComponent2D.h"
 #include "ImageUtil.h"
 #include "ImageWorker.h"
-#include "VisionSensorComponent.generated.h"
+#include "BaseCameraSensor.generated.h"
 
 /**
  *
  */
 UCLASS(meta = (BlueprintSpawnableComponent))
-class UNREALCV_API UVisionSensorComponent : public USceneCaptureComponent2D
+class UNREALCV_API UBaseCameraSensor : public USceneCaptureComponent2D
 {
 	GENERATED_BODY()
 	// GENERATED_UCLASS_BODY()
 
 public:
-	UVisionSensorComponent(const FObjectInitializer& ObjectInitializer);
+	UBaseCameraSensor(const FObjectInitializer& ObjectInitializer);
 	// The order of this function declaration matters
 
 	virtual void OnRegister() override;

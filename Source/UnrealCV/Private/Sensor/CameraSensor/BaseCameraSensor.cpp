@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UnrealCVPrivate.h"
-#include "VisionSensorComponent.h"
+#include "BaseCameraSensor.h"
 // #include "GlobalShader.h"
 // #include "Shader.h"
 // #include "ScreenRendering.h"
@@ -16,9 +16,9 @@ DECLARE_CYCLE_STAT(TEXT("ReadBuffer"), STAT_ReadBuffer, STATGROUP_UnrealCV);
 DECLARE_CYCLE_STAT(TEXT("ReadBufferFast"), STAT_ReadBufferFast, STATGROUP_UnrealCV);
 // DECLARE_CYCLE_STAT(TEXT("ReadPixels"), STAT_ReadPixels, STATGROUP_UnrealCV);
 
-FImageWorker UVisionSensorComponent::ImageWorker;
+FImageWorker UBaseCameraSensor::ImageWorker;
 
-UVisionSensorComponent::UVisionSensorComponent(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), Width(640), Height(480)
+UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), Width(640), Height(480)
 {
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("/Engine/EditorMeshes/MatineeCam_SM"));
 	CameraMesh = EditorCameraMesh.Object;
@@ -33,7 +33,7 @@ UVisionSensorComponent::UVisionSensorComponent(const FObjectInitializer& ObjectI
 
 }
 
-void UVisionSensorComponent::OnRegister()
+void UBaseCameraSensor::OnRegister()
 {
 	Super::OnRegister();
 
@@ -80,7 +80,7 @@ This is defined in FColor
 	uint8 G,R,A;
 */
 
-void UVisionSensorComponent::GetLit(TArray<FColor>& ImageData, int& Width, int& Height)
+void UBaseCameraSensor::GetLit(TArray<FColor>& ImageData, int& Width, int& Height)
 {
 	TFunction<void(FColor*, int32, int32)> Callback = [&](FColor* ColorPtr, int InWidth, int InHeight)
 	{
@@ -104,7 +104,7 @@ void UVisionSensorComponent::GetLit(TArray<FColor>& ImageData, int& Width, int& 
 }
 
 
-void UVisionSensorComponent::GetLitAsync(const FString& Filename)
+void UBaseCameraSensor::GetLitAsync(const FString& Filename)
 {
 	auto Callback = [=](FColor* ColorBuffer, int Width, int Height)
 	{
@@ -130,7 +130,7 @@ void UVisionSensorComponent::GetLitAsync(const FString& Filename)
 	FastReadTexture2DAsync(Texture2D, Callback);
 }
 
-void UVisionSensorComponent::GetLitSlow(TArray<FColor>& ImageData, int& Width, int& Height)
+void UBaseCameraSensor::GetLitSlow(TArray<FColor>& ImageData, int& Width, int& Height)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ReadBuffer);
 
@@ -139,31 +139,31 @@ void UVisionSensorComponent::GetLitSlow(TArray<FColor>& ImageData, int& Width, i
 }
 
 /** Get the location in unrealcv format */
-FString UVisionSensorComponent::GetSensorWorldLocation()
+FString UBaseCameraSensor::GetSensorWorldLocation()
 {
 	FVector ComponentLocation = this->GetComponentLocation();
 	return ComponentLocation.ToString();
 }
 
-FString UVisionSensorComponent::GetSensorRotation()
+FString UBaseCameraSensor::GetSensorRotation()
 {
 	FRotator Rotation = this->GetComponentRotation();
 	return Rotation.ToString();
 }
 
-FString UVisionSensorComponent::GetSensorPose()
+FString UBaseCameraSensor::GetSensorPose()
 {
 	return TEXT("");
 }
 
 
 
-void UVisionSensorComponent::SetFOV(float FOV)
+void UBaseCameraSensor::SetFOV(float FOV)
 {
 	this->FOVAngle = FOV;
 }
 
-void UVisionSensorComponent::SetPostProcessMaterial(UMaterial* PostProcessMaterial)
+void UBaseCameraSensor::SetPostProcessMaterial(UMaterial* PostProcessMaterial)
 {
 	PostProcessSettings.AddBlendable(PostProcessMaterial, 1);
 }

@@ -23,7 +23,9 @@ public class UnrealcvBuildConfig
 
 		PrivateIncludePaths.AddRange(
 			new string[] {
+				"UnrealCV/Private",
 				"UnrealCV/Private/Commands",
+				"UnrealCV/Private/Utils",
 				"UnrealCV/Private/libs", // For 3rd-party libs
 			}
 		);
