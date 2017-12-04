@@ -55,6 +55,7 @@ void FUE4CVServer::RegisterCommandHandlers()
 	CommandHandlers.Add(new FPluginCommandHandler(CommandDispatcher));
 	CommandHandlers.Add(new FActionCommandHandler(CommandDispatcher));
 	CommandHandlers.Add(new FAliasCommandHandler(CommandDispatcher));
+	CommandHandlers.Add(new FSensorHandler(CommandDispatcher));
 	for (FCommandHandler* Handler : CommandHandlers)
 	{
 		Handler->RegisterCommands();
@@ -192,7 +193,7 @@ void FUE4CVServer::ProcessPendingRequest()
 		CallbackDelegate.BindLambda([this, RequestId](FExecStatus ExecStatus)
 		{
 			UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
-			
+
 			FString Header = FString::Printf(TEXT("%d:"), RequestId);
 			TArray<uint8> ReplyData;
 			FExecStatus::BinaryArrayFromString(Header, ReplyData);

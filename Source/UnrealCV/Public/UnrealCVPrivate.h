@@ -25,3 +25,8 @@ inline FString GetProjectName()
 #endif
     return SceneName;
 }
+
+inline void ScreenLog(const FString& Message)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, Message);
+}

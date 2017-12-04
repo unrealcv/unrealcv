@@ -40,6 +40,8 @@ public class UnrealcvBuildConfig
 			"ImageWrapper",
 			"CinematicCamera",
 			"Projects", // Support IPluginManager
+			"RHI", // Support low-level RHI operation
+			"ShaderCore", // Shader support to resize image
 		});
 
 		EditorPrivateDependencyModuleNames.AddRange(
