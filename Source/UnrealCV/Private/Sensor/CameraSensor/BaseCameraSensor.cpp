@@ -37,15 +37,6 @@ void UBaseCameraSensor::OnRegister()
 {
 	Super::OnRegister();
 
-	TextureTarget = NewObject<UTextureRenderTarget2D>(this);
-	bool bUseLinearGamma = false;
-	TextureTarget->InitCustomFormat(Width, Height, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
-	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-	this->bCaptureEveryFrame = true; // TODO: Check the performance overhead for this
-	this->bCaptureOnMovement = false;
-
-	ImageWorker.Start();
-
 	// Add a visualization camera mesh
 	if (GetOwner()) // Check whether this is a template project
 	// if (!IsTemplate())
@@ -80,7 +71,7 @@ This is defined in FColor
 	uint8 G,R,A;
 */
 
-void UBaseCameraSensor::GetLit(TArray<FColor>& ImageData, int& Width, int& Height)
+void UBaseCameraSensor::Capture(TArray<FColor>& ImageData, int& Width, int& Height)
 {
 	TFunction<void(FColor*, int32, int32)> Callback = [&](FColor* ColorPtr, int InWidth, int InHeight)
 	{
@@ -104,7 +95,7 @@ void UBaseCameraSensor::GetLit(TArray<FColor>& ImageData, int& Width, int& Heigh
 }
 
 
-void UBaseCameraSensor::GetLitAsync(const FString& Filename)
+void UBaseCameraSensor::CaptureAsync(const FString& Filename)
 {
 	auto Callback = [=](FColor* ColorBuffer, int Width, int Height)
 	{
@@ -125,15 +116,17 @@ void UBaseCameraSensor::GetLitAsync(const FString& Filename)
 		ImageUtil.SaveBmpFile(Dest, Width, Height, Filename);
 	};
 
+	check(this->TextureTarget);
 	FTextureRenderTargetResource* RenderTargetResource = this->TextureTarget->GameThread_GetRenderTargetResource();
 	FTexture2DRHIRef Texture2D = RenderTargetResource->GetRenderTargetTexture();
 	FastReadTexture2DAsync(Texture2D, Callback);
 }
 
-void UBaseCameraSensor::GetLitSlow(TArray<FColor>& ImageData, int& Width, int& Height)
+void UBaseCameraSensor::CaptureSlow(TArray<FColor>& ImageData, int& Width, int& Height)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ReadBuffer);
 
+	check(this->TextureTarget);
 	UTextureRenderTarget2D* RenderTarget = this->TextureTarget;
 	ReadTextureRenderTarget(RenderTarget, ImageData, Width, Height);
 }

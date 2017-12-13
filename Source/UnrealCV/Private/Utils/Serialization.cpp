@@ -4,7 +4,7 @@
 #include "IImageWrapperModule.h"
 #include "cnpy.h"
 
-TArray<uint8> SerializationUtils::Array2Npy(const TArray<FFloat16Color>& ImageData, int32 Width, int32 Height, int32 Channel)
+TArray<uint8> FSerializationUtils::Array2Npy(const TArray<FFloat16Color>& ImageData, int32 Width, int32 Height, int32 Channel)
 {
 	float *TypePointer = nullptr; // Only used for determing the type
 
@@ -64,7 +64,7 @@ TArray<uint8> SerializationUtils::Array2Npy(const TArray<FFloat16Color>& ImageDa
 	return BinaryData;
 }
 
-TArray<uint8> SerializationUtils::Image2Png(const TArray<FColor>& Image, int Width, int Height)
+TArray<uint8> FSerializationUtils::Image2Png(const TArray<FColor>& Image, int Width, int Height)
 {
 	if (Image.Num() == 0 || Image.Num() != Width * Height)
 	{
@@ -77,7 +77,7 @@ TArray<uint8> SerializationUtils::Image2Png(const TArray<FColor>& Image, int Wid
 	return ImgData;
 }
 
-TArray<uint8> SerializationUtils::Image2Exr(const TArray<FFloat16Color>& FloatImage, int Width, int Height)
+TArray<uint8> FSerializationUtils::Image2Exr(const TArray<FFloat16Color>& FloatImage, int Width, int Height)
 {
 	if (FloatImage.Num() == 0 || FloatImage.Num() != Width * Height)
 	{

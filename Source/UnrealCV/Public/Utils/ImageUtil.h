@@ -18,10 +18,10 @@ public:
 	/** Convert FColor array to a jpg binary array */
 	bool ConvertToJpg(const TArray<FColor>& ImageData, int Width, int Height, TArray<uint8>& JpgData);
 
-	bool ConvertToBmp(TArray<FColor>& ImageData, int Width, int Height, TArray<uint8>& BmpData);
+	bool ConvertToBmp(const TArray<FColor>& ImageData, int Width, int Height, TArray<uint8>& BmpData);
 
 	/** Save binary data to a file */
-	bool SaveFile(TArray<uint8>& BinaryData, const FString& Filename);
+	bool SaveFile(const TArray<uint8>& BinaryData, const FString& Filename);
 
 	bool SavePngFile(const TArray<FColor>& ImageData, int Width, int Height, const FString& Filename)
 	{
@@ -39,7 +39,7 @@ public:
 		return true;
 	}
 
-	bool SaveBmpFile(TArray<FColor>& ImageData, int Width, int Height, const FString& Filename)
+	bool SaveBmpFile(const TArray<FColor>& ImageData, int Width, int Height, const FString& Filename)
 	{
 		TArray<uint8> BmpData;
 		ConvertToBmp(ImageData, Width, Height, BmpData);

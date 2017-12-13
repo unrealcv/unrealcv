@@ -77,8 +77,15 @@ void FUnrealCVPlugin::StartupModule()
 			FGenericPlatformMisc::RequestExit(false);
 		}
 	}
+
+	// Inject a UObject into the world to listen for world event
 }
 
 void FUnrealCVPlugin::ShutdownModule()
 {
+}
+
+void ScreenLog(const FString& Message)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, Message);
 }

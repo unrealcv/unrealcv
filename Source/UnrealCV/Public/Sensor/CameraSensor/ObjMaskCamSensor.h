@@ -5,11 +5,12 @@
 #include "ObjMaskCamSensor.generated.h"
 
 UCLASS(meta = (BlueprintSpawnableComponent))
-class UObjMaskSensor : public UBaseCameraSensor
+class UObjMaskCamSensor : public UBaseCameraSensor
 {
     GENERATED_BODY()
 
 public:
-    UObjMaskSensor(const FObjectInitializer& ObjectInitializer);
+    UObjMaskCamSensor(const FObjectInitializer& ObjectInitializer);
 
+    virtual void OnRegister() override;
 };

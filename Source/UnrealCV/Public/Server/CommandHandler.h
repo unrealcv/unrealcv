@@ -2,6 +2,7 @@
 #include "CommandDispatcher.h"
 #include "UE4CVServer.h"
 
+// FExecStatus should only be used in CommandHandler
 class FCommandHandler
 {
 public:

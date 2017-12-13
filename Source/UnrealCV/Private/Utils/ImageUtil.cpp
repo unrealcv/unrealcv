@@ -1,4 +1,5 @@
 // Weichao Qiu @ 2017
+// Check ImageUtils.cpp !!
 #include "UnrealCVPrivate.h"
 #include "ImageUtil.h"
 #include "FileHelper.h"
@@ -46,7 +47,7 @@ FArchive& operator<<(FArchive& Ar, FBitmapFileHeader& FileHeader)
 }
 */
 
-bool FImageUtil::ConvertToBmp(TArray<FColor>& ImageData, int Width, int Height, TArray<uint8>& BmpData)
+bool FImageUtil::ConvertToBmp(const TArray<FColor>& ImageData, int Width, int Height, TArray<uint8>& BmpData)
 {
 	SCOPE_CYCLE_COUNTER(STAT_FColorToBmp);
 
@@ -100,7 +101,7 @@ bool FImageUtil::ConvertToBmp(TArray<FColor>& ImageData, int Width, int Height, 
 
 
 
-bool FImageUtil::SaveFile(TArray<uint8>& BinaryData, const FString& Filename)
+bool FImageUtil::SaveFile(const TArray<uint8>& BinaryData, const FString& Filename)
 {
 	SCOPE_CYCLE_COUNTER(STAT_SaveFile);
 

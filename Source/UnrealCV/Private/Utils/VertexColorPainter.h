@@ -1,10 +1,9 @@
+// Weichao Qiu @ 2017
 #pragma once
-
 
 class FVertexColorPainter
 {
 public:
 	/** Paint the actor with color */
-	void PaintVertexColor(AActor* Actor, const FColor& PaintColor);
-
+	static void PaintVertexColor(AActor* Actor, const FColor& PaintColor);
 };

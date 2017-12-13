@@ -1,9 +1,14 @@
+// Weichao Qiu @ 2017
 #include "UnrealCVPrivate.h"
 #include "ObjectHandler.h"
 #include "ObjectPainter.h"
 
 
 FExecStatus GetObjectMobility(const TArray<FString>& Args);
+
+AActor* GetActor(const TArray<FString>& Args);
+FExecStatus GetActorLocation(const TArray<FString>& Args);
+FExecStatus GetActorRotation(const TArray<FString>& Args);
 
 void FObjectCommandHandler::RegisterCommands()
 {
@@ -14,9 +19,24 @@ void FObjectCommandHandler::RegisterCommands()
 	Help = "Get the name of all objects";
 	CommandDispatcher->BindCommand(TEXT("vget /objects"), Cmd, Help);
 
-	// The order matters
-	// Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::CurrentObjectHandler); // Redirect to current
-	// CommandDispatcher->BindCommand(TEXT("[str] /object/_/[str]"), Cmd, "Get current object");
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectLocation);
+
+	CommandDispatcher->BindCommand(
+		"vget /object/[str]/location",
+		FDispatcherDelegate::CreateStatic(GetActorLocation),
+		"Get object location [x, y, z]"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vget /object/[str]/rotation",
+		FDispatcherDelegate::CreateStatic(GetActorRotation),
+		"Get object rotation [pitch, yaw, roll]"
+	);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectLocation);
+	Help = "Set object location [x, y, z]";
+	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/location [float] [float] [float]"), Cmd, Help);
+
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectColor);
 	Help = "Get the labeling color of an object (used in object instance mask)";
@@ -30,17 +50,8 @@ void FObjectCommandHandler::RegisterCommands()
 	Help = "[debug] Get the object name";
 	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/name"), Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectLocation);
-	Help = "Get object location [x, y, z]";
-	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/location"), Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectRotation);
-	Help = "Get object rotation [pitch, yaw, roll]";
-	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/rotation"), Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectLocation);
-	Help = "Set object location [x, y, z]";
-	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/location [float] [float] [float]"), Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectRotation);
 	Help = "Set object rotation [pitch, yaw, roll]";
@@ -57,6 +68,21 @@ void FObjectCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::HideObject);
 	Help = "Hide object";
 	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/hide"), Cmd, Help);
+}
+
+AActor* GetActor(const TArray<FString>& Args)
+{
+	return nullptr;
+}
+
+FExecStatus GetActorLocation(const TArray<FString>& Args)
+{
+	return FExecStatus::OK();
+}
+
+FExecStatus GetActorRotation(const TArray<FString>& Args)
+{
+	return FExecStatus::OK();
 }
 
 FExecStatus FObjectCommandHandler::GetObjects(const TArray<FString>& Args)

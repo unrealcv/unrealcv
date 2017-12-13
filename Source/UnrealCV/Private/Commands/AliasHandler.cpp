@@ -103,8 +103,8 @@ FExecStatus FAliasCommandHandler::VExec(const TArray<FString>& Args)
 		Cmd += FString::Printf(TEXT(" %s"), *Args[ArgId]);
 		ArgId++;
 	}
-	FOutputDeviceNull ar;
-
+	// FOutputDeviceNull ar;
+	FConsoleOutputDevice OutputDevice(FUE4CVServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
 	// APlayerController* TestPlayerController = this->GetWorld()->GetFirstPlayerController();
 	// FString ControllerName = TestPlayerController->GetName();
 	// TestPlayerController->CallFunctionByNameWithArguments(TEXT("SetRotation 30 30 30"), ar, NULL, true);
@@ -112,7 +112,7 @@ FExecStatus FAliasCommandHandler::VExec(const TArray<FString>& Args)
 	// check(Cmd == TEXT("SetRotation 30 30 30"));
 
 	// An example command is vexec RoboArmController_C_0 30 0 0
-	if (Obj->CallFunctionByNameWithArguments(*Cmd, ar, nullptr, true))	
+	if (Obj->CallFunctionByNameWithArguments(*Cmd, OutputDevice, nullptr, true))	
 	{
 		return FExecStatus::OK();
 	}

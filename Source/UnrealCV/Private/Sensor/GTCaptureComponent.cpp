@@ -42,7 +42,7 @@ void SaveExr(UTextureRenderTarget2D* RenderTarget, FString Filename)
 	FTextureRenderTargetResource* RenderTargetResource = RenderTarget->GameThread_GetRenderTargetResource();
 	RenderTargetResource->ReadFloat16Pixels(FloatImage);
 
-	TArray<uint8> ExrData = SerializationUtils::Image2Exr(FloatImage, Width, Height);
+	TArray<uint8> ExrData = FSerializationUtils::Image2Exr(FloatImage, Width, Height);
 	FFileHelper::SaveArrayToFile(ExrData, *Filename);
 }
 
@@ -65,7 +65,7 @@ void SavePng(UTextureRenderTarget2D* RenderTarget, FString Filename)
 		// Instead of using this flag, we will set the gamma to the correct value directly
 		RenderTargetResource->ReadPixels(Image, ReadSurfaceDataFlags);
 	}
-	TArray<uint8> ImgData = SerializationUtils::Image2Png(Image, Width, Height);
+	TArray<uint8> ImgData = FSerializationUtils::Image2Png(Image, Width, Height);
 	FFileHelper::SaveArrayToFile(ImgData, *Filename);
 }
 

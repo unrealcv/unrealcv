@@ -1,5 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// Weichao Qiu @ 2017
 #pragma once
 
 #include "CoreMinimal.h"
@@ -25,15 +24,15 @@ public:
 
 	// 	FlushRenderingCommands() can make sure the rendering command is finished, but will slow down the game thread
 	UFUNCTION(BlueprintCallable, Category = "UnrealCV")
-	virtual void GetLit(TArray<FColor>& ImageData, int& Width, int& Height);
+	virtual void Capture(TArray<FColor>& ImageData, int& Width, int& Height);
 
 	/** Save lit to an image file, send the capture command to rendering thread */
 	UFUNCTION(BlueprintCallable, Category = "UnrealCV")
-	virtual void GetLitAsync(const FString& Filename);
+	virtual void CaptureAsync(const FString& Filename);
 
 	/** The old version to read TextureBuffer, slow but is sync operation and  correct */
 	UFUNCTION(BlueprintCallable, Category = "UnrealCV")
-	virtual void GetLitSlow(TArray<FColor>& ImageData, int& Width, int& Height);
+	virtual void CaptureSlow(TArray<FColor>& ImageData, int& Width, int& Height);
 
 	UFUNCTION(BlueprintCallable, Category = "UnrealCV")
 	FString GetSensorWorldLocation();

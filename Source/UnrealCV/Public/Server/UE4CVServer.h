@@ -5,6 +5,7 @@
 #include "TcpServer.h"
 #include "Tickable.h"
 #include "ServerConfig.h"
+#include "UE4CVWorldController.h"
 
 class FCommandDispatcher;
 class FCommandHandler;
@@ -56,10 +57,7 @@ public:
 	APawn* GetPawn();
 
 	/** Implement ticking function of UE4CVServer itself */
-	virtual void Tick(float DeltaTime) override
-	{
-		ProcessPendingRequest();
-	}
+	virtual void Tick(float DeltaTime) override;
 
 	virtual bool IsTickable() const{
 		return bIsTicking;
@@ -118,4 +116,6 @@ private:
 	/** Handle errors from NetworkManager */
 	void HandleError(const FString& ErrorMessage);
 
+	/** A controller to control the UE4 world */
+	TWeakObjectPtr<AUE4CVWorldController> UE4CVWorldController;
 };

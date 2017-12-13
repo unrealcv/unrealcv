@@ -6,12 +6,14 @@
 #include "LitCamSensor.generated.h"
 
 UCLASS(meta = (BlueprintSpawnableComponent))
-class ULitSensor : public UBaseCameraSensor
+class ULitCamSensor : public UBaseCameraSensor
 {
     GENERATED_BODY()
 
 public:
-    ULitSensor(const FObjectInitializer& ObjectInitializer);
+    ULitCamSensor(const FObjectInitializer& ObjectInitializer);
+
+    virtual void OnRegister() override;
 
 private:
     UPROPERTY()
