@@ -3,6 +3,7 @@
 
 class FActorController
 {
+public:
     FActorController(AActor* InActor);
 
     FRotator GetRotation();

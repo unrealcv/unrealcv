@@ -1,6 +1,7 @@
 #include "UnrealCVPrivate.h"
 #include "TestActor.h"
 #include "FusionCamSensor.h"
+#include "ObjectAnnotator.h"
 
 // Run a test command
 void ExecCommand(FString Command);
@@ -10,6 +11,8 @@ void TestSensorList();
 void TestCameraBasic();
 void TestBPControl();
 void TestAnnotator();
+
+TArray<AActor*> GetActorPtrList(UWorld* World);
 
 ATestActor::ATestActor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -148,17 +151,56 @@ void TestBPControl()
 
 void TestAnnotator()
 {
-	/*
+	ExecCommand(TEXT("vset /viewmode object_mask"));
+	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	TArray<AActor*> Actors = GetActorPtrList(World);
+
+	FObjectAnnotator Annotator;
+	// int ObjectIndex = 0;
+	static int ObjectIndex = 0;
+	ObjectIndex++;
+
+	static FColor LastFrameColor;
+	TArray<FColor> Data;
+	int Width, Height;
+
+	TArray<UFusionCamSensor*> SensorList = GetFusionSensorList(FUE4CVServer::Get().GetGameWorld());
+	UFusionCamSensor* Sensor = SensorList[0];
+	Sensor->GetObjectMask(Data, Width, Height);
+
+	int Count = 0;
+	for (FColor Color : Data)
+	{
+		// if (Color == AnnotationColor) Count++;
+		if (Color == LastFrameColor) Count++;
+	}
+	UE_LOG(LogUnrealCV, Warning, TEXT("%d"), Count);
+
+
+	// for (int ObjectIndex = 0; ObjectIndex < 1000; ObjectIndex++)
+	{
+		// FColor AnnotationColor = FColor::Red;
+		// FColor AnnotationColor = GetColorFromColorMap(ObjectIndex);
+		FColor AnnotationColor = FColor(64, 128, 196);
+		AnnotationColor.A = 0;
+		for (AActor* Actor : Actors)
+		{
+			// Annotator.SetObjInstanceColor(ObjectId, AnnotationColor);
+			Annotator.SetObjectColor(Actor, AnnotationColor);
+		}
+
+		LastFrameColor = AnnotationColor;
+		FlushRenderingCommands();
+		// This will not take effect until the rendering thread catch up
+
+	}
+    //
+	// FString ObjectId;
+    //
+	// FColor AnnotationColor;
+	// Annotator.GetObjInstanceColor(ObjectId, AnnotationColor);
+
 	ExecCommand(TEXT("vget /sensor/0/object_mask png"));
-
-	FObjInstanceAnnotator Annotator;
-
-	FString ObjectId; 
-
-	FColor AnnotationColor;
-	Annotator.GetObjInstanceColor(ObjectId, AnnotationColor);
-	Annotator.SetObjInstanceColor(ObjectId, AnnotationColor);
-	*/
 }
 
 

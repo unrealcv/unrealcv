@@ -2,13 +2,17 @@
 #include "UnrealCVPrivate.h"
 #include "ObjectHandler.h"
 #include "ObjectPainter.h"
-
+#include "ActorController.h"
+#include "VertexSensor.h"
 
 FExecStatus GetObjectMobility(const TArray<FString>& Args);
+
+FExecStatus GetActorList(const TArray<FString>& Args);
 
 AActor* GetActor(const TArray<FString>& Args);
 FExecStatus GetActorLocation(const TArray<FString>& Args);
 FExecStatus GetActorRotation(const TArray<FString>& Args);
+FExecStatus GetActorVertex(const TArray<FString>& Args);
 
 void FObjectCommandHandler::RegisterCommands()
 {
@@ -33,10 +37,19 @@ void FObjectCommandHandler::RegisterCommands()
 		"Get object rotation [pitch, yaw, roll]"
 	);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectLocation);
-	Help = "Set object location [x, y, z]";
-	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/location [float] [float] [float]"), Cmd, Help);
+	CommandDispatcher->BindCommand(
+		"vget /object/[str]/vertex_location",
+		FDispatcherDelegate::CreateStatic(GetActorVertex),
+		"Get vertex location"
+	);
 
+	// Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectLocation);
+	// Help = "Set object location [x, y, z]";
+	// CommandDispatcher->BindCommand(TEXT("vset /object/[str]/location [float] [float] [float]"), Cmd, Help);
+
+	// Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectRotation);
+	// Help = "Set object rotation [pitch, yaw, roll]";
+	// CommandDispatcher->BindCommand(TEXT("vset /object/[str]/rotation [float] [float] [float]"), Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectColor);
 	Help = "Get the labeling color of an object (used in object instance mask)";
@@ -51,12 +64,6 @@ void FObjectCommandHandler::RegisterCommands()
 	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/name"), Cmd, Help);
 
 
-
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::SetObjectRotation);
-	Help = "Set object rotation [pitch, yaw, roll]";
-	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/rotation [float] [float] [float]"), Cmd, Help);
-
 	Cmd = FDispatcherDelegate::CreateStatic(GetObjectMobility);
 	Help = "Is the object static or movable?";
 	CommandDispatcher->BindCommand(TEXT("vget /object/[str]/mobility"), Cmd, Help);
@@ -70,19 +77,90 @@ void FObjectCommandHandler::RegisterCommands()
 	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/hide"), Cmd, Help);
 }
 
+TArray<AActor*> GetActorPtrList(UWorld* World)
+{
+	TArray<UObject*> UObjectList;
+	bool bIncludeDerivedClasses = true;
+	EObjectFlags ExclusionFlags = EObjectFlags::RF_ClassDefaultObject;
+	EInternalObjectFlags ExclusionInternalFlags = EInternalObjectFlags::AllFlags;
+	GetObjectsOfClass(AActor::StaticClass(), UObjectList, bIncludeDerivedClasses, ExclusionFlags, ExclusionInternalFlags);
+
+	TArray<AActor*> ActorList;
+	for (UObject* ActorObject : UObjectList)
+	{
+		AActor* Actor = Cast<AActor>(ActorObject);
+		if (Actor->GetWorld() != World) continue;
+		if (ActorList.Contains(Actor) == false)
+		{
+			ActorList.Add(Actor);
+		}
+	}
+	return ActorList;
+}
+
+FExecStatus GetActorList(const TArray<FString>& Args)
+{
+	UWorld* GameWorld = FUE4CVServer::Get().GetGameWorld();
+	TArray<AActor*> ActorList = GetActorPtrList(GameWorld);
+
+	FString StrActorList;
+	for (AActor* Actor : ActorList)
+	{
+		StrActorList += FString::Printf(TEXT("%s "), *Actor->GetName());
+	}
+	return FExecStatus::OK();
+}
+
 AActor* GetActor(const TArray<FString>& Args)
 {
-	return nullptr;
+	FString ActorId = Args[0];
+	AActor* Actor = GetActorById(FUE4CVServer::Get().GetGameWorld(), ActorId);
+	return Actor;
 }
 
 FExecStatus GetActorLocation(const TArray<FString>& Args)
 {
-	return FExecStatus::OK();
+	AActor* Actor = GetActor(Args);
+	FActorController Controller(Actor);
+	return FExecStatus::OK(Controller.GetLocation().ToString());
 }
 
 FExecStatus GetActorRotation(const TArray<FString>& Args)
 {
-	return FExecStatus::OK();
+	AActor* Actor = GetActor(Args);
+	FActorController Controller(Actor);
+	return FExecStatus::OK(Controller.GetLocation().ToString());
+}
+
+
+
+// TODO: Rewrite this part
+FString Serialize(const FVector& Data)
+{
+	FString Str = FString::Printf(TEXT("X: %.2f  Y: %.2f  Z: %.2f"), Data.X, Data.Y, Data.Z);
+	return Str;
+}
+
+FString Serialize(const TArray<FVector>& Data)
+{
+	FString Str = "";
+	for (auto Vector : Data)
+	{
+		Str += Serialize(Vector) + "\n";
+	}
+	return Str;
+}
+
+FExecStatus GetActorVertex(const TArray<FString>& Args)
+{
+	AActor* Actor = GetActor(Args);
+	FVertexSensor Sensor(Actor);
+	TArray<FVector> VertexArray = Sensor.GetVertexArray();
+	
+	// Serialize it to json?
+	FString Str = Serialize(VertexArray);
+
+	return FExecStatus::OK(Str);
 }
 
 FExecStatus FObjectCommandHandler::GetObjects(const TArray<FString>& Args)

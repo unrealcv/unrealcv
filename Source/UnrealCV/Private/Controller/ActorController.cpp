@@ -3,5 +3,15 @@
 
 FActorController::FActorController(AActor* InActor)
 {
-    Actor = InActor;
+	Actor = InActor;
+}
+
+FRotator FActorController::GetRotation()
+{
+	return Actor->GetActorRotation();
+}
+
+FVector FActorController::GetLocation()
+{
+	return Actor->GetActorLocation();
 }

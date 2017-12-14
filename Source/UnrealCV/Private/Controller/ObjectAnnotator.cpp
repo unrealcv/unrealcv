@@ -1,17 +1,17 @@
 // Weichao Qiu @ 2017
 
-#if 0
 #include "UnrealCVPrivate.h"
-#include "ObjInstanceAnnotator.h"
+#include "ObjectAnnotator.h"
 
 FColor GetColorFromColorMap(int32 ObjectIndex);
 
-FObjInstanceAnnotator::FObjInstanceAnnotator()
+FObjectAnnotator::FObjectAnnotator()
 {
 
 }
 
-void FObjInstanceAnnotator::AnnotateStaticMesh()
+/** Annotate all static mesh in the world */
+void FObjectAnnotator::AnnotateStaticMesh()
 {
 	for (TActorIterator<AStaticMeshActor> ActorItr(FUE4CVServer::Get().GetGameWorld()); ActorItr; ++ActorItr)
 	{
@@ -21,39 +21,53 @@ void FObjInstanceAnnotator::AnnotateStaticMesh()
 	}
 }
 
-void FObjInstanceAnnotator::InitObjInstanceColor(AActor* Actor, FColor& AnnotationColor)
+void FObjectAnnotator::InitObjInstanceColor(AActor* Actor, FColor& AnnotationColor)
 {
-    TArray<FString> AnnotatedObjects = AnnotationColors.Keys();
+	TArray<FString> AnnotatedObjects;
+	AnnotationColors.GetKeys(AnnotatedObjects);
+
 	FString ActorName = Actor->GetName();
 	if (AnnotatedObjects.Contains(ActorName))
 	{
+		// Already initialized
 		return;
 	}
 
-	int ColorIndex = AnnotationColor.Num();
-	AnnotationColor = GetColorFromColorMap();
+	int ColorIndex = AnnotatedObjects.Num();
+	AnnotationColor = GetColorFromColorMap(ColorIndex);
 	FVertexColorPainter::PaintVertexColor(Actor, AnnotationColor);
 
 	// CHECK: Add the annotation color regardless successful or not
 	AnnotationColors.Emplace(ActorName, AnnotationColor);
 }
 
-void FObjInstanceAnnotator::SetObjInstanceColor(FString ObjId, const FColor& AnnotationColor)
+void FObjectAnnotator::SetObjectColor(FString ObjId, const FColor& AnnotationColor)
+{
+	// Get Actor Pointer
+
+}
+
+void FObjectAnnotator::SetObjectColor(AActor* Actor, const FColor& AnnotationColor)
+{
+	FVertexColorPainter::PaintVertexColor(Actor, AnnotationColor);
+}
+
+void FObjectAnnotator::GetObjectColor(FString ObjId, FColor& AnnotationColor)
 {
 
 }
 
-void FObjInstanceAnnotator::GetObjInstanceColor(FString ObjId, FColor& AnnotationColor)
+void FObjectAnnotator::GetObjectColor(AActor* Actor, FColor& AnnotationColor)
 {
 
 }
 
-void FObjInstanceAnnotator::SaveAnnotation(FString JsonFilename)
+void FObjectAnnotator::SaveAnnotation(FString JsonFilename)
 {
 	// TODO: not implemented yet
 }
 
-void FObjInstanceAnnotator::LoadAnnotation(FString JsonFilename)
+void FObjectAnnotator::LoadAnnotation(FString JsonFilename)
 {
 	// TODO: not implemented yet
 }
@@ -135,4 +149,3 @@ FColor GetColorFromColorMap(int32 ObjectIndex)
 	}
 	return ColorMap[ObjectIndex];
 }
-#endif

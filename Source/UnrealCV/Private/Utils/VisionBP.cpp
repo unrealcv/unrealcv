@@ -68,3 +68,9 @@ FString UVisionBP::FormatFrameFilename(FString FilenameFmt)
 	int FrameNumber = GFrameNumber;
 	return FString::Printf(*FilenameFmt, FrameNumber);
 }
+
+bool UVisionBP::SendMessageBP(const FString& Message)
+{
+	FUE4CVServer::Get().NetworkManager->SendMessage(Message);
+	return true;
+}

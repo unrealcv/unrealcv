@@ -18,6 +18,8 @@ void FAliasCommandHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vexec [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
 }
 
 FExecStatus FAliasCommandHandler::VRun(const TArray<FString>& Args)
@@ -103,8 +105,9 @@ FExecStatus FAliasCommandHandler::VExec(const TArray<FString>& Args)
 		Cmd += FString::Printf(TEXT(" %s"), *Args[ArgId]);
 		ArgId++;
 	}
-	// FOutputDeviceNull ar;
-	FConsoleOutputDevice OutputDevice(FUE4CVServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
+
+	FOutputDeviceNull OutputDevice;
+	// FConsoleOutputDevice OutputDevice(FUE4CVServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
 	// APlayerController* TestPlayerController = this->GetWorld()->GetFirstPlayerController();
 	// FString ControllerName = TestPlayerController->GetName();
 	// TestPlayerController->CallFunctionByNameWithArguments(TEXT("SetRotation 30 30 30"), ar, NULL, true);

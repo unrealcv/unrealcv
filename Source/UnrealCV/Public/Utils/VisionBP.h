@@ -20,4 +20,7 @@ public:
 	/** FilenameFmt is the format string which contains %d */
 	UFUNCTION(BlueprintCallable, Category = "UnrealCV")
 	static FString FormatFrameFilename(FString FilenameFmt);
+
+	UFUNCTION(BlueprintCallable, Category = "UnrealCV")
+	static bool SendMessageBP(const FString& Message);
 };

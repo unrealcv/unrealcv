@@ -20,7 +20,8 @@ void UObjMaskCamSensor::OnRegister()
 	Super::OnRegister();
 
 	TextureTarget = NewObject<UTextureRenderTarget2D>(this);
-	bool bUseLinearGamma = false;
+	// bool bUseLinearGamma = false;
+	bool bUseLinearGamma = true; // disable sRGB !
 	TextureTarget->InitCustomFormat(Width, Height, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
 	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 	this->bCaptureEveryFrame = true; // TODO: Check the performance overhead for this

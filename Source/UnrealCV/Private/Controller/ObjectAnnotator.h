@@ -1,17 +1,22 @@
 // Weichao Qiu @ 2017
+#pragma once
 
 /** Annotate each object instance with a unique color */
-class FObjInstanceAnnotator
+class FObjectAnnotator
 {
 public:
-	FObjInstanceAnnotator();
+	FObjectAnnotator();
 
     /** Annotate all StaticMesh actor in the world */
     void AnnotateStaticMesh();
 
-    void SetObjInstanceColor(FString ObjId, const FColor& AnnotationColor);
+    void SetObjectColor(FString ObjId, const FColor& AnnotationColor);
 
-    void GetObjInstanceColor(FString ObjId, FColor& AnnotationColor);
+    void SetObjectColor(AActor* Actor, const FColor& AnnotationColor);
+
+    void GetObjectColor(FString ObjId, FColor& AnnotationColor);
+
+    void GetObjectColor(AActor* Actor, FColor& AnnotationColor);
 
     /** Dump the annotation for each object */
     void SaveAnnotation(FString JsonFilename);
