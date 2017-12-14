@@ -45,7 +45,7 @@ AActor* GetActorById(UWorld* World, FString ActorId)
 	for (TActorIterator<AActor> ActorItr(World); ActorItr; ++ActorItr)
 	{
 		AActor* Actor = *ActorItr;
-		if (Actor->GetName() == ActorId)
+		if (Actor->GetWorld() == World && Actor->GetName() == ActorId)
 		{
 			return Actor;
 		}
@@ -58,7 +58,7 @@ UObject* GetObjectById(UWorld* World, FString ObjectId)
 	for (TObjectIterator<UObject> ObjItr; ObjItr; ++ObjItr)
 	{
 		UObject* Obj = *ObjItr;
-		if (Obj->GetName() == ObjectId)
+		if (Obj->GetWorld() == World && Obj->GetName() == ObjectId)
 		{
 			return Obj;
 		}
@@ -106,8 +106,8 @@ FExecStatus FAliasCommandHandler::VExec(const TArray<FString>& Args)
 		ArgId++;
 	}
 
-	FOutputDeviceNull OutputDevice;
-	// FConsoleOutputDevice OutputDevice(FUE4CVServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
+	// FOutputDeviceNull OutputDevice;
+	FConsoleOutputDevice OutputDevice(FUE4CVServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
 	// APlayerController* TestPlayerController = this->GetWorld()->GetFirstPlayerController();
 	// FString ControllerName = TestPlayerController->GetName();
 	// TestPlayerController->CallFunctionByNameWithArguments(TEXT("SetRotation 30 30 30"), ar, NULL, true);
@@ -115,6 +115,34 @@ FExecStatus FAliasCommandHandler::VExec(const TArray<FString>& Args)
 	// check(Cmd == TEXT("SetRotation 30 30 30"));
 
 	// An example command is vexec RoboArmController_C_0 30 0 0
+	check(Obj->IsPendingKillOrUnreachable() == false);
+	EObjectFlags Flags = Obj->GetFlags();
+
+	// From Actor.cpp ProcessEvent
+	//#if WITH_EDITOR
+	//static const FName CallInEditorMeta(TEXT("CallInEditor"));
+	//const bool bAllowScriptExecution = GAllowActorScriptExecutionInEditor || Function->GetBoolMetaData(CallInEditorMeta);
+	//#else
+	//const bool bAllowScriptExecution = GAllowActorScriptExecutionInEditor;
+	//#endif
+	UWorld* MyWorld = Obj->GetWorld();
+	//check((
+	//		(MyWorld && (
+	//					MyWorld->AreActorsInitialized() 
+	//					|| bAllowScriptExecution
+	//					)
+	//		) 
+	//		|| 
+	//		Obj->HasAnyFlags(RF_ClassDefaultObject)
+	//		) 
+	//		&& 
+	//		!Obj->IsGarbageCollecting()
+	//	);
+	if (MyWorld->AreActorsInitialized() == false)
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("Actors of the world are not initialized, the vexec might fail."));
+	}
+
 	if (Obj->CallFunctionByNameWithArguments(*Cmd, OutputDevice, nullptr, true))	
 	{
 		return FExecStatus::OK();
