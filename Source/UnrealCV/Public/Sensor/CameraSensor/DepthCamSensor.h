@@ -14,5 +14,5 @@ public:
 
 	virtual	void OnRegister() override;
 
-	void Capture(TArray<FFloat16Color>& DepthData, int& Width, int& Height);
+	void CaptureDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height);
 };

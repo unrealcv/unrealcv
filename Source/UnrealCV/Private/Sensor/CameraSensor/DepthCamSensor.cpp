@@ -7,7 +7,7 @@ UDepthCamSensor::UDepthCamSensor(const FObjectInitializer& ObjectInitializer) :
 
 }
 
-void UDepthCamSensor::Capture(TArray<FFloat16Color>& DepthData, int& Width, int& Height)
+void UDepthCamSensor::CaptureDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height)
 {
 	Width = this->TextureTarget->SizeX, Height = TextureTarget->SizeY;
 	DepthData.AddZeroed(Width * Height);

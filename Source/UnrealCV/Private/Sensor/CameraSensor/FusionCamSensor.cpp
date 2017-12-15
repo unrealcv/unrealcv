@@ -41,15 +41,15 @@ void UFusionCamSensor::GetLit(TArray<FColor>& LitData, int& Width, int& Height)
 
 void UFusionCamSensor::GetDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height)
 {
-	this->DepthCamSensor->Capture(DepthData, Width, Height);
+	this->DepthCamSensor->CaptureDepth(DepthData, Width, Height);
 }
 
 void UFusionCamSensor::GetNormal(TArray<FColor>& NormalData, int& Width, int& Height)
 {
-	this->NormalCamSensor->CaptureSlow(NormalData, Width, Height);
+	this->NormalCamSensor->Capture(NormalData, Width, Height);
 }
 
 void UFusionCamSensor::GetObjectMask(TArray<FColor>& ObjMaskData, int& Width, int& Height)
 {
-	this->ObjMaskCamSensor->CaptureSlow(ObjMaskData, Width, Height);
+	this->ObjMaskCamSensor->Capture(ObjMaskData, Width, Height);
 }

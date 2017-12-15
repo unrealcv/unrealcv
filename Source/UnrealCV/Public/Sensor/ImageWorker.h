@@ -8,7 +8,7 @@ struct FFrameData
 	int Width;
 	int Height;
 	FString Filename;
-	int FrameNumber;
+	uint32 FrameNumber;
 };
 
 /** Use a seperate thread to write image to files */

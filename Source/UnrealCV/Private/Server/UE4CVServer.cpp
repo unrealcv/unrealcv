@@ -17,9 +17,10 @@ void FUE4CVServer::Tick(float DeltaTime)
 {
 	// Spawn a AUE4CVWorldController, which is responsible for modifying the world to add UnrealCV functions.
 	// TODO: Check whether stopping the game will reset this ptr?
-	if (!UE4CVWorldController.IsValid())
+	UWorld* GameWorld = GetGameWorld();
+	if (GameWorld && !UE4CVWorldController.IsValid())
 	{
-		this->UE4CVWorldController = Cast<AUE4CVWorldController>(GetGameWorld()->SpawnActor(AUE4CVWorldController::StaticClass()));
+		this->UE4CVWorldController = Cast<AUE4CVWorldController>(GameWorld->SpawnActor(AUE4CVWorldController::StaticClass()));
 		// Its BeginPlay event will extend the GameWorld
 	}
 
