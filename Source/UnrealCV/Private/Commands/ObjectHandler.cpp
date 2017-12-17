@@ -142,11 +142,11 @@ FExecStatus GetActorVertexLocation(const TArray<FString>& Args)
 
 	// Serialize it to json?
 	FString Str = "";
-	for (auto Vector : Data)
+	for (auto Vertex : VertexArray)
 	{
 		FString VertexLocation = FString::Printf(
 			TEXT("%.5f     %.5f     %.5f"),
-			Data.X, Data.Y, Data.Z);
+			Vertex.X, Vertex.Y, Vertex.Z);
 		Str += VertexLocation + "\n";
 	}
 
@@ -155,26 +155,14 @@ FExecStatus GetActorVertexLocation(const TArray<FString>& Args)
 
 FExecStatus GetActorVertexColor(const TArray<FString>& Args)
 {
-	AActor* Actor = GetActor(Args);
-	FVertexSensor Sensor(Actor);
-	TArray<FVector> VertexArray = Sensor.GetVertexArray();
-
-	// Serialize it to json?
-	FString Str = Serialize(VertexArray);
-
-	return FExecStatus::OK(Str);
+	// TODO: Not implemented yet
+	return FExecStatus::OK();
 }
 
 FExecStatus SetActorVertexColor(const TArray<FString>& Args)
 {
-	AActor* Actor = GetActor(Args);
-	FVertexSensor Sensor(Actor);
-	TArray<FVector> VertexArray = Sensor.GetVertexArray();
-
-	// Serialize it to json?
-	FString Str = Serialize(VertexArray);
-
-	return FExecStatus::OK(Str);
+	// TODO: Not implemented yet
+	return FExecStatus::OK();
 }
 
 FExecStatus FObjectCommandHandler::GetObjects(const TArray<FString>& Args)
