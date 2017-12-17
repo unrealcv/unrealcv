@@ -76,22 +76,25 @@ public:
 	void RegisterCommandHandlers();
 
 	/** Make sure UE4CVServer correctly initialized itself in the GameWorld */
-	bool InitWorld();
+	// bool InitWorld();
 
 	/** Return the GameWorld of the editor or of the game */
 	UWorld* GetGameWorld();
 
 	/** Update input mode */
-	void UpdateInput(bool Enable);
+	// void UpdateInput(bool Enable);
 
 	/** Open new level */
-	void OpenLevel(FName LevelName);
+	// void OpenLevel(FName LevelName);
 
 	/** The config of UE4CVServer */
 	FServerConfig Config;
 
 	/** The underlying class to handle network connection, ip and port are configured here */
 	UNetworkManager* NetworkManager;
+
+	/** A controller to control the UE4 world */
+	TWeakObjectPtr<AUE4CVWorldController> WorldController;
 private:
 	/** Handlers for UnrealCV commands */
 	TArray<FCommandHandler*> CommandHandlers;
@@ -116,6 +119,4 @@ private:
 	/** Handle errors from NetworkManager */
 	void HandleError(const FString& ErrorMessage);
 
-	/** A controller to control the UE4 world */
-	TWeakObjectPtr<AUE4CVWorldController> UE4CVWorldController;
 };

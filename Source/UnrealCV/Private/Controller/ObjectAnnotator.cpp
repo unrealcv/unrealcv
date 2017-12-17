@@ -41,21 +41,21 @@ void FObjectAnnotator::InitObjInstanceColor(AActor* Actor, FColor& AnnotationCol
 	AnnotationColors.Emplace(ActorName, AnnotationColor);
 }
 
-void FObjectAnnotator::SetObjectColor(FString ObjId, const FColor& AnnotationColor)
-{
-	// Get Actor Pointer
-
-}
+// void FObjectAnnotator::SetObjectColor(FString ObjId, const FColor& AnnotationColor)
+// {
+// 	// Get Actor Pointer
+//
+// }
+// void FObjectAnnotator::GetObjectColor(FString ObjId, FColor& AnnotationColor)
+// {
+//
+// }
 
 void FObjectAnnotator::SetObjectColor(AActor* Actor, const FColor& AnnotationColor)
 {
 	FVertexColorPainter::PaintVertexColor(Actor, AnnotationColor);
 }
 
-void FObjectAnnotator::GetObjectColor(FString ObjId, FColor& AnnotationColor)
-{
-
-}
 
 void FObjectAnnotator::GetObjectColor(AActor* Actor, FColor& AnnotationColor)
 {

@@ -25,6 +25,7 @@ void AttachFusionSensorToPawn(APawn* Pawn)
 
 }
 
+
 void AUE4CVWorldController::BeginPlay()
 {
     ScreenLog("Overwrite the world setting with some UnrealCV extensions");
@@ -35,6 +36,18 @@ void AUE4CVWorldController::BeginPlay()
 
 	AttachFusionSensorToPawn(Pawn);
 
+	ObjectAnnotator.AnnotateStaticMesh();
+
+	FEngineShowFlags ShowFlags = GetWorld()->GetGameViewport()->EngineShowFlags;
+	FPlayerViewMode::Get().SaveGameDefault(ShowFlags);
+
+	FUE4CVServer& Server = FUE4CVServer::Get();
+
+	UpdateInput(Server.Config.EnableInput);
+
+	//FEngineShowFlags ShowFlags = GetWorld()->GetGameViewport()->EngineShowFlags;
+	//FPlayerViewMode::Get().SaveGameDefault(ShowFlags);
+
 	// Update camera FOV
 	// PlayerController->PlayerCameraManager->SetFOV(Config.FOV);
 
@@ -43,8 +56,36 @@ void AUE4CVWorldController::BeginPlay()
 
 	// UpdateInput(Config.EnableInput);
 
-	// FEngineShowFlags ShowFlags = World->GetGameViewport()->EngineShowFlags;
-	// FPlayerViewMode::Get().SaveGameDefault(ShowFlags);
 
 	// CurrentWorld = World;
+}
+
+
+void AUE4CVWorldController::UpdateInput(bool Enable)
+{
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	APlayerController* PlayerController = World->GetFirstPlayerController();
+	check(PlayerController);
+	if (Enable)
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Enabling input"));
+		PlayerController->GetPawn()->EnableInput(PlayerController);
+	}
+	else
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Disabling input"));
+		PlayerController->GetPawn()->DisableInput(PlayerController);
+	}
+}
+
+void AUE4CVWorldController::OpenLevel(FName LevelName)
+{
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	UGameplayStatics::OpenLevel(World, LevelName);
+	UGameplayStatics::FlushLevelStreaming(World);
+	UE_LOG(LogUnrealCV, Warning, TEXT("Level loaded"));
 }

@@ -1,5 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// Weichao Qiu @ 2017
 #include "UnrealCVPrivate.h"
 #include "BaseCameraSensor.h"
 // #include "GlobalShader.h"
@@ -132,24 +131,17 @@ void UBaseCameraSensor::CaptureSlow(TArray<FColor>& ImageData, int& Width, int& 
 }
 
 /** Get the location in unrealcv format */
-FString UBaseCameraSensor::GetSensorWorldLocation()
+FVector UBaseCameraSensor::GetSensorWorldLocation()
 {
 	FVector ComponentLocation = this->GetComponentLocation();
-	return ComponentLocation.ToString();
+	return ComponentLocation;
 }
 
-FString UBaseCameraSensor::GetSensorRotation()
+FRotator UBaseCameraSensor::GetSensorRotation()
 {
 	FRotator Rotation = this->GetComponentRotation();
-	return Rotation.ToString();
+	return Rotation;
 }
-
-FString UBaseCameraSensor::GetSensorPose()
-{
-	return TEXT("");
-}
-
-
 
 void UBaseCameraSensor::SetFOV(float FOV)
 {

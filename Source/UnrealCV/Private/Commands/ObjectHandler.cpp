@@ -12,7 +12,9 @@ FExecStatus GetActorList(const TArray<FString>& Args);
 AActor* GetActor(const TArray<FString>& Args);
 FExecStatus GetActorLocation(const TArray<FString>& Args);
 FExecStatus GetActorRotation(const TArray<FString>& Args);
-FExecStatus GetActorVertex(const TArray<FString>& Args);
+FExecStatus GetActorVertexLocation(const TArray<FString>& Args);
+FExecStatus GetActorVertexColor(const TArray<FString>& Args);
+FExecStatus SetActorVertexColor(const TArray<FString>& Args);
 
 void FObjectCommandHandler::RegisterCommands()
 {
@@ -39,7 +41,7 @@ void FObjectCommandHandler::RegisterCommands()
 
 	CommandDispatcher->BindCommand(
 		"vget /object/[str]/vertex_location",
-		FDispatcherDelegate::CreateStatic(GetActorVertex),
+		FDispatcherDelegate::CreateStatic(GetActorVertexLocation),
 		"Get vertex location"
 	);
 
@@ -129,34 +131,46 @@ FExecStatus GetActorRotation(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
 	FActorController Controller(Actor);
-	return FExecStatus::OK(Controller.GetLocation().ToString());
+	return FExecStatus::OK(Controller.GetRotation().ToString());
 }
 
-
-
-// TODO: Rewrite this part
-FString Serialize(const FVector& Data)
-{
-	FString Str = FString::Printf(TEXT("X: %.2f  Y: %.2f  Z: %.2f"), Data.X, Data.Y, Data.Z);
-	return Str;
-}
-
-FString Serialize(const TArray<FVector>& Data)
-{
-	FString Str = "";
-	for (auto Vector : Data)
-	{
-		Str += Serialize(Vector) + "\n";
-	}
-	return Str;
-}
-
-FExecStatus GetActorVertex(const TArray<FString>& Args)
+FExecStatus GetActorVertexLocation(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
 	FVertexSensor Sensor(Actor);
 	TArray<FVector> VertexArray = Sensor.GetVertexArray();
-	
+
+	// Serialize it to json?
+	FString Str = "";
+	for (auto Vector : Data)
+	{
+		FString VertexLocation = FString::Printf(
+			TEXT("%.5f     %.5f     %.5f"),
+			Data.X, Data.Y, Data.Z);
+		Str += VertexLocation + "\n";
+	}
+
+	return FExecStatus::OK(Str);
+}
+
+FExecStatus GetActorVertexColor(const TArray<FString>& Args)
+{
+	AActor* Actor = GetActor(Args);
+	FVertexSensor Sensor(Actor);
+	TArray<FVector> VertexArray = Sensor.GetVertexArray();
+
+	// Serialize it to json?
+	FString Str = Serialize(VertexArray);
+
+	return FExecStatus::OK(Str);
+}
+
+FExecStatus SetActorVertexColor(const TArray<FString>& Args)
+{
+	AActor* Actor = GetActor(Args);
+	FVertexSensor Sensor(Actor);
+	TArray<FVector> VertexArray = Sensor.GetVertexArray();
+
 	// Serialize it to json?
 	FString Str = Serialize(VertexArray);
 

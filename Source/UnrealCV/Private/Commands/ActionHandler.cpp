@@ -51,7 +51,7 @@ FExecStatus FActionCommandHandler::OpenLevel(const TArray<FString>& Args)
 	if (Args.Num() == 1) // Level name
 	{
 		FString LevelName = Args[0];
-		FUE4CVServer::Get().OpenLevel(FName(*LevelName));
+		FUE4CVServer::Get().WorldController->OpenLevel(FName(*LevelName));
 		return FExecStatus::OK();
 	}
 	else
@@ -62,13 +62,13 @@ FExecStatus FActionCommandHandler::OpenLevel(const TArray<FString>& Args)
 
 FExecStatus FActionCommandHandler::EnableInput(const TArray<FString>& Args)
 {
-	FUE4CVServer::Get().UpdateInput(true);
+	FUE4CVServer::Get().WorldController->UpdateInput(true);
 	return FExecStatus::OK();
 }
 
 FExecStatus FActionCommandHandler::DisableInput(const TArray<FString>& Args)
 {
-	FUE4CVServer::Get().UpdateInput(false);
+	FUE4CVServer::Get().WorldController->UpdateInput(false);
 	return FExecStatus::OK();
 }
 

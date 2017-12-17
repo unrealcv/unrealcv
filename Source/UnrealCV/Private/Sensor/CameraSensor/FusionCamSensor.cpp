@@ -2,11 +2,13 @@
 #include "FusionCamSensor.h"
 #include "ImageUtil.h"
 #include "Serialization.h"
+
 // Sensors included in FusionSensor
 #include "LitCamSensor.h"
 #include "DepthCamSensor.h"
-#include "ObjMaskCamSensor.h"
+#include "VertexColorCamSensor.h"
 #include "NormalCamSensor.h"
+#include "StencilCamSensor.h"
 
 UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -18,18 +20,21 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	DepthCamSensor->SetupAttachment(this);
 	NormalCamSensor = CreateDefaultSubobject<UNormalCamSensor>("NormalCamSensor");
 	NormalCamSensor->SetupAttachment(this);
-	ObjMaskCamSensor = CreateDefaultSubobject<UObjMaskCamSensor>("ObjMaskCamSensor");
+	ObjMaskCamSensor = CreateDefaultSubobject<UVertexColorCamSensor>("ObjMaskCamSensor");
 	ObjMaskCamSensor->SetupAttachment(this);
+	StencilCamSensor = CreateDefaultSubobject<UStencilCamSensor>("StencilCamSensor");
+	StencilCamSensor->SetupAttachment(this);
 }
 
 void UFusionCamSensor::OnRegister()
 {
 	Super::OnRegister();
 
-	LitCamSensor->RegisterComponent();
-	DepthCamSensor->RegisterComponent();
-	NormalCamSensor->RegisterComponent();
-	ObjMaskCamSensor->RegisterComponent();
+	if (LitCamSensor) LitCamSensor->RegisterComponent();
+	if (DepthCamSensor) DepthCamSensor->RegisterComponent();
+	if (NormalCamSensor) NormalCamSensor->RegisterComponent();
+	if (ObjMaskCamSensor) ObjMaskCamSensor->RegisterComponent();
+	if (StencilCamSensor) StencilCamSensor->RegisterComponent();
 }
 
 void UFusionCamSensor::GetLit(TArray<FColor>& LitData, int& Width, int& Height)
@@ -52,4 +57,9 @@ void UFusionCamSensor::GetNormal(TArray<FColor>& NormalData, int& Width, int& He
 void UFusionCamSensor::GetObjectMask(TArray<FColor>& ObjMaskData, int& Width, int& Height)
 {
 	this->ObjMaskCamSensor->Capture(ObjMaskData, Width, Height);
+}
+
+void UFusionCamSensor::GetStencil(TArray<FColor>& StencilData, int& Width, int& Height)
+{
+	this->StencilCamSensor->Capture(StencilData, Width, Height);
 }

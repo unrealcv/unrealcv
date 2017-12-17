@@ -2,15 +2,15 @@
 #pragma once
 
 #include "BaseCameraSensor.h"
-#include "ObjMaskCamSensor.generated.h"
+#include "VertexColorCamSensor.generated.h"
 
 UCLASS(meta = (BlueprintSpawnableComponent))
-class UObjMaskCamSensor : public UBaseCameraSensor
+class UVertexColorCamSensor : public UBaseCameraSensor
 {
     GENERATED_BODY()
 
 public:
-    UObjMaskCamSensor(const FObjectInitializer& ObjectInitializer);
+    UVertexColorCamSensor(const FObjectInitializer& ObjectInitializer);
 
     virtual void OnRegister() override;
 };

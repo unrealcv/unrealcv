@@ -1,7 +1,7 @@
 #include "UnrealCVPrivate.h"
-#include "ObjMaskCamSensor.h"
+#include "VertexColorCamSensor.h"
 
-UObjMaskCamSensor::UObjMaskCamSensor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+UVertexColorCamSensor::UVertexColorCamSensor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	this->ShowFlags.SetMaterials(false);
 	this->ShowFlags.SetLighting(false);
@@ -15,7 +15,7 @@ UObjMaskCamSensor::UObjMaskCamSensor(const FObjectInitializer& ObjectInitializer
 	// this->ShowFlags.SetRendering(false); // This will disable the rendering
 }
 
-void UObjMaskCamSensor::OnRegister()
+void UVertexColorCamSensor::OnRegister()
 {
 	Super::OnRegister();
 

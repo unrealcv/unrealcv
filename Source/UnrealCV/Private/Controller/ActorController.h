@@ -4,19 +4,17 @@
 class FActorController
 {
 public:
-    FActorController(AActor* InActor);
+	FActorController(AActor* InActor);
 
-    FRotator GetRotation();
+	FRotator GetRotation();
+	bool SetRotation(FRotator NewRotation);
 
-    FVector GetLocation();
+	FVector GetLocation();
+	bool SetLocation(FVector NewLocation);
 
-    FColor GetAnnotaionColor();
-
-    bool SetLocation(FVector NewLocation);
-
-    bool SetRotation(FRotator NewRotation);
+	// FColor GetAnnotaionColor();
 
 private:
-    AActor* Actor;
+	AActor* Actor;
 
 };

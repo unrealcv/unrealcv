@@ -9,11 +9,15 @@
 FExecStatus GetSensorList(const TArray<FString>& Args);
 
 UFusionCamSensor* GetSensor(const TArray<FString>& Args);
+FExecStatus GetSensorLocation(const TArray<FString>& Args);
+FExecStatus GetSensorRotation(const TArray<FString>& Args);
+
 FExecStatus GetSensorInfo(const TArray<FString>& Args);
 FExecStatus GetSensorDepth(const TArray<FString>& Args);
 FExecStatus GetSensorLit(const TArray<FString>& Args);
 FExecStatus GetSensorNormal(const TArray<FString>& Args);
 FExecStatus GetSensorObjMask(const TArray<FString>& Args);
+FExecStatus GetSensorStencil(const TArray<FString>& Args);
 
 void FSensorHandler::RegisterCommands()
 {
@@ -27,6 +31,18 @@ void FSensorHandler::RegisterCommands()
 		"vget /sensor/[uint]/info",
 		FDispatcherDelegate::CreateStatic(GetSensorInfo),
 		"Get sensor information"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vget /sensor/[uint]/location",
+		FDispatcherDelegate::CreateStatic(GetSensorLocation),
+		"Get sensor location in world space"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vget /sensor/[uint]/rotation",
+		FDispatcherDelegate::CreateStatic(GetSensorRotation),
+		"Get sensor rotation in world space"
 	);
 
 	CommandDispatcher->BindCommand(
@@ -51,6 +67,12 @@ void FSensorHandler::RegisterCommands()
 		"vget /sensor/[uint]/object_mask [str]",
 		FDispatcherDelegate::CreateStatic(GetSensorObjMask),
 		"Get npy binary data from depth sensor"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vget /sensor/[uint]/stencil [str]",
+		FDispatcherDelegate::CreateStatic(GetSensorStencil),
+		"Get npy binary data from stencil sensor"
 	);
 }
 
@@ -125,6 +147,26 @@ FExecStatus GetSensorInfo(const TArray<FString>& Args)
 {
 	ScreenLog("Hello World");
 	return FExecStatus::OK();
+}
+
+
+
+FExecStatus GetSensorLocation(const TArray<FString>& Args)
+{
+	UFusionCamSensor* FusionSensor = GetSensor(Args);
+	if (FusionSensor == nullptr) return FExecStatus::Error("Invalid sensor id");
+
+	FVector Location = FusionSensor->GetSensorWorldLocation();
+	return FExecStatus::OK(Location.ToString());
+}
+
+FExecStatus GetSensorRotation(const TArray<FString>& Args)
+{
+	UFusionCamSensor* FusionSensor = GetSensor(Args);
+	if (FusionSensor == nullptr) return FExecStatus::Error("Invalid sensor id");
+
+	FRotator Rotation = FusionSensor->GetSensorRotation();
+	return FExecStatus::OK(Rotation.ToString());
 }
 
 enum EFilenameType
@@ -309,6 +351,17 @@ FExecStatus GetSensorObjMask(const TArray<FString>& Args)
 			{
 				Data[i].A = 255;
 			}
+		}
+	);
+	return ExecStatus;
+}
+
+FExecStatus GetSensorStencil(const TArray<FString>& Args)
+{
+	FExecStatus ExecStatus = GetSensorData(Args,
+		[=](UFusionCamSensor* Sensor, TArray<FColor>& Data, int& Width, int& Height)
+		{
+			Sensor->GetStencil(Data, Width, Height);
 		}
 	);
 	return ExecStatus;

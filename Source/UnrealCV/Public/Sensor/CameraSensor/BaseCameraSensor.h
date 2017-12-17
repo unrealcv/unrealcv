@@ -35,12 +35,12 @@ public:
 	virtual void CaptureSlow(TArray<FColor>& ImageData, int& Width, int& Height);
 
 	UFUNCTION(BlueprintCallable, Category = "UnrealCV")
-	FString GetSensorWorldLocation();
+	FVector GetSensorWorldLocation();
 
 	UFUNCTION(BlueprintCallable, Category = "UnrealCV")
-	FString GetSensorRotation();
+	FRotator GetSensorRotation();
 
-	FString GetSensorPose();
+	// FString GetSensorPose();
 
 	/** Get the FOV of this camera */
 	FString GetSensorFOV();

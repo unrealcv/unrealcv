@@ -21,7 +21,7 @@ void UDepthCamSensor::OnRegister()
 
 	TextureTarget = NewObject<UTextureRenderTarget2D>(this);
 
-	bool bUseLinearGamma = false;
+	bool bUseLinearGamma = true;
 	// TextureTarget->InitCustomFormat(Width, Height, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
 	TextureTarget->InitCustomFormat(Width, Height, EPixelFormat::PF_FloatRGBA, bUseLinearGamma);
 

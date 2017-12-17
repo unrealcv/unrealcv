@@ -19,15 +19,19 @@ public:
 	class UDepthCamSensor* DepthCamSensor;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	class UObjMaskCamSensor* ObjMaskCamSensor;
+	class UVertexColorCamSensor* ObjMaskCamSensor;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UNormalCamSensor* NormalCamSensor;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UStencilCamSensor* StencilCamSensor;
 
 	void GetLit(TArray<FColor>& LitData, int& Width, int& Height);
 	void GetDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height);
 	void GetNormal(TArray<FColor>& NormalData, int& Width, int& Height);
 	void GetObjectMask(TArray<FColor>& ObjMaskData, int& Width, int& Height);
+	void GetStencil(TArray<FColor>& StencilData, int& Width, int& Height);
 
 	virtual void OnRegister() override;
 

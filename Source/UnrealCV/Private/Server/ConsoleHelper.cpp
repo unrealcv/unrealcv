@@ -61,7 +61,7 @@ void FConsoleHelper::VRun(const TArray<FString>& Args)
 		Cmd += Args[ArgIndex] + " ";
 	}
 	Cmd += Args[NumArgs-1]; // Maybe a more elegant implementation for joining string
-	FUE4CVServer::Get().InitWorld();
+	// FUE4CVServer::Get().InitWorld();
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
 	UE_LOG(LogUnrealCV, Warning, TEXT("vrun helper function, the real command is %s"), *Cmd);
 	// In the console mode, output should be writen to the output log.
@@ -86,7 +86,7 @@ void FConsoleHelper::VGet(const TArray<FString>& Args)
 		Cmd += Args[ArgIndex] + " ";
 	}
 	Cmd += Args[NumArgs-1]; // Maybe a more elegant implementation for joining string
-	FUE4CVServer::Get().InitWorld();
+	// FUE4CVServer::Get().InitWorld();
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
 	UE_LOG(LogUnrealCV, Warning, TEXT("vget helper function, the real command is %s"), *Cmd);
 	// In the console mode, output should be writen to the output log.
@@ -109,7 +109,7 @@ void FConsoleHelper::VSet(const TArray<FString>& Args)
 		Cmd += Args[ArgIndex] + " ";
 	}
 	Cmd += Args[NumArgs-1];
-	FUE4CVServer::Get().InitWorld();
+	// FUE4CVServer::Get().InitWorld();
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
 	// Output result to the console
 	UE_LOG(LogUnrealCV, Warning, TEXT("vset helper function, the real command is %s"), *Cmd);

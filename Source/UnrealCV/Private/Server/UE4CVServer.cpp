@@ -18,9 +18,9 @@ void FUE4CVServer::Tick(float DeltaTime)
 	// Spawn a AUE4CVWorldController, which is responsible for modifying the world to add UnrealCV functions.
 	// TODO: Check whether stopping the game will reset this ptr?
 	UWorld* GameWorld = GetGameWorld();
-	if (GameWorld && !UE4CVWorldController.IsValid())
+	if (GameWorld && !WorldController.IsValid())
 	{
-		this->UE4CVWorldController = Cast<AUE4CVWorldController>(GameWorld->SpawnActor(AUE4CVWorldController::StaticClass()));
+		this->WorldController = Cast<AUE4CVWorldController>(GameWorld->SpawnActor(AUE4CVWorldController::StaticClass()));
 		// Its BeginPlay event will extend the GameWorld
 	}
 
@@ -136,6 +136,7 @@ UWorld* FUE4CVServer::GetGameWorld()
 /**
  * Make sure the UE4CVServer is correctly configured.
  */
+/* TODO: Make sure the BeginPlay or UE4CVWorldController did exactlly the same thing
 bool FUE4CVServer::InitWorld()
 {
 	UWorld *World = GetGameWorld();
@@ -167,36 +168,37 @@ bool FUE4CVServer::InitWorld()
 	}
 	return true;
 }
+*/
 
-void FUE4CVServer::UpdateInput(bool Enable)
-{
-	APlayerController* PlayerController = GetGameWorld()->GetFirstPlayerController();
-	check(PlayerController);
-	if (Enable)
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("Enabling input"));
-		PlayerController->GetPawn()->EnableInput(PlayerController);
-	}
-	else
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("Disabling input"));
-		PlayerController->GetPawn()->DisableInput(PlayerController);
-	}
-}
+// void FUE4CVServer::UpdateInput(bool Enable)
+// {
+// 	APlayerController* PlayerController = GetGameWorld()->GetFirstPlayerController();
+// 	check(PlayerController);
+// 	if (Enable)
+// 	{
+// 		UE_LOG(LogUnrealCV, Warning, TEXT("Enabling input"));
+// 		PlayerController->GetPawn()->EnableInput(PlayerController);
+// 	}
+// 	else
+// 	{
+// 		UE_LOG(LogUnrealCV, Warning, TEXT("Disabling input"));
+// 		PlayerController->GetPawn()->DisableInput(PlayerController);
+// 	}
+// }
 
-void FUE4CVServer::OpenLevel(FName LevelName)
-{
-	UGameplayStatics::OpenLevel(GetGameWorld(), LevelName);
-	UGameplayStatics::FlushLevelStreaming(GetGameWorld());
-	UE_LOG(LogUnrealCV, Warning, TEXT("Level loaded"));
-}
+// void FUE4CVServer::OpenLevel(FName LevelName)
+// {
+// 	UGameplayStatics::OpenLevel(GetGameWorld(), LevelName);
+// 	UGameplayStatics::FlushLevelStreaming(GetGameWorld());
+// 	UE_LOG(LogUnrealCV, Warning, TEXT("Level loaded"));
+// }
 
 // Each tick of GameThread.
 void FUE4CVServer::ProcessPendingRequest()
 {
 	while (!PendingRequest.IsEmpty())
 	{
-		if (!InitWorld()) break;
+		// if (!InitWorld()) break;
 
 		FRequest Request;
 		bool DequeueStatus = PendingRequest.Dequeue(Request);
