@@ -30,17 +30,19 @@ void FUE4CVServer::Tick(float DeltaTime)
 /** Only available during game play */
 APawn* FUE4CVServer::GetPawn()
 {
-	static UWorld* CurrentWorld = nullptr;
 	UWorld* World = GetGameWorld();
-	if (CurrentWorld != World)
+	if (World)
 	{
 		APlayerController* PlayerController = World->GetFirstPlayerController();
 		check(PlayerController);
 		Pawn = PlayerController->GetPawn();
 		check(Pawn);
-		CurrentWorld = World;
+		return Pawn;
 	}
-	return Pawn;
+	else
+	{
+		return nullptr;
+	}
 }
 
 FUE4CVServer& FUE4CVServer::Get()

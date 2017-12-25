@@ -19,6 +19,8 @@ FExecStatus GetSensorNormal(const TArray<FString>& Args);
 FExecStatus GetSensorObjMask(const TArray<FString>& Args);
 FExecStatus GetSensorStencil(const TArray<FString>& Args);
 
+FExecStatus GetScreenshot(const TArray<FString>& Args);
+
 void FSensorHandler::RegisterCommands()
 {
 	 CommandDispatcher->BindCommand(
@@ -74,6 +76,12 @@ void FSensorHandler::RegisterCommands()
 		FDispatcherDelegate::CreateStatic(GetSensorStencil),
 		"Get npy binary data from stencil sensor"
 	);
+
+	CommandDispatcher->BindCommand(
+		"vget /screenshot [str]",
+		FDispatcherDelegate::CreateStatic(GetScreenshot),
+		"Get screenshot"
+	);
 }
 
 // TODO: Move this to a function library
@@ -95,6 +103,7 @@ FString WorldTypeStr(EWorldType::Type WorldType)
 TArray<UFusionCamSensor*> GetFusionSensorList(UWorld* World)
 {
 	TArray<UFusionCamSensor*> SensorList;
+	if (!World) return SensorList;
 	TArray<UActorComponent*> PawnComponents =  FUE4CVServer::Get().GetPawn()->GetComponentsByClass(UFusionCamSensor::StaticClass());
 	// Make sure the one attached to the pawn is the first one.
 	for (UActorComponent* FusionCamSensor : PawnComponents)
@@ -140,6 +149,7 @@ UFusionCamSensor* GetSensor(const TArray<FString>& Args)
 {
 	TArray<UFusionCamSensor*> SensorList = GetFusionSensorList(FUE4CVServer::Get().GetGameWorld());
 	int SensorIndex = FCString::Atoi(*Args[0]);
+	if (SensorIndex < 0 || SensorIndex >= SensorList.Num()) return nullptr;
 	return SensorList[SensorIndex];
 }
 
@@ -255,7 +265,7 @@ FExecStatus SerializeFloatData(const TArray<FFloat16Color>& Data, int Width, int
 
 /** Get data from a sensor, with correct exception handling */
 FExecStatus GetSensorData(const TArray<FString>& Args,
-	TFunction<void(UFusionCamSensor*, TArray<FColor>&, int&, int&)> GetFunction)
+	TFunction<void(UFusionCamSensor*, TArray<FColor>&, int&, int&)> GetDataFunction)
 {
 	UFusionCamSensor* FusionSensor = GetSensor(Args);
 	if (FusionSensor == nullptr)
@@ -270,7 +280,7 @@ FExecStatus GetSensorData(const TArray<FString>& Args,
 	FString Filename = Args[1];
 	TArray<FColor> Data;
 	int Width, Height;
-	GetFunction(FusionSensor, Data, Width, Height);
+	GetDataFunction(FusionSensor, Data, Width, Height);
 	if (Data.Num() == 0)
 	{
 		return FExecStatus::Error("Captured data is empty");
@@ -364,5 +374,34 @@ FExecStatus GetSensorStencil(const TArray<FString>& Args)
 			Sensor->GetStencil(Data, Width, Height);
 		}
 	);
+	return ExecStatus;
+}
+
+
+/** vget /screenshot [filename] */
+FExecStatus GetScreenshot(const TArray<FString>& Args)
+{
+	FString Filename = Args[0];
+
+	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	UGameViewportClient* ViewportClient = World->GetGameViewport();
+
+	bool bScreenshotSuccessful = false;
+	FViewport* InViewport = ViewportClient->Viewport;
+	ViewportClient->GetEngineShowFlags()->SetMotionBlur(false);
+	FIntVector Size(InViewport->GetSizeXY().X, InViewport->GetSizeXY().Y, 0);
+
+	TArray<FColor> Bitmap;
+	bScreenshotSuccessful = GetViewportScreenShot(InViewport, Bitmap);
+	// InViewport->ReadFloat16Pixels
+
+	// Ensure that all pixels' alpha is set to 255
+	for (auto& Color : Bitmap)
+	{
+		Color.A = 255;
+	}
+	// TODO: Need to blend alpha, a bit weird from screen.
+
+	FExecStatus ExecStatus = SerializeData(Bitmap, Size.X, Size.Y, Filename);
 	return ExecStatus;
 }

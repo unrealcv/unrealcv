@@ -10,10 +10,11 @@ public:
 	/** Annotate all StaticMesh actor in the world */
 	void AnnotateStaticMesh();
 
-	// void SetObjectColor(FString ObjId, const FColor& AnnotationColor);
-	void SetObjectColor(AActor* Actor, const FColor& AnnotationColor);
-	// void GetObjectColor(FString ObjId, FColor& AnnotationColor);
-	void GetObjectColor(AActor* Actor, FColor& AnnotationColor);
+	bool SetAnnotationColor(AActor* Actor, const FColor& AnnotationColor);
+	bool GetAnnotationColor(AActor* Actor, FColor& AnnotationColor);
+
+	bool SetVertexColor(AActor* Actor, const FColor& AnnotationColor);
+	bool GetVertexColor(AActor* Actor, FColor& AnnotationColor);
 	// void SetObjectStencilId(FString ObjectId, const uint8 StencilId);
 	// void GetObjectStencilId(FString ObjectId, uint8& StencilId);
 	void SetObjectStencilId(AActor* Actor, const uint8 StencilId);
@@ -24,10 +25,9 @@ public:
 	/** Load the annotation for each object */
 	void LoadAnnotation(FString JsonFilename);
 
+	/** Assign a unique new color for this object */
+	FColor GetDefaultColor(AActor* Actor);
+
 private:
 	TMap<FString, FColor> AnnotationColors;
-
-	/** Assign a unique new color for this object */
-	void InitObjInstanceColor(AActor* Actor, FColor& AnnotationColor);
-
 };

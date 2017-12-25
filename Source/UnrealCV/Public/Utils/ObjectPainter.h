@@ -1,8 +1,7 @@
 #pragma once
 
 #include "ExecStatus.h"
-/*
-* Annotate objects in the scene with a unique color
+/** [Deprecated] Annotate objects in the scene with a unique color
 * Used to paint vertex color
 */
 class UNREALCV_API FObjectPainter

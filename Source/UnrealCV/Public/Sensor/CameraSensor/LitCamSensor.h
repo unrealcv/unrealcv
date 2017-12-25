@@ -5,6 +5,7 @@
 #include "BaseCameraSensor.h"
 #include "LitCamSensor.generated.h"
 
+/** RGB color sensor */
 UCLASS(meta = (BlueprintSpawnableComponent))
 class ULitCamSensor : public UBaseCameraSensor
 {

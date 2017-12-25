@@ -10,7 +10,7 @@ void TestSensorBasic();
 void TestSensorList();
 void TestCameraBasic();
 void TestBPControl();
-void TestAnnotator();
+void TestAnnotator(const TArray<FString>& Args);
 
 TArray<AActor*> GetActorPtrList(UWorld* World);
 
@@ -51,7 +51,8 @@ void ATestActor::BeginPlay()
 	IConsoleManager::Get().RegisterConsoleCommand(
 		TEXT("TestAnnotator"),
 		TEXT("Test the object instance annotation color"),
-		FConsoleCommandDelegate::CreateStatic(TestAnnotator)
+		FConsoleCommandWithArgsDelegate::CreateStatic(TestAnnotator)
+		// FConsoleCommandDelegate::CreateStatic(TestAnnotator)
 	);
 
 	IConsoleObject* Benchmark = IConsoleManager::Get().RegisterConsoleCommand(
@@ -149,9 +150,9 @@ void TestBPControl()
 	ExecCommand(TEXT(""));
 }
 
-void TestAnnotator()
+void TestAnnotator(const TArray<FString>& Args)
 {
-	ExecCommand(TEXT("vset /viewmode object_mask"));
+	// ExecCommand(TEXT("vset /viewmode object_mask"));
 	UWorld* World = FUE4CVServer::Get().GetGameWorld();
 	TArray<AActor*> Actors = GetActorPtrList(World);
 
@@ -182,11 +183,18 @@ void TestAnnotator()
 		// FColor AnnotationColor = FColor::Red;
 		// FColor AnnotationColor = GetColorFromColorMap(ObjectIndex);
 		FColor AnnotationColor = FColor(64, 128, 196);
+		if (Args.Num() == 3)
+		{
+			AnnotationColor = FColor(
+				FCString::Atoi(*Args[0]), 
+				FCString::Atoi(*Args[1]), 
+				FCString::Atoi(*Args[2]));
+		}
 		AnnotationColor.A = 0;
 		for (AActor* Actor : Actors)
 		{
 			// Annotator.SetObjInstanceColor(ObjectId, AnnotationColor);
-			Annotator.SetObjectColor(Actor, AnnotationColor);
+			Annotator.SetAnnotationColor(Actor, AnnotationColor);
 		}
 
 		LastFrameColor = AnnotationColor;
@@ -199,8 +207,7 @@ void TestAnnotator()
     //
 	// FColor AnnotationColor;
 	// Annotator.GetObjInstanceColor(ObjectId, AnnotationColor);
-
-	ExecCommand(TEXT("vget /sensor/0/object_mask png"));
+	// ExecCommand(TEXT("vget /sensor/0/object_mask png"));
 }
 
 

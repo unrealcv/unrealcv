@@ -5,6 +5,7 @@
 #include "BaseCameraSensor.h"
 #include "NormalCamSensor.generated.h"
 
+/** Surface normal sensor */
 UCLASS(meta = (BlueprintSpawnableComponent))
 class UNormalCamSensor : public UBaseCameraSensor
 {

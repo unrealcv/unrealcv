@@ -1,5 +1,6 @@
 #include "UnrealCVPrivate.h"
 #include "AliasHandler.h"
+#include "UObjectUtils.h"
 
 void FAliasCommandHandler::RegisterCommands()
 {
@@ -11,6 +12,9 @@ void FAliasCommandHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vrun [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vrun [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vrun [str] [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vrun [str] [str] [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vrun [str] [str] [str] [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vrun [str] [str] [str] [str] [str] [str]", Cmd, Help);
 	// vexec ActorId FuncName Params
 	Help = "Run UE4 blueprint function";
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasCommandHandler::VExec);
@@ -40,31 +44,7 @@ FExecStatus FAliasCommandHandler::VRun(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
-AActor* GetActorById(UWorld* World, FString ActorId)
-{
-	for (TActorIterator<AActor> ActorItr(World); ActorItr; ++ActorItr)
-	{
-		AActor* Actor = *ActorItr;
-		if (Actor->GetWorld() == World && Actor->GetName() == ActorId)
-		{
-			return Actor;
-		}
-	}
-	return nullptr;
-}
 
-UObject* GetObjectById(UWorld* World, FString ObjectId)
-{
-	for (TObjectIterator<UObject> ObjItr; ObjItr; ++ObjItr)
-	{
-		UObject* Obj = *ObjItr;
-		if (Obj->GetWorld() == World && Obj->GetName() == ObjectId)
-		{
-			return Obj;
-		}
-	}
-	return nullptr;
-}
 
 FExecStatus FAliasCommandHandler::VExec(const TArray<FString>& Args)
 {
@@ -81,7 +61,7 @@ FExecStatus FAliasCommandHandler::VExec(const TArray<FString>& Args)
 	{
 		ActorId = Args[0];
 	}
-	
+
 	if (Args.Num() < 2)
 	{
 		return FExecStatus::Error("The blueprint function name can not be empty.");
@@ -128,14 +108,14 @@ FExecStatus FAliasCommandHandler::VExec(const TArray<FString>& Args)
 	UWorld* MyWorld = Obj->GetWorld();
 	//check((
 	//		(MyWorld && (
-	//					MyWorld->AreActorsInitialized() 
+	//					MyWorld->AreActorsInitialized()
 	//					|| bAllowScriptExecution
 	//					)
-	//		) 
-	//		|| 
+	//		)
+	//		||
 	//		Obj->HasAnyFlags(RF_ClassDefaultObject)
-	//		) 
-	//		&& 
+	//		)
+	//		&&
 	//		!Obj->IsGarbageCollecting()
 	//	);
 	if (MyWorld->AreActorsInitialized() == false)
@@ -143,7 +123,7 @@ FExecStatus FAliasCommandHandler::VExec(const TArray<FString>& Args)
 		UE_LOG(LogUnrealCV, Error, TEXT("Actors of the world are not initialized, the vexec might fail."));
 	}
 
-	if (Obj->CallFunctionByNameWithArguments(*Cmd, OutputDevice, nullptr, true))	
+	if (Obj->CallFunctionByNameWithArguments(*Cmd, OutputDevice, nullptr, true))
 	{
 		return FExecStatus::OK();
 	}

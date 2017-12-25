@@ -13,15 +13,34 @@ FObjectAnnotator::FObjectAnnotator()
 /** Annotate all static mesh in the world */
 void FObjectAnnotator::AnnotateStaticMesh()
 {
-	for (TActorIterator<AStaticMeshActor> ActorItr(FUE4CVServer::Get().GetGameWorld()); ActorItr; ++ActorItr)
+	for (TActorIterator<AActor> ActorItr(FUE4CVServer::Get().GetGameWorld()); ActorItr; ++ActorItr)
 	{
-		AStaticMeshActor *Actor = *ActorItr;
-		FColor AnnotationColor;
-		InitObjInstanceColor(Actor, AnnotationColor);
+		AActor *Actor = *ActorItr;
+		FColor AnnotationColor = GetDefaultColor(Actor);
+
+		// Use VertexColor as annotation
+		FVertexColorPainter::PaintVertexColor(Actor, AnnotationColor);
+
+		TArray<UActorComponent*> AnnotationComponents = Actor->GetComponentsByClass(UAnnotationComponent::StaticClass());
+		if (AnnotationComponents.Num() != 0)
+		{
+			continue; // Do not overwrite already annotated object
+		}
+
+		// Use AnnotationComponent as annotation
+		TArray<UActorComponent*> StaticMeshComponents = Actor->GetComponentsByClass(UStaticMeshComponent::StaticClass());
+		for (UActorComponent* Component : StaticMeshComponents)
+		{
+			UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(Component);
+			UAnnotationComponent* AnnotationComponent = NewObject<UAnnotationComponent>(StaticMeshComponent);
+			AnnotationComponent->AnnotationColor = AnnotationColor;
+			AnnotationComponent->SetupAttachment(StaticMeshComponent);
+			AnnotationComponent->RegisterComponent();
+		}
 	}
 }
 
-void FObjectAnnotator::InitObjInstanceColor(AActor* Actor, FColor& AnnotationColor)
+FColor FObjectAnnotator::GetDefaultColor(AActor* Actor)
 {
 	TArray<FString> AnnotatedObjects;
 	AnnotationColors.GetKeys(AnnotatedObjects);
@@ -30,36 +49,52 @@ void FObjectAnnotator::InitObjInstanceColor(AActor* Actor, FColor& AnnotationCol
 	if (AnnotatedObjects.Contains(ActorName))
 	{
 		// Already initialized
-		return;
+		return AnnotationColors[ActorName];
 	}
 
 	int ColorIndex = AnnotatedObjects.Num();
-	AnnotationColor = GetColorFromColorMap(ColorIndex);
-	FVertexColorPainter::PaintVertexColor(Actor, AnnotationColor);
+	FColor AnnotationColor = GetColorFromColorMap(ColorIndex);
 
 	// CHECK: Add the annotation color regardless successful or not
 	AnnotationColors.Emplace(ActorName, AnnotationColor);
+	return AnnotationColor;
 }
 
-// void FObjectAnnotator::SetObjectColor(FString ObjId, const FColor& AnnotationColor)
-// {
-// 	// Get Actor Pointer
-//
-// }
-// void FObjectAnnotator::GetObjectColor(FString ObjId, FColor& AnnotationColor)
-// {
-//
-// }
+bool FObjectAnnotator::SetAnnotationColor(AActor* Actor, const FColor& AnnotationColor)
+{
+	TArray<UActorComponent*> AnnotationComponents = Actor->GetComponentsByClass(UAnnotationComponent::StaticClass());
+	for (UActorComponent* Component : AnnotationComponents)
+	{
+		UAnnotationComponent* AnnotationComponent = Cast<UAnnotationComponent>(Component);
+		AnnotationComponent->AnnotationColor = AnnotationColor;
+		AnnotationComponent->MarkRenderStateDirty();
+	}
+	return true;
+}
 
-void FObjectAnnotator::SetObjectColor(AActor* Actor, const FColor& AnnotationColor)
+bool FObjectAnnotator::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor)
+{
+	TArray<UActorComponent*> AnnotationComponents = Actor->GetComponentsByClass(UAnnotationComponent::StaticClass());
+	for (UActorComponent* Component : AnnotationComponents)
+	{
+		UAnnotationComponent* AnnotationComponent = Cast<UAnnotationComponent>(Component);
+		AnnotationColor = AnnotationComponent->AnnotationColor;
+		return true;
+		// Assume all annotation components of an actor has the same color
+	}
+	return false;
+}
+
+bool FObjectAnnotator::SetVertexColor(AActor* Actor, const FColor& AnnotationColor)
 {
 	FVertexColorPainter::PaintVertexColor(Actor, AnnotationColor);
+	return true;
 }
 
 
-void FObjectAnnotator::GetObjectColor(AActor* Actor, FColor& AnnotationColor)
+bool FObjectAnnotator::GetVertexColor(AActor* Actor, FColor& AnnotationColor)
 {
-
+	return true;
 }
 
 void FObjectAnnotator::SaveAnnotation(FString JsonFilename)

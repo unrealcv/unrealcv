@@ -1,6 +1,7 @@
 #pragma once
 #include "GTCaptureComponent.h"
 
+/** [Deprecated] Manage all cameras of the scene */
 class FCaptureManager
 {
 private:

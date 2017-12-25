@@ -14,7 +14,7 @@ struct FGTCaptureTask
 		Mode(InMode), Filename(InFilename), CurrentFrame(InCurrentFrame), AsyncRecord(InAsyncRecord) {}
 };
 
-/**
+/** [Deprecated]
  * Use USceneCaptureComponent2D to export information from the scene.
  * This class needs to be tickable to update the rotation of the USceneCaptureComponent2D
  */

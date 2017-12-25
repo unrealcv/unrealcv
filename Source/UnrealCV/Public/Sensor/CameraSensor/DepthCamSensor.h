@@ -4,6 +4,8 @@
 #include "BaseCameraSensor.h"
 #include "DepthCamSensor.generated.h"
 
+/** Depth sensor
+*/
 UCLASS(meta = (BlueprintSpawnableComponent))
 class UDepthCamSensor : public UBaseCameraSensor
 {

@@ -27,6 +27,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UStencilCamSensor* StencilCamSensor;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UAnnotationCamSensor* AnnotationCamSensor;
+
 	void GetLit(TArray<FColor>& LitData, int& Width, int& Height);
 	void GetDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height);
 	void GetNormal(TArray<FColor>& NormalData, int& Width, int& Height);

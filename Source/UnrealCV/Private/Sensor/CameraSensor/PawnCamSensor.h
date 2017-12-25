@@ -4,6 +4,7 @@
 #include "FusionCamSensor.h"
 #include "PawnCamSensor.generated.h"
 
+/** Sensor to be attached to the player's view */
 UCLASS(meta = (BlueprintSpawnableComponent))
 class UPawnCamSensor : public UFusionCamSensor
 {
