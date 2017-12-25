@@ -9,6 +9,7 @@
 #include "VertexColorCamSensor.h"
 #include "NormalCamSensor.h"
 #include "StencilCamSensor.h"
+#include "AnnotationCamSensor.h"
 
 UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -24,6 +25,8 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	ObjMaskCamSensor->SetupAttachment(this);
 	StencilCamSensor = CreateDefaultSubobject<UStencilCamSensor>("StencilCamSensor");
 	StencilCamSensor->SetupAttachment(this);
+	AnnotationCamSensor = CreateDefaultSubobject<UAnnotationCamSensor>("AnnotationComponent");
+	AnnotationCamSensor->SetupAttachment(this);
 }
 
 void UFusionCamSensor::OnRegister()
@@ -35,6 +38,7 @@ void UFusionCamSensor::OnRegister()
 	if (NormalCamSensor) NormalCamSensor->RegisterComponent();
 	if (ObjMaskCamSensor) ObjMaskCamSensor->RegisterComponent();
 	if (StencilCamSensor) StencilCamSensor->RegisterComponent();
+	if (AnnotationCamSensor) AnnotationCamSensor->RegisterComponent();
 }
 
 void UFusionCamSensor::GetLit(TArray<FColor>& LitData, int& Width, int& Height)
@@ -56,7 +60,8 @@ void UFusionCamSensor::GetNormal(TArray<FColor>& NormalData, int& Width, int& He
 
 void UFusionCamSensor::GetObjectMask(TArray<FColor>& ObjMaskData, int& Width, int& Height)
 {
-	this->ObjMaskCamSensor->Capture(ObjMaskData, Width, Height);
+	// this->ObjMaskCamSensor->Capture(ObjMaskData, Width, Height);
+	this->AnnotationCamSensor->Capture(ObjMaskData, Width, Height);
 }
 
 void UFusionCamSensor::GetStencil(TArray<FColor>& StencilData, int& Width, int& Height)
