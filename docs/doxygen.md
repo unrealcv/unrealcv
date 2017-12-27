@@ -12,3 +12,7 @@ FCommandHandler to handle commands.
 FSkeletonSensor
 
 FVertexSensor
+
+This is the API documentation of UnrealCV.
+
+If you want to implement a new command, please start from FUE4CVServer

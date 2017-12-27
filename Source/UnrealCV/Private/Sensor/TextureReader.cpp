@@ -57,7 +57,11 @@ bool FastReadTexture2DAsync(FTexture2DRHIRef Texture2D, TFunction<void(FColor*, 
 			CreateInfo
 		);
 
-		check(ReadbackTexture->GetFormat() == SrcTexture->GetFormat());
+		if (ReadbackTexture->GetFormat() != SrcTexture->GetFormat())
+		{
+			UE_LOG(LogUnrealCV, Warning, TEXT("ReadbackTexture and SrcTexture are different"));
+			return;
+		}
 		void* ColorDataBuffer = nullptr;
 		int32 Width = 0, Height = 0;
 
@@ -114,7 +118,11 @@ bool ResizeFastReadTexture2DAsync(FTexture2DRHIRef Texture2D, int TargetWidth, i
 
 		// IRendererModule RendererModule;
 		RendererModule->RenderTargetPoolFindFreeElement(RHICmdList, OutputDesc, ResampleTexturePooledRenderTarget, TEXT("ResampleTexture"));
-		check(ResampleTexturePooledRenderTarget);
+		if (!ResampleTexturePooledRenderTarget)
+		{
+			UE_LOG(LogUnrealCV, Warning, TEXT("ResampleTexturePooledRenderTarget is invalid"));
+			return;
+		}
 
 		const FSceneRenderTargetItem& DestRenderTarget = ResampleTexturePooledRenderTarget->GetRenderTargetItem();
 
@@ -166,7 +174,11 @@ bool ResizeFastReadTexture2DAsync(FTexture2DRHIRef Texture2D, int TargetWidth, i
 			CreateInfo
 		);
 
-		check(ReadbackTexture->GetFormat() == DestRenderTarget.TargetableTexture->GetFormat());
+		if (ReadbackTexture->GetFormat() != DestRenderTarget.TargetableTexture->GetFormat())
+		{
+			UE_LOG(LogUnrealCV, Warning, TEXT("ReadbackTexture and DestRenderTarget have different formats"));
+			return;
+		}
 		// Need to be the same for the copy operation, otherwise it will fail silently
 
 		FResolveParams ResolveParams;
@@ -179,7 +191,6 @@ bool ResizeFastReadTexture2DAsync(FTexture2DRHIRef Texture2D, int TargetWidth, i
 		void* ColorDataBuffer = nullptr;
 		int32 Width = 0, Height = 0;
 		RHICmdList.MapStagingSurface(ReadbackTexture, ColorDataBuffer, Width, Height);
-		// check(ColorDataBuffer != nullptr && Width != 0 && Height != 0);
 
 		FColor* ColorBuffer = reinterpret_cast<FColor*>(ColorDataBuffer);
 		Callback(ColorBuffer, Width, Height);
