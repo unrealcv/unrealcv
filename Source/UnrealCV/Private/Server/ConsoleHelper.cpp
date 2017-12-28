@@ -2,6 +2,29 @@
 #include "UE4CVServer.h"
 #include "ConsoleHelper.h"
 
+void FConsoleHelper::VBp(const TArray<FString>& Args)
+{
+	if (CommandDispatcher == nullptr)
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set"));
+	}
+	FString Cmd = "vbp ";
+	uint32 NumArgs = Args.Num();
+	if (NumArgs == 0) return;
+
+	for (uint32 ArgIndex = 0; ArgIndex < NumArgs-1; ArgIndex++)
+	{
+		Cmd += Args[ArgIndex] + " ";
+	}
+	Cmd += Args[NumArgs-1];
+	
+	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
+	UE_LOG(LogUnrealCV, Warning, TEXT("vbp helper function, the real command is %s"), *Cmd);
+	// In the console mode, output should be writen to the output log.
+	UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *ExecStatus.GetMessage());
+	GetConsole()->Log(ExecStatus.GetMessage());
+}
+
 FConsoleHelper::FConsoleHelper()
 {
 	// Add Unreal Console Support
@@ -27,6 +50,14 @@ FConsoleHelper::FConsoleHelper()
 		TEXT("vexec"),
 		TEXT("Exec Blueprint Function"),
 		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FConsoleHelper::VExec)
+		);
+
+	// TODO: Simplify this file
+	IConsoleObject* VBpCmd = IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("vbp"),
+		TEXT("Exec Blueprint Function"),
+		// FConsoleCommandWithArgsDelegate::CreateStatic(VBp)
+		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FConsoleHelper::VBp)
 		);
 }
 

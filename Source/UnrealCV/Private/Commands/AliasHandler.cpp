@@ -24,6 +24,14 @@ void FAliasCommandHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasCommandHandler::VExecWithOutput);
+	CommandDispatcher->BindCommand("vbp [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vbp [str] [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
 }
 
 FExecStatus FAliasCommandHandler::VRun(const TArray<FString>& Args)
@@ -44,7 +52,208 @@ FExecStatus FAliasCommandHandler::VRun(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
+FExecStatus FAliasCommandHandler::VExecWithOutput(const TArray<FString>& Args)
+{
+	FString ActorId, FuncName;
+	if (Args.Num() < 1) return FExecStatus::Error("The ActorId can not be empty.");
 
+	ActorId = Args[0];
+
+	if (Args.Num() < 2) return FExecStatus::Error("The blueprint function name can not be empty.");
+
+	FuncName = Args[1];
+
+	UWorld* World;
+	World = this->GetWorld();
+	// AActor* Actor = GetActorById(World, ActorId);
+	UObject* Obj = GetObjectById(World, ActorId);
+
+	if (Obj == nullptr) return FExecStatus::Error(FString::Printf(TEXT("Can not find actor with id '%s'"), *ActorId));
+
+	FString Cmd = FuncName;
+	int ArgId = 2;
+	while (ArgId < Args.Num())
+	{
+		Cmd += FString::Printf(TEXT(" %s"), *Args[ArgId]);
+		ArgId++;
+	}
+
+	FConsoleOutputDevice OutputDevice(FUE4CVServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
+
+
+	// if (Obj->CallFunctionByNameWithArguments(*Cmd, OutputDevice, nullptr, true))
+	// {
+	// 	return FExecStatus::OK();
+	// }
+	// else
+	// {
+	// 	return FExecStatus::Error(FString::Printf(TEXT("Fail to execute the function '%s' of %s"), *Cmd, *ActorId));
+	// }
+
+	const TCHAR* Str = *Cmd;
+	FOutputDevice& Ar = OutputDevice;
+	UObject* Executor = nullptr;
+	bool bForceCallWithNonExec = true;/*=false*/
+
+	// Find an exec function.
+	FString MsgStr;
+	if(!FParse::Token(Str,MsgStr,true))
+	{
+		return FExecStatus::InvalidArgument;
+	}
+	const FName Message = FName(*MsgStr,FNAME_Find);
+	if(Message == NAME_None)
+	{
+		return FExecStatus::InvalidArgument;
+	}
+	UFunction* Function = Obj->FindFunction(Message);
+	if(nullptr == Function)
+	{
+		return FExecStatus::InvalidArgument;
+	}
+	if(0 == (Function->FunctionFlags & FUNC_Exec) && !bForceCallWithNonExec)
+	{
+		return FExecStatus::InvalidArgument;
+	}
+
+	UProperty* LastParameter = nullptr;
+
+	// find the last parameter
+	for ( TFieldIterator<UProperty> It(Function); It && (It->PropertyFlags&(CPF_Parm|CPF_ReturnParm)) == CPF_Parm; ++It )
+	{
+		LastParameter = *It;
+	}
+
+	// Parse all function parameters.
+	uint8* Parms = (uint8*)FMemory_Alloca(Function->ParmsSize);
+	FMemory::Memzero( Parms, Function->ParmsSize );
+
+	for (TFieldIterator<UProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+	{
+		UProperty* LocalProp = *It;
+		checkSlow(LocalProp);
+		if (!LocalProp->HasAnyPropertyFlags(CPF_ZeroConstructor))
+		{
+			LocalProp->InitializeValue_InContainer(Parms);
+		}
+	}
+
+	const uint32 ExportFlags = PPF_None;
+	bool bFailed = 0;
+	int32 NumParamsEvaluated = 0;
+	for( TFieldIterator<UProperty> It(Function); It && (It->PropertyFlags & (CPF_Parm|CPF_ReturnParm))==CPF_Parm; ++It, NumParamsEvaluated++ )
+	{
+		UProperty* PropertyParam = *It;
+		checkSlow(PropertyParam); // Fix static analysis warning
+		if (NumParamsEvaluated == 0 && Executor)
+		{
+			UObjectPropertyBase* Op = dynamic_cast<UObjectPropertyBase*>(*It);
+			if( Op && Executor->IsA(Op->PropertyClass) )
+			{
+				// First parameter is implicit reference to object executing the command.
+				Op->SetObjectPropertyValue(Op->ContainerPtrToValuePtr<uint8>(Parms), Executor);
+				continue;
+			}
+		}
+
+		// Keep old string around in case we need to pass the whole remaining string
+		const TCHAR* RemainingStr = Str;
+
+		// Parse a new argument out of Str
+		FString ArgStr;
+		FParse::Token(Str, ArgStr, true);
+
+		// if ArgStr is empty but we have more params to read parse the function to see if these have defaults, if so set them
+		bool bFoundDefault = false;
+		bool bFailedImport = true;
+	#if WITH_EDITOR
+		if (!FCString::Strcmp(*ArgStr, TEXT("")))
+		{
+			const FName DefaultPropertyKey(*(FString(TEXT("CPP_Default_")) + PropertyParam->GetName()));
+			const FString& PropertyDefaultValue = Function->GetMetaData(DefaultPropertyKey);
+			if (!PropertyDefaultValue.IsEmpty())
+			{
+				bFoundDefault = true;
+
+				const TCHAR* Result = It->ImportText( *PropertyDefaultValue, It->ContainerPtrToValuePtr<uint8>(Parms), ExportFlags, NULL );
+				bFailedImport = (Result == nullptr);
+			}
+		}
+	#endif
+
+		if (!bFoundDefault)
+		{
+			// if this is the last string property and we have remaining arguments to process, we have to assume that this
+			// is a sub-command that will be passed to another exec (like "cheat giveall weapons", for example). Therefore
+			// we need to use the whole remaining string as an argument, regardless of quotes, spaces etc.
+			if (PropertyParam == LastParameter && PropertyParam->IsA<UStrProperty>() && FCString::Strcmp(Str, TEXT("")) != 0)
+			{
+				ArgStr = FString(RemainingStr).Trim();
+			}
+
+			const TCHAR* Result = It->ImportText(*ArgStr, It->ContainerPtrToValuePtr<uint8>(Parms), ExportFlags, NULL );
+			bFailedImport = (Result == nullptr);
+		}
+
+		if( bFailedImport )
+		{
+			FFormatNamedArguments Arguments;
+			Arguments.Add(TEXT("Message"), FText::FromName( Message ));
+			Arguments.Add(TEXT("PropertyName"), FText::FromName(It->GetFName()));
+			Arguments.Add(TEXT("FunctionName"), FText::FromName(Function->GetFName()));
+			Ar.Logf( TEXT("%s"), *FText::Format( NSLOCTEXT( "Core", "BadProperty", "'{Message}': Bad or missing property '{PropertyName}' when trying to call {FunctionName}" ), Arguments ).ToString() );
+			bFailed = true;
+
+			break;
+		}
+	}
+
+	if( !bFailed )
+	{
+		Obj->ProcessEvent( Function, Parms );
+	}
+
+	
+	// https://answers.unrealengine.com/questions/139582/get-property-value.html
+	// https://answers.unrealengine.com/questions/301428/set-string-for-fstring-via-uproperty.html
+	// for (TFieldIterator<UIntProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_ReturnParm); ++It)
+	for (TFieldIterator<UIntProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+	{
+		FString CPPType = It->GetCPPType();
+		// float Target;
+		// It->CopyCompleteValue_InContainer(&Dest, Parms);
+		int Value = It->GetPropertyValue_InContainer(Parms);
+	}
+
+	// for (TFieldIterator<UNumericProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_ReturnParm); ++It)
+	for (TFieldIterator<UNumericProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+	{
+		FString CPPType = It->GetCPPType();
+		// float Target;
+		// It->CopyCompleteValue_InContainer(&Dest, Parms);
+		FString Value = It->GetNumericPropertyValueToString(Parms);
+	}
+
+	// CPF_OutParm, use this flag check!
+	for (TFieldIterator<UStrProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+	{
+		FString CPPType = It->GetCPPType();
+		// float Target;
+		// It->CopyCompleteValue_InContainer(&Dest, Parms);
+		FString Value = It->GetPropertyValue_InContainer(Parms);
+	}
+
+
+	//!!destructframe see also UObject::ProcessEvent
+	for( TFieldIterator<UProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It )
+	{
+		It->DestroyValue_InContainer(Parms);
+	}
+
+	// Success.
+	return FExecStatus::OK();
+
+}
 
 FExecStatus FAliasCommandHandler::VExec(const TArray<FString>& Args)
 {

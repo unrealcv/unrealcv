@@ -1,5 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// Weichao Qiu @ 2017
 #pragma once
 
 #include "CommandDispatcher.h"
@@ -31,4 +30,6 @@ private:
 	void VRun(const TArray<FString>& Args);
 	/** Register vexec command */
 	void VExec(const TArray<FString>& Args);
+
+	void VBp(const TArray<FString>& Args);
 };
