@@ -1,3 +1,4 @@
+// Weichao Qiu @ 2017
 #include "UnrealCVPrivate.h"
 #include "DepthCamSensor.h"
 
@@ -9,6 +10,7 @@ UDepthCamSensor::UDepthCamSensor(const FObjectInitializer& ObjectInitializer) :
 
 void UDepthCamSensor::CaptureDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height)
 {
+	this->CaptureScene();
 	Width = this->TextureTarget->SizeX, Height = TextureTarget->SizeY;
 	DepthData.AddZeroed(Width * Height);
 	FTextureRenderTargetResource* RenderTargetResource = this->TextureTarget->GameThread_GetRenderTargetResource();
@@ -27,6 +29,6 @@ void UDepthCamSensor::OnRegister()
 
 	// this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 	this->CaptureSource = ESceneCaptureSource::SCS_SceneDepth;
-	this->bCaptureEveryFrame = true;
+	this->bCaptureEveryFrame = false; // true by default
 	this->bCaptureOnMovement = false;
 }

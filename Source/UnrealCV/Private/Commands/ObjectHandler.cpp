@@ -4,6 +4,7 @@
 #include "ObjectPainter.h"
 #include "ActorController.h"
 #include "VertexSensor.h"
+#include "StrFormatter.h"
 
 FExecStatus GetObjectMobility(const TArray<FString>& Args);
 
@@ -118,7 +119,11 @@ FExecStatus GetActorLocation(const TArray<FString>& Args)
 
 	FActorController Controller(Actor);
 	FVector Location = Controller.GetLocation();
-	return FExecStatus::OK(FString::Printf(TEXT("%.2f %.2f %.2f"), Location.X, Location.Y, Location.Z));
+
+	FStrFormatter Ar;
+	Ar << Location;
+
+	return FExecStatus::OK(Ar.ToString());
 }
 
 /** There is no guarantee this will always succeed, for example, hitting a wall */
@@ -143,7 +148,11 @@ FExecStatus GetActorRotation(const TArray<FString>& Args)
 
 	FActorController Controller(Actor);
 	FRotator Rotation = Controller.GetRotation();
-	return FExecStatus::OK(FString::Printf(TEXT("%.2f %.2f %.2f"), Rotation.Pitch, Rotation.Yaw, Rotation.Roll));
+
+	FStrFormatter Ar;
+	Ar << Rotation;
+
+	return FExecStatus::OK(Ar.ToString());
 }
 
 FExecStatus SetActorRotation(const TArray<FString>& Args)

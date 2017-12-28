@@ -5,6 +5,7 @@
 #include "SensorHandler.h"
 #include "FusionCamSensor.h"
 #include "Serialization.h"
+#include "StrFormatter.h"
 
 FExecStatus GetSensorList(const TArray<FString>& Args);
 
@@ -13,11 +14,14 @@ FExecStatus GetSensorLocation(const TArray<FString>& Args);
 FExecStatus GetSensorRotation(const TArray<FString>& Args);
 
 FExecStatus GetSensorInfo(const TArray<FString>& Args);
-FExecStatus GetSensorDepth(const TArray<FString>& Args);
 FExecStatus GetSensorLit(const TArray<FString>& Args);
 FExecStatus GetSensorNormal(const TArray<FString>& Args);
 FExecStatus GetSensorObjMask(const TArray<FString>& Args);
 FExecStatus GetSensorStencil(const TArray<FString>& Args);
+
+FExecStatus GetSensorDepth(const TArray<FString>& Args);
+FExecStatus GetSensorPlaneDepth(const TArray<FString>& Args);
+FExecStatus GetSensorVisDepth(const TArray<FString>& Args);
 
 FExecStatus GetScreenshot(const TArray<FString>& Args);
 
@@ -57,6 +61,18 @@ void FSensorHandler::RegisterCommands()
 		"vget /sensor/[uint]/depth [str]",
 		FDispatcherDelegate::CreateStatic(GetSensorDepth),
 		"Get npy binary data from depth sensor"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vget /sensor/[uint]/vis_depth [str]",
+		FDispatcherDelegate::CreateStatic(GetSensorVisDepth),
+		"Get npy binary data from vis depth sensor"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vget /sensor/[uint]/plane_depth [str]",
+		FDispatcherDelegate::CreateStatic(GetSensorPlaneDepth),
+		"Get npy binary data from plane depth sensor"
 	);
 
 	CommandDispatcher->BindCommand(
@@ -166,8 +182,11 @@ FExecStatus GetSensorLocation(const TArray<FString>& Args)
 	UFusionCamSensor* FusionSensor = GetSensor(Args);
 	if (FusionSensor == nullptr) return FExecStatus::Error("Invalid sensor id");
 
+	FStrFormatter Ar;
 	FVector Location = FusionSensor->GetSensorWorldLocation();
-	return FExecStatus::OK(Location.ToString());
+	Ar << Location;
+
+	return FExecStatus::OK(Ar.ToString());
 }
 
 FExecStatus GetSensorRotation(const TArray<FString>& Args)
@@ -176,7 +195,10 @@ FExecStatus GetSensorRotation(const TArray<FString>& Args)
 	if (FusionSensor == nullptr) return FExecStatus::Error("Invalid sensor id");
 
 	FRotator Rotation = FusionSensor->GetSensorRotation();
-	return FExecStatus::OK(Rotation.ToString());
+	FStrFormatter Ar;
+	Ar << Rotation;
+
+	return FExecStatus::OK(Ar.ToString());
 }
 
 enum EFilenameType
@@ -334,6 +356,28 @@ FExecStatus GetSensorDepth(const TArray<FString>& Args)
 		[=](UFusionCamSensor* Sensor, TArray<FFloat16Color>& Data, int& Width, int& Height)
 		{
 			Sensor->GetDepth(Data, Width, Height);
+		}
+	);
+	return ExecStatus;
+}
+
+FExecStatus GetSensorPlaneDepth(const TArray<FString>& Args)
+{
+	FExecStatus ExecStatus = GetFloatSensorData(Args,
+		[=](UFusionCamSensor* Sensor, TArray<FFloat16Color>& Data, int& Width, int& Height)
+		{
+			Sensor->GetPlaneDepth(Data, Width, Height);
+		}
+	);
+	return ExecStatus;
+}
+
+FExecStatus GetSensorVisDepth(const TArray<FString>& Args)
+{
+	FExecStatus ExecStatus = GetFloatSensorData(Args,
+		[=](UFusionCamSensor* Sensor, TArray<FFloat16Color>& Data, int& Width, int& Height)
+		{
+			Sensor->GetVisDepth(Data, Width, Height);
 		}
 	);
 	return ExecStatus;

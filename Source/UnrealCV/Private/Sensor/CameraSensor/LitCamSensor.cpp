@@ -26,11 +26,11 @@ void ULitCamSensor::OnRegister()
 	TextureTarget = NewObject<UTextureRenderTarget2D>(this);
 	// bool bUseLinearGamma = false;
 
-	//bool bUseLinearGamma = true;  // true by default
-	//TextureTarget->InitCustomFormat(Width, Height, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
+	bool bUseLinearGamma = true;  // true by default
+	TextureTarget->InitCustomFormat(Width, Height, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
 
-	TextureTarget->InitAutoFormat(Width, Height);
-	TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
+	// TextureTarget->InitAutoFormat(Width, Height);
+	// TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
 	// TextureTarget->TargetGamma = 1;
 
 	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;

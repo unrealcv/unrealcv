@@ -52,7 +52,8 @@ TArray<FVector> FVertexSensor::GetVertexArray()
 	{
 		if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(MeshComponent))
 		{
-			VertexArray = StaticMeshComponentGetVertexArray(StaticMeshComponent);
+			TArray<FVector> ComponentVertexArray = StaticMeshComponentGetVertexArray(StaticMeshComponent);
+			VertexArray.Append(ComponentVertexArray);
 			// PaintStaticMesh(StaticMeshComponent, PaintColor);
 		}
 		if (USkinnedMeshComponent* SkinnedMeshComponent = Cast<USkinnedMeshComponent>(MeshComponent))

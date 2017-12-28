@@ -30,10 +30,22 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UAnnotationCamSensor* AnnotationCamSensor;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UPlaneDepthCamSensor* PlaneDepthCamSensor;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class UVisDepthCamSensor* VisDepthCamSensor;
+
 	void GetLit(TArray<FColor>& LitData, int& Width, int& Height);
+
 	void GetDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height);
+	void GetPlaneDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height);
+	void GetVisDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height);
+
 	void GetNormal(TArray<FColor>& NormalData, int& Width, int& Height);
+
 	void GetObjectMask(TArray<FColor>& ObjMaskData, int& Width, int& Height);
+	void GetVertexColor(TArray<FColor>& VertexColorData, int& Width, int& Height);
 	void GetStencil(TArray<FColor>& StencilData, int& Width, int& Height);
 
 	virtual void OnRegister() override;
@@ -55,4 +67,7 @@ public:
 
 private:
 	FImageUtil ImageUtil;
+
+	UPROPERTY()
+	TArray<UBaseCameraSensor*> FusionSensors;
 };
