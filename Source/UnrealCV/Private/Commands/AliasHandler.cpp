@@ -1,6 +1,7 @@
 #include "UnrealCVPrivate.h"
 #include "AliasHandler.h"
 #include "UObjectUtils.h"
+#include "JsonFormatter.h"
 
 void FAliasCommandHandler::RegisterCommands()
 {
@@ -77,6 +78,7 @@ FExecStatus FAliasCommandHandler::VExecWithOutput(const TArray<FString>& Args)
 		Cmd += FString::Printf(TEXT(" %s"), *Args[ArgId]);
 		ArgId++;
 	}
+	Cmd = Cmd.TrimTrailing(); // TODO: Simplify this function.
 
 	FConsoleOutputDevice OutputDevice(FUE4CVServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
 
@@ -143,6 +145,8 @@ FExecStatus FAliasCommandHandler::VExecWithOutput(const TArray<FString>& Args)
 	int32 NumParamsEvaluated = 0;
 	for( TFieldIterator<UProperty> It(Function); It && (It->PropertyFlags & (CPF_Parm|CPF_ReturnParm))==CPF_Parm; ++It, NumParamsEvaluated++ )
 	{
+		if (It->HasAnyPropertyFlags(CPF_OutParm) || It->HasAnyPropertyFlags(CPF_ReferenceParm)) continue; // Skip return parameters.
+
 		UProperty* PropertyParam = *It;
 		checkSlow(PropertyParam); // Fix static analysis warning
 		if (NumParamsEvaluated == 0 && Executor)
@@ -183,11 +187,11 @@ FExecStatus FAliasCommandHandler::VExecWithOutput(const TArray<FString>& Args)
 
 		if (!bFoundDefault)
 		{
-			// if this is the last string property and we have remaining arguments to process, we have to assume that this
-			// is a sub-command that will be passed to another exec (like "cheat giveall weapons", for example). Therefore
-			// we need to use the whole remaining string as an argument, regardless of quotes, spaces etc.
 			if (PropertyParam == LastParameter && PropertyParam->IsA<UStrProperty>() && FCString::Strcmp(Str, TEXT("")) != 0)
 			{
+				// if this is the last string property and we have remaining arguments to process, we have to assume that this
+				// is a sub-command that will be passed to another exec (like "cheat giveall weapons", for example). Therefore
+				// we need to use the whole remaining string as an argument, regardless of quotes, spaces etc.
 				ArgStr = FString(RemainingStr).Trim();
 			}
 
@@ -213,7 +217,7 @@ FExecStatus FAliasCommandHandler::VExecWithOutput(const TArray<FString>& Args)
 		Obj->ProcessEvent( Function, Parms );
 	}
 
-	
+
 	// https://answers.unrealengine.com/questions/139582/get-property-value.html
 	// https://answers.unrealengine.com/questions/301428/set-string-for-fstring-via-uproperty.html
 	// for (TFieldIterator<UIntProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_ReturnParm); ++It)
@@ -234,6 +238,7 @@ FExecStatus FAliasCommandHandler::VExecWithOutput(const TArray<FString>& Args)
 		FString Value = It->GetNumericPropertyValueToString(Parms);
 	}
 
+	TMap<FString, FString> Dict;
 	// CPF_OutParm, use this flag check!
 	for (TFieldIterator<UStrProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
 	{
@@ -241,6 +246,36 @@ FExecStatus FAliasCommandHandler::VExecWithOutput(const TArray<FString>& Args)
 		// float Target;
 		// It->CopyCompleteValue_InContainer(&Dest, Parms);
 		FString Value = It->GetPropertyValue_InContainer(Parms);
+		// FString Key = It->GetName();
+		// Dict.Emplace(Key, Value);
+	}
+
+	// Check SGraphNodeK2CreateDelegate.cpp
+	for (TFieldIterator<UProperty> It(Function); It; ++It)
+	{
+		if (It->HasAnyPropertyFlags(CPF_OutParm) || It->HasAnyPropertyFlags(CPF_ReferenceParm))
+		{
+			FString Key = It->GetName();
+			FString Value;
+			UStrProperty* StrProperty = Cast<UStrProperty>(*It);
+			if (IsValid(StrProperty))
+			{
+				Value = StrProperty->GetPropertyValue_InContainer(Parms);
+			}
+
+			UNumericProperty* NumericProperty = Cast<UNumericProperty>(*It);
+			if (IsValid(NumericProperty))
+			{
+				Value = NumericProperty->GetNumericPropertyValueToString(Parms);
+			}
+
+			if (StrProperty == nullptr && NumericProperty == nullptr)
+			{
+				UE_LOG(LogUnrealCV, Warning, TEXT("Unrecognized type for parameter %s"), *Key);
+			}
+			
+			Dict.Emplace(Key, Value);
+		}
 	}
 
 
@@ -250,8 +285,11 @@ FExecStatus FAliasCommandHandler::VExecWithOutput(const TArray<FString>& Args)
 		It->DestroyValue_InContainer(Parms);
 	}
 
+	FJsonFormatter JsonObj;
+	JsonObj << Dict;
+
 	// Success.
-	return FExecStatus::OK();
+	return FExecStatus::OK(JsonObj.ToString());
 
 }
 
