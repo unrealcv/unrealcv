@@ -11,6 +11,16 @@ void FActionCommandHandler::RegisterCommands()
 	Help = "Pause the game";
 	CommandDispatcher->BindCommand("vset /action/game/pause", Cmd, Help);
 
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::ResumeGame);
+	Help = "Resume the game";
+	CommandDispatcher->BindCommand("vset /action/game/resume", Cmd, Help);
+
+	CommandDispatcher->BindCommand(
+		"vget /action/game/is_paused",
+		FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::GetIsPaused),
+		"Get the pause status"
+	);
+
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::OpenLevel);
 	Help = "Open level";
 	CommandDispatcher->BindCommand("vset /action/game/level [str]", Cmd, Help);
@@ -27,12 +37,6 @@ void FActionCommandHandler::RegisterCommands()
 	Help = "Set the distance of binocular stereo camera";
 	CommandDispatcher->BindCommand("vset /action/eyes_distance [float]", Cmd, Help);
 
-	
-	/*
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::ResumeGame);
-	Help = "Resume the game";
-	CommandDispatcher->BindCommand("vset /action/game/resume", Cmd, Help);
-	*/
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::Keyboard);
 	Help = "Send a keyboard action to the game";
@@ -42,9 +46,28 @@ void FActionCommandHandler::RegisterCommands()
 FExecStatus FActionCommandHandler::PauseGame(const TArray<FString>& Args)
 {
 	APlayerController* PlayerController = this->GetWorld()->GetFirstPlayerController();
-	PlayerController->Pause();
+	// PlayerController->Pause();
+	PlayerController->SetPause(true);
 	return FExecStatus::OK();
 }
+
+FExecStatus FActionCommandHandler::ResumeGame(const TArray<FString>& Args)
+{
+	APlayerController* PlayerController = this->GetWorld()->GetFirstPlayerController();
+	// PlayerController->Pause();
+	PlayerController->SetPause(false);
+	return FExecStatus::OK();
+}
+
+FExecStatus FActionCommandHandler::GetIsPaused(const TArray<FString>& Args)
+{
+	APlayerController* PlayerController = this->GetWorld()->GetFirstPlayerController();
+	// PlayerController->Pause();
+	bool bIsPaused = PlayerController->IsPaused();
+	// PlayerController->SetPause(false);
+	return FExecStatus::OK(bIsPaused ? TEXT("true") : TEXT("false"));
+}
+
 
 FExecStatus FActionCommandHandler::OpenLevel(const TArray<FString>& Args)
 {
@@ -91,7 +114,7 @@ FExecStatus FActionCommandHandler::SetStereoDistance(const TArray<FString>& Args
 TFunction<void(void)> FActionCommandHandler::GetReleaseKey(FKey Key)
 {
 	UWorld* World = this->GetWorld();
-	return [=]() { 
+	return [=]() {
 		World->GetFirstPlayerController()->InputKey(Key, EInputEvent::IE_Released, 0, false);
 	};
 }
@@ -109,7 +132,7 @@ FExecStatus FActionCommandHandler::Keyboard(const TArray<FString>& Args)
 	// The valid KeyName can be found in https://wiki.unrealengine.com/List_of_Key/Gamepad_Input_Names
 
 	// Not sure about the meaning of parameters: DeltaTime, NumSamples, bGamepad
-	// They are not clearly documented in 
+	// They are not clearly documented in
 	// https://docs.unrealengine.com/latest/INT/API/Runtime/Engine/GameFramework/UPlayerInput/InputAxis/index.html
 	// and https://github.com/EpicGames/UnrealEngine/blob/release/Engine/Source/Runtime/Engine/Private/UserInterface/PlayerInput.cpp#L254
 	float Delta = 1; // Delta is always 1 for key press, this is how hard this button is pressed

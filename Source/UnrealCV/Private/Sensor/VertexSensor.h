@@ -10,5 +10,5 @@ public:
     TArray<FVector> GetVertexArray();
 
 private:
-    AActor* OnwerActor;
+    AActor* OwnerActor;
 };

@@ -11,7 +11,9 @@ FExecStatus GetSensorList(const TArray<FString>& Args);
 
 UFusionCamSensor* GetSensor(const TArray<FString>& Args);
 FExecStatus GetSensorLocation(const TArray<FString>& Args);
+FExecStatus SetSensorLocation(const TArray<FString>& Args);
 FExecStatus GetSensorRotation(const TArray<FString>& Args);
+FExecStatus SetSensorRotation(const TArray<FString>& Args);
 
 FExecStatus GetSensorInfo(const TArray<FString>& Args);
 FExecStatus GetSensorLit(const TArray<FString>& Args);
@@ -46,9 +48,21 @@ void FSensorHandler::RegisterCommands()
 	);
 
 	CommandDispatcher->BindCommand(
+		"vset /sensor/[uint]/location [float] [float] [float]",
+		FDispatcherDelegate::CreateStatic(SetSensorLocation),
+		"Set sensor to location [x, y, z]"
+	);
+
+	CommandDispatcher->BindCommand(
 		"vget /sensor/[uint]/rotation",
 		FDispatcherDelegate::CreateStatic(GetSensorRotation),
 		"Get sensor rotation in world space"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vset /sensor/[uint]/rotation [float] [float] [float]",
+		FDispatcherDelegate::CreateStatic(SetSensorRotation),
+		"Set rotation [pitch, yaw, roll] of camera [id]"
 	);
 
 	CommandDispatcher->BindCommand(
@@ -180,7 +194,7 @@ FExecStatus GetSensorInfo(const TArray<FString>& Args)
 FExecStatus GetSensorLocation(const TArray<FString>& Args)
 {
 	UFusionCamSensor* FusionSensor = GetSensor(Args);
-	if (FusionSensor == nullptr) return FExecStatus::Error("Invalid sensor id");
+	if (!IsValid(FusionSensor)) return FExecStatus::Error("Invalid sensor id");
 
 	FStrFormatter Ar;
 	FVector Location = FusionSensor->GetSensorWorldLocation();
@@ -189,16 +203,47 @@ FExecStatus GetSensorLocation(const TArray<FString>& Args)
 	return FExecStatus::OK(Ar.ToString());
 }
 
+FExecStatus SetSensorLocation(const TArray<FString>& Args)
+{
+	UFusionCamSensor* FusionSensor = GetSensor(Args);
+	if (!IsValid(FusionSensor)) return FExecStatus::Error("Invalid sensor id");
+
+	// Should I set the component loction or the actor location?
+	if (Args.Num() != 4) return FExecStatus::InvalidArgument; // ID, X, Y, Z
+
+	float X = FCString::Atof(*Args[1]), Y = FCString::Atof(*Args[2]), Z = FCString::Atof(*Args[3]);
+	FVector Location = FVector(X, Y, Z);
+
+	// Check USceneComponent
+	FusionSensor->SetWorldLocation(Location);
+
+	return FExecStatus::OK();
+}
+
 FExecStatus GetSensorRotation(const TArray<FString>& Args)
 {
 	UFusionCamSensor* FusionSensor = GetSensor(Args);
-	if (FusionSensor == nullptr) return FExecStatus::Error("Invalid sensor id");
+	if (!IsValid(FusionSensor)) return FExecStatus::Error("Invalid sensor id");
 
 	FRotator Rotation = FusionSensor->GetSensorRotation();
 	FStrFormatter Ar;
 	Ar << Rotation;
 
 	return FExecStatus::OK(Ar.ToString());
+}
+
+FExecStatus SetSensorRotation(const TArray<FString>& Args)
+{
+	UFusionCamSensor* FusionSensor = GetSensor(Args);
+	if (!IsValid(FusionSensor)) return FExecStatus::Error("Invalid sensor id");
+
+	if (Args.Num() != 4) return FExecStatus::InvalidArgument; // ID, X, Y, Z
+	float Pitch = FCString::Atof(*Args[1]), Yaw = FCString::Atof(*Args[2]), Roll = FCString::Atof(*Args[3]);
+	FRotator Rotator = FRotator(Pitch, Yaw, Roll);
+
+	FusionSensor->SetWorldRotation(Rotator);
+
+	return FExecStatus::OK();
 }
 
 enum EFilenameType

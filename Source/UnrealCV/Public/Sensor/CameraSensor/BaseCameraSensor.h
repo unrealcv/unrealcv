@@ -48,9 +48,9 @@ public:
 	/** Get the projection matrix of this camera */
 	FString GetProjectionMatrix();
 
-	void SetRotation();
+	// void SetRotation();
 
-	void SetWorldLocation();
+	// void SetWorldLocation();
 
 	UFUNCTION(BlueprintCallable, Category = "UnrealCV")
 	void SetFOV(float FOV);

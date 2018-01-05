@@ -12,7 +12,7 @@ void AttachFusionSensorToPawn(APawn* Pawn)
 {
 	ScreenLog("Attach a UE4CVSensor to the pawn");
 	// Make sure this is the first one.
-	UPawnCamSensor* PawnCamSensor = NewObject<UPawnCamSensor>(Pawn, TEXT("Pawn Sensor")); // Make Pawn as the owner of the component
+	UPawnCamSensor* PawnCamSensor = NewObject<UPawnCamSensor>(Pawn, TEXT("PawnSensor")); // Make Pawn as the owner of the component
 	// UFusionCamSensor* FusionCamSensor = ConstructObject<UFusionCamSensor>(UFusionCamSensor::StaticClass(), Pawn);
 
 	UWorld *PawnWorld = Pawn->GetWorld(), *GameWorld = FUE4CVServer::Get().GetGameWorld();
@@ -45,19 +45,10 @@ void AUE4CVWorldController::BeginPlay()
 
 	UpdateInput(Server.Config.EnableInput);
 
-	//FEngineShowFlags ShowFlags = GetWorld()->GetGameViewport()->EngineShowFlags;
-	//FPlayerViewMode::Get().SaveGameDefault(ShowFlags);
-
+	// TODO: remove legacy code
 	// Update camera FOV
-	// PlayerController->PlayerCameraManager->SetFOV(Config.FOV);
-
-	// FObjectPainter::Get().Reset(GetPawn()->GetLevel());
-	// FCaptureManager::Get().AttachGTCaptureComponentToCamera(GetPawn()); // TODO: Make this configurable in the editor
-
-	// UpdateInput(Config.EnableInput);
-
-
-	// CurrentWorld = World;
+	PlayerController->PlayerCameraManager->SetFOV(Server.Config.FOV);
+	FCaptureManager::Get().AttachGTCaptureComponentToCamera(Pawn);
 }
 
 
