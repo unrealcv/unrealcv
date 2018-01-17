@@ -47,8 +47,9 @@ void AUE4CVWorldController::BeginPlay()
 
 	// TODO: remove legacy code
 	// Update camera FOV
-	PlayerController->PlayerCameraManager->SetFOV(Server.Config.FOV);
-	FCaptureManager::Get().AttachGTCaptureComponentToCamera(Pawn);
+	
+	//PlayerController->PlayerCameraManager->SetFOV(Server.Config.FOV);
+	//FCaptureManager::Get().AttachGTCaptureComponentToCamera(Pawn);
 }
 
 

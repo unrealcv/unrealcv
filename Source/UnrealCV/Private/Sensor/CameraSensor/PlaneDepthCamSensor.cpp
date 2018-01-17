@@ -13,7 +13,7 @@ UPlaneDepthCamSensor::UPlaneDepthCamSensor(const FObjectInitializer& ObjectIniti
 
 void UPlaneDepthCamSensor::CaptureDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height)
 {
-	// this->CaptureScene();
+	this->CaptureScene();
 	Width = this->TextureTarget->SizeX, Height = TextureTarget->SizeY;
 	DepthData.AddZeroed(Width * Height);
 	FTextureRenderTargetResource* RenderTargetResource = this->TextureTarget->GameThread_GetRenderTargetResource();
@@ -32,6 +32,6 @@ void UPlaneDepthCamSensor::OnRegister()
 
 	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 	// this->bCaptureEveryFrame = false;
-	this->bCaptureEveryFrame = true;
+	this->bCaptureEveryFrame = false;
 	this->bCaptureOnMovement = false;
 }

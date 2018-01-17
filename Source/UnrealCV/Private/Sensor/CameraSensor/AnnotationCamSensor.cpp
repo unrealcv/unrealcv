@@ -27,7 +27,7 @@ void UAnnotationCamSensor::OnRegister()
 	bool bUseLinearGamma = true; // This will disable sRGB
 	TextureTarget->InitCustomFormat(Width, Height, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
 	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-	this->bCaptureEveryFrame = true; // TODO: Check the performance overhead for this
+	this->bCaptureEveryFrame = false; // TODO: Check the performance overhead for this
 	this->bCaptureOnMovement = false;
 
 }

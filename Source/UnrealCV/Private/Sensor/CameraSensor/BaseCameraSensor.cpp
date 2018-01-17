@@ -36,6 +36,10 @@ void UBaseCameraSensor::OnRegister()
 {
 	Super::OnRegister();
 
+	// Explicitly make a request to render frames
+	this->bCaptureEveryFrame = false;
+	this->bCaptureOnMovement = false;
+
 	// Add a visualization camera mesh
 	if (GetOwner()) // Check whether this is a template project
 	// if (!IsTemplate())
@@ -87,6 +91,8 @@ void UBaseCameraSensor::Capture(TArray<FColor>& ImageData, int& Width, int& Heig
 			DestPtr += Width;
 		}
 	};
+
+	this->CaptureScene();
 	FTextureRenderTargetResource* RenderTargetResource = this->TextureTarget->GameThread_GetRenderTargetResource();
 	FTexture2DRHIRef Texture2D = RenderTargetResource->GetRenderTargetTexture();
 	FastReadTexture2DAsync(Texture2D, Callback);
@@ -125,6 +131,7 @@ void UBaseCameraSensor::CaptureSlow(TArray<FColor>& ImageData, int& Width, int& 
 {
 	SCOPE_CYCLE_COUNTER(STAT_ReadBuffer);
 
+	this->CaptureScene();
 	check(this->TextureTarget);
 	UTextureRenderTarget2D* RenderTarget = this->TextureTarget;
 	ReadTextureRenderTarget(RenderTarget, ImageData, Width, Height);

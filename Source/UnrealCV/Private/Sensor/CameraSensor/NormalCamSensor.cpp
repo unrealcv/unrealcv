@@ -20,6 +20,6 @@ void UNormalCamSensor::OnRegister()
 	bool bUseLinearGamma = false;
 	TextureTarget->InitCustomFormat(Width, Height, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
 	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-	this->bCaptureEveryFrame = true;
+	this->bCaptureEveryFrame = false;
 	this->bCaptureOnMovement = false;
 }

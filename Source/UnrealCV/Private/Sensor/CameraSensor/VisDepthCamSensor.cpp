@@ -31,6 +31,6 @@ void UVisDepthCamSensor::OnRegister()
 	TextureTarget->InitCustomFormat(Width, Height, EPixelFormat::PF_FloatRGBA, bUseLinearGamma);
 
 	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-	this->bCaptureEveryFrame = true;
+	this->bCaptureEveryFrame = false;
 	this->bCaptureOnMovement = false;
 }

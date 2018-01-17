@@ -34,7 +34,7 @@ void ULitCamSensor::OnRegister()
 	// TextureTarget->TargetGamma = 1;
 
 	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-	this->bCaptureEveryFrame = true; // TODO: Check the performance overhead for this
+	this->bCaptureEveryFrame = false; // TODO: Check the performance overhead for this
 	this->bCaptureOnMovement = false;
 
 	// ImageWorker.Start();
