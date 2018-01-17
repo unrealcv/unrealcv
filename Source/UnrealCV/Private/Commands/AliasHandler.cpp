@@ -3,6 +3,34 @@
 #include "UObjectUtils.h"
 #include "JsonFormatter.h"
 
+FExecStatus GetPersistentLevelId(const TArray<FString>& Args)
+{
+	UWorld* GameWorld = FUE4CVServer::Get().GetGameWorld();
+	
+	if (IsValid(GameWorld) && IsValid(GameWorld->PersistentLevel))
+	{
+		return FExecStatus::OK(GameWorld->PersistentLevel->GetName());
+	}
+	else
+	{
+		return FExecStatus::Error("The UWorld is invalid");
+	}
+}
+
+FExecStatus GetLevelScriptActorId(const TArray<FString>& Args)
+{
+	UWorld* GameWorld = FUE4CVServer::Get().GetGameWorld();
+
+	if (IsValid(GameWorld) && IsValid(GameWorld->PersistentLevel))
+	{
+		return FExecStatus::OK(GameWorld->PersistentLevel->LevelScriptActor->GetName());
+	}
+	else
+	{
+		return FExecStatus::Error("The UWorld is invalid");
+	}
+}
+
 void FAliasCommandHandler::RegisterCommands()
 {
 	FDispatcherDelegate Cmd;
@@ -33,6 +61,16 @@ void FAliasCommandHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+
+	CommandDispatcher->BindCommand("vget /persistent_level/id",
+		FDispatcherDelegate::CreateStatic(GetPersistentLevelId),
+		"Get persistent level id, so that we can call BP function defined in it"
+		);
+
+	CommandDispatcher->BindCommand("vget /persistent_level/level_script_actor/id",
+		FDispatcherDelegate::CreateStatic(GetLevelScriptActorId),
+		"Get persistent level id, so that we can call BP function defined in it"
+	);
 }
 
 FExecStatus FAliasCommandHandler::VRun(const TArray<FString>& Args)
@@ -101,20 +139,24 @@ FExecStatus FAliasCommandHandler::VExecWithOutput(const TArray<FString>& Args)
 	FString MsgStr;
 	if(!FParse::Token(Str,MsgStr,true))
 	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Can not parse token"));
 		return FExecStatus::InvalidArgument;
 	}
 	const FName Message = FName(*MsgStr,FNAME_Find);
 	if(Message == NAME_None)
 	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Can not find FName from token"));
 		return FExecStatus::InvalidArgument;
 	}
 	UFunction* Function = Obj->FindFunction(Message);
 	if(nullptr == Function)
 	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Can not find function"));
 		return FExecStatus::InvalidArgument;
 	}
 	if(0 == (Function->FunctionFlags & FUNC_Exec) && !bForceCallWithNonExec)
 	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("BP function is not executable"));
 		return FExecStatus::InvalidArgument;
 	}
 
