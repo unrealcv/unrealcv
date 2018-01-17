@@ -37,6 +37,9 @@ class UE4Automation:
             self.UE4_dir = self._get_UE4_dir()
         self.abs_UAT_path = self._get_UATPath()
 
+        if not os.path.isfile(self.abs_UAT_path):
+            print('Can not found UAT script in the engine folder %s' % self.UE4_dir)
+
     def _get_platform_name(self):
         return get_platform_name()
 
