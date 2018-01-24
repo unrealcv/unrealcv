@@ -14,6 +14,9 @@ public:
 
 	virtual void BeginPlay() override;
 
+	UPROPERTY()
+	float BaseLineDistance;
+
 	UPROPERTY(Category = StereoCameraActor, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UFusionCamSensor* LeftSensor;
 
@@ -22,7 +25,4 @@ public:
 
 	UPROPERTY(Category = StereoCameraActor, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class USceneComponent* SceneComponent;
-
-	virtual void Tick(float DeltaSeconds) override;
-
 };
