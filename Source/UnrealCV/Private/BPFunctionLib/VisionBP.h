@@ -1,0 +1,66 @@
+// Weichao Qiu @ 2018
+#pragma once
+
+#include "VisionBP.generated.h"
+
+/** A static bp library for computer vision */
+UCLASS()
+class UNREALCV_API UVisionBP : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+public:
+	// UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	// static FString SerializeBoneInfo(USkeletalMeshComponent* Component);
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	static int FrameNumber()
+	{
+		return GFrameNumber;
+	}
+
+	// Create an empty
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	static bool CreateFile(const FString& Filename);
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	static bool SaveData(const FString& Data, const FString& Filename);
+
+	// Append data to an existing file
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	static bool AppendData(const FString& Data, const FString& Filename);
+
+	// FilenameFmt is the format string which contains %d
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	static FString FormatFrameFilename(FString FilenameFmt);
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	static bool SendMessageBP(const FString& Message);
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	static void SavePng(const TArray<FColor>& ImageData, int Width, int Height, FString Filename, bool bKeepAlpha = false);
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	static void SaveNpy(const TArray<float>& FloatData, int Width, int Height, FString Filename);
+
+	// Extract SkeletalMesh bone information
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	static void GetBoneTransform(
+		const USkeletalMeshComponent* SkeletalMeshComponent,
+		const TArray<FString>& IncludedBones,
+		TArray<FString>& BoneNames,
+		TArray<FTransform>& BoneTransform,
+		bool bWorldSpace = false
+	);
+
+	// Extract vertex data of a mesh
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	static void GetVertexArray(const AActor* Actor, TArray<FVector>& VertexArray);
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	static void UpdateInput(APawn* Pawn, bool Enable);
+
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	static void GetActorList(TArray<AActor*>& ActorList);
+
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	static void GetAnnotationColor(AActor* Actor, FColor& AnnotationColor);
+};

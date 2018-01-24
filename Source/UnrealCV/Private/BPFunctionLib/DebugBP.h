@@ -1,5 +1,5 @@
 // Weichao Qiu @ 2017
-
+#pragma once
 #include "DebugBP.generated.h"
 
 UCLASS()
