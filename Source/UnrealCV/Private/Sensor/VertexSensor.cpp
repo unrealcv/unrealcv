@@ -4,7 +4,7 @@
 
 
 // Use vget /object/[id]/vertex json?
-FVertexSensor::FVertexSensor(AActor* InActor)
+FVertexSensor::FVertexSensor(const AActor* InActor)
 {
 	this->OwnerActor = InActor;
 }

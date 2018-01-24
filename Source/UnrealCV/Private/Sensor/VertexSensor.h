@@ -5,10 +5,10 @@
 class FVertexSensor
 {
 public:
-    FVertexSensor(AActor* InActor);
+    FVertexSensor(const AActor* InActor);
 
     TArray<FVector> GetVertexArray();
 
 private:
-    AActor* OwnerActor;
+    const AActor* OwnerActor;
 };
