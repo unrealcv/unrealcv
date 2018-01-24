@@ -2,13 +2,14 @@
 #include "UnrealCVPrivate.h"
 #include "UE4CVWorldController.h"
 #include "PawnCamSensor.h"
+#include "VisionBP.h"
 
 AUE4CVWorldController::AUE4CVWorldController(const FObjectInitializer& ObjectInitializer)
 {
 
 }
 
-void AttachFusionSensorToPawn(APawn* Pawn)
+void AttachPawnSensor(APawn* Pawn)
 {
 	ScreenLog("Attach a UE4CVSensor to the pawn");
 	// Make sure this is the first one.
@@ -21,56 +22,42 @@ void AttachFusionSensorToPawn(APawn* Pawn)
 	PawnCamSensor->AttachToComponent(Pawn->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	// AActor* OwnerActor = FusionCamSensor->GetOwner();
 	PawnCamSensor->RegisterComponent(); // Is this neccessary?
-
-
 }
+
 
 
 void AUE4CVWorldController::BeginPlay()
 {
     ScreenLog("Overwrite the world setting with some UnrealCV extensions");
 
+
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	check(PlayerController);
 	APawn* Pawn = PlayerController->GetPawn();
+	FUE4CVServer& Server = FUE4CVServer::Get();
+	if (IsValid(Pawn))
+	{
+		AttachPawnSensor(Pawn);
+		UVisionBP::UpdateInput(Pawn, Server.Config.EnableInput);
+	}
+	else
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("No available pawn to mount a PawnSensor"));
+	}
 
-	AttachFusionSensorToPawn(Pawn);
-
-	ObjectAnnotator.AnnotateStaticMesh();
+	ObjectAnnotator.AnnotateWorld(GetWorld());
 
 	FEngineShowFlags ShowFlags = GetWorld()->GetGameViewport()->EngineShowFlags;
 	FPlayerViewMode::Get().SaveGameDefault(ShowFlags);
 
-	FUE4CVServer& Server = FUE4CVServer::Get();
-
-	UpdateInput(Server.Config.EnableInput);
-
 	// TODO: remove legacy code
 	// Update camera FOV
-	
+
 	//PlayerController->PlayerCameraManager->SetFOV(Server.Config.FOV);
 	//FCaptureManager::Get().AttachGTCaptureComponentToCamera(Pawn);
 }
 
 
-void AUE4CVWorldController::UpdateInput(bool Enable)
-{
-	UWorld* World = GetWorld();
-	if (!World) return;
-
-	APlayerController* PlayerController = World->GetFirstPlayerController();
-	check(PlayerController);
-	if (Enable)
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("Enabling input"));
-		PlayerController->GetPawn()->EnableInput(PlayerController);
-	}
-	else
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("Disabling input"));
-		PlayerController->GetPawn()->DisableInput(PlayerController);
-	}
-}
 
 void AUE4CVWorldController::OpenLevel(FName LevelName)
 {

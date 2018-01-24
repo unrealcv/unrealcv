@@ -7,18 +7,18 @@ public:
 	FActorController(AActor* InActor);
 
 	FVector GetLocation();
-	bool SetLocation(FVector NewLocation);
+	void SetLocation(FVector NewLocation);
 
 	FRotator GetRotation();
-	bool SetRotation(FRotator NewRotation);
+	void SetRotation(FRotator NewRotation);
 
 	EComponentMobility::Type GetMobility();
 
 	void Show();
 	void Hide();
 
-	bool GetAnnotationColor(FColor& AnnotationColor);
-	bool SetAnnotationColor(const FColor& AnnotationColor);
+	void GetAnnotationColor(FColor& AnnotationColor);
+	void SetAnnotationColor(const FColor& AnnotationColor);
 
 	// FColor GetAnnotaionColor();
 

@@ -7,61 +7,126 @@ FColor GetColorFromColorMap(int32 ObjectIndex);
 
 FObjectAnnotator::FObjectAnnotator()
 {
-
 }
+
+
 
 /** Annotate all static mesh in the world */
-void FObjectAnnotator::AnnotateStaticMesh()
+void FObjectAnnotator::AnnotateWorld(UWorld* World)
 {
-	for (TActorIterator<AActor> ActorItr(FUE4CVServer::Get().GetGameWorld()); ActorItr; ++ActorItr)
+	if (!IsValid(World))
 	{
-		AActor *Actor = *ActorItr;
+		UE_LOG(LogUnrealCV, Warning, TEXT("Can not annotate world, the world is not valid"));
+		return;
+	}
+
+	TArray<AActor*> ActorArray;
+	GetAnnotableActors(World, ActorArray);
+
+	for (AActor* Actor : ActorArray)
+	{
 		FColor AnnotationColor = GetDefaultColor(Actor);
 
+		if (!IsValid(Actor))
+		{
+			UE_LOG(LogUnrealCV, Warning, TEXT("Found invalid actor in AnnotateWorld"));
+			continue;
+		}
 		// Use VertexColor as annotation
-		FVertexColorPainter::PaintVertexColor(Actor, AnnotationColor);
-
-		TArray<UActorComponent*> AnnotationComponents = Actor->GetComponentsByClass(UAnnotationComponent::StaticClass());
-		if (AnnotationComponents.Num() != 0)
-		{
-			continue; // Do not overwrite already annotated object
-		}
-
-		// Use AnnotationComponent as annotation
-		TArray<UActorComponent*> StaticMeshComponents = Actor->GetComponentsByClass(UStaticMeshComponent::StaticClass());
-		for (UActorComponent* Component : StaticMeshComponents)
-		{
-			UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(Component);
-			UAnnotationComponent* AnnotationComponent = NewObject<UAnnotationComponent>(StaticMeshComponent);
-			AnnotationComponent->AnnotationColor = AnnotationColor;
-			AnnotationComponent->SetupAttachment(StaticMeshComponent);
-			AnnotationComponent->RegisterComponent();
-		}
+		this->SetAnnotationColor(Actor, AnnotationColor);
 	}
+	UE_LOG(LogUnrealCV, Log, TEXT("Annotate mesh of the scene (%d)"), AnnotationColors.Num());
 }
 
-FColor FObjectAnnotator::GetDefaultColor(AActor* Actor)
+
+void FObjectAnnotator::SetAnnotationColor(AActor* Actor, const FColor& AnnotationColor)
 {
-	TArray<FString> AnnotatedObjects;
-	AnnotationColors.GetKeys(AnnotatedObjects);
+	if (!IsValid(Actor))
+	{
+		return;
+	}
+	// CHECK: Add the annotation color regardless successful or not
+	this->PaintVertexColor(Actor, AnnotationColor);
+	this->CreateAnnotationComponent(Actor, AnnotationColor);
+	this->AnnotationColors.Emplace(Actor->GetName(), AnnotationColor);
+}
+
+void FObjectAnnotator::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor)
+{
+	if (!IsValid(Actor))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("InActor is invalid in GetAnnotationColor"));
+		return;
+	}
 
 	FString ActorName = Actor->GetName();
-	if (AnnotatedObjects.Contains(ActorName))
+	if (!this->AnnotationColors.Contains(ActorName))
 	{
-		// Already initialized
-		return AnnotationColors[ActorName];
+		UE_LOG(LogUnrealCV, Warning, TEXT("Can not find actor %s in GetAnnotationColor"), *ActorName);
+		return;
 	}
-
-	int ColorIndex = AnnotatedObjects.Num();
-	FColor AnnotationColor = GetColorFromColorMap(ColorIndex);
-
-	// CHECK: Add the annotation color regardless successful or not
-	AnnotationColors.Emplace(ActorName, AnnotationColor);
-	return AnnotationColor;
+	AnnotationColor = this->AnnotationColors[ActorName];
 }
 
-bool FObjectAnnotator::SetAnnotationColor(AActor* Actor, const FColor& AnnotationColor)
+void FObjectAnnotator::GetAnnotableActors(UWorld* World, TArray<AActor*>& ActorArray)
 {
+	if (!IsValid(World))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("The world is invalid in GetAnnotableActors"));
+		return;
+	}
+
+	for (TActorIterator<AActor> ActorItr(World); ActorItr; ++ActorItr)
+	{
+		AActor *Actor = *ActorItr;
+		ActorArray.Add(Actor);
+	}
+}
+
+void FObjectAnnotator::PaintVertexColor(AActor* Actor, const FColor& AnnotationColor)
+{
+	if (!IsValid(Actor))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Invalid actor in PaintVertexColor"));
+		return;
+	}
+	FVertexColorPainter::PaintVertexColor(Actor, AnnotationColor);
+}
+
+void FObjectAnnotator::CreateAnnotationComponent(AActor* Actor, const FColor& AnnotationColor)
+{
+	if (!IsValid(Actor))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Invalid actor in CreateAnnotationComponent"));
+		return;
+	}
+	TArray<UActorComponent*> AnnotationComponents = Actor->GetComponentsByClass(UAnnotationComponent::StaticClass());
+	if (AnnotationComponents.Num() != 0)
+	{
+		UE_LOG(LogUnrealCV, Log, TEXT("Skip annotated actor %d"), *Actor->GetName());
+		return;
+	}
+
+	TArray<UActorComponent*> MeshComponents = Actor->GetComponentsByClass(UMeshComponent::StaticClass());
+	for (UActorComponent* Component : MeshComponents)
+	{
+		UMeshComponent* MeshComponent = Cast<UMeshComponent>(Component);
+
+		UAnnotationComponent* AnnotationComponent = NewObject<UAnnotationComponent>(MeshComponent);
+		AnnotationComponent->AnnotationColor = AnnotationColor;
+		AnnotationComponent->SetupAttachment(MeshComponent);
+		AnnotationComponent->RegisterComponent();
+		AnnotationComponent->MarkRenderStateDirty();
+	}
+}
+
+void FObjectAnnotator::UpdateAnnotationComponent(AActor* Actor, const FColor& AnnotationColor)
+{
+	if (!IsValid(Actor))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Invalid actor in CreateAnnotationComponent"));
+		return;
+	}
 	TArray<UActorComponent*> AnnotationComponents = Actor->GetComponentsByClass(UAnnotationComponent::StaticClass());
 	for (UActorComponent* Component : AnnotationComponents)
 	{
@@ -69,44 +134,24 @@ bool FObjectAnnotator::SetAnnotationColor(AActor* Actor, const FColor& Annotatio
 		AnnotationComponent->AnnotationColor = AnnotationColor;
 		AnnotationComponent->MarkRenderStateDirty();
 	}
-	return true;
 }
 
-bool FObjectAnnotator::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor)
+
+
+FColor FObjectAnnotator::GetDefaultColor(AActor* Actor)
 {
-	TArray<UActorComponent*> AnnotationComponents = Actor->GetComponentsByClass(UAnnotationComponent::StaticClass());
-	for (UActorComponent* Component : AnnotationComponents)
+	FString ActorName = Actor->GetName();
+	if (AnnotationColors.Contains(ActorName))
 	{
-		UAnnotationComponent* AnnotationComponent = Cast<UAnnotationComponent>(Component);
-		AnnotationColor = AnnotationComponent->AnnotationColor;
-		return true;
-		// Assume all annotation components of an actor has the same color
+		// Already initialized
+		return AnnotationColors[ActorName];
 	}
-	return false;
+
+	int ColorIndex = AnnotationColors.Num();
+	FColor AnnotationColor = GetColorFromColorMap(ColorIndex);
+
+	return AnnotationColor;
 }
-
-bool FObjectAnnotator::SetVertexColor(AActor* Actor, const FColor& AnnotationColor)
-{
-	FVertexColorPainter::PaintVertexColor(Actor, AnnotationColor);
-	return true;
-}
-
-
-bool FObjectAnnotator::GetVertexColor(AActor* Actor, FColor& AnnotationColor)
-{
-	return true;
-}
-
-void FObjectAnnotator::SaveAnnotation(FString JsonFilename)
-{
-	// TODO: not implemented yet
-}
-
-void FObjectAnnotator::LoadAnnotation(FString JsonFilename)
-{
-	// TODO: not implemented yet
-}
-
 
 /** Utility function to generate color map */
 int32 GetChannelValue(uint32 Index)

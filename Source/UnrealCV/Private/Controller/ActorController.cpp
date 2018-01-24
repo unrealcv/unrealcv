@@ -11,9 +11,9 @@ FVector FActorController::GetLocation()
 	return Actor->GetActorLocation();
 }
 
-bool FActorController::SetLocation(FVector Location)
+void FActorController::SetLocation(FVector Location)
 {
-	return Actor->SetActorLocation(Location, false, nullptr, ETeleportType::TeleportPhysics);
+	Actor->SetActorLocation(Location, false, nullptr, ETeleportType::TeleportPhysics);
 }
 
 FRotator FActorController::GetRotation()
@@ -21,9 +21,9 @@ FRotator FActorController::GetRotation()
 	return Actor->GetActorRotation();
 }
 
-bool FActorController::SetRotation(FRotator Rotator)
+void FActorController::SetRotation(FRotator Rotator)
 {
-	return Actor->SetActorRotation(Rotator);
+	Actor->SetActorRotation(Rotator);
 }
 
 EComponentMobility::Type FActorController::GetMobility()
@@ -41,14 +41,14 @@ void FActorController::Hide()
 	Actor->SetActorHiddenInGame(true);
 }
 
-bool FActorController::GetAnnotationColor(FColor& AnnotationColor)
+void FActorController::GetAnnotationColor(FColor& AnnotationColor)
 {
 	FObjectAnnotator& Annotator = FUE4CVServer::Get().WorldController->ObjectAnnotator;
-	return Annotator.GetAnnotationColor(Actor, AnnotationColor);
+	Annotator.GetAnnotationColor(Actor, AnnotationColor);
 }
 
-bool FActorController::SetAnnotationColor(const FColor& AnnotationColor)
+void FActorController::SetAnnotationColor(const FColor& AnnotationColor)
 {
 	FObjectAnnotator& Annotator = FUE4CVServer::Get().WorldController->ObjectAnnotator;
-	return Annotator.SetAnnotationColor(Actor, AnnotationColor);
+	Annotator.SetAnnotationColor(Actor, AnnotationColor);
 }

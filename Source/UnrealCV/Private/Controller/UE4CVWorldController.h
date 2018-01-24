@@ -16,8 +16,6 @@ public:
 
 	virtual void BeginPlay() override;
 
-	/** Update input mode */
-	void UpdateInput(bool Enable);
 
 	/** Open new level */
 	void OpenLevel(FName LevelName);
