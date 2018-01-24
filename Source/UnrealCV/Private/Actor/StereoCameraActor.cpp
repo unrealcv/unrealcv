@@ -7,41 +7,24 @@
 #include "VisionBP.h"
 
 AStereoCameraActor::AStereoCameraActor(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+	: Super(ObjectInitializer), BaseLineDistance(80)
 {
-	// SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
+	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 
 	// Make the scene component the root component
-	// RootComponent = SceneComponent;
-	PrimaryActorTick.bCanEverTick = true;
-	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	RootComponent = SceneComponent;
 
-	LeftSensor = CreateDefaultSubobject<UFusionCamSensor>(TEXT("Left Sensor"));
-	LeftSensor->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	RightSensor = CreateDefaultSubobject<UFusionCamSensor>(TEXT("Right Sensor"));
-	RightSensor->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	LeftSensor = CreateDefaultSubobject<UFusionCamSensor>(TEXT("LeftSensor"));
+	LeftSensor->SetupAttachment(SceneComponent);
 
-	int Baseline = 100;
+	RightSensor = CreateDefaultSubobject<UFusionCamSensor>(TEXT("RightSensor"));
+	RightSensor->SetupAttachment(SceneComponent);
 
-	LeftSensor->SetRelativeLocation (FVector(0, - Baseline / 2, 0));
-	RightSensor->SetRelativeLocation(FVector(0, + Baseline / 2, 0));
+	LeftSensor->SetRelativeLocation (FVector(0, - BaseLineDistance / 2, 0));
+	RightSensor->SetRelativeLocation(FVector(0, + BaseLineDistance / 2, 0));
 }
 
 void AStereoCameraActor::BeginPlay()
 {
 	Super::BeginPlay(); // Enable ticking actor
-}
-
-void AStereoCameraActor::Tick(float DeltaSeconds)
-{
-	FString LeftLitFilename = UVisionBP::FormatFrameFilename(TEXT("C:/temp/left_lit_%d.bmp"));
-	FString RightLitFilename = UVisionBP::FormatFrameFilename(TEXT("C:/temp/right_lit_%d.bmp"));
-	FString LeftObjMaskFilename = UVisionBP::FormatFrameFilename(TEXT("C:/temp/left_obj_%d.bmp"));
-	FString RightObjMaskFilename = UVisionBP::FormatFrameFilename(TEXT("C:/temp/right_obj_%d.bmp"));
-
-	//LeftSensor->GetLitFilename(LeftLitFilename);
-	//RightSensor->GetLitFilename(RightLitFilename);
-	//LeftSensor->GetObjectMaskFilename(LeftObjMaskFilename);
-	//RightSensor->GetObjectMaskFilename(RightObjMaskFilename);
 }
