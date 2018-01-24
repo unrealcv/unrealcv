@@ -330,6 +330,26 @@ FExecStatus SerializeFloatData(const TArray<FFloat16Color>& Data, int Width, int
 	return FExecStatus::Error(FString::Printf(TEXT("Invalid filename type, filename %s"), *Filename));
 }
 
+FExecStatus SerializeFloatData(const TArray<float>& Data, int Width, int Height, const FString& Filename)
+{
+	static FImageUtil ImageUtil;
+	EFilenameType FilenameType = ParseFilenameType(Filename);
+
+	TArray<uint8> BinaryData;
+	int Channel = Data.Num() / (Width * Height);
+	switch (FilenameType)
+	{
+	case EFilenameType::NpyBinary:
+		BinaryData = FSerializationUtils::Array2Npy(Data, Width, Height, Channel);
+		return FExecStatus::Binary(BinaryData);
+	case EFilenameType::Npy:
+		BinaryData = FSerializationUtils::Array2Npy(Data, Width, Height, Channel);
+		ImageUtil.SaveFile(BinaryData, Filename);
+		return FExecStatus::OK(Filename);
+	}
+	return FExecStatus::Error(FString::Printf(TEXT("Invalid filename type, filename %s"), *Filename));
+}
+
 /** Get data from a sensor, with correct exception handling */
 FExecStatus GetSensorData(const TArray<FString>& Args,
 	TFunction<void(UFusionCamSensor*, TArray<FColor>&, int&, int&)> GetDataFunction)
@@ -358,7 +378,7 @@ FExecStatus GetSensorData(const TArray<FString>& Args,
 }
 
 /** Get sensor data in float format to support data such as depth which can not fall within 0 - 255 */
-FExecStatus GetFloatSensorData(const TArray<FString>& Args,
+FExecStatus GetFloatColoData(const TArray<FString>& Args,
 	TFunction<void(UFusionCamSensor*, TArray<FFloat16Color>&, int&, int&)> GetFunction)
 {
 	UFusionCamSensor* FusionSensor = GetSensor(Args);
@@ -384,6 +404,34 @@ FExecStatus GetFloatSensorData(const TArray<FString>& Args,
 	return ExecStatus;
 }
 
+FExecStatus GetFloatData(const TArray<FString>& Args,
+	TFunction<void(UFusionCamSensor*, TArray<float>&, int&, int&)> GetFunction)
+{
+	UFusionCamSensor* FusionSensor = GetSensor(Args);
+	if (FusionSensor == nullptr)
+	{
+		return FExecStatus::Error("Invalid sensor id");
+	}
+
+	if (Args.Num() != 2)
+	{
+		return FExecStatus::Error("Filename can not be empty");
+	}
+	FString Filename = Args[1];
+	TArray<float> Data;
+	int Width, Height;
+	GetFunction(FusionSensor, Data, Width, Height);
+	if (Data.Num() == 0)
+	{
+		return FExecStatus::Error("Captured data is empty");
+	}
+
+	FExecStatus ExecStatus = SerializeFloatData(Data, Width, Height, Filename);
+	return ExecStatus;
+}
+
+
+
 FExecStatus GetSensorLit(const TArray<FString>& Args)
 {
 	FExecStatus ExecStatus = GetSensorData(Args,
@@ -397,8 +445,8 @@ FExecStatus GetSensorLit(const TArray<FString>& Args)
 
 FExecStatus GetSensorDepth(const TArray<FString>& Args)
 {
-	FExecStatus ExecStatus = GetFloatSensorData(Args,
-		[=](UFusionCamSensor* Sensor, TArray<FFloat16Color>& Data, int& Width, int& Height)
+	FExecStatus ExecStatus = GetFloatData(Args,
+		[=](UFusionCamSensor* Sensor, TArray<float>& Data, int& Width, int& Height)
 		{
 			Sensor->GetDepth(Data, Width, Height);
 		}
@@ -408,7 +456,7 @@ FExecStatus GetSensorDepth(const TArray<FString>& Args)
 
 FExecStatus GetSensorPlaneDepth(const TArray<FString>& Args)
 {
-	FExecStatus ExecStatus = GetFloatSensorData(Args,
+	FExecStatus ExecStatus = GetFloatColoData(Args,
 		[=](UFusionCamSensor* Sensor, TArray<FFloat16Color>& Data, int& Width, int& Height)
 		{
 			Sensor->GetPlaneDepth(Data, Width, Height);
@@ -419,7 +467,7 @@ FExecStatus GetSensorPlaneDepth(const TArray<FString>& Args)
 
 FExecStatus GetSensorVisDepth(const TArray<FString>& Args)
 {
-	FExecStatus ExecStatus = GetFloatSensorData(Args,
+	FExecStatus ExecStatus = GetFloatColoData(Args,
 		[=](UFusionCamSensor* Sensor, TArray<FFloat16Color>& Data, int& Width, int& Height)
 		{
 			Sensor->GetVisDepth(Data, Width, Height);

@@ -61,14 +61,14 @@ FPrimitiveViewRelevance FAnnotationSceneProxy::GetViewRelevance(const FSceneView
 {
 	// View->Family->EngineShowFlags.
 	FPrimitiveViewRelevance ViewRelevance;
-	ViewRelevance.bDrawRelevance = 0;
-	if (!View->Family->EngineShowFlags.Materials)
+	ViewRelevance.bDrawRelevance = 0; // This will make it get ignored
+	if (View->Family->EngineShowFlags.Materials)
 	{
-		return FStaticMeshSceneProxy::GetViewRelevance(View);
+		return ViewRelevance;
 	}
 	else
 	{
-		return ViewRelevance;
+		return FStaticMeshSceneProxy::GetViewRelevance(View);
 	}
 }
 

@@ -29,6 +29,7 @@ public class UnrealcvBuildConfig
 				"UnrealCV/Private/Sensor",
 				"UnrealCV/Private/Sensor/CameraSensor",
 				"UnrealCV/Private/Utils",
+				"UnrealCV/Private/BPFunctionLib",
 				"UnrealCV/Private/libs", // For 3rd-party libs
 			}
 		);

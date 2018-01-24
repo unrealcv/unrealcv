@@ -12,8 +12,6 @@ void TestCameraBasic();
 void TestBPControl();
 void TestAnnotator(const TArray<FString>& Args);
 
-TArray<AActor*> GetActorPtrList(UWorld* World);
-
 ATestActor::ATestActor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -153,8 +151,8 @@ void TestBPControl()
 void TestAnnotator(const TArray<FString>& Args)
 {
 	// ExecCommand(TEXT("vset /viewmode object_mask"));
-	UWorld* World = FUE4CVServer::Get().GetGameWorld();
-	TArray<AActor*> Actors = GetActorPtrList(World);
+	TArray<AActor*> Actors;
+	UVisionBP::GetActorList(Actors);
 
 	FObjectAnnotator Annotator;
 	// int ObjectIndex = 0;
@@ -186,8 +184,8 @@ void TestAnnotator(const TArray<FString>& Args)
 		if (Args.Num() == 3)
 		{
 			AnnotationColor = FColor(
-				FCString::Atoi(*Args[0]), 
-				FCString::Atoi(*Args[1]), 
+				FCString::Atoi(*Args[0]),
+				FCString::Atoi(*Args[1]),
 				FCString::Atoi(*Args[2]));
 		}
 		AnnotationColor.A = 0;

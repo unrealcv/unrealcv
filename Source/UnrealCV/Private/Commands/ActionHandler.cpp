@@ -1,6 +1,7 @@
 #include "UnrealCVPrivate.h"
 #include "ActionHandler.h"
 #include "CaptureManager.h"
+#include "VisionBP.h"
 
 void FActionCommandHandler::RegisterCommands()
 {
@@ -85,14 +86,30 @@ FExecStatus FActionCommandHandler::OpenLevel(const TArray<FString>& Args)
 
 FExecStatus FActionCommandHandler::EnableInput(const TArray<FString>& Args)
 {
-	FUE4CVServer::Get().WorldController->UpdateInput(true);
-	return FExecStatus::OK();
+	APawn* Pawn = FUE4CVServer::Get().GetPawn();
+	if (IsValid(Pawn))
+	{
+		UVisionBP::UpdateInput(Pawn, true);
+		return FExecStatus::OK();
+	}
+	else
+	{
+		return FExecStatus::Error("The pawn is invalid");
+	}
 }
 
 FExecStatus FActionCommandHandler::DisableInput(const TArray<FString>& Args)
 {
-	FUE4CVServer::Get().WorldController->UpdateInput(false);
-	return FExecStatus::OK();
+	APawn* Pawn = FUE4CVServer::Get().GetPawn();
+	if (IsValid(Pawn))
+	{
+		UVisionBP::UpdateInput(Pawn, true);
+		return FExecStatus::OK();
+	}
+	else
+	{
+		return FExecStatus::Error("The pawn is invalid");
+	}
 }
 
 FExecStatus FActionCommandHandler::SetStereoDistance(const TArray<FString>& Args)

@@ -101,17 +101,17 @@ UWorld* FUE4CVServer::GetGameWorld()
 	UWorld* World = nullptr;
 	// The correct way to get GameWorld;
 #if WITH_EDITOR
-	UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine); // TODO: check which macro can determine whether I am in editor
+	UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
 	if (EditorEngine != nullptr)
 	{
 		World = EditorEngine->PlayWorld;
-		if (World != nullptr && World->IsValidLowLevel() && World->IsGameWorld())
+		if (IsValid(World) && World->IsGameWorld())
 		{
 			return World;
 		}
 		else
 		{
-			UE_LOG(LogUnrealCV, Error, TEXT("Can not get PlayWorld from EditorEngine"));
+			// UE_LOG(LogUnrealCV, Error, TEXT("Can not get PlayWorld from EditorEngine"));
 			return nullptr;
 		}
 	}
@@ -121,13 +121,13 @@ UWorld* FUE4CVServer::GetGameWorld()
 	if (GameEngine != nullptr)
 	{
 		World = GameEngine->GetGameWorld();
-		if (World != nullptr && World->IsValidLowLevel())
+		if (IsValid(World))
 		{
 			return World;
 		}
 		else
 		{
-			UE_LOG(LogUnrealCV, Error, TEXT("Can not get GameWorld from GameEngine"));
+			// UE_LOG(LogUnrealCV, Error, TEXT("Can not get GameWorld from GameEngine"));
 			return nullptr;
 		}
 	}

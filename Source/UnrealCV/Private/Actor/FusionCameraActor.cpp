@@ -8,6 +8,6 @@ AFusionCameraActor::AFusionCameraActor(const FObjectInitializer& ObjectInitializ
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    FusionCamSensor = CreateDefaultSubobject<UFusionCamSensor>(TEXT("Fusion Camera Sensor"));
+    FusionCamSensor = CreateDefaultSubobject<UFusionCamSensor>(TEXT("FusionCameraSensor"));
     RootComponent = FusionCamSensor;
 }

@@ -101,8 +101,8 @@ AActor* GetActor(const TArray<FString>& Args)
 
 FExecStatus GetActorList(const TArray<FString>& Args)
 {
-	UWorld* GameWorld = FUE4CVServer::Get().GetGameWorld();
-	TArray<AActor*> ActorList = GetActorPtrList(GameWorld);
+	TArray<AActor*> ActorList;
+	UVisionBP::GetActorList(ActorList);
 
 	FString StrActorList;
 	for (AActor* Actor : ActorList)
@@ -195,15 +195,8 @@ FExecStatus GetActorAnnotationColor(const TArray<FString>& Args)
 	FActorController Controller(Actor);
 
 	FColor AnnotationColor;
-	bool bSuccess = Controller.GetAnnotationColor(AnnotationColor);
-	if (bSuccess)
-	{
-		return FExecStatus::OK(AnnotationColor.ToString());
-	}
-	else
-	{
-		return FExecStatus::Error("The annotation color is empty");
-	}
+	Controller.GetAnnotationColor(AnnotationColor);
+	return FExecStatus::OK(AnnotationColor.ToString());
 }
 
 FExecStatus SetActorAnnotationColor(const TArray<FString>& Args)
