@@ -17,19 +17,13 @@ DECLARE_CYCLE_STAT(TEXT("ReadBufferFast"), STAT_ReadBufferFast, STATGROUP_Unreal
 
 FImageWorker UBaseCameraSensor::ImageWorker;
 
-UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), Width(640), Height(480)
+UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), FilmWidth(640), FilmHeight(480)
 {
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("/Engine/EditorMeshes/MatineeCam_SM"));
-	CameraMesh = EditorCameraMesh.Object;
-	// From UCameraComponent
 	// static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("/Engine/EditorMeshes/MatineeCam_SM"));
-	// CameraMesh = EditorCameraMesh.Object;
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("StaticMesh'/Engine/EditorMeshes/Camera/SM_CineCam.SM_CineCam'"));
+	CameraMesh = EditorCameraMesh.Object;
 
-	// bool bTransient = true;
-	// TextureTarget = ObjectInitializer.CreateDefaultSubobject<UTextureRenderTarget2D>(this, TEXT("TextureRenderTarget2D"));
-	// TextureTarget->InitAutoFormat(640, 480);
-
-
+	this->ShowFlags.SetPostProcessing(true);
 }
 
 void UBaseCameraSensor::OnRegister()
@@ -74,7 +68,7 @@ This is defined in FColor
 	uint8 G,R,A;
 */
 
-void UBaseCameraSensor::Capture(TArray<FColor>& ImageData, int& Width, int& Height)
+void UBaseCameraSensor::CaptureFast(TArray<FColor>& ImageData, int& Width, int& Height)
 {
 	TFunction<void(FColor*, int32, int32)> Callback = [&](FColor* ColorPtr, int InWidth, int InHeight)
 	{
@@ -93,14 +87,24 @@ void UBaseCameraSensor::Capture(TArray<FColor>& ImageData, int& Width, int& Heig
 	};
 
 	this->CaptureScene();
+	if (TextureTarget == nullptr)
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("TextureTarget has not been initialized"));
+		return;
+	}
 	FTextureRenderTargetResource* RenderTargetResource = this->TextureTarget->GameThread_GetRenderTargetResource();
+	if (RenderTargetResource == nullptr)
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("RenderTargetResource is nullptr"));
+		return;
+	}
 	FTexture2DRHIRef Texture2D = RenderTargetResource->GetRenderTargetTexture();
 	FastReadTexture2DAsync(Texture2D, Callback);
 	FlushRenderingCommands(); // Ensure the callback is done
 }
 
 
-void UBaseCameraSensor::CaptureAsync(const FString& Filename)
+void UBaseCameraSensor::CaptureToFile(const FString& Filename)
 {
 	auto Callback = [=](FColor* ColorBuffer, int Width, int Height)
 	{
@@ -127,7 +131,7 @@ void UBaseCameraSensor::CaptureAsync(const FString& Filename)
 	FastReadTexture2DAsync(Texture2D, Callback);
 }
 
-void UBaseCameraSensor::CaptureSlow(TArray<FColor>& ImageData, int& Width, int& Height)
+void UBaseCameraSensor::Capture(TArray<FColor>& ImageData, int& Width, int& Height)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ReadBuffer);
 

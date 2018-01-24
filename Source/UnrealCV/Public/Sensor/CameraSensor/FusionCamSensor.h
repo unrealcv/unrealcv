@@ -19,7 +19,7 @@ public:
 	class UDepthCamSensor* DepthCamSensor;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	class UVertexColorCamSensor* ObjMaskCamSensor;
+	class UVertexColorCamSensor* VertexColorCamSensor;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UNormalCamSensor* NormalCamSensor;
@@ -36,15 +36,21 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UVisDepthCamSensor* VisDepthCamSensor;
 
-	void GetLit(TArray<FColor>& LitData, int& Width, int& Height);
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	void GetLit(TArray<FColor>& LitData, int& InOutWidth, int& InOutHeight);
 
-	void GetDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height);
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	void GetDepth(TArray<float>& DepthData, int& InOutWidth, int& InOutHeight);
 	void GetPlaneDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height);
 	void GetVisDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height);
 
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	void GetNormal(TArray<FColor>& NormalData, int& Width, int& Height);
 
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	void GetObjectMask(TArray<FColor>& ObjMaskData, int& Width, int& Height);
+
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	void GetVertexColor(TArray<FColor>& VertexColorData, int& Width, int& Height);
 	void GetStencil(TArray<FColor>& StencilData, int& Width, int& Height);
 

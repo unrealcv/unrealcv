@@ -23,21 +23,22 @@ public:
 	virtual void OnRegister() override;
 
 	// 	FlushRenderingCommands() can make sure the rendering command is finished, but will slow down the game thread
-	UFUNCTION(BlueprintCallable, Category = "UnrealCV")
-	virtual void Capture(TArray<FColor>& ImageData, int& Width, int& Height);
+	// Should be override by child classes
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	virtual void CaptureFast(TArray<FColor>& ImageData, int& Width, int& Height);
 
 	/** Save lit to an image file, send the capture command to rendering thread */
-	UFUNCTION(BlueprintCallable, Category = "UnrealCV")
-	virtual void CaptureAsync(const FString& Filename);
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	virtual void CaptureToFile(const FString& Filename);
 
 	/** The old version to read TextureBuffer, slow but is sync operation and  correct */
-	UFUNCTION(BlueprintCallable, Category = "UnrealCV")
-	virtual void CaptureSlow(TArray<FColor>& ImageData, int& Width, int& Height);
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	virtual void Capture(TArray<FColor>& ImageData, int& Width, int& Height);
 
-	UFUNCTION(BlueprintCallable, Category = "UnrealCV")
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	FVector GetSensorWorldLocation();
 
-	UFUNCTION(BlueprintCallable, Category = "UnrealCV")
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	FRotator GetSensorRotation();
 
 	// FString GetSensorPose();
@@ -52,33 +53,27 @@ public:
 
 	// void SetWorldLocation();
 
-	UFUNCTION(BlueprintCallable, Category = "UnrealCV")
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
 	void SetFOV(float FOV);
 
 	void SetPostProcessMaterial(UMaterial* PostProcessMaterial);
 
 
 	/** The TextureBuffer width */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UnrealCV")
-	int Width;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "unrealcv")
+	int FilmWidth;
 
 	/** The TextureBuffer height */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UnrealCV")
-	int Height;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "unrealcv")
+	int FilmHeight;
 
-	// UFUNCTION(BlueprintGetter, Category = "UnrealCV")
-	UFUNCTION(BlueprintPure, Category = "UnrealCV")
-	static int FrameNumber()
-	{
-		return GFrameNumber;
-	}
 
 	UPROPERTY(transient)
 	UStaticMesh* CameraMesh;
 
 	// The camera mesh to show visually where the camera is placed
 	/** Change the scale of this would not effect the capture component */
-	UPROPERTY(transient, EditAnywhere, BlueprintReadWrite, Category = "UnrealCV")
+	UPROPERTY(transient, EditAnywhere, BlueprintReadWrite, Category = "unrealcv")
 	UStaticMeshComponent* ProxyMeshComponent;
 
 protected:

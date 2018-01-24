@@ -6,14 +6,14 @@ UAnnotationCamSensor::UAnnotationCamSensor(const FObjectInitializer& ObjectIniti
 	Super(ObjectInitializer)
 {
 	this->PrimaryComponentTick.bCanEverTick = true;
-	this->ShowFlags.SetMaterials(false);
+	this->ShowFlags.SetMaterials(false); // Check AnnotationComponent.cpp::GetViewRelevance
 	this->ShowFlags.SetLighting(false);
 	this->ShowFlags.SetPostProcessing(false);
+
 	// this->ShowFlags.SetBSPTriangles(true);
 	// this->ShowFlags.SetVertexColors(true);
 	// this->ShowFlags.SetHMDDistortion(false);
 	// this->ShowFlags.SetTonemapper(false); // This won't take effect here
-    //
 	// GVertexColorViewMode = EVertexColorViewMode::Color;
 }
 
@@ -21,21 +21,31 @@ void UAnnotationCamSensor::OnRegister()
 {
 	Super::OnRegister();
 
+	// Only available for 4.17+
 	// this->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
 
 	TextureTarget = NewObject<UTextureRenderTarget2D>(this);
-	bool bUseLinearGamma = true; // This will disable sRGB
-	TextureTarget->InitCustomFormat(Width, Height, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
+	// TODO: Write an article about LinearGamma
+	bool bUseLinearGamma = true;
+	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
 	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-	this->bCaptureEveryFrame = false; // TODO: Check the performance overhead for this
+	this->bCaptureEveryFrame = false;
 	this->bCaptureOnMovement = false;
-
 }
-
 
 void UAnnotationCamSensor::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * T)
 {
 	Super::TickComponent(DeltaTime, TickType, T);
+
+}
+
+void GetAnnotationComponents(UWorld* World, TArray<TWeakObjectPtr<UPrimitiveComponent> >& ComponentList)
+{
+	if (!IsValid(World))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Can not get AnnotationComponents, World is invalid"));
+		return;
+	}
 
 	// Check how much time is spent here!
 	TArray<UObject*> UObjectList;
@@ -44,18 +54,29 @@ void UAnnotationCamSensor::TickComponent(float DeltaTime, enum ELevelTick TickTy
 	EInternalObjectFlags ExclusionInternalFlags = EInternalObjectFlags::AllFlags;
 	GetObjectsOfClass(UAnnotationComponent::StaticClass(), UObjectList, bIncludeDerivedClasses, ExclusionFlags, ExclusionInternalFlags);
 
-	TArray<UAnnotationComponent*> ComponentList;
 	for (UObject* Object : UObjectList)
 	{
 		UPrimitiveComponent* Component = Cast<UPrimitiveComponent>(Object);
-		if (Component->GetWorld() == GetWorld()
-		&& !ShowOnlyComponents.Contains(Component))
+
+		if (Component->GetWorld() == World
+		&& !ComponentList.Contains(Component))
 		{
-			this->ShowOnlyComponents.Add(Component);
+			ComponentList.Add(Component);
 		}
 	}
-	if (this->ShowOnlyComponents.Num() == 0)
+
+	if (ComponentList.Num() == 0)
 	{
-		ScreenLog("No annotation in the scene to show, fall back to lit mode");
+		UE_LOG(LogUnrealCV, Warning, TEXT("No annotation in the scene to show, fall back to lit mode"));
 	}
+}
+
+void UAnnotationCamSensor::Capture(TArray<FColor>& ImageData, int& Width, int& Height)
+{
+	TArray<TWeakObjectPtr<UPrimitiveComponent> > ComponentList;
+	GetAnnotationComponents(this->GetWorld(), ComponentList);
+
+	this->ShowOnlyComponents = ComponentList;
+
+	Super::Capture(ImageData, Width, Height);
 }

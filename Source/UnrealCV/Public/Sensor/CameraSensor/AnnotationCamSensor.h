@@ -18,8 +18,5 @@ public:
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * T);
 
-
-private:
-    UPROPERTY()
-    UMaterial* LitPPMaterial;
+	virtual void Capture(TArray<FColor>& ImageData, int& Width, int& Height) override;
 };

@@ -32,13 +32,13 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	NormalCamSensor = CreateDefaultSubobject<UNormalCamSensor>("NormalCamSensor");
 	FusionSensors.Add(NormalCamSensor);
 
-	ObjMaskCamSensor = CreateDefaultSubobject<UVertexColorCamSensor>("ObjMaskCamSensor");
-	FusionSensors.Add(ObjMaskCamSensor);
+	VertexColorCamSensor = CreateDefaultSubobject<UVertexColorCamSensor>("VertexColorCamSensor");
+	FusionSensors.Add(VertexColorCamSensor);
 
 	StencilCamSensor = CreateDefaultSubobject<UStencilCamSensor>("StencilCamSensor");
 	FusionSensors.Add(StencilCamSensor);
 
-	AnnotationCamSensor = CreateDefaultSubobject<UAnnotationCamSensor>("AnnotationComponent");
+	AnnotationCamSensor = CreateDefaultSubobject<UAnnotationCamSensor>("AnnotationCamSensor");
 	FusionSensors.Add(AnnotationCamSensor);
 
 	for (UBaseCameraSensor* Sensor : FusionSensors)
@@ -62,12 +62,6 @@ void UFusionCamSensor::OnRegister()
 			Sensor->RegisterComponent();
 		}
 	}
-	// if (LitCamSensor) LitCamSensor->RegisterComponent();
-	// if (DepthCamSensor) DepthCamSensor->RegisterComponent();
-	// if (NormalCamSensor) NormalCamSensor->RegisterComponent();
-	// if (ObjMaskCamSensor) ObjMaskCamSensor->RegisterComponent();
-	// if (StencilCamSensor) StencilCamSensor->RegisterComponent();
-	// if (AnnotationCamSensor) AnnotationCamSensor->RegisterComponent();
 }
 
 void UFusionCamSensor::GetLit(TArray<FColor>& LitData, int& Width, int& Height)
@@ -77,7 +71,7 @@ void UFusionCamSensor::GetLit(TArray<FColor>& LitData, int& Width, int& Height)
 	this->LitCamSensor->Capture(LitData, Width, Height);
 }
 
-void UFusionCamSensor::GetDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height)
+void UFusionCamSensor::GetDepth(TArray<float>& DepthData, int& Width, int& Height)
 {
 	this->DepthCamSensor->CaptureDepth(DepthData, Width, Height);
 }
@@ -104,7 +98,7 @@ void UFusionCamSensor::GetObjectMask(TArray<FColor>& ObjMaskData, int& Width, in
 
 void UFusionCamSensor::GetVertexColor(TArray<FColor>& VertexColorData, int& Width, int& Height)
 {
-	this->ObjMaskCamSensor->Capture(VertexColorData, Width, Height);
+	this->VertexColorCamSensor->Capture(VertexColorData, Width, Height);
 }
 
 void UFusionCamSensor::GetStencil(TArray<FColor>& StencilData, int& Width, int& Height)
