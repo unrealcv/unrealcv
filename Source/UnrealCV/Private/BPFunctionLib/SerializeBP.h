@@ -1,0 +1,128 @@
+// Weichao Qiu @ 2018
+#pragma once
+#include "SerializeBP.generated.h"
+
+// Make JsonValue accessible in blueprint
+USTRUCT(BlueprintType)
+struct UNREALCV_API FJsonObjectBP
+{
+	GENERATED_BODY()
+
+	TSharedPtr<FJsonObject> JsonObject;
+	TArray<TSharedPtr<FJsonValue> > JsonArray;
+	// TSharedPtr<FJsonValueArray> JsonArray;
+
+	FJsonObjectBP() {}
+
+	FJsonObjectBP(const FVector& Vector)
+	{
+		JsonObject = MakeShareable(new FJsonObject());
+		JsonObject->SetNumberField("X", Vector.X);
+		JsonObject->SetNumberField("Y", Vector.Y);
+		JsonObject->SetNumberField("Z", Vector.Z);
+	}
+
+	FJsonObjectBP(const FRotator& Rotator)
+	{
+		JsonObject = MakeShareable(new FJsonObject());
+		JsonObject->SetNumberField("Pitch", Rotator.Pitch);
+		JsonObject->SetNumberField("Yaw", Rotator.Yaw);
+		JsonObject->SetNumberField("Roll", Rotator.Roll);
+	}
+
+	FJsonObjectBP(const FColor& Color)
+	{
+		JsonObject = MakeShareable(new FJsonObject());
+		JsonObject->SetNumberField("R", Color.R);
+		JsonObject->SetNumberField("G", Color.G);
+		JsonObject->SetNumberField("B", Color.B);
+	}
+
+	FJsonObjectBP(const FTransform& Transform)
+	{
+		JsonObject = MakeShareable(new FJsonObject());
+		JsonObject->SetNumberField("Pitch", Transform.GetRotation().Rotator().Pitch);
+		JsonObject->SetNumberField("Yaw", Transform.GetRotation().Rotator().Yaw);
+		JsonObject->SetNumberField("Roll", Transform.GetRotation().Rotator().Roll);
+		JsonObject->SetNumberField("X", Transform.GetTranslation().X);
+		JsonObject->SetNumberField("Y", Transform.GetTranslation().Y);
+		JsonObject->SetNumberField("Z", Transform.GetTranslation().Z);
+		JsonObject->SetNumberField("ScaleX", Transform.GetScale3D().X);
+		JsonObject->SetNumberField("ScaleY", Transform.GetScale3D().Y);
+		JsonObject->SetNumberField("ScaleZ", Transform.GetScale3D().Z);
+
+	}
+
+	FJsonObjectBP(const TArray<FJsonObjectBP>& Array)
+	{
+		for (FJsonObjectBP Value : Array)
+		{
+			JsonArray.Add(Value.ToJsonValue());
+		}
+	}
+
+	FJsonObjectBP(const TArray<FString>& Keys, const TArray<FJsonObjectBP>& Values)
+	{
+		JsonObject = MakeShareable(new FJsonObject());
+		if (Keys.Num() != Values.Num())
+		{
+			UE_LOG(LogUnrealCV, Warning, TEXT("Length of keys and values are mismatch"));
+			return;
+		}
+
+		for (int i = 0; i < Keys.Num(); i++)
+		{
+			JsonObject->SetField(Keys[i], Values[i].ToJsonValue());
+		}
+	}
+
+	TSharedPtr<FJsonValue> ToJsonValue() const
+	{
+		TSharedPtr<FJsonValue> JsonValue;
+		if (JsonObject.IsValid())
+		{
+			JsonValue = MakeShareable(new FJsonValueObject(JsonObject));
+		}
+		else
+		{
+			JsonValue = MakeShareable(new FJsonValueArray(JsonArray));
+		}
+		return JsonValue;
+	}
+
+};
+
+/** A static BP library to serialize data to string, mainly for json */
+UCLASS()
+class UNREALCV_API USerializeBP : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+
+public:
+	/** Convert to json */
+	UFUNCTION(BlueprintPure, meta=(BlueprintAutocast), Category = "unrealcv")
+	static FJsonObjectBP VectorToJson(const FVector& Vec);
+
+	UFUNCTION(BlueprintPure, meta=(BlueprintAutocast), Category = "unrealcv")
+	static FJsonObjectBP RotatorToJson(const FRotator& Rotator);
+
+	UFUNCTION(BlueprintPure, meta=(BlueprintAutocast), Category = "unrealcv")
+	static FJsonObjectBP ColorToJson(const FColor& Color);
+
+	UFUNCTION(BlueprintPure, meta=(BlueprintAutocast), Category = "unrealcv")
+	static FJsonObjectBP TransformToJson(const FTransform& Transform);
+	// Convert string array to json
+	// UFUNCTION(BlueprintPure, Category = "unrealcv")
+	// static FString StrArrayToJson(const TArray<FString>& Array);
+	UFUNCTION(BlueprintPure, meta=(BlueprintAutocast), Category = "unrealcv")
+	static FJsonObjectBP ArrayToJson(const TArray<FJsonObjectBP>& Array);
+
+	UFUNCTION(BlueprintPure, meta=(BlueprintAutocast), Category = "unrealcv")
+	static FJsonObjectBP TMapToJson(const TArray<FString>& Keys, const TArray<FJsonObjectBP>& Values); // TMap is not supported in BP
+
+	// Automatically cast json object to string
+	UFUNCTION(BlueprintPure, meta=(BlueprintAutocast), Category = "unrealcv")
+	static FString JsonToStr(const FJsonObjectBP& JsonObjectBP);
+
+
+};

@@ -23,7 +23,7 @@ public:
 	}
 };
 
-inline FJsonFormatter& operator<<(FJsonFormatter& Ar, FVector& Vec)
+inline FJsonFormatter& operator<<(FJsonFormatter& Ar, const FVector& Vec)
 {
 	Ar.JsonObject->SetNumberField("X", Vec.X);
 	Ar.JsonObject->SetNumberField("Y", Vec.Y);
@@ -31,7 +31,7 @@ inline FJsonFormatter& operator<<(FJsonFormatter& Ar, FVector& Vec)
 	return Ar;
 }
 
-inline FJsonFormatter& operator<<(FJsonFormatter& Ar, FRotator& Rotator)
+inline FJsonFormatter& operator<<(FJsonFormatter& Ar, const FRotator& Rotator)
 {
 	Ar.JsonObject->SetNumberField("Pitch", Rotator.Pitch);
 	Ar.JsonObject->SetNumberField("Yaw", Rotator.Yaw);
@@ -39,7 +39,16 @@ inline FJsonFormatter& operator<<(FJsonFormatter& Ar, FRotator& Rotator)
 	return Ar;
 }
 
-inline FJsonFormatter& operator<<(FJsonFormatter& Ar, TMap<FString, FString>& Dict)
+inline FJsonFormatter& operator<<(FJsonFormatter& Ar, const FColor& Color)
+{
+	Ar.JsonObject->SetNumberField("R", Color.R);
+	Ar.JsonObject->SetNumberField("G", Color.G);
+	Ar.JsonObject->SetNumberField("B", Color.B);
+	return Ar;
+}
+
+
+inline FJsonFormatter& operator<<(FJsonFormatter& Ar, const TMap<FString, FString>& Dict)
 {
 	for (const auto& Elem: Dict)
 	{

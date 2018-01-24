@@ -4,6 +4,45 @@
 #include "IImageWrapperModule.h"
 #include "cnpy.h"
 
+TArray<uint8> FSerializationUtils::Array2Npy(const TArray<float>& ImageData, int32 Width, int32 Height, int32 Channel)
+{
+	TArray<uint8> BinaryData;
+	if (ImageData.Num() != Width * Height * Channel)
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("The input argument to Array2Npy is correct, shape mismatch"));
+		return BinaryData;
+	}
+	float *TypePointer = nullptr; // Only used for determing the type
+
+	std::vector<int> Shape;
+	Shape.push_back(Height);
+	Shape.push_back(Width);
+	if (Channel != 1) Shape.push_back(Channel);
+
+	std::vector<char> NpyHeader = cnpy::create_npy_header(TypePointer, Shape);
+	std::vector<float> FloatData;
+
+	for (int i = 0; i < ImageData.Num(); i++)
+	{
+		// TODO: a faster conversion
+		float v = ImageData[i];
+		FloatData.push_back(v);
+	}
+
+	// Convert to binary array
+	const unsigned char* bytes = reinterpret_cast<const unsigned char*>(&FloatData[0]);
+	std::vector<unsigned char> NpyData(bytes, bytes + sizeof(float) * FloatData.size());
+
+	NpyHeader.insert(NpyHeader.end(), NpyData.begin(), NpyData.end());
+
+	// FIXME: Find a more efficient implementation
+	for (char Element : NpyHeader)
+	{
+		BinaryData.Add(Element);
+	}
+	return BinaryData;
+}
+
 TArray<uint8> FSerializationUtils::Array2Npy(const TArray<FFloat16Color>& ImageData, int32 Width, int32 Height, int32 Channel)
 {
 	float *TypePointer = nullptr; // Only used for determing the type
