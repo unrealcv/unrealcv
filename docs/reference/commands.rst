@@ -86,6 +86,18 @@ vget /objects
 
 vget /object/[obj_name]/color
     (v0.2) Get the labeling color of an object (used in object instance mask)
+    
+vget /object/[obj_name]/location
+    Get object location [x, y, z]
+
+vget /object/[obj_name]/rotation
+    Get object rotation [pitch, yaw, roll]
+
+vset /object/[obj_name]/location [x] [y] [z]
+    Set object location [x, y, z]
+
+vset /object/[obj_name]/rotation [pitch] [yaw] [roll]
+    Set object rotation [pitch, yaw, roll]
 
 vset /object/[obj_name]/color [r] [g] [b]
     (v0.2) Set the labeling color of an object
