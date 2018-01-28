@@ -14,7 +14,10 @@ public:
 	UAnnotationComponent(const FObjectInitializer& ObjectInitializer);
 
 	UPROPERTY()
-	UStaticMeshComponent* OwnerComponent;
+	UStaticMeshComponent* StaticMeshComponent;
+
+	UPROPERTY()
+	USkeletalMeshComponent* SkeletalMeshComponent;
 
 	virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
 
