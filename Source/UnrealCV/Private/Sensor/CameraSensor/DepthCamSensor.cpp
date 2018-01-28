@@ -12,11 +12,10 @@ void UDepthCamSensor::CaptureDepth(TArray<float>& DepthData, int& Width, int& He
 {
 	this->CaptureScene();
 	Width = this->TextureTarget->SizeX, Height = TextureTarget->SizeY;
-	DepthData.AddZeroed(Width * Height);
+	DepthData.AddZeroed(Width * Height); // or AddUninitialized(FloatColorDepthData.Num());
 	FTextureRenderTargetResource* RenderTargetResource = this->TextureTarget->GameThread_GetRenderTargetResource();
 	TArray<FFloat16Color> FloatColorDepthData;
 	RenderTargetResource->ReadFloat16Pixels(FloatColorDepthData);
-	DepthData.AddUninitialized(FloatColorDepthData.Num());
 
 	// TODO: Find a faster way to chunk a channel
 	for (int i = 0; i < FloatColorDepthData.Num(); i++)

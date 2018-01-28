@@ -16,5 +16,6 @@ public:
 
 	virtual	void OnRegister() override;
 
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	void CaptureDepth(TArray<float>& DepthData, int& Width, int& Height);
 };

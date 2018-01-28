@@ -85,7 +85,7 @@ void FViewMode::PostProcess(FEngineShowFlags& ShowFlags)
 	ShowFlags.SetPostProcessMaterial(true);
 	// ShowFlags.SetVertexColors(true); // This option will change object material to vertex color material, which don't produce surface normal
 
-	GVertexColorViewMode = EVertexColorViewMode::Color;
+	// GVertexColorViewMode = EVertexColorViewMode::Color;
 	SetVisibility(ShowFlags, PreviousShowFlags); // Store the visibility of the scene, such as folliage and landscape.
 }
 
@@ -111,7 +111,7 @@ void FViewMode::VertexColor(FEngineShowFlags& ShowFlags)
 	ShowFlags.SetHMDDistortion(false);
 	ShowFlags.SetTonemapper(false); // This won't take effect here
 
-	GVertexColorViewMode = EVertexColorViewMode::Color;
+	// GVertexColorViewMode = EVertexColorViewMode::Color;
 	SetVisibility(ShowFlags, PreviousShowFlags); // Store the visibility of the scene, such as folliage and landscape.
 }
 

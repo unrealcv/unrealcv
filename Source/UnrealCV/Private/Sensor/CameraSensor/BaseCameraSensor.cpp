@@ -19,8 +19,8 @@ FImageWorker UBaseCameraSensor::ImageWorker;
 
 UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), FilmWidth(640), FilmHeight(480)
 {
-	// static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("/Engine/EditorMeshes/MatineeCam_SM"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("StaticMesh'/Engine/EditorMeshes/Camera/SM_CineCam.SM_CineCam'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("/Engine/EditorMeshes/MatineeCam_SM"));
+	// static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("StaticMesh'/Engine/EditorMeshes/Camera/SM_CineCam.SM_CineCam'"));
 	CameraMesh = EditorCameraMesh.Object;
 
 	this->ShowFlags.SetPostProcessing(true);
@@ -162,4 +162,27 @@ void UBaseCameraSensor::SetFOV(float FOV)
 void UBaseCameraSensor::SetPostProcessMaterial(UMaterial* PostProcessMaterial)
 {
 	PostProcessSettings.AddBlendable(PostProcessMaterial, 1);
+}
+
+void UBaseCameraSensor::GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView)
+{
+	DesiredView.Location = GetComponentLocation();
+	DesiredView.Rotation = GetComponentRotation();
+	DesiredView.FOV = this->FOVAngle;
+	// DesiredView.FOV = FieldOfView;
+	// DesiredView.bConstrainAspectRatio = bConstrainAspectRatio;
+	// DesiredView.bUseFieldOfViewForLOD = bUseFieldOfViewForLOD;
+	// DesiredView.ProjectionMode = ProjectionMode;
+	DesiredView.ProjectionMode = ECameraProjectionMode::Perspective;
+	DesiredView.OrthoWidth = OrthoWidth;
+	// DesiredView.OrthoNearClipPlane = OrthoNearClipPlane;
+	// DesiredView.OrthoFarClipPlane = OrthoFarClipPlane;
+
+	// See if the CameraActor wants to override the PostProcess settings used.
+	DesiredView.PostProcessBlendWeight = PostProcessBlendWeight;
+	if (PostProcessBlendWeight > 0.0f)
+	{
+		DesiredView.PostProcessSettings = PostProcessSettings;
+	}
+
 }

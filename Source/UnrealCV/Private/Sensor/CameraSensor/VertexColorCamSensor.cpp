@@ -13,7 +13,7 @@ UVertexColorCamSensor::UVertexColorCamSensor(const FObjectInitializer& ObjectIni
 	this->ShowFlags.SetHMDDistortion(false);
 	this->ShowFlags.SetTonemapper(false); // This won't take effect here
 
-	GVertexColorViewMode = EVertexColorViewMode::Color;
+	// GVertexColorViewMode = EVertexColorViewMode::Color;
 	// this->ShowFlags.SetRendering(false); // This will disable the rendering
 }
 

@@ -76,6 +76,9 @@ public:
 	UPROPERTY(transient, EditAnywhere, BlueprintReadWrite, Category = "unrealcv")
 	UStaticMeshComponent* ProxyMeshComponent;
 
+	// Similar function to GetCameraView in UCameraComponent, without lockToHMD feature
+	void GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView);
+
 protected:
 	/** Provide funtions to convert image format and save file */
 	FImageUtil ImageUtil;
