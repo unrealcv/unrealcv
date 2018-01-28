@@ -61,6 +61,21 @@ struct UNREALCV_API FJsonObjectBP
 		}
 	}
 
+	FJsonObjectBP(const TArray<FString>& Keys, const TArray<FString>& Values)
+	{
+		JsonObject = MakeShareable(new FJsonObject());
+		if (Keys.Num() != Values.Num())
+		{
+			UE_LOG(LogUnrealCV, Warning, TEXT("Length of keys and values are mismatch"));
+			return;
+		}
+
+		for (int i = 0; i < Keys.Num(); i++)
+		{
+			JsonObject->SetStringField(Keys[i], Values[i]);
+		}
+	}
+
 	FJsonObjectBP(const TArray<FString>& Keys, const TArray<FJsonObjectBP>& Values)
 	{
 		JsonObject = MakeShareable(new FJsonObject());
@@ -119,6 +134,9 @@ public:
 
 	UFUNCTION(BlueprintPure, meta=(BlueprintAutocast), Category = "unrealcv")
 	static FJsonObjectBP TMapToJson(const TArray<FString>& Keys, const TArray<FJsonObjectBP>& Values); // TMap is not supported in BP
+
+	UFUNCTION(BlueprintPure, meta=(BlueprintAutocast), Category = "unrealcv")
+	static FJsonObjectBP StringMapToJson(const TArray<FString>& Keys, const TArray<FString>& Values);
 
 	// Automatically cast json object to string
 	UFUNCTION(BlueprintPure, meta=(BlueprintAutocast), Category = "unrealcv")

@@ -77,6 +77,13 @@ FJsonObjectBP USerializeBP::TMapToJson(const TArray<FString>& Keys, const TArray
 	return JsonObjectBP;
 }
 
+// BP function does not support function overload, so we need another function name
+FJsonObjectBP USerializeBP::StringMapToJson(const TArray<FString>& Keys, const TArray<FString>& Values)
+{
+	FJsonObjectBP JsonObjectBP(Keys, Values);
+	return JsonObjectBP;
+}
+
 FString USerializeBP::JsonToStr(const FJsonObjectBP& JsonObjectBP)
 {
 	FString OutputString;
