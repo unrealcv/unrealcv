@@ -3,6 +3,13 @@
 
 #include "VisionBP.generated.h"
 
+UENUM(BlueprintType)
+enum class EFileFormat : uint8
+{
+	Png	UMETA(DisplayName="Png"),
+	Npy	UMETA(DisplayName="Npy"),
+};
+
 /** A static bp library for computer vision */
 UCLASS()
 class UNREALCV_API UVisionBP : public UBlueprintFunctionLibrary
@@ -29,8 +36,8 @@ public:
 	static bool AppendData(const FString& Data, const FString& Filename);
 
 	// FilenameFmt is the format string which contains %d
-	UFUNCTION(BlueprintCallable, Category = "unrealcv")
-	static FString FormatFrameFilename(FString FilenameFmt);
+	// UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	// static FString FormatFrameFilename(FString FilenameFmt);
 
 	UFUNCTION(BlueprintCallable, Category = "unrealcv")
 	static bool SendMessageBP(const FString& Message);
@@ -63,4 +70,7 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	static void GetAnnotationColor(AActor* Actor, FColor& AnnotationColor);
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	static void AnnotateWorld();
 };

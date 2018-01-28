@@ -81,11 +81,11 @@ bool UVisionBP::AppendData(const FString& Data, const FString& Filename)
 	}
 }
 
-FString UVisionBP::FormatFrameFilename(FString FilenameFmt)
-{
-	int FrameNumber = GFrameNumber;
-	return FString::Printf(*FilenameFmt, FrameNumber);
-}
+// FString UVisionBP::FormatFrameFilename(FString FilenameFmt)
+// {
+// 	int FrameNumber = GFrameNumber;
+// 	return FString::Printf(*FilenameFmt, FrameNumber);
+// }
 
 bool UVisionBP::SendMessageBP(const FString& Message)
 {
@@ -196,4 +196,9 @@ void UVisionBP::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor)
 {
 	FObjectAnnotator& Annotator = FUE4CVServer::Get().WorldController->ObjectAnnotator;
 	Annotator.GetAnnotationColor(Actor, AnnotationColor);
+}
+
+void UVisionBP::AnnotateWorld()
+{
+	FUE4CVServer::Get().WorldController->ObjectAnnotator.AnnotateWorld(FUE4CVServer::Get().GetGameWorld());
 }

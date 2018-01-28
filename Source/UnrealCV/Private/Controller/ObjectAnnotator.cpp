@@ -46,7 +46,7 @@ void FObjectAnnotator::SetAnnotationColor(AActor* Actor, const FColor& Annotatio
 		return;
 	}
 	// CHECK: Add the annotation color regardless successful or not
-	this->PaintVertexColor(Actor, AnnotationColor);
+	// this->PaintVertexColor(Actor, AnnotationColor);
 	this->CreateAnnotationComponent(Actor, AnnotationColor);
 	this->AnnotationColors.Emplace(Actor->GetName(), AnnotationColor);
 }
