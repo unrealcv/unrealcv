@@ -9,10 +9,27 @@ struct UNREALCV_API FJsonObjectBP
 	GENERATED_BODY()
 
 	TSharedPtr<FJsonObject> JsonObject;
+	// Json value can not be serialized directly
+	TSharedPtr<FJsonValue> JsonValue;
 	TArray<TSharedPtr<FJsonValue> > JsonArray;
 	// TSharedPtr<FJsonValueArray> JsonArray;
 
 	FJsonObjectBP() {}
+
+	FJsonObjectBP(float Value)
+	{
+		this->JsonValue = MakeShareable(new FJsonValueNumber(Value));
+	}
+
+	FJsonObjectBP(int Value)
+	{
+		this->JsonValue = MakeShareable(new FJsonValueNumber(Value));
+	}
+
+	FJsonObjectBP(const FString& String)
+	{
+		this->JsonValue = MakeShareable(new FJsonValueString(String));
+	}
 
 	FJsonObjectBP(const FVector& Vector)
 	{
@@ -93,16 +110,17 @@ struct UNREALCV_API FJsonObjectBP
 
 	TSharedPtr<FJsonValue> ToJsonValue() const
 	{
-		TSharedPtr<FJsonValue> JsonValue;
-		if (JsonObject.IsValid())
+		if (this->JsonObject.IsValid())
 		{
-			JsonValue = MakeShareable(new FJsonValueObject(JsonObject));
+			return MakeShareable(new FJsonValueObject(JsonObject));
 		}
-		else
+		else if (this->JsonValue.IsValid())
 		{
-			JsonValue = MakeShareable(new FJsonValueArray(JsonArray));
+			return this->JsonValue;
 		}
-		return JsonValue;
+
+		// Assume this object is empty or an array
+		return MakeShareable(new FJsonValueArray(JsonArray));
 	}
 
 };
@@ -115,6 +133,15 @@ class UNREALCV_API USerializeBP : public UBlueprintFunctionLibrary
 
 public:
 	/** Convert to json */
+	UFUNCTION(BlueprintPure, meta=(BlueprintAutocast), Category = "unrealcv")
+	static FJsonObjectBP FloatToJson(float Value);
+
+	UFUNCTION(BlueprintPure, meta=(BlueprintAutocast), Category = "unrealcv")
+	static FJsonObjectBP IntToJson(int Value);
+
+	UFUNCTION(BlueprintPure, meta=(BlueprintAutocast), Category = "unrealcv")
+	static FJsonObjectBP StringToJson(const FString& Value);
+
 	UFUNCTION(BlueprintPure, meta=(BlueprintAutocast), Category = "unrealcv")
 	static FJsonObjectBP VectorToJson(const FVector& Vec);
 
