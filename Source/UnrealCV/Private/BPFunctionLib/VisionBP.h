@@ -73,4 +73,13 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "unrealcv")
 	static void AnnotateWorld();
+
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	static TArray<FVector> SkinnedMeshComponentGetVertexArray(USkinnedMeshComponent* Component);
+
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	static TArray<FVector> StaticMeshComponentGetVertexArray(UStaticMeshComponent* StaticMeshComponent);
+
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	static TArray<FVector> GetVertexArrayFromMeshComponent(UMeshComponent* MeshComponent);
 };
