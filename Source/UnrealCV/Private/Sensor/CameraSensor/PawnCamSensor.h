@@ -14,4 +14,19 @@ public:
 	UPawnCamSensor(const FObjectInitializer& ObjectInitializer);
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * T);
+
+	// Need to update the pawn as well
+	/*
+	virtual void SetWorldLocation(
+		FVector NewLocation,
+		bool bSweep,
+		FHitResult * OutSweepHitResult,
+		ETeleportType Teleport) override;
+	
+	virtual void SetWorldRotation(
+		FRotator NewRotation,
+		bool bSweep,
+		FHitResult * OutSweepHitResult,
+		ETeleportType Teleport) override;
+		*/
 };

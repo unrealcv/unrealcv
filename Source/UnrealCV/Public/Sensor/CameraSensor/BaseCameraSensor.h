@@ -36,7 +36,7 @@ public:
 	virtual void Capture(TArray<FColor>& ImageData, int& Width, int& Height);
 
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
-	FVector GetSensorWorldLocation();
+	FVector GetSensorLocation();
 
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	FRotator GetSensorRotation();

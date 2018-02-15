@@ -163,7 +163,8 @@ void TestAnnotator(const TArray<FString>& Args)
 	TArray<FColor> Data;
 	int Width, Height;
 
-	TArray<UFusionCamSensor*> SensorList = GetFusionSensorList(FUE4CVServer::Get().GetGameWorld());
+	TArray<UFusionCamSensor*> SensorList;
+	// = GetFusionSensorList(FUE4CVServer::Get().GetGameWorld());
 	UFusionCamSensor* Sensor = SensorList[0];
 	Sensor->GetObjectMask(Data, Width, Height);
 

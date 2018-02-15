@@ -142,7 +142,7 @@ void UBaseCameraSensor::Capture(TArray<FColor>& ImageData, int& Width, int& Heig
 }
 
 /** Get the location in unrealcv format */
-FVector UBaseCameraSensor::GetSensorWorldLocation()
+FVector UBaseCameraSensor::GetSensorLocation()
 {
 	FVector ComponentLocation = this->GetComponentLocation();
 	return ComponentLocation;
