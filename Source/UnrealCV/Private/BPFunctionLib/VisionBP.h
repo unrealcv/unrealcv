@@ -83,4 +83,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "unrealcv")
 	static void AnnotateWorld();
+
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	static UFusionCamSensor* GetPlayerSensor();
 };

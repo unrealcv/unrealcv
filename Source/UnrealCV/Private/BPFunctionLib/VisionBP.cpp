@@ -225,3 +225,13 @@ void UVisionBP::AnnotateWorld()
 {
 	FUE4CVServer::Get().WorldController->ObjectAnnotator.AnnotateWorld(FUE4CVServer::Get().GetGameWorld());
 }
+
+UFusionCamSensor* UVisionBP::GetPlayerSensor()
+{
+	APawn* Pawn = FUE4CVServer::Get().GetPawn();
+	if (!IsValid(Pawn)) return nullptr;
+
+	UActorComponent* ActorComponent = Pawn->GetComponentByClass(UFusionCamSensor::StaticClass());
+	UFusionCamSensor* CamSensor = Cast<UFusionCamSensor>(ActorComponent);
+	return CamSensor;
+}
