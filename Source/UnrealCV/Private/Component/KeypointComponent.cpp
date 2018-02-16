@@ -22,6 +22,7 @@ void UKeypointComponent::OnRegister()
 	}
 }
 
+// Support skeletal mesh and actor with many MeshComponents
 void UKeypointComponent::MatchNearestVertex()
 {
 	AActor* OwnerActor = this->GetOwner();
@@ -46,7 +47,9 @@ void UKeypointComponent::MatchNearestVertex()
 			for (int i = 0; i < VertexArray.Num(); i++)
 			{
 				FVector Vertex = VertexArray[i];
-				double Distance = FVector::Distance(Vertex, Keypoint.Location);
+				FVector VertexWorld = MeshComponent->GetComponentRotation().RotateVector(Vertex) + MeshComponent->GetComponentLocation() - OwnerActor->GetActorLocation();
+				// Change from component space to world space
+				double Distance = FVector::Distance(VertexWorld, Keypoint.Location);
 				if (Distance < MinDistance)
 				{
 					MinDistance = Distance;

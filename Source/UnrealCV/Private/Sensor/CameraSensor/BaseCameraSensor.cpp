@@ -124,7 +124,7 @@ void UBaseCameraSensor::CaptureToFile(const FString& Filename)
 		// ImageUtil.SaveBmpFile(Dest, Width, Height, FString::Printf(TEXT("%s_%d.bmp"), *Filename, GFrameNumber));
 		ImageUtil.SaveBmpFile(Dest, Width, Height, Filename);
 	};
-
+	this->CaptureScene();
 	check(this->TextureTarget);
 	FTextureRenderTargetResource* RenderTargetResource = this->TextureTarget->GameThread_GetRenderTargetResource();
 	FTexture2DRHIRef Texture2D = RenderTargetResource->GetRenderTargetTexture();
