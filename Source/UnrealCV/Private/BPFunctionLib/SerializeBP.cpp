@@ -24,6 +24,21 @@
 // 	return Ar.ToString();
 // }
 
+FJsonObjectBP USerializeBP::FloatToJson(float Value)
+{
+	return FJsonObjectBP(Value);
+}
+
+FJsonObjectBP USerializeBP::IntToJson(int Value)
+{
+	return FJsonObjectBP(Value);
+}
+
+FJsonObjectBP USerializeBP::StringToJson(const FString& Value)
+{
+	return FJsonObjectBP(Value);
+}
+
 FJsonObjectBP USerializeBP::VectorToJson(const FVector& Vec)
 {
 	FJsonObjectBP JsonObjectBP(Vec);

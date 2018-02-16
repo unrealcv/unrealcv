@@ -203,7 +203,6 @@ void UVisionBP::AnnotateWorld()
 	FUE4CVServer::Get().WorldController->ObjectAnnotator.AnnotateWorld(FUE4CVServer::Get().GetGameWorld());
 }
 
-
 TArray<FVector> UVisionBP::SkinnedMeshComponentGetVertexArray(USkinnedMeshComponent* Component)
 {
 	TArray<FVector> VertexArray;
@@ -229,6 +228,7 @@ TArray<FVector> UVisionBP::SkinnedMeshComponentGetVertexArray(USkinnedMeshCompon
 	// }
 }
 
+// Make sure the make the Mesh CPU accessible, otherwise the vertex location can not be read from the packaged game
 TArray<FVector> UVisionBP::StaticMeshComponentGetVertexArray(UStaticMeshComponent* StaticMeshComponent)
 {
 	UStaticMesh* StaticMesh = StaticMeshComponent->GetStaticMesh();
@@ -274,4 +274,14 @@ TArray<FVector> UVisionBP::GetVertexArrayFromMeshComponent(UMeshComponent* MeshC
 		VertexArray = UVisionBP::SkinnedMeshComponentGetVertexArray(SkinnedMeshComponent);
 	}
 	return VertexArray;
+}
+
+UFusionCamSensor* UVisionBP::GetPlayerSensor()
+{
+	APawn* Pawn = FUE4CVServer::Get().GetPawn();
+	if (!IsValid(Pawn)) return nullptr;
+
+	UActorComponent* ActorComponent = Pawn->GetComponentByClass(UFusionCamSensor::StaticClass());
+	UFusionCamSensor* CamSensor = Cast<UFusionCamSensor>(ActorComponent);
+	return CamSensor;
 }

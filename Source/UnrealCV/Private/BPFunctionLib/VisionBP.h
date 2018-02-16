@@ -82,4 +82,7 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	static TArray<FVector> GetVertexArrayFromMeshComponent(UMeshComponent* MeshComponent);
+
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	static UFusionCamSensor* GetPlayerSensor();
 };

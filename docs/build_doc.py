@@ -1,4 +1,5 @@
 import argparse, subprocess, platform, os, shutil, webbrowser
+script_folder = os.path.dirname(os.path.realpath(__file__))
 
 def clean():
     files = []
@@ -11,14 +12,65 @@ def clean():
         if os.path.isdir(f):
             shutil.rmtree(f)
 
-def lfs_checkout():
-    import git_lfs
-    doc_dir = os.path.dirname(os.path.abspath(__file__))
-    project_dir = os.path.dirname(doc_dir)
-    git_lfs.fetch(project_dir)
+class DoxygenBuilder:
+    def __init__(self):
+        pass
+    
+    def run(self):
+        p = subprocess.Popen(['doxygen', 'Doxyfile'], cwd = script_folder)
+        p.wait()
 
-def main():
+class WebpageViewer:
+    def open_file(self, filename):
+        webbrowser.open_new('file://' + os.path.realpath(filename))
+
+    def open(self, url):
+        webbrowser.open_new(url)
+
+class SphinxBuilder:
+    def __init__(self):
+        self.env = dict(os.environ)
+        self.on_rtd = False
+        self.doc_folder = script_folder 
+        self.output_folder = os.path.join(self.doc_folder, '_build/html')
+        self.cmd = [
+            'sphinx-build', '-n',
+            '-b', 'html', # build format
+            self.doc_folder, self.output_folder, # input, output folder
+            '-j', '16', # build in parallel
+        ]
+        self.full_build = False
+        pass
+
+    def build_doxygen_meta(self):
+        try:
+            subprocess.call(['doxygen', 'Doxyfile'])
+        except Exception as e:
+            print('Failed to run doxygen')
+            print(e)
+
+    def lfs_checkout(self):
+        import git_lfs
+        doc_dir = os.path.dirname(os.path.abspath(__file__))
+        project_dir = os.path.dirname(doc_dir)
+        git_lfs.fetch(project_dir)
+
+    def run(self):
+        cmd = self.cmd
+        if self.full_build:
+            cmd += ['-a']
+
+        if self.on_rtd:
+            self.lfs_checkout()
+            self.env['READTHEDOCS'] = 'True' # A string
+        p = subprocess.Popen(cmd, env = self.env, cwd = script_folder)
+        p.wait()
+
+def argparser():
     parser = argparse.ArgumentParser()
+    
+    parser.add_argument('task', help='Which build task to run')
+
     parser.add_argument('--build_doxygen',
         action='store_true', default=False
     )
@@ -39,49 +91,26 @@ def main():
     )
     # build diff takes about less than 1 second
     # a full rebuild takes about 5 minutes
+    return parser
+
+def main():
+    parser = argparser()
 
     args = parser.parse_args()
-    is_build_doxygen = args.build_doxygen
-    is_on_rtd = args.rtd
-    is_clean = args.clean
-    rebuild = args.rebuild
+    tasks = [args.task]
 
-    if is_clean:
-        clean()
-        return
+    viewer = WebpageViewer()
 
-    if is_build_doxygen:
-        try:
-            subprocess.call(['doxygen', 'Doxyfile'])
-        except Exception as e:
-            print('Failed to run doxygen')
-            print(e)
+    if 'doxygen' in tasks:
+        doxygen_builder = DoxygenBuilder()
+        doxygen_builder.run()
+        viewer.open_file(os.path.join(script_folder, 'doxygen/html/index.html'))
 
-    env = dict(os.environ)
-
-    if is_on_rtd:
-        lfs_checkout() # Run this here so that it is easier to debug
-        env['READTHEDOCS'] = 'True'
-
-    doc_folder = os.path.dirname(os.path.realpath(__file__))
-    output_folder = os.path.join(doc_folder, '_build/html')
-    cmd = [
-        'sphinx-build', '-n',
-        '-b', 'html', # build format
-        doc_folder, output_folder, # input, output folder
-        '-j', '16', # build in parallel
-    ]
-
-    if rebuild:
-        clean()
-        # cmd.append('-a')
-    print(cmd)
-    subprocess.call(cmd, env = env)
-    # subprocess.call(cmd, env = os.environ)
-
-    index_file = os.path.join(output_folder, 'index.html')
-    print('Open compiled html in the browser')
-    webbrowser.open_new('file://' + os.path.realpath(index_file))
+    if 'sphinx' in tasks:
+        sphinx_builder = SphinxBuilder()
+        sphinx_builder.full_build = True
+        sphinx_builder.run()
+        viewer.open_file(os.path.join(script_folder, '_build/html/index.html'))
 
 if __name__ == '__main__':
     main()
