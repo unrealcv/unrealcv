@@ -33,7 +33,7 @@ void AttachPawnSensor(APawn* Pawn)
 
 void AUE4CVWorldController::BeginPlay()
 {
-    ScreenLog("Overwrite the world setting with some UnrealCV extensions");
+	ScreenLog("Overwrite the world setting with some UnrealCV extensions");
 
 
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
