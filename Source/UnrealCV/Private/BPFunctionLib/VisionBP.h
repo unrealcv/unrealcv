@@ -54,7 +54,17 @@ public:
 		const USkeletalMeshComponent* SkeletalMeshComponent,
 		const TArray<FString>& IncludedBones,
 		TArray<FString>& BoneNames,
-		TArray<FTransform>& BoneTransform,
+		TArray<FTransform>& BoneTransforms,
+		bool bWorldSpace = false
+	);
+
+	// Get bone transformation and return as JsonObject array, this can make BP programming much easier
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	static void GetBoneTransformJson(
+		const USkeletalMeshComponent* SkeletalMeshComponent,
+		const TArray<FString>& IncludedBones,
+		TArray<FString>& BoneNames,
+		TArray<FJsonObjectBP>& BoneTransformsJson,
 		bool bWorldSpace = false
 	);
 

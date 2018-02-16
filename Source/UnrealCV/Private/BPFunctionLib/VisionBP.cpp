@@ -124,7 +124,7 @@ void UVisionBP::GetBoneTransform(
 	const USkeletalMeshComponent* SkeletalMeshComponent,
 	const TArray<FString>& IncludedBones,
 	TArray<FString>& BoneNames,
-	TArray<FTransform>& BoneTransform,
+	TArray<FTransform>& BoneTransforms,
 	bool bWorldSpace
 )
 {
@@ -137,12 +137,35 @@ void UVisionBP::GetBoneTransform(
 		BoneNames.Add(BoneInfo.BoneName);
 		if (bWorldSpace)
 		{
-			BoneTransform.Add(BoneInfo.WorldTM);
+			BoneTransforms.Add(BoneInfo.WorldTM);
 		}
 		else
 		{
-			BoneTransform.Add(BoneInfo.ComponentTM);
+			BoneTransforms.Add(BoneInfo.ComponentTM);
 		}
+	}
+}
+
+void UVisionBP::GetBoneTransformJson(
+	const USkeletalMeshComponent* SkeletalMeshComponent,
+	const TArray<FString>& IncludedBones,
+	TArray<FString>& BoneNames,
+	TArray<FJsonObjectBP>& BoneTransformsJson,
+	bool bWorldSpace
+)
+{
+	TArray<FTransform> BoneTransforms;
+	GetBoneTransform(
+		SkeletalMeshComponent, 
+		IncludedBones, 
+		BoneNames, 
+		BoneTransforms,
+		bWorldSpace
+	);
+	for (FTransform& Transform : BoneTransforms)
+	{
+		FJsonObjectBP JsonObjectBP(Transform);
+		BoneTransformsJson.Add(JsonObjectBP);
 	}
 }
 
