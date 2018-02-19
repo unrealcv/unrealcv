@@ -55,8 +55,7 @@ public:
 		const TArray<FString>& IncludedBones,
 		TArray<FString>& BoneNames,
 		TArray<FTransform>& BoneTransforms,
-		bool bWorldSpace = false
-	);
+		bool bWorldSpace = false);
 
 	// Get bone transformation and return as JsonObject array, this can make BP programming much easier
 	UFUNCTION(BlueprintPure, Category = "unrealcv")

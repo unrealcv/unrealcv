@@ -53,6 +53,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bDrawKeypointName;
 
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	void GetKeypoints(
+		TArray<FString>& KeypointNames, 
+		TArray<FVector>& Locations, 
+		bool bWorldSpace = false);
+
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	void GetKeypointsJson(
+		TArray<FString>& KeypointNames, 
+		TArray<FJsonObjectBP>& LocationsBP, 
+		bool bWorldSpace = false);
+
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* T) override;
 
 	virtual void PostInitProperties() override;
@@ -61,7 +73,10 @@ public:
 
 	virtual void OnRegister() override;
 
+	virtual void BeginPlay() override;
+
 	void MatchNearestVertex();
+
 private:
 	TArray<FMatchedVertexInfo> MatchedVertexs;
 

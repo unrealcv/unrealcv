@@ -11,9 +11,15 @@ UKeypointComponent::UKeypointComponent(const FObjectInitializer& ObjectInitializ
 
 }
 
+// When OnRegister the mesh might not be properly loaded
 void UKeypointComponent::OnRegister()
 {
 	Super::OnRegister();
+}
+
+void UKeypointComponent::BeginPlay()
+{
+	Super::BeginPlay();
 	this->Keypoints = LoadKeypointFromJson(this->JsonFilename);
 
 	if (bMatchNearestVertex)
@@ -79,11 +85,25 @@ void UKeypointComponent::PostEditChangeProperty(FPropertyChangedEvent & Property
 
 TArray<FKeypoint> UKeypointComponent::LoadKeypointFromJson(FString JsonFilename)
 {
+	TArray<FKeypoint> Points;
+	if (JsonFilename.IsEmpty())
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Keypoint annotation filename is empty for actor %s"), *this->GetOwner()->GetName());
+		return Points;
+	}
 	// Load annotation from json file
 	// TODO: Cached the loaded keypoints, because there might be many similar instances
-	TArray<FKeypoint> Points;
 	FString JsonString;
+
+	FString GameDir = FPaths::GameDir();
+	FString GameContentDir = FPaths::GameContentDir();
+	if (!FPaths::FileExists(JsonFilename))
+	{
+		JsonFilename = FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::GameDir(), JsonFilename));
+	}
+
 	FFileHelper::LoadFileToString(JsonString, *JsonFilename);
+	UE_LOG(LogUnrealCV, Log, TEXT("Try to load keypoint annotation from file %s"), *JsonFilename);
 	if (JsonString.IsEmpty() || JsonFilename.IsEmpty())
 	{
 		UE_LOG(LogUnrealCV, Warning, TEXT("Can not read data from file %s"), *JsonFilename);
@@ -119,46 +139,131 @@ void UKeypointComponent::TickComponent(float DeltaTime, enum ELevelTick TickType
 	// Draw debug points, the annotation is in the local space
 	if (this->bVisualize)
 	{
-		if (!bMatchNearestVertex)
+		TArray<FString> KeypointNames;
+		TArray<FVector> Locations;
+		if (KeypointNames.Num() != Locations.Num())
 		{
-			for (FKeypoint& Keypoint : Keypoints)
+			UE_LOG(LogUnrealCV, Warning, TEXT("The keypoint name and location array have different length"));
+			return;
+		}
+		this->GetKeypoints(KeypointNames, Locations, true);
+		for (int i = 0; i < KeypointNames.Num(); i++)
+		{
+			DrawDebugPoint(GetWorld(), Locations[i], VisualizePointSize, FColor::Red, false, DeltaTime);
+			if (bDrawKeypointName)
+			{
+				DrawDebugString(GetWorld(), Locations[i], KeypointNames[i], nullptr, FColor::Green, DeltaTime);
+			}
+		}
+		// if (!bMatchNearestVertex)
+		// {
+		// 	for (FKeypoint& Keypoint : Keypoints)
+		// 	{
+		// 		FVector WorldPointLocation = this->GetComponentRotation().RotateVector(Keypoint.Location) + this->GetComponentLocation(); // in world space
+		// 		DrawDebugPoint(GetWorld(), WorldPointLocation, VisualizePointSize, FColor::Red, false, DeltaTime);
+
+		// 		if (bDrawKeypointName)
+		// 		{
+		// 			DrawDebugString(GetWorld(), WorldPointLocation, Keypoint.Name, nullptr, FColor::Green, DeltaTime);
+		// 		}
+		// 	}
+		// }
+		
+		// if (bMatchNearestVertex)
+		// {
+		// 	for (FMatchedVertexInfo& VertexInfo : this->MatchedVertexs)
+		// 	{
+		// 		if (!IsValid(VertexInfo.Actor) || !IsValid(VertexInfo.MeshComponent))
+		// 		{
+		// 			continue;
+		// 		}
+
+		// 		UMeshComponent* MeshComponent = VertexInfo.MeshComponent;
+		// 		TArray<FVector> VertexArray = UVisionBP::GetVertexArrayFromMeshComponent(MeshComponent);
+		// 		if (VertexInfo.VertexIndex < 0 || VertexInfo.VertexIndex >= VertexArray.Num())
+		// 		{
+		// 			UE_LOG(LogUnrealCV, Warning, TEXT("Unexpected error in the MatchedVertexInfo"));
+		// 			continue;
+		// 		}
+
+		// 		FVector VertexLocation = VertexArray[VertexInfo.VertexIndex];
+		// 		FVector WorldPointLocation = MeshComponent->GetComponentRotation().RotateVector(VertexLocation) + MeshComponent->GetComponentLocation(); // in world space
+		// 		DrawDebugPoint(GetWorld(), WorldPointLocation, VisualizePointSize, FColor::Green, false, DeltaTime);
+
+		// 		if (bDrawKeypointName)
+		// 		{
+		// 			DrawDebugString(GetWorld(), WorldPointLocation, VertexInfo.KeypointName, nullptr, FColor::Green, DeltaTime);
+		// 		}
+		// 	}
+		// }
+	}
+}
+
+void UKeypointComponent::GetKeypoints(
+	TArray<FString>& KeypointNames, 
+	TArray<FVector>& Locations, 
+	bool bWorldSpace)
+{
+	if (!bMatchNearestVertex)
+	{
+		for (FKeypoint& Keypoint : Keypoints)
+		{
+			KeypointNames.Add(Keypoint.Name);
+			if (bWorldSpace == false)
 			{
 				FVector WorldPointLocation = this->GetComponentRotation().RotateVector(Keypoint.Location) + this->GetComponentLocation(); // in world space
-				DrawDebugPoint(GetWorld(), WorldPointLocation, VisualizePointSize, FColor::Red, false, DeltaTime);
-
-				if (bDrawKeypointName)
-				{
-					DrawDebugString(GetWorld(), WorldPointLocation, Keypoint.Name, nullptr, FColor::Green, DeltaTime);
-				}
+				Locations.Add(WorldPointLocation);
+			}
+			else
+			{
+				Locations.Add(Keypoint.Location);
 			}
 		}
-		
-		if (bMatchNearestVertex)
+	}
+	
+	if (bMatchNearestVertex)
+	{
+		for (FMatchedVertexInfo& VertexInfo : this->MatchedVertexs)
 		{
-			for (FMatchedVertexInfo& VertexInfo : this->MatchedVertexs)
+			if (!IsValid(VertexInfo.Actor) || !IsValid(VertexInfo.MeshComponent))
 			{
-				if (!IsValid(VertexInfo.Actor) || !IsValid(VertexInfo.MeshComponent))
-				{
-					continue;
-				}
+				continue;
+			}
 
-				UMeshComponent* MeshComponent = VertexInfo.MeshComponent;
-				TArray<FVector> VertexArray = UVisionBP::GetVertexArrayFromMeshComponent(MeshComponent);
-				if (VertexInfo.VertexIndex < 0 || VertexInfo.VertexIndex >= VertexArray.Num())
-				{
-					UE_LOG(LogUnrealCV, Warning, TEXT("Unexpected error in the MatchedVertexInfo"));
-					continue;
-				}
+			UMeshComponent* MeshComponent = VertexInfo.MeshComponent;
+			TArray<FVector> VertexArray = UVisionBP::GetVertexArrayFromMeshComponent(MeshComponent);
+			if (VertexInfo.VertexIndex < 0 || VertexInfo.VertexIndex >= VertexArray.Num())
+			{
+				UE_LOG(LogUnrealCV, Warning, TEXT("Unexpected error in the MatchedVertexInfo"));
+				continue;
+			}
 
+			KeypointNames.Add(VertexInfo.KeypointName);
+			if (bWorldSpace == false)
+			{
+				FVector VertexLocation = VertexArray[VertexInfo.VertexIndex];
+				Locations.Add(VertexLocation);
+			}
+			else
+			{
 				FVector VertexLocation = VertexArray[VertexInfo.VertexIndex];
 				FVector WorldPointLocation = MeshComponent->GetComponentRotation().RotateVector(VertexLocation) + MeshComponent->GetComponentLocation(); // in world space
-				DrawDebugPoint(GetWorld(), WorldPointLocation, VisualizePointSize, FColor::Green, false, DeltaTime);
-
-				if (bDrawKeypointName)
-				{
-					DrawDebugString(GetWorld(), WorldPointLocation, VertexInfo.KeypointName, nullptr, FColor::Green, DeltaTime);
-				}
+				Locations.Add(WorldPointLocation);
 			}
 		}
+	}
+}
+
+void UKeypointComponent::GetKeypointsJson(
+	TArray<FString>& KeypointNames, 
+	TArray<FJsonObjectBP>& LocationsBP, 
+	bool bWorldSpace)
+{
+	TArray<FVector> Locations;
+	GetKeypoints(KeypointNames, Locations, bWorldSpace);
+	for (FVector& Location : Locations)
+	{
+		FJsonObjectBP JsonObjectBP(Location);
+		LocationsBP.Add(JsonObjectBP);
 	}
 }

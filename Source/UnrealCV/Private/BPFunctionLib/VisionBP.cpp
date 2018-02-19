@@ -217,13 +217,20 @@ void UVisionBP::GetActorList(TArray<AActor*>& ActorList)
 
 void UVisionBP::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor)
 {
-	FObjectAnnotator& Annotator = FUE4CVServer::Get().WorldController->ObjectAnnotator;
-	Annotator.GetAnnotationColor(Actor, AnnotationColor);
+	AUE4CVWorldController* WorldController = FUE4CVServer::Get().WorldController.Get();
+	if (IsValid(WorldController))
+	{
+		WorldController->ObjectAnnotator.GetAnnotationColor(Actor, AnnotationColor);
+	}
 }
 
 void UVisionBP::AnnotateWorld()
 {
-	FUE4CVServer::Get().WorldController->ObjectAnnotator.AnnotateWorld(FUE4CVServer::Get().GetGameWorld());
+	AUE4CVWorldController* WorldController = FUE4CVServer::Get().WorldController.Get();
+	if (IsValid(WorldController))
+	{
+		WorldController->ObjectAnnotator.AnnotateWorld(FUE4CVServer::Get().GetGameWorld());
+	}
 }
 
 TArray<FVector> UVisionBP::SkinnedMeshComponentGetVertexArray(USkinnedMeshComponent* Component)
