@@ -46,6 +46,9 @@ public:
 	UPROPERTY(Instanced, VisibleAnywhere, BlueprintReadOnly)
 	class UNontransDepthCamSensor* NontransDepthCamSensor;
 
+	UPROPERTY(Instanced, VisibleAnywhere, BlueprintReadOnly)
+	class ULitSlowCamSensor* LitSlowCamSensor;
+
 	/** This preview camera is used for UE version < 4.17 which only support UCameraComponent PIP preview
 	See the difference between
 	https://github.com/EpicGames/UnrealEngine/blob/4.17/Engine/Source/Editor/LevelEditor/Private/SLevelViewport.cpp#L3927
@@ -57,6 +60,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	void GetLit(TArray<FColor>& LitData, int& InOutWidth, int& InOutHeight);
+
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	void GetLitSlow(TArray<FColor>& LitData, int& InOutWidth, int& InOutHeight);
 
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	void GetDepth(TArray<float>& DepthData, int& InOutWidth, int& InOutHeight);
@@ -71,6 +77,8 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	void GetVertexColor(TArray<FColor>& VertexColorData, int& Width, int& Height);
+
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	void GetStencil(TArray<FColor>& StencilData, int& Width, int& Height);
 
 
