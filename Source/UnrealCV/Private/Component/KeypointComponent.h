@@ -67,9 +67,9 @@ public:
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* T) override;
 
-	virtual void PostInitProperties() override;
-
-	virtual void PostEditChangeProperty(FPropertyChangedEvent & PropertyChangedEvent) override;
+	// Only available in the editor mode
+	// virtual void PostInitProperties() override;
+	// virtual void PostEditChangeProperty(FPropertyChangedEvent & PropertyChangedEvent) override;
 
 	virtual void OnRegister() override;
 
