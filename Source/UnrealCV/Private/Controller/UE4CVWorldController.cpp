@@ -12,6 +12,11 @@ AUE4CVWorldController::AUE4CVWorldController(const FObjectInitializer& ObjectIni
 
 void AttachPawnSensor(APawn* Pawn)
 {
+	if (!IsValid(Pawn))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("The pawn is invalid, can not attach a PawnSensor to it."));
+		return;
+	}
 	ScreenLog("Attach a UE4CVSensor to the pawn");
 	// Make sure this is the first one.
 	UPawnCamSensor* PawnCamSensor = NewObject<UPawnCamSensor>(Pawn, TEXT("PawnSensor")); // Make Pawn as the owner of the component
@@ -29,7 +34,7 @@ void AttachPawnSensor(APawn* Pawn)
 
 void AUE4CVWorldController::BeginPlay()
 {
-    ScreenLog("Overwrite the world setting with some UnrealCV extensions");
+	ScreenLog("Overwrite the world setting with some UnrealCV extensions");
 
 	FUE4CVServer& UE4CVServer = FUE4CVServer::Get();
 	if (UE4CVServer.NetworkManager && !UE4CVServer.NetworkManager->IsListening())

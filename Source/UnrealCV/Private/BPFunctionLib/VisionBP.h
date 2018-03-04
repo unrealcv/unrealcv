@@ -54,7 +54,16 @@ public:
 		const USkeletalMeshComponent* SkeletalMeshComponent,
 		const TArray<FString>& IncludedBones,
 		TArray<FString>& BoneNames,
-		TArray<FTransform>& BoneTransform,
+		TArray<FTransform>& BoneTransforms,
+		bool bWorldSpace = false);
+
+	// Get bone transformation and return as JsonObject array, this can make BP programming much easier
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	static void GetBoneTransformJson(
+		const USkeletalMeshComponent* SkeletalMeshComponent,
+		const TArray<FString>& IncludedBones,
+		TArray<FString>& BoneNames,
+		TArray<FJsonObjectBP>& BoneTransformsJson,
 		bool bWorldSpace = false
 	);
 
@@ -73,6 +82,15 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "unrealcv")
 	static void AnnotateWorld();
+
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	static TArray<FVector> SkinnedMeshComponentGetVertexArray(USkinnedMeshComponent* Component);
+
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	static TArray<FVector> StaticMeshComponentGetVertexArray(UStaticMeshComponent* StaticMeshComponent);
+
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	static TArray<FVector> GetVertexArrayFromMeshComponent(UMeshComponent* MeshComponent);
 
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	static UFusionCamSensor* GetPlayerSensor();
