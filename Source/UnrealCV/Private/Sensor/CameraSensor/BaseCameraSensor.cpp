@@ -17,13 +17,18 @@ DECLARE_CYCLE_STAT(TEXT("ReadBufferFast"), STAT_ReadBufferFast, STATGROUP_Unreal
 
 FImageWorker UBaseCameraSensor::ImageWorker;
 
-UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), FilmWidth(640), FilmHeight(480)
+UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("/Engine/EditorMeshes/MatineeCam_SM"));
 	// static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("StaticMesh'/Engine/EditorMeshes/Camera/SM_CineCam.SM_CineCam'"));
 	CameraMesh = EditorCameraMesh.Object;
 
 	this->ShowFlags.SetPostProcessing(true);
+	
+	FServerConfig& Config = FUE4CVServer::Get().Config;
+	FilmWidth = Config.Width;
+	FilmHeight = Config.Height; 
+	this->FOVAngle = Config.FOV;
 }
 
 void UBaseCameraSensor::OnRegister()

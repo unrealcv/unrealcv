@@ -14,9 +14,6 @@ ULitCamSensor::ULitCamSensor(const FObjectInitializer& ObjectInitializer) :
 	// SetPostProcessMaterial(LitPPMaterial);
 
 	SetFOV(90);
-
-	FilmWidth = 640;
-	FilmHeight = 480;
 }
 
 void ULitCamSensor::OnRegister()
