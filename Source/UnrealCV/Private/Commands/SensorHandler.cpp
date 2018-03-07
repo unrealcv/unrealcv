@@ -70,7 +70,7 @@ FExecStatus SetSensorLocation(const TArray<FString>& Args)
 	FVector Location = FVector(X, Y, Z);
 
 	// Check USceneComponent
-	FusionSensor->SetWorldLocation(Location);
+	FusionSensor->SetSensorLocation(Location);
 
 	return FExecStatus::OK();
 }
@@ -98,7 +98,7 @@ FExecStatus SetSensorRotation(const TArray<FString>& Args)
 	float Pitch = FCString::Atof(*Args[1]), Yaw = FCString::Atof(*Args[2]), Roll = FCString::Atof(*Args[3]);
 	FRotator Rotator = FRotator(Pitch, Yaw, Roll);
 
-	FusionSensor->SetWorldRotation(Rotator);
+	FusionSensor->SetSensorRotation(Rotator);
 
 	return FExecStatus::OK();
 }
@@ -449,7 +449,7 @@ void FSensorHandler::RegisterCommands()
 		"Get npy binary data from depth sensor");
 
 	CommandDispatcher->BindCommand(
-		"vget /sensor/[uint]/stencil [str]",
+		"vget /sensor/[uint]/depth_stencil [str]",
 		FDispatcherDelegate::CreateStatic(GetSensorStencil),
 		"Get npy binary data from stencil sensor");
 
@@ -522,4 +522,5 @@ void FCameraCommandHandler::RegisterCommands()
 		"vget /camera/[uint]/object_mask [str]",
 		FDispatcherDelegate::CreateStatic(GetSensorObjMask),
 		"Get npy binary data from depth sensor");
+
 }

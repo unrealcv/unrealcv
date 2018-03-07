@@ -15,18 +15,7 @@ public:
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * T);
 
-	// Need to update the pawn as well
-	/*
-	virtual void SetWorldLocation(
-		FVector NewLocation,
-		bool bSweep,
-		FHitResult * OutSweepHitResult,
-		ETeleportType Teleport) override;
+	virtual void SetSensorLocation(FVector Location) override;
 	
-	virtual void SetWorldRotation(
-		FRotator NewRotation,
-		bool bSweep,
-		FHitResult * OutSweepHitResult,
-		ETeleportType Teleport) override;
-		*/
+	virtual void SetSensorRotation(FRotator Rotation) override;
 };

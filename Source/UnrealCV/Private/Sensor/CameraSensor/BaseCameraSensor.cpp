@@ -146,24 +146,6 @@ void UBaseCameraSensor::Capture(TArray<FColor>& ImageData, int& Width, int& Heig
 	ReadTextureRenderTarget(RenderTarget, ImageData, Width, Height);
 }
 
-/** Get the location in unrealcv format */
-FVector UBaseCameraSensor::GetSensorLocation()
-{
-	FVector ComponentLocation = this->GetComponentLocation();
-	return ComponentLocation;
-}
-
-FRotator UBaseCameraSensor::GetSensorRotation()
-{
-	FRotator Rotation = this->GetComponentRotation();
-	return Rotation;
-}
-
-void UBaseCameraSensor::SetFOV(float FOV)
-{
-	this->FOVAngle = FOV;
-}
-
 void UBaseCameraSensor::SetPostProcessMaterial(UMaterial* PostProcessMaterial)
 {
 	PostProcessSettings.AddBlendable(PostProcessMaterial, 1);

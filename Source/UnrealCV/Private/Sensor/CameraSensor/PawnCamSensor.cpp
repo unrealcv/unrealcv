@@ -41,31 +41,27 @@ void UPawnCamSensor::TickComponent(float DeltaTime, enum ELevelTick TickType, FA
 
 }
 
-/*
-void UPawnCamSensor::SetWorldLocation(
-	FVector NewLocation,
-	bool bSweep,
-	FHitResult * OutSweepHitResult,
-	ETeleportType Teleport)
+void UPawnCamSensor::SetSensorLocation(FVector Location)
 {
-	// Super::SetWorldLocation(NewLocation, bSweep, OutSweepHitResult, Teleport);
+	// Super::SetSensorLocation(NewLocation, bSweep, OutSweepHitResult, Teleport);
 	AActor *Owner = this->GetOwner();
 	APawn *Pawn = Cast<APawn>(Owner);
 	if (!IsValid(Pawn))
 	{
 		return;
 	}
-
+	bool Sweep = false;
 	Pawn->SetActorLocation(Location, Sweep, NULL, ETeleportType::TeleportPhysics);
 }
 
-void UPawnCamSensor::SetWorldRotation(
-    FRotator NewRotation,
-    bool bSweep,
-    FHitResult * OutSweepHitResult,
-    ETeleportType Teleport)
+void UPawnCamSensor::SetSensorRotation(FRotator Rotation)
 {
+	AActor *Owner = this->GetOwner();
+	APawn *Pawn = Cast<APawn>(Owner);
+	if (!IsValid(Pawn))
+	{
+		return;
+	}
 	AController* Controller = Pawn->GetController();
-	Controller->ClientSetRotation(Rotator); // Teleport action
+	Controller->ClientSetRotation(Rotation);
 }
-*/
