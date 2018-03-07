@@ -24,6 +24,23 @@ FString WorldTypeStr(EWorldType::Type WorldType)
 	return TEXT("Invalid");
 }
 
+UFusionCamSensor* GetSensor(const TArray<FString>& Args, FExecStatus& Status)
+{
+	if (Args.Num() < 1)
+	{
+		Status = FExecStatus::Error("No sensor id is available");
+		return;
+	}
+	int SensorId = FCString::Atoi(*Args[0]);
+	UFusionCamSensor* FusionSensor = USensorBP::GetSensorById(SensorId);
+	if (!IsValid(FusionSensor)) 
+	{
+		Status = FExecStatus::Error("Invalid sensor id");
+		return;
+	}
+	return;
+}
+
 
 /** vget /sensors , List all sensors in the world */
 FExecStatus GetSensorList(const TArray<FString>& Args)
@@ -38,14 +55,10 @@ FExecStatus GetSensorList(const TArray<FString>& Args)
 	return FExecStatus::OK(StrSensorList);
 }
 
-int ParseId(const TArray<FString>& Args)
-{
-	int SensorId = FCString::Atoi(*Args[0]);
-	return SensorId;
-}
 
 FExecStatus GetSensorLocation(const TArray<FString>& Args)
 {
+	UFusionCamSensor* FusionSensor = GetSensor(Args);
 	int SensorId = ParseId(Args);
 	UFusionCamSensor* FusionSensor = USensorBP::GetSensorById(SensorId);
 	if (!IsValid(FusionSensor)) return FExecStatus::Error("Invalid sensor id");
@@ -362,6 +375,26 @@ FExecStatus GetSensorStencil(const TArray<FString>& Args)
 	return ExecStatus;
 }
 
+FExecStatus MoveTo(const TArray<FString>& Args)
+{
+	/** The API for Character, Pawn and Actor are different */
+	if (Args.Num() != 4) // ID, X, Y, Z
+	{
+		return FExecStatus::InvalidArgument;
+	}
+
+	int32 CameraId = FCString::Atoi(*Args[0]); // TODO: Add support for multiple cameras
+	float X = FCString::Atof(*Args[1]), Y = FCString::Atof(*Args[2]), Z = FCString::Atof(*Args[3]);
+	FVector Location = FVector(X, Y, Z);
+
+	bool Sweep = true;
+	// if sweep is true, the object can not move through another object
+	// Check invalid location and move back a bit.
+	bool Success = FUE4CVServer::Get().GetPawn()->SetActorLocation(Location, Sweep, NULL, ETeleportType::TeleportPhysics);
+
+	return FExecStatus::OK();
+}
+
 
 /** vget /screenshot [filename] */
 FExecStatus GetScreenshot(const TArray<FString>& Args)
@@ -393,74 +426,11 @@ FExecStatus GetScreenshot(const TArray<FString>& Args)
 
 void FSensorHandler::RegisterCommands()
 {
-	 CommandDispatcher->BindCommand(
-		"vget /sensors",
-		FDispatcherDelegate::CreateStatic(GetSensorList),
-		"List all sensors in the scene");
-
-	CommandDispatcher->BindCommand(
-		"vget /sensor/[uint]/location",
-		FDispatcherDelegate::CreateStatic(GetSensorLocation),
-		"Get sensor location in world space");
-
-	CommandDispatcher->BindCommand(
-		"vset /sensor/[uint]/location [float] [float] [float]",
-		FDispatcherDelegate::CreateStatic(SetSensorLocation),
-		"Set sensor to location [x, y, z]");
-
-	CommandDispatcher->BindCommand(
-		"vget /sensor/[uint]/rotation",
-		FDispatcherDelegate::CreateStatic(GetSensorRotation),
-		"Get sensor rotation in world space");
-
-	CommandDispatcher->BindCommand(
-		"vset /sensor/[uint]/rotation [float] [float] [float]",
-		FDispatcherDelegate::CreateStatic(SetSensorRotation),
-		"Set rotation [pitch, yaw, roll] of camera [id]");
-
-	CommandDispatcher->BindCommand(
-		"vget /sensor/[uint]/lit [str]",
-		FDispatcherDelegate::CreateStatic(GetSensorLit),
-		"Get png binary data from lit sensor");
-
-	CommandDispatcher->BindCommand(
-		"vget /sensor/[uint]/depth [str]",
-		FDispatcherDelegate::CreateStatic(GetSensorDepth),
-		"Get npy binary data from depth sensor");
-
-	CommandDispatcher->BindCommand(
-		"vget /sensor/[uint]/vis_depth [str]",
-		FDispatcherDelegate::CreateStatic(GetSensorVisDepth),
-		"Get npy binary data from vis depth sensor");
-
-	CommandDispatcher->BindCommand(
-		"vget /sensor/[uint]/plane_depth [str]",
-		FDispatcherDelegate::CreateStatic(GetSensorPlaneDepth),
-		"Get npy binary data from plane depth sensor");
-
-	CommandDispatcher->BindCommand(
-		"vget /sensor/[uint]/normal [str]",
-		FDispatcherDelegate::CreateStatic(GetSensorNormal),
-		"Get npy binary data from depth sensor");
-
-	CommandDispatcher->BindCommand(
-		"vget /sensor/[uint]/object_mask [str]",
-		FDispatcherDelegate::CreateStatic(GetSensorObjMask),
-		"Get npy binary data from depth sensor");
-
-	CommandDispatcher->BindCommand(
-		"vget /sensor/[uint]/depth_stencil [str]",
-		FDispatcherDelegate::CreateStatic(GetSensorStencil),
-		"Get npy binary data from stencil sensor");
-
 	CommandDispatcher->BindCommand(
 		"vget /screenshot [str]",
 		FDispatcherDelegate::CreateStatic(GetScreenshot),
 		"Get screenshot");
-}
 
-void FCameraCommandHandler::RegisterCommands()
-{
 	 CommandDispatcher->BindCommand(
 		"vget /cameras",
 		FDispatcherDelegate::CreateStatic(GetSensorList),
@@ -516,7 +486,7 @@ void FCameraCommandHandler::RegisterCommands()
 	CommandDispatcher->BindCommand(
 		"vget /camera/[uint]/normal [str]",
 		FDispatcherDelegate::CreateStatic(GetSensorNormal),
-		"Get npy binary data from depth sensor");
+		"Get npy binary data from surface normal sensor");
 
 	CommandDispatcher->BindCommand(
 		"vget /camera/[uint]/object_mask [str]",

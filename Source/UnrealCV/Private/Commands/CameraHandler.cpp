@@ -464,22 +464,22 @@ FExecStatus FCameraCommandHandler::GetCameraLocation(const TArray<FString>& Args
 	return FExecStatus::Error("Number of arguments incorrect");
 }
 
-FExecStatus FCameraCommandHandler::GetObjectInstanceMask(const TArray<FString>& Args)
-{
-	if (Args.Num() <= 2) // The first is camera id, the second is ViewMode
-	{
-		// Use command dispatcher is more universal
-		FExecStatus ExecStatus = CommandDispatcher->Exec(TEXT("vset /viewmode object_mask"));
-		if (ExecStatus != FExecStatusType::OK)
-		{
-			return ExecStatus;
-		}
+// FExecStatus FCameraCommandHandler::GetObjectInstanceMask(const TArray<FString>& Args)
+// {
+// 	if (Args.Num() <= 2) // The first is camera id, the second is ViewMode
+// 	{
+// 		// Use command dispatcher is more universal
+// 		FExecStatus ExecStatus = CommandDispatcher->Exec(TEXT("vset /viewmode object_mask"));
+// 		if (ExecStatus != FExecStatusType::OK)
+// 		{
+// 			return ExecStatus;
+// 		}
 
-		ExecStatus = GetScreenshot(Args);
-		return ExecStatus;
-	}
-	return FExecStatus::InvalidArgument;
-}
+// 		ExecStatus = GetScreenshot(Args);
+// 		return ExecStatus;
+// 	}
+// 	return FExecStatus::InvalidArgument;
+// }
 
 FExecStatus FCameraCommandHandler::GetLitViewMode(const TArray<FString>& Args)
 {
@@ -545,33 +545,33 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 }
 
 /** vget /camera/[id]/screenshot */
-FExecStatus FCameraCommandHandler::GetScreenshot(const TArray<FString>& Args)
-{
-	int32 CameraId = FCString::Atoi(*Args[0]);
+// FExecStatus FCameraCommandHandler::GetScreenshot(const TArray<FString>& Args)
+// {
+// 	int32 CameraId = FCString::Atoi(*Args[0]);
 
-	FString Filename;
-	if (Args.Num() > 2)
-	{
-		return FExecStatus::InvalidArgument;
-	}
-	if (Args.Num() == 1)
-	{
-		Filename = GenerateSeqFilename();
-	}
-	if (Args.Num() == 2)
-	{
-		Filename = Args[1];
-	}
+// 	FString Filename;
+// 	if (Args.Num() > 2)
+// 	{
+// 		return FExecStatus::InvalidArgument;
+// 	}
+// 	if (Args.Num() == 1)
+// 	{
+// 		Filename = GenerateSeqFilename();
+// 	}
+// 	if (Args.Num() == 2)
+// 	{
+// 		Filename = Args[1];
+// 	}
 
-	if (Filename.ToLower() == TEXT("png"))
-	{
-		return ScreenCaptureAsyncByQuery(); // return the binary data
-	}
-	else
-	{
-		return ScreenCaptureAsyncByQuery(Filename);
-	}
-}
+// 	if (Filename.ToLower() == TEXT("png"))
+// 	{
+// 		return ScreenCaptureAsyncByQuery(); // return the binary data
+// 	}
+// 	else
+// 	{
+// 		return ScreenCaptureAsyncByQuery(Filename);
+// 	}
+// }
 
 FExecStatus FCameraCommandHandler::GetActorRotation(const TArray<FString>& Args)
 {
@@ -643,4 +643,9 @@ FExecStatus FCameraCommandHandler::GetNpyBinaryFloat16(const TArray<FString>& Ar
 {
 	TArray<uint8> Data = GetNpyBinaryFloat16Data(Args, ViewMode, Channels);
 	return FExecStatus::Binary(Data);
+}
+
+void FCameraCommandHandler::RegisterCommands()
+{
+
 }
