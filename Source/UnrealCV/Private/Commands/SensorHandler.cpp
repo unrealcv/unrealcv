@@ -7,6 +7,7 @@
 #include "Serialization.h"
 #include "StrFormatter.h"
 #include "SensorBP.h"
+#include "PlayerViewMode.h"
 
 enum EFilenameType
 {
@@ -491,4 +492,23 @@ void FSensorHandler::RegisterCommands()
 		FDispatcherDelegate::CreateStatic(GetSensorObjMask),
 		"Get npy binary data from depth sensor");
 
+	CommandDispatcher->BindCommand(
+		"vset /viewmode [str]",
+		FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::SetMode),
+		"Set ViewMode to (lit, normal, depth, object_mask)"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vget /viewmode",
+		FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::GetMode),
+		"Get current ViewMode"
+	);
+
+	// Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetActorLocation);
+	// Help = "Get actor location [x, y, z]";
+	// CommandDispatcher->BindCommand("vget /actor/location", Cmd, Help);
+
+	// Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetActorRotation);
+	// Help = "Get actor rotation [pitch, yaw, roll]";
+	// CommandDispatcher->BindCommand("vget /actor/rotation", Cmd, Help);
 }
