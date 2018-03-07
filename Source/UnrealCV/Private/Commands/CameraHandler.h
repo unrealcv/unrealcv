@@ -5,8 +5,6 @@
 class FCameraCommandHandler : public FCommandHandler
 {
 public:
-	FCameraCommandHandler(FCommandDispatcher* InCommandDispatcher) : FCommandHandler(InCommandDispatcher)
-	{}
 	void RegisterCommands();
 
 	/** vget /camera/horizontal_fieldofview */

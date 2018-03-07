@@ -83,10 +83,10 @@ private:
 	bool Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
 
 	/** The connected client socket, only maintain one client at a time */
-	FSocket* ConnectionSocket = NULL; // FSimpleAbstractSocket's receive is hard to use for non-blocking mode
+	TSharedPtr<FSocket> ConnectionSocket; // FSimpleAbstractSocket's receive is hard to use for non-blocking mode
 
 	/** TcpListener used to listen new incoming connection */
-	FTcpListener* TcpListener = NULL;
+	TSharedPtr<FTcpListener> TcpListener;
 
 	~UNetworkManager();
 
@@ -117,7 +117,7 @@ private:
 		ErrorEvent.Broadcast(Message);
 	}
 
-/** Broadcast event `Connected` */
+	/** Broadcast event `Connected` */
 	void BroadcastConnected(const FString& Message)
 	{
 		ConnectedEvent.Broadcast(Message);

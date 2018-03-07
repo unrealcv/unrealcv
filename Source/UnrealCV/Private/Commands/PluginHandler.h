@@ -4,8 +4,6 @@
 class FPluginCommandHandler : public FCommandHandler
 {
 public:
-	FPluginCommandHandler(FCommandDispatcher* InCommandDispatcher) : FCommandHandler(InCommandDispatcher)
-	{}
 	void RegisterCommands();
 
 	FExecStatus GetPort(const TArray<FString>& Args);

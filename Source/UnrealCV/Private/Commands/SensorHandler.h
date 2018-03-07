@@ -6,10 +6,5 @@
 class FSensorHandler : public FCommandHandler
 {
 public:
-    FSensorHandler(FCommandDispatcher* InCommandDispatcher) : FCommandHandler(InCommandDispatcher)
-    { }
-
-    void RegisterCommands();
-
-
+	void RegisterCommands();
 };

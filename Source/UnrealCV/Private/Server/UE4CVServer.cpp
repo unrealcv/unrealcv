@@ -9,6 +9,7 @@
 #include "PluginHandler.h"
 #include "ActionHandler.h"
 #include "AliasHandler.h"
+#include "SensorHandler.h"
 #if WITH_EDITOR
 #include "UnrealEd.h"
 #endif
@@ -67,14 +68,15 @@ FUE4CVServer& FUE4CVServer::Get()
 void FUE4CVServer::RegisterCommandHandlers()
 {
 	// Taken from ctor, because might cause loop-invoke.
-	CommandHandlers.Add(new FObjectCommandHandler(CommandDispatcher));
-	CommandHandlers.Add(new FCameraCommandHandler(CommandDispatcher));
-	CommandHandlers.Add(new FPluginCommandHandler(CommandDispatcher));
-	CommandHandlers.Add(new FActionCommandHandler(CommandDispatcher));
-	CommandHandlers.Add(new FAliasCommandHandler(CommandDispatcher));
-	CommandHandlers.Add(new FSensorHandler(CommandDispatcher));
+	CommandHandlers.Add(new FObjectCommandHandler());
+	CommandHandlers.Add(new FCameraCommandHandler());
+	CommandHandlers.Add(new FPluginCommandHandler());
+	CommandHandlers.Add(new FActionCommandHandler());
+	CommandHandlers.Add(new FAliasCommandHandler());
+	CommandHandlers.Add(new FSensorHandler());
 	for (FCommandHandler* Handler : CommandHandlers)
 	{
+		Handler->CommandDispatcher = CommandDispatcher;
 		Handler->RegisterCommands();
 	}
 }
@@ -83,7 +85,7 @@ FUE4CVServer::FUE4CVServer()
 {
 	// Code defined here should not use FUE4CVServer::Get();
 	NetworkManager = NewObject<UNetworkManager>();
-	CommandDispatcher = new FCommandDispatcher();
+	CommandDispatcher = TSharedPtr<FCommandDispatcher>(new FCommandDispatcher());
 	FConsoleHelper::Get().SetCommandDispatcher(CommandDispatcher);
 
 	NetworkManager->AddToRoot(); // Avoid GC
