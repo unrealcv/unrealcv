@@ -171,17 +171,17 @@ void BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray
 
 bool UNetworkManager::IsConnected()
 {
-	return (this->ConnectionSocket.IsValid());
+	return (this->ConnectionSocket != nullptr);
 }
 
 /* Provide a dummy echo service to echo received data back for development purpose */
 bool UNetworkManager::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
-	if (!this->ConnectionSocket.IsValid()) // Only maintain one active connection, So just reuse the TCPListener thread.
+	if (!this->ConnectionSocket) // Only maintain one active connection, So just reuse the TCPListener thread.
 	{
 		UE_LOG(LogUnrealCV, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
 		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
-		ConnectionSocket = MakeShareable<FSocket>(ClientSocket);
+		ConnectionSocket = ClientSocket;
 
 		// Listening data here or start a new thread for data?
 		// Reuse the TCP Listener thread for getting data, only support one connection
@@ -217,9 +217,9 @@ bool UNetworkManager::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoin
   */
 bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
-	if (!this->ConnectionSocket.IsValid())
+	if (!this->ConnectionSocket)
 	{
-		ConnectionSocket = MakeShareable<FSocket>(ClientSocket);
+		ConnectionSocket = ClientSocket;
 
 		UE_LOG(LogUnrealCV, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
 		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
@@ -231,11 +231,11 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 		}
 
 		// TODO: Start a new thread
-		while (ConnectionSocket.IsValid()) // Listening thread, while the client is still connected
+		while (ConnectionSocket) // Listening thread, while the client is still connected
 		{
 			FArrayReader ArrayReader;
 			bool unknown_error = false;
-			if (!FSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket.Get(), &unknown_error))
+			if (!FSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket, &unknown_error))
 				// Wait forever until got a message, or return false when error happened
 			{
 				if (unknown_error) 
@@ -278,7 +278,7 @@ bool UNetworkManager::Start(int32 InPortNum) // Restart the server if configurat
 {
 	if (InPortNum == this->PortNum && this->bIsListening) return true; // Already started
 
-	if (ConnectionSocket.IsValid()) // Release previous connection
+	if (ConnectionSocket) // Release previous connection
 	{
 		ConnectionSocket->Close();
 		ConnectionSocket = NULL;
@@ -332,12 +332,12 @@ bool UNetworkManager::Start(int32 InPortNum) // Restart the server if configurat
 
 bool UNetworkManager::SendMessage(const FString& Message)
 {
-	if (ConnectionSocket.IsValid())
+	if (ConnectionSocket)
 	{
 		TArray<uint8> Payload;
 		BinaryArrayFromString(Message, Payload);
 		UE_LOG(LogUnrealCV, Verbose, TEXT("Send string message with size %d"), Payload.Num());
-		FSocketMessageHeader::WrapAndSendPayload(Payload, ConnectionSocket.Get());
+		FSocketMessageHeader::WrapAndSendPayload(Payload, ConnectionSocket);
 		UE_LOG(LogUnrealCV, Verbose, TEXT("Payload sent"), Payload.Num());
 		return true;
 	}
@@ -346,10 +346,10 @@ bool UNetworkManager::SendMessage(const FString& Message)
 
 bool UNetworkManager::SendData(const TArray<uint8>& Payload)
 {
-	if (ConnectionSocket.IsValid())
+	if (ConnectionSocket)
 	{
 		UE_LOG(LogUnrealCV, Verbose, TEXT("Send binary payload with size %d"), Payload.Num());
-		FSocketMessageHeader::WrapAndSendPayload(Payload, ConnectionSocket.Get());
+		FSocketMessageHeader::WrapAndSendPayload(Payload, ConnectionSocket);
 		UE_LOG(LogUnrealCV, Verbose, TEXT("Payload sent"), Payload.Num());
 		return true;
 	}
@@ -358,8 +358,4 @@ bool UNetworkManager::SendData(const TArray<uint8>& Payload)
 
 UNetworkManager::~UNetworkManager()
 {
-	if (ConnectionSocket.IsValid())
-	{
-		ConnectionSocket->Close();
-	}
 }

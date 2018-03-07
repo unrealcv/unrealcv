@@ -6,9 +6,6 @@ ULitSlowCamSensor::ULitSlowCamSensor(const FObjectInitializer& ObjectInitializer
 	Super(ObjectInitializer)
 {
 	SetFOV(90);
-
-	FilmWidth = 640;
-	FilmHeight = 480;
 }
 
 void ULitSlowCamSensor::OnRegister()
@@ -20,7 +17,7 @@ void ULitSlowCamSensor::OnRegister()
 	TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
 
 	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-	this->bCaptureEveryFrame = false; 
+	this->bCaptureEveryFrame = true; 
 	this->bCaptureOnMovement = false;
 }
 

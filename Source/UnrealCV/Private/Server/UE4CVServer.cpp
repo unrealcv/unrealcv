@@ -68,7 +68,6 @@ void FUE4CVServer::RegisterCommandHandlers()
 {
 	// Taken from ctor, because might cause loop-invoke.
 	CommandHandlers.Add(new FObjectCommandHandler());
-	CommandHandlers.Add(new FCameraCommandHandler());
 	CommandHandlers.Add(new FPluginCommandHandler());
 	CommandHandlers.Add(new FActionCommandHandler());
 	CommandHandlers.Add(new FAliasCommandHandler());
