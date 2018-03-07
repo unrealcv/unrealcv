@@ -335,7 +335,7 @@ FExecStatus GetSensorObjMask(const TArray<FString>& Args)
 	return ExecStatus;
 }
 
-FExecStatus GetSensorStencil(const TArray<FString>& Args)
+FExecStatus GetSensorDepthStencil(const TArray<FString>& Args)
 {
 	FExecStatus ExecStatus = FExecStatus::OK();
 	UFusionCamSensor* FusionCamSensor = GetSensor(Args, ExecStatus);
@@ -491,6 +491,11 @@ void FSensorHandler::RegisterCommands()
 		"vget /camera/[uint]/object_mask [str]",
 		FDispatcherDelegate::CreateStatic(GetSensorObjMask),
 		"Get npy binary data from depth sensor");
+
+	CommandDispatcher->BindCommand(
+		"vget /camera/[uint]/depth_stencil [str]",
+		FDispatcherDelegate::CreateStatic(GetSensorDepthStencil),
+		"Get depth stencil data as an alternative way for object mask");
 
 	CommandDispatcher->BindCommand(
 		"vset /viewmode [str]",
