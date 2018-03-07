@@ -51,7 +51,7 @@ public:
 	static FUE4CVServer& Get();
 
 	/** The CommandDispatcher to handle a pending request */
-	FCommandDispatcher* CommandDispatcher;
+	TSharedPtr<FCommandDispatcher> CommandDispatcher;
 
 	/** Return the Pawn of this game */
 	APawn* GetPawn();

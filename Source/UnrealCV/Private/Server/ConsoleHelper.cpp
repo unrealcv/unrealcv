@@ -4,7 +4,7 @@
 
 void FConsoleHelper::VBp(const TArray<FString>& Args)
 {
-	if (CommandDispatcher == nullptr)
+	if (!CommandDispatcher.IsValid())
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set"));
 	}
@@ -67,21 +67,23 @@ FConsoleHelper& FConsoleHelper::Get()
 	return Singleton;
 }
 
-void FConsoleHelper::SetCommandDispatcher(FCommandDispatcher* InCommandDispatcher)
+void FConsoleHelper::SetCommandDispatcher(TSharedPtr<FCommandDispatcher> InCommandDispatcher)
 {
 	CommandDispatcher = InCommandDispatcher;
 }
 
-FConsoleOutputDevice* FConsoleHelper::GetConsole() // The ConsoleOutputDevice will depend on the external world, so we need to use a get function
+TSharedPtr<FConsoleOutputDevice> FConsoleHelper::GetConsole() // The ConsoleOutputDevice will depend on the external world, so we need to use a get function
 {
-	return new FConsoleOutputDevice(FUE4CVServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
+	TSharedPtr<FConsoleOutputDevice> ConsoleOutputDevice(new FConsoleOutputDevice(FUE4CVServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole));
+	return ConsoleOutputDevice;
 }
 
 void FConsoleHelper::VRun(const TArray<FString>& Args)
 {
-	if (CommandDispatcher == nullptr)
+	if (!CommandDispatcher.IsValid())
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set"));
+		return;
 	}
 	FString Cmd = "vrun ";
 	uint32 NumArgs = Args.Num();
@@ -102,9 +104,10 @@ void FConsoleHelper::VRun(const TArray<FString>& Args)
 
 void FConsoleHelper::VGet(const TArray<FString>& Args)
 {
-	if (CommandDispatcher == nullptr)
+	if (!CommandDispatcher.IsValid())
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set"));
+		return;
 	}
 	// TODO: Is there any way to know which command trigger this handler?
 	// Join string
@@ -127,9 +130,10 @@ void FConsoleHelper::VGet(const TArray<FString>& Args)
 
 void FConsoleHelper::VSet(const TArray<FString>& Args)
 {
-	if (CommandDispatcher == nullptr)
+	if (!CommandDispatcher.IsValid())
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set"));
+		return;
 	}
 	FString Cmd = "vset ";
 	uint32 NumArgs = Args.Num();

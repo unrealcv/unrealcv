@@ -4,8 +4,6 @@
 class FAliasCommandHandler : public FCommandHandler
 {
 public:
-	FAliasCommandHandler(FCommandDispatcher* InCommandDispatcher) : FCommandHandler(InCommandDispatcher)
-	{}
 	void RegisterCommands();
 
 	/** vrun : run UE4 built-in commands */

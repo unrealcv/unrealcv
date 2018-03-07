@@ -5,8 +5,6 @@
 class FObjectCommandHandler : public FCommandHandler
 {
 public:
-	FObjectCommandHandler(FCommandDispatcher* InCommandDispatcher) : FCommandHandler(InCommandDispatcher)
-	{}
 	void RegisterCommands();
 
 	/** Get a list of all objects in the scene */

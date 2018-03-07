@@ -11,16 +11,16 @@ class FConsoleHelper
 public:
 	// FConsoleHelper(FCommandDispatcher* CommandDispatcher);
 	static FConsoleHelper& Get();
-	void SetCommandDispatcher(FCommandDispatcher* CommandDispatcher);
+	void SetCommandDispatcher(TSharedPtr<FCommandDispatcher> CommandDispatcher);
 
 	/** The exec result of CommandDispatcher will be written to FConsoleOutputDevice */
-	FConsoleOutputDevice* GetConsole();
+	TSharedPtr<FConsoleOutputDevice> GetConsole();
 
 private:
 	FConsoleHelper();
 
 	/** The command from UE4 console will be sent to CommandDispatcher for execution */
-	FCommandDispatcher* CommandDispatcher;
+	TSharedPtr<FCommandDispatcher> CommandDispatcher;
 
 	/** Register vget command to UE4 console */
 	void VGet(const TArray<FString>& Args);

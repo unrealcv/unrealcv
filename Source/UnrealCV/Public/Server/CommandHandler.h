@@ -6,15 +6,11 @@
 class FCommandHandler
 {
 public:
-	FCommandHandler(FCommandDispatcher* InCommandDispatcher)
-	: CommandDispatcher(InCommandDispatcher)
-	{}
-	virtual void RegisterCommands() {}; // will be overrided
+	virtual void RegisterCommands() = 0; 
 	virtual ~FCommandHandler() {};
 	UWorld* GetWorld()
 	{
 		return FUE4CVServer::Get().GetGameWorld();
 	}
-protected:
-	FCommandDispatcher* CommandDispatcher;
+	TSharedPtr<FCommandDispatcher> CommandDispatcher;
 };

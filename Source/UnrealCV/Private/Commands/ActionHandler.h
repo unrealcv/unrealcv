@@ -4,8 +4,6 @@
 class FActionCommandHandler : public FCommandHandler
 {
 public:
-	FActionCommandHandler(FCommandDispatcher* InCommandDispatcher) : FCommandHandler(InCommandDispatcher)
-	{}
 	void RegisterCommands();
 
 	/** vset /action/game/pause */

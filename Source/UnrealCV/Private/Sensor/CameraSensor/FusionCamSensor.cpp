@@ -13,6 +13,7 @@
 #include "PlaneDepthCamSensor.h"
 #include "VisDepthCamSensor.h"
 #include "NontransDepthCamSensor.h"
+#include "LitSlowCamSensor.h"
 
 UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -47,6 +48,9 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 
 	AnnotationCamSensor = CreateDefaultSubobject<UAnnotationCamSensor>("AnnotationCamSensor");
 	FusionSensors.Add(AnnotationCamSensor);
+
+	LitSlowCamSensor = CreateDefaultSubobject<ULitSlowCamSensor>("LitSlowCamSensor");
+	FusionSensors.Add(LitSlowCamSensor);
 
 	PreviewCamera = CreateDefaultSubobject<UCameraComponent>("PreviewCamera");
 	PreviewCamera->SetupAttachment(this);
@@ -94,9 +98,12 @@ bool UFusionCamSensor::GetEditorPreviewInfo(float DeltaTime, FMinimalViewInfo& V
 
 void UFusionCamSensor::GetLit(TArray<FColor>& LitData, int& Width, int& Height)
 {
-	// Correct, but slow
-	// this->LitCamSensor->CaptureSlow(LitData, Width, Height);
 	this->LitCamSensor->Capture(LitData, Width, Height);
+}
+
+void UFusionCamSensor::GetLitSlow(TArray<FColor>& LitData, int& Width, int& Height)
+{
+	this->LitSlowCamSensor->Capture(LitData, Width, Height);
 }
 
 void UFusionCamSensor::GetDepth(TArray<float>& DepthData, int& Width, int& Height)
