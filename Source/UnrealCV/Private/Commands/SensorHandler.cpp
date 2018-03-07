@@ -246,6 +246,19 @@ FExecStatus GetSensorLit(const TArray<FString>& Args)
 
 	TArray<FColor> Data;
 	int Width, Height;
+	FusionCamSensor->GetLitSlow(Data, Width, Height);
+	SaveData(Data, Width, Height, Args, ExecStatus);
+	return ExecStatus;
+}
+
+FExecStatus GetSensorLitFast(const TArray<FString>& Args)
+{
+	FExecStatus ExecStatus = FExecStatus::OK();
+	UFusionCamSensor* FusionCamSensor = GetSensor(Args, ExecStatus);
+	if (!IsValid(FusionCamSensor)) return ExecStatus; 
+
+	TArray<FColor> Data;
+	int Width, Height;
 	FusionCamSensor->GetLit(Data, Width, Height);
 	SaveData(Data, Width, Height, Args, ExecStatus);
 	return ExecStatus;
@@ -443,7 +456,15 @@ void FSensorHandler::RegisterCommands()
 	CommandDispatcher->BindCommand(
 		"vget /camera/[uint]/lit [str]",
 		FDispatcherDelegate::CreateStatic(GetSensorLit),
-		"Get png binary data from lit sensor");
+		"Get png binary data from lit sensor"
+	);
+
+	// TODO: Need to merge these two later
+	CommandDispatcher->BindCommand(
+		"vget /camera/[uint]/lit_fast [str]",
+		FDispatcherDelegate::CreateStatic(GetSensorLitFast),
+		"Get png binary data from lit sensor"
+	);
 
 	CommandDispatcher->BindCommand(
 		"vget /camera/[uint]/depth [str]",

@@ -4,7 +4,6 @@
 #include "ConsoleHelper.h"
 #include "ObjectPainter.h"
 #include "CaptureManager.h"
-#include "CameraHandler.h"
 #include "ObjectHandler.h"
 #include "PluginHandler.h"
 #include "ActionHandler.h"
