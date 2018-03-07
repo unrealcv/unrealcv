@@ -3,33 +3,6 @@
 #include "IPluginManager.h"
 #include "UE4CVServer.h"
 
-void FPluginCommandHandler::RegisterCommands()
-{
-	FDispatcherDelegate Cmd;
-	FString Help;
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetUnrealCVStatus);
-	Help = "Get the status of UnrealCV plugin";
-	CommandDispatcher->BindCommand("vget /unrealcv/status", Cmd, Help);
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetCommands);
-	Help = "List all available commands and their help message";
-	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/help"), Cmd, Help);
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::Echo);
-	Help = "[debug] Echo back all message, for debug";
-	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/echo [str]"), Cmd, Help);
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetVersion);
-	Help = "Get the version of UnrealCV, the format is v0.*.*";
-	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/version"), Cmd, Help);
-
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetSceneName);
-	Help = "Get the name of this scene, to make sure the annotation data is for this scene.";
-	CommandDispatcher->BindCommand(TEXT("vget /scene/name"), Cmd, Help);
-
-}
-
 FExecStatus FPluginCommandHandler::Echo(const TArray<FString>& Args)
 {
 	// Async version
@@ -106,9 +79,49 @@ FExecStatus FPluginCommandHandler::GetVersion(const TArray<FString>& Args)
 	}
 }
 
-
 FExecStatus FPluginCommandHandler::GetSceneName(const TArray<FString>& Args)
 {
 	FString SceneName = GetProjectName();
 	return FExecStatus::OK(SceneName);
+}
+
+FExecStatus GetLevelName(const TArray<FString>& Args)
+{
+	FUE4CVServer& Server = FUE4CVServer::Get();
+	FString PrefixedMapName = Server.GetGameWorld()->GetMapName();	
+	FString Prefix = Server.GetGameWorld()->StreamingLevelsPrefix;
+	FString MapName = PrefixedMapName.Mid(Prefix.Len());
+	return FExecStatus::OK(MapName);
+}
+
+void FPluginCommandHandler::RegisterCommands()
+{
+	FDispatcherDelegate Cmd;
+	FString Help;
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetUnrealCVStatus);
+	Help = "Get the status of UnrealCV plugin";
+	CommandDispatcher->BindCommand("vget /unrealcv/status", Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetCommands);
+	Help = "List all available commands and their help message";
+	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/help"), Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::Echo);
+	Help = "[debug] Echo back all message, for debug";
+	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/echo [str]"), Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetVersion);
+	Help = "Get the version of UnrealCV, the format is v0.*.*";
+	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/version"), Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetSceneName);
+	Help = "Get the name of this scene, to make sure the annotation data is for this scene.";
+	CommandDispatcher->BindCommand(TEXT("vget /scene/name"), Cmd, Help);
+
+	CommandDispatcher->BindCommand(
+		"vget /level/name",
+		FDispatcherDelegate::CreateStatic(GetLevelName),
+		"Get current level name"
+	);
 }

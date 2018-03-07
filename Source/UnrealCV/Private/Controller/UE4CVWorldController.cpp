@@ -3,6 +3,7 @@
 #include "UE4CVWorldController.h"
 #include "PawnCamSensor.h"
 #include "VisionBP.h"
+#include "UE4CVServer.h"
 
 AUE4CVWorldController::AUE4CVWorldController(const FObjectInitializer& ObjectInitializer)
 {
@@ -35,6 +36,11 @@ void AUE4CVWorldController::BeginPlay()
 {
 	ScreenLog("Overwrite the world setting with some UnrealCV extensions");
 
+	FUE4CVServer& UE4CVServer = FUE4CVServer::Get();
+	if (UE4CVServer.NetworkManager && !UE4CVServer.NetworkManager->IsListening())
+	{
+		ScreenLog("The tcp server is not running");
+	}
 
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	check(PlayerController);

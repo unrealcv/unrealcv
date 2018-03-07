@@ -72,17 +72,6 @@ void UKeypointComponent::MatchNearestVertex()
 	}
 }
 
-void UKeypointComponent::PostInitProperties()
-{
-	Super::PostInitProperties();
-}
-
-void UKeypointComponent::PostEditChangeProperty(FPropertyChangedEvent & PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-}
-
-
 TArray<FKeypoint> UKeypointComponent::LoadKeypointFromJson(FString JsonFilename)
 {
 	TArray<FKeypoint> Points;

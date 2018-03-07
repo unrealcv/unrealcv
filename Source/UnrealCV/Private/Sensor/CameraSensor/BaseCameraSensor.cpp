@@ -17,13 +17,18 @@ DECLARE_CYCLE_STAT(TEXT("ReadBufferFast"), STAT_ReadBufferFast, STATGROUP_Unreal
 
 FImageWorker UBaseCameraSensor::ImageWorker;
 
-UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), FilmWidth(640), FilmHeight(480)
+UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("/Engine/EditorMeshes/MatineeCam_SM"));
 	// static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("StaticMesh'/Engine/EditorMeshes/Camera/SM_CineCam.SM_CineCam'"));
 	CameraMesh = EditorCameraMesh.Object;
 
 	this->ShowFlags.SetPostProcessing(true);
+	
+	FServerConfig& Config = FUE4CVServer::Get().Config;
+	FilmWidth = Config.Width;
+	FilmHeight = Config.Height; 
+	this->FOVAngle = Config.FOV;
 }
 
 void UBaseCameraSensor::OnRegister()
@@ -139,24 +144,6 @@ void UBaseCameraSensor::Capture(TArray<FColor>& ImageData, int& Width, int& Heig
 	check(this->TextureTarget);
 	UTextureRenderTarget2D* RenderTarget = this->TextureTarget;
 	ReadTextureRenderTarget(RenderTarget, ImageData, Width, Height);
-}
-
-/** Get the location in unrealcv format */
-FVector UBaseCameraSensor::GetSensorWorldLocation()
-{
-	FVector ComponentLocation = this->GetComponentLocation();
-	return ComponentLocation;
-}
-
-FRotator UBaseCameraSensor::GetSensorRotation()
-{
-	FRotator Rotation = this->GetComponentRotation();
-	return Rotation;
-}
-
-void UBaseCameraSensor::SetFOV(float FOV)
-{
-	this->FOVAngle = FOV;
 }
 
 void UBaseCameraSensor::SetPostProcessMaterial(UMaterial* PostProcessMaterial)

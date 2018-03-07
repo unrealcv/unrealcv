@@ -14,4 +14,8 @@ public:
 	UPawnCamSensor(const FObjectInitializer& ObjectInitializer);
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * T);
+
+	virtual void SetSensorLocation(FVector Location) override;
+	
+	virtual void SetSensorRotation(FRotator Rotation) override;
 };

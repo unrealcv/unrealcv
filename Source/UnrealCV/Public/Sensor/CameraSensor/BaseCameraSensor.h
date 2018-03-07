@@ -36,28 +36,40 @@ public:
 	virtual void Capture(TArray<FColor>& ImageData, int& Width, int& Height);
 
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
-	FVector GetSensorWorldLocation();
+	virtual FVector GetSensorLocation()
+	{
+		return this->GetComponentLocation(); // World space
+	}
 
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
-	FRotator GetSensorRotation();
+	virtual FRotator GetSensorRotation()
+	{
+		return this->GetComponentRotation(); // World space
+	}
 
-	// FString GetSensorPose();
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	virtual void SetSensorLocation(FVector Location)
+	{
+		this->SetWorldLocation(Location);
+	}
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	virtual void SetSensorRotation(FRotator Rotator)
+	{
+		this->SetWorldRotation(Rotator);
+	}
 
 	/** Get the FOV of this camera */
-	FString GetSensorFOV();
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	float GetSensorFOV() { return this->FOVAngle; }
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	void SetFOV(float FOV) { this->FOVAngle = FOV; }
 
 	/** Get the projection matrix of this camera */
 	FString GetProjectionMatrix();
 
-	// void SetRotation();
-
-	// void SetWorldLocation();
-
-	UFUNCTION(BlueprintCallable, Category = "unrealcv")
-	void SetFOV(float FOV);
-
 	void SetPostProcessMaterial(UMaterial* PostProcessMaterial);
-
 
 	/** The TextureBuffer width */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "unrealcv")
@@ -66,7 +78,6 @@ public:
 	/** The TextureBuffer height */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "unrealcv")
 	int FilmHeight;
-
 
 	UPROPERTY(transient)
 	UStaticMesh* CameraMesh;

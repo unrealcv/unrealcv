@@ -8,6 +8,7 @@
 // #define SENSOR_UPROPERTY() UPROPERTY(Instanced)
 
 UCLASS(meta = (BlueprintSpawnableComponent))
+// class UFusionCamSensor : public UPrimitiveComponent
 class UFusionCamSensor : public UBaseCameraSensor
 {
 	GENERATED_BODY()

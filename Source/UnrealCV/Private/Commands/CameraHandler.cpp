@@ -31,130 +31,131 @@ FString GenerateSeqFilename()
 	return Filename;
 }
 
-void FCameraCommandHandler::RegisterCommands()
-{
-	FDispatcherDelegate Cmd;
-	FString Help;
+// This function has been moved to SensorHandler.cpp
+// void FCameraCommandHandler::RegisterCommands()
+// {
+// 	FDispatcherDelegate Cmd;
+// 	FString Help;
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraViewMode);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/[str]", Cmd, "Get snapshot from camera, the third parameter is optional");
+// 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraViewMode);
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/[str]", Cmd, "Get snapshot from camera, the third parameter is optional");
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraViewMode);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/[str] [str]", Cmd, "Get snapshot from camera, the third parameter is optional");
+// 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraViewMode);
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/[str] [str]", Cmd, "Get snapshot from camera, the third parameter is optional");
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetLitViewMode);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/lit", Cmd, "Get snapshot from camera, the third parameter is optional");
+// 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetLitViewMode);
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/lit", Cmd, "Get snapshot from camera, the third parameter is optional");
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetLitViewMode);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/lit [str]", Cmd, "Get snapshot from camera, the third parameter is optional");
+// 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetLitViewMode);
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/lit [str]", Cmd, "Get snapshot from camera, the third parameter is optional");
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetObjectInstanceMask);
-	CommandDispatcher->BindCommand("vget /camera/[uint]/object_mask", Cmd, "Get snapshot from camera, the third parameter is optional");
+// 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetObjectInstanceMask);
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/object_mask", Cmd, "Get snapshot from camera, the third parameter is optional");
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetObjectInstanceMask);
-	Help = "Get object mask from camera";
-	CommandDispatcher->BindCommand("vget /camera/[uint]/object_mask [str]", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetObjectInstanceMask);
+// 	Help = "Get object mask from camera";
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/object_mask [str]", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetScreenshot);
-	Help = "Get snapshot from camera";
-	CommandDispatcher->BindCommand("vget /camera/[uint]/screenshot", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetScreenshot);
+// 	Help = "Get snapshot from camera";
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/screenshot", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraLocation);
-	Help = "Get camera location [x, y, z]";
-	CommandDispatcher->BindCommand("vget /camera/[uint]/location", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraLocation);
+// 	Help = "Get camera location [x, y, z]";
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/location", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraRotation);
-	Help = "Get camera rotation [pitch, yaw, roll]";
-	CommandDispatcher->BindCommand("vget /camera/[uint]/rotation", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraRotation);
+// 	Help = "Get camera rotation [pitch, yaw, roll]";
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/rotation", Cmd, Help);
 
-  Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraPose);
-  Help = "Get camera location [x, y, z] and rotation [pitch, yaw, roll]";
-  CommandDispatcher->BindCommand("vget /camera/[uint]/pose", Cmd, Help);
+//   Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraPose);
+//   Help = "Get camera location [x, y, z] and rotation [pitch, yaw, roll]";
+//   CommandDispatcher->BindCommand("vget /camera/[uint]/pose", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::SetCameraLocation);
-	Help = "Teleport camera to location [x, y, z]";
-	CommandDispatcher->BindCommand("vset /camera/[uint]/location [float] [float] [float]", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::SetCameraLocation);
+// 	Help = "Teleport camera to location [x, y, z]";
+// 	CommandDispatcher->BindCommand("vset /camera/[uint]/location [float] [float] [float]", Cmd, Help);
 
-  Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::SetCameraRotation);
-  Help = "Set rotation [pitch, yaw, roll] of camera [id]";
-  CommandDispatcher->BindCommand("vset /camera/[uint]/rotation [float] [float] [float]", Cmd, Help);
+//   Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::SetCameraRotation);
+//   Help = "Set rotation [pitch, yaw, roll] of camera [id]";
+//   CommandDispatcher->BindCommand("vset /camera/[uint]/rotation [float] [float] [float]", Cmd, Help);
 
-  Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::SetCameraPose);
-  Help = "Teleport camera to location [x, y, z] and rotation [pitch, yaw, roll]";
-  CommandDispatcher->BindCommand("vset /camera/[uint]/pose [float] [float] [float] [float] [float] [float]", Cmd, Help);
+//   Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::SetCameraPose);
+//   Help = "Teleport camera to location [x, y, z] and rotation [pitch, yaw, roll]";
+//   CommandDispatcher->BindCommand("vset /camera/[uint]/pose [float] [float] [float] [float] [float] [float]", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraHorizontalFieldOfView);
-	Help = "Get camera horizontal field of view";
-	CommandDispatcher->BindCommand("vget /camera/[uint]/horizontal_fieldofview", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraHorizontalFieldOfView);
+// 	Help = "Get camera horizontal field of view";
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/horizontal_fieldofview", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::SetCameraHorizontalFieldOfView);
-	Help = "Set camera horizontal field of view";
-	CommandDispatcher->BindCommand("vset /camera/[uint]/horizontal_fieldofview [float]", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::SetCameraHorizontalFieldOfView);
+// 	Help = "Set camera horizontal field of view";
+// 	CommandDispatcher->BindCommand("vset /camera/[uint]/horizontal_fieldofview [float]", Cmd, Help);
 
-	/** This is different from SetLocation (which is teleport) */
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::MoveTo);
-	Help = "Move camera to location [x, y, z], will be blocked by objects";
-	CommandDispatcher->BindCommand("vset /camera/[uint]/moveto [float] [float] [float]", Cmd, Help);
+// 	/** This is different from SetLocation (which is teleport) */
+// 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::MoveTo);
+// 	Help = "Move camera to location [x, y, z], will be blocked by objects";
+// 	CommandDispatcher->BindCommand("vset /camera/[uint]/moveto [float] [float] [float]", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraProjMatrix);
-	Help = "Get projection matrix from camera [id]";
-	CommandDispatcher->BindCommand("vget /camera/[uint]/proj_matrix", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetCameraProjMatrix);
+// 	Help = "Get projection matrix from camera [id]";
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/proj_matrix", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::SetMode);
-	Help = "Set ViewMode to (lit, normal, depth, object_mask)";
-	CommandDispatcher->BindCommand("vset /viewmode [str]", Cmd, Help); // Better to check the correctness at compile time
+// 	Cmd = FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::SetMode);
+// 	Help = "Set ViewMode to (lit, normal, depth, object_mask)";
+// 	CommandDispatcher->BindCommand("vset /viewmode [str]", Cmd, Help); // Better to check the correctness at compile time
 
-	Cmd = FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::GetMode);
-	Help = "Get current ViewMode";
-	CommandDispatcher->BindCommand("vget /viewmode", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::GetMode);
+// 	Help = "Get current ViewMode";
+// 	CommandDispatcher->BindCommand("vget /viewmode", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetActorLocation);
-	Help = "Get actor location [x, y, z]";
-	CommandDispatcher->BindCommand("vget /actor/location", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetActorLocation);
+// 	Help = "Get actor location [x, y, z]";
+// 	CommandDispatcher->BindCommand("vget /actor/location", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetActorRotation);
-	Help = "Get actor rotation [pitch, yaw, roll]";
-	CommandDispatcher->BindCommand("vget /actor/rotation", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetActorRotation);
+// 	Help = "Get actor rotation [pitch, yaw, roll]";
+// 	CommandDispatcher->BindCommand("vget /actor/rotation", Cmd, Help);
 
-	Help = "Return raw binary image data, instead of the image filename";
-	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return GetPngBinary(Args, TEXT("lit")); });
-	CommandDispatcher->BindCommand("vget /camera/[uint]/lit png", Cmd, Help);
+// 	Help = "Return raw binary image data, instead of the image filename";
+// 	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return GetPngBinary(Args, TEXT("lit")); });
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/lit png", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return GetPngBinary(Args, TEXT("depth")); });
-	CommandDispatcher->BindCommand("vget /camera/[uint]/depth png", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return GetPngBinary(Args, TEXT("depth")); });
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/depth png", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return GetPngBinary(Args, TEXT("normal")); });
-	CommandDispatcher->BindCommand("vget /camera/[uint]/normal png", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return GetPngBinary(Args, TEXT("normal")); });
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/normal png", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetNpyBinaryUint8(Args, TEXT("lit"), 4); });
-	CommandDispatcher->BindCommand("vget /camera/[uint]/lit npy", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetNpyBinaryUint8(Args, TEXT("lit"), 4); });
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/lit npy", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetNpyBinaryFloat16(Args, TEXT("depth"), 1); });
-	CommandDispatcher->BindCommand("vget /camera/[uint]/depth npy", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetNpyBinaryFloat16(Args, TEXT("depth"), 1); });
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/depth npy", Cmd, Help);
 
- 	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetNpyBinaryFloat16(Args, TEXT("plane_depth"), 1); });
- 	CommandDispatcher->BindCommand("vget /camera/[uint]/plane_depth npy", Cmd, Help);
+//  	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetNpyBinaryFloat16(Args, TEXT("plane_depth"), 1); });
+//  	CommandDispatcher->BindCommand("vget /camera/[uint]/plane_depth npy", Cmd, Help);
 
- 	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetNpyBinaryFloat16(Args, TEXT("vis_depth"), 1); });
- 	CommandDispatcher->BindCommand("vget /camera/[uint]/vis_depth npy", Cmd, Help);
+//  	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetNpyBinaryFloat16(Args, TEXT("vis_depth"), 1); });
+//  	CommandDispatcher->BindCommand("vget /camera/[uint]/vis_depth npy", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetNpyBinaryUint8(Args, TEXT("normal"), 3); });
-	CommandDispatcher->BindCommand("vget /camera/[uint]/normal npy", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) { return this->GetNpyBinaryUint8(Args, TEXT("normal"), 3); });
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/normal npy", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) {
-		TArray<uint8> LitData = this->GetNpyBinaryUint8Data(Args, TEXT("lit"), 4);
-		TArray<uint8> DepthData = this->GetNpyBinaryFloat16Data(Args, TEXT("depth"), 1);
-		TArray<uint8> NormalData = this->GetNpyBinaryUint8Data(Args, TEXT("normal"), 3);
-		TArray<uint8> Data;
-		Data += LitData;
-		Data += DepthData;
-		Data += NormalData;
-		return FExecStatus::Binary(Data);
-	});
-	CommandDispatcher->BindCommand("vget /camera/[uint]/lit_depth_normal npy", Cmd, Help);
+// 	Cmd = FDispatcherDelegate::CreateLambda([this](const TArray<FString>& Args) {
+// 		TArray<uint8> LitData = this->GetNpyBinaryUint8Data(Args, TEXT("lit"), 4);
+// 		TArray<uint8> DepthData = this->GetNpyBinaryFloat16Data(Args, TEXT("depth"), 1);
+// 		TArray<uint8> NormalData = this->GetNpyBinaryUint8Data(Args, TEXT("normal"), 3);
+// 		TArray<uint8> Data;
+// 		Data += LitData;
+// 		Data += DepthData;
+// 		Data += NormalData;
+// 		return FExecStatus::Binary(Data);
+// 	});
+// 	CommandDispatcher->BindCommand("vget /camera/[uint]/lit_depth_normal npy", Cmd, Help);
 
-	// TODO: object_mask will be handled differently
-}
+// 	// TODO: object_mask will be handled differently
+// }
 
 FExecStatus FCameraCommandHandler::GetCameraProjMatrix(const TArray<FString>& Args)
 {
@@ -463,22 +464,22 @@ FExecStatus FCameraCommandHandler::GetCameraLocation(const TArray<FString>& Args
 	return FExecStatus::Error("Number of arguments incorrect");
 }
 
-FExecStatus FCameraCommandHandler::GetObjectInstanceMask(const TArray<FString>& Args)
-{
-	if (Args.Num() <= 2) // The first is camera id, the second is ViewMode
-	{
-		// Use command dispatcher is more universal
-		FExecStatus ExecStatus = CommandDispatcher->Exec(TEXT("vset /viewmode object_mask"));
-		if (ExecStatus != FExecStatusType::OK)
-		{
-			return ExecStatus;
-		}
+// FExecStatus FCameraCommandHandler::GetObjectInstanceMask(const TArray<FString>& Args)
+// {
+// 	if (Args.Num() <= 2) // The first is camera id, the second is ViewMode
+// 	{
+// 		// Use command dispatcher is more universal
+// 		FExecStatus ExecStatus = CommandDispatcher->Exec(TEXT("vset /viewmode object_mask"));
+// 		if (ExecStatus != FExecStatusType::OK)
+// 		{
+// 			return ExecStatus;
+// 		}
 
-		ExecStatus = GetScreenshot(Args);
-		return ExecStatus;
-	}
-	return FExecStatus::InvalidArgument;
-}
+// 		ExecStatus = GetScreenshot(Args);
+// 		return ExecStatus;
+// 	}
+// 	return FExecStatus::InvalidArgument;
+// }
 
 FExecStatus FCameraCommandHandler::GetLitViewMode(const TArray<FString>& Args)
 {
@@ -544,33 +545,33 @@ FExecStatus FCameraCommandHandler::GetCameraViewMode(const TArray<FString>& Args
 }
 
 /** vget /camera/[id]/screenshot */
-FExecStatus FCameraCommandHandler::GetScreenshot(const TArray<FString>& Args)
-{
-	int32 CameraId = FCString::Atoi(*Args[0]);
+// FExecStatus FCameraCommandHandler::GetScreenshot(const TArray<FString>& Args)
+// {
+// 	int32 CameraId = FCString::Atoi(*Args[0]);
 
-	FString Filename;
-	if (Args.Num() > 2)
-	{
-		return FExecStatus::InvalidArgument;
-	}
-	if (Args.Num() == 1)
-	{
-		Filename = GenerateSeqFilename();
-	}
-	if (Args.Num() == 2)
-	{
-		Filename = Args[1];
-	}
+// 	FString Filename;
+// 	if (Args.Num() > 2)
+// 	{
+// 		return FExecStatus::InvalidArgument;
+// 	}
+// 	if (Args.Num() == 1)
+// 	{
+// 		Filename = GenerateSeqFilename();
+// 	}
+// 	if (Args.Num() == 2)
+// 	{
+// 		Filename = Args[1];
+// 	}
 
-	if (Filename.ToLower() == TEXT("png"))
-	{
-		return ScreenCaptureAsyncByQuery(); // return the binary data
-	}
-	else
-	{
-		return ScreenCaptureAsyncByQuery(Filename);
-	}
-}
+// 	if (Filename.ToLower() == TEXT("png"))
+// 	{
+// 		return ScreenCaptureAsyncByQuery(); // return the binary data
+// 	}
+// 	else
+// 	{
+// 		return ScreenCaptureAsyncByQuery(Filename);
+// 	}
+// }
 
 FExecStatus FCameraCommandHandler::GetActorRotation(const TArray<FString>& Args)
 {
@@ -642,4 +643,9 @@ FExecStatus FCameraCommandHandler::GetNpyBinaryFloat16(const TArray<FString>& Ar
 {
 	TArray<uint8> Data = GetNpyBinaryFloat16Data(Args, ViewMode, Channels);
 	return FExecStatus::Binary(Data);
+}
+
+void FCameraCommandHandler::RegisterCommands()
+{
+
 }

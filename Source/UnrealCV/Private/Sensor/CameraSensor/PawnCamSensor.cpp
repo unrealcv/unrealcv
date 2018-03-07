@@ -18,7 +18,10 @@ void UPawnCamSensor::TickComponent(float DeltaTime, enum ELevelTick TickType, FA
 
 	AActor *Owner = this->GetOwner();
 	APawn *Pawn = Cast<APawn>(Owner);
-	check(Pawn);
+	if (!IsValid(Pawn))
+	{
+		return;
+	}
 
 	Pawn->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 	FRotator CompRotation = this->GetComponentRotation();
@@ -36,4 +39,29 @@ void UPawnCamSensor::TickComponent(float DeltaTime, enum ELevelTick TickType, FA
 		// ScreenLog(TEXT("Pawn Camera Sensor is not correctly mounted, location or rotation mismatch"));
 	}
 
+}
+
+void UPawnCamSensor::SetSensorLocation(FVector Location)
+{
+	// Super::SetSensorLocation(NewLocation, bSweep, OutSweepHitResult, Teleport);
+	AActor *Owner = this->GetOwner();
+	APawn *Pawn = Cast<APawn>(Owner);
+	if (!IsValid(Pawn))
+	{
+		return;
+	}
+	bool Sweep = false;
+	Pawn->SetActorLocation(Location, Sweep, NULL, ETeleportType::TeleportPhysics);
+}
+
+void UPawnCamSensor::SetSensorRotation(FRotator Rotation)
+{
+	AActor *Owner = this->GetOwner();
+	APawn *Pawn = Cast<APawn>(Owner);
+	if (!IsValid(Pawn))
+	{
+		return;
+	}
+	AController* Controller = Pawn->GetController();
+	Controller->ClientSetRotation(Rotation);
 }
