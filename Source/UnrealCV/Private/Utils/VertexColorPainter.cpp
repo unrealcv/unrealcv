@@ -2,6 +2,9 @@
 #include "UnrealCVPrivate.h"
 #include "VertexColorPainter.h"
 
+// Vertex Color Painter is only available for UE4 <= 4.16
+#if ENGINE_MINOR_VERSION < 17
+
 void PaintStaticMesh(UStaticMeshComponent* StaticMeshComponent, const FColor& VertexColor);
 void PaintSkelMesh(USkinnedMeshComponent* SkinnedMeshComponent, const FColor& VertexColor);
 
@@ -89,3 +92,5 @@ void PaintSkelMesh(USkinnedMeshComponent* SkinnedMeshComponent, const FColor& Ve
 	}
 	SkinnedMeshComponent->MarkRenderStateDirty();
 }
+
+#endif

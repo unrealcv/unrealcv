@@ -21,7 +21,7 @@ TArray<FBoneInfo> FBoneSensor::GetBonesInfo()
 	USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
 	const FTransformArrayA2& ComponentSpaceTransforms = Component->GetComponentSpaceTransforms();
 	const FTransformArrayA2& BoneSpaceTransforms = Component->BoneSpaceTransforms;
-	const FTransform& ComponentToWorld = Component->ComponentToWorld;
+	const FTransform& ComponentToWorld = Component->GetComponentToWorld();
 
 	bool bIncludeAll = false;
 	if (IncludedBoneNames.Num() == 0 || (IncludedBoneNames.Num() == 1 && IncludedBoneNames[0].IsEmpty()))

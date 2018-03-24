@@ -1,5 +1,9 @@
 #include "UnrealCVPrivate.h"
 #include "AnnotationComponent.h"
+#include "SkeletalMeshTypes.h"
+#if ENGINE_MINOR_VERSION >= 19
+#include "SkeletalMeshRenderData.h"
+#endif
 
 // Inheritance is needed because I need to access protected data
 class FStaticAnnotationSceneProxy : public FStaticMeshSceneProxy
@@ -102,6 +106,37 @@ bool FStaticAnnotationSceneProxy::GetMeshElement(
 		bUseSelectedMaterial, bUseHoveredMaterial, bAllowPreCulledIndices, OutMeshBatch);
 }
 
+#if ENGINE_MINOR_VERSION >= 19
+class FSkeletalAnnotationSceneProxy : public FSkeletalMeshSceneProxy
+{
+public:
+	FSkeletalAnnotationSceneProxy(const USkinnedMeshComponent* Component, FSkeletalMeshRenderData* InSkeletalMeshRenderData, UMaterialInterface* AnnotationMaterial)
+	: FSkeletalMeshSceneProxy(Component, InSkeletalMeshRenderData)
+	{
+		this->bVerifyUsedMaterials = false;
+		// this->bCastShadow = false;
+		this->bCastDynamicShadow = false;
+		for(int32 LODIdx=0; LODIdx < LODSections.Num(); LODIdx++)
+		{
+			FLODSectionElements& LODSection = LODSections[LODIdx];
+			for(int32 SectionIndex = 0; SectionIndex < LODSection.SectionElements.Num(); SectionIndex++)
+			{
+				if (IsValid(AnnotationMaterial))
+				{
+					LODSection.SectionElements[SectionIndex].Material = AnnotationMaterial;
+				}
+				else
+				{
+					UE_LOG(LogUnrealCV, Warning, TEXT("AnnotationMaterial is Invalid in FSkeletalSceneProxy"));
+				}
+			}
+		}
+	}
+	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView * View) const override;
+};
+#endif
+
+#if ENGINE_MINOR_VERSION < 19
 class FSkeletalAnnotationSceneProxy : public FSkeletalMeshSceneProxy
 {
 public:
@@ -129,23 +164,24 @@ public:
 			}
 		}
 	}
-
-	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView * View) const override
-	{
-		// View->Family->EngineShowFlags.
-		FPrimitiveViewRelevance ViewRelevance;
-		ViewRelevance.bDrawRelevance = 0; // This will make it get ignored
-		if (View->Family->EngineShowFlags.Materials)
-		{
-			return ViewRelevance;
-		}
-		else
-		{
-			return FSkeletalMeshSceneProxy::GetViewRelevance(View);
-		}
-	}
+	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView * View) const override;
 };
+#endif
 
+FPrimitiveViewRelevance FSkeletalAnnotationSceneProxy::GetViewRelevance(const FSceneView * View) const
+{
+	// View->Family->EngineShowFlags.
+	FPrimitiveViewRelevance ViewRelevance;
+	ViewRelevance.bDrawRelevance = 0; // This will make it get ignored
+	if (View->Family->EngineShowFlags.Materials)
+	{
+		return ViewRelevance;
+	}
+	else
+	{
+		return FSkeletalMeshSceneProxy::GetViewRelevance(View);
+	}
+}
 
 UAnnotationComponent::UAnnotationComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -190,8 +226,8 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy()
 		UStaticMesh* StaticMesh = StaticMeshComponent->GetStaticMesh();
 		if(StaticMesh == NULL
 			|| StaticMesh->RenderData == NULL
-			|| StaticMesh->RenderData->LODResources.Num() == 0
-			|| StaticMesh->RenderData->LODResources[0].VertexBuffer.GetNumVertices() == 0)
+			|| StaticMesh->RenderData->LODResources.Num() == 0)
+			// || StaticMesh->RenderData->LODResources[0].VertexBuffer.GetNumVertices() == 0)
 		{
 			return NULL;
 		}
@@ -209,7 +245,8 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy()
 	if (IsValid(SkeletalMeshComponent))
 	{
 		ERHIFeatureLevel::Type SceneFeatureLevel = GetWorld()->FeatureLevel;
-		FSkeletalMeshSceneProxy* Result = nullptr;
+
+#if ENGINE_MINOR_VERSION < 19
 		FSkeletalMeshResource* SkelMeshResource = SkeletalMeshComponent->GetSkeletalMeshResource();
 
 		// Only create a scene proxy for rendering if properly initialized
@@ -228,9 +265,30 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy()
 			{
 				UE_LOG(LogUnrealCV, Warning, TEXT("AnnotationMaterial is not correctly initialized in CreateSceneProxy for SkeletalMesh"));
 			}
-			Result = ::new FSkeletalAnnotationSceneProxy(SkeletalMeshComponent, SkelMeshResource, AnnotationMID);
+			return new FSkeletalAnnotationSceneProxy(SkeletalMeshComponent, SkelMeshResource, AnnotationMID);
 		}
-		return Result;
+#else
+		// Ref: https://github.com/EpicGames/UnrealEngine/blob/4.19/Engine/Source/Runtime/Engine/Private/Components/SkinnedMeshComponent.cpp#L415
+		FSkeletalMeshRenderData* SkelMeshRenderData = SkeletalMeshComponent->GetSkeletalMeshRenderData();
+
+		// Only create a scene proxy for rendering if properly initialized
+		if (SkelMeshRenderData &&
+			SkelMeshRenderData->LODRenderData.IsValidIndex(SkeletalMeshComponent->PredictedLODLevel) &&
+			SkeletalMeshComponent->MeshObject)
+		{
+			// Only create a scene proxy if the bone count being used is supported, or if we don't have a skeleton (this is the case with destructibles)
+			// int32 MaxBonesPerChunk = SkelMeshResource->GetMaxBonesPerSection();
+			// if (MaxBonesPerChunk <= GetFeatureLevelMaxNumberOfBones(SceneFeatureLevel))
+			// {
+			//	Result = ::new FSkeletalAnnotationSceneProxy(SkeletalMeshComponent, SkelMeshResource, AnnotationMID);
+			// }
+			if (!IsValid(AnnotationMID))
+			{
+				UE_LOG(LogUnrealCV, Warning, TEXT("AnnotationMaterial is not correctly initialized in CreateSceneProxy for SkeletalMesh"));
+			}
+			return new FSkeletalAnnotationSceneProxy(SkeletalMeshComponent, SkelMeshRenderData, AnnotationMID);
+		}
+#endif
 	}
 
 	return nullptr;

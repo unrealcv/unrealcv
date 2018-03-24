@@ -139,7 +139,7 @@ bool ResizeFastReadTexture2DAsync(FTexture2DRHIRef Texture2D, int TargetWidth, i
 		TShaderMapRef<FScreenPS> PixelShader(ShaderMap);
 
 		static FGlobalBoundShaderState BoundShaderState;
-		SetGlobalBoundShaderState(RHICmdList, FeatureLevel, BoundShaderState, RendererModule->GetFilterVertexDeclaration().VertexDeclarationRHI, *VertexShader, *PixelShader);
+		// SetGlobalBoundShaderState(RHICmdList, FeatureLevel, BoundShaderState, RendererModule->GetFilterVertexDeclaration().VertexDeclarationRHI, *VertexShader, *PixelShader);
 
 		if (TargetSize != FIntPoint(SrcTexture->GetSizeX(), SrcTexture->GetSizeY()))
 		{

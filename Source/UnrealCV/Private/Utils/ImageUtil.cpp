@@ -4,6 +4,7 @@
 #include "ImageUtil.h"
 #include "FileHelper.h"
 #include "BmpImageSupport.h"
+#include "IImageWrapper.h"
 
 DECLARE_CYCLE_STAT(TEXT("FColorToPng"), STAT_FColorToPng, STATGROUP_UnrealCV);
 DECLARE_CYCLE_STAT(TEXT("FColorToJpg"), STAT_FColorToJpg, STATGROUP_UnrealCV);
@@ -21,7 +22,7 @@ bool FImageUtil::ConvertToPng(const TArray<FColor>& ImageData, int Width, int He
 	}
 
 	PngImageWrapper->SetRaw(ImageData.GetData(), ImageData.GetAllocatedSize(), Width, Height, ERGBFormat::BGRA, 8);
-	PngData = PngImageWrapper->GetCompressed(ImageCompression::Uncompressed);
+	PngData = PngImageWrapper->GetCompressed();
 	return true;
 }
 
@@ -35,7 +36,7 @@ bool FImageUtil::ConvertToJpg(const TArray<FColor>& ImageData, int Width, int He
 	}
 
 	JpgImageWrapper->SetRaw(ImageData.GetData(), ImageData.GetAllocatedSize(), Width, Height, ERGBFormat::BGRA, 8);
-	JpgData = JpgImageWrapper->GetCompressed(ImageCompression::Uncompressed);
+	JpgData = JpgImageWrapper->GetCompressed();
 	return true;
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "ImageWrapper.h"
+#include "IImageWrapper.h"
+#include "IImageWrapperModule.h"
 
 class UNREALCV_API FImageUtil
 {
@@ -48,7 +49,7 @@ public:
 	}
 
 private:
-	IImageWrapperPtr PngImageWrapper;
-	IImageWrapperPtr JpgImageWrapper;
+	TSharedPtr<IImageWrapper> PngImageWrapper;
+	TSharedPtr<IImageWrapper> JpgImageWrapper;
 
 };

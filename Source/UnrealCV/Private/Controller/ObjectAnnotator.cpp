@@ -83,6 +83,7 @@ void FObjectAnnotator::GetAnnotableActors(UWorld* World, TArray<AActor*>& ActorA
 	}
 }
 
+#if ENGINE_MINOR_VERSION < 17
 void FObjectAnnotator::PaintVertexColor(AActor* Actor, const FColor& AnnotationColor)
 {
 	if (!IsValid(Actor))
@@ -92,6 +93,7 @@ void FObjectAnnotator::PaintVertexColor(AActor* Actor, const FColor& AnnotationC
 	}
 	FVertexColorPainter::PaintVertexColor(Actor, AnnotationColor);
 }
+#endif
 
 void FObjectAnnotator::CreateAnnotationComponent(AActor* Actor, const FColor& AnnotationColor)
 {

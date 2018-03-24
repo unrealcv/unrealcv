@@ -6,6 +6,8 @@
 #include "Serialization.h"
 #include "VertexSensor.h"
 #include "BoneSensor.h"
+#include "SkeletalRenderPublic.h"
+#include "StaticMeshResources.h"
 
 // FString UVisionBP::SerializeBoneInfo(USkeletalMeshComponent* Component)
 // {
@@ -238,7 +240,15 @@ TArray<FVector> UVisionBP::SkinnedMeshComponentGetVertexArray(USkinnedMeshCompon
 	TArray<FVector> VertexArray;
 	if (!IsValid(Component)) return VertexArray;
 
+#if ENGINE_MINOR_VERSION < 19
 	Component->ComputeSkinnedPositions(VertexArray);
+#else
+	// Ref: https://github.com/EpicGames/UnrealEngine/blob/4.19/Engine/Source/Runtime/Engine/Private/PhysicsEngine/PhysAnim.cpp#L671
+	TArray<FMatrix> RefToLocals;
+	FSkinWeightVertexBuffer& SkinWeightBuffer = *Component->GetSkinWeightBuffer(0);
+	const FSkeletalMeshLODRenderData& LODData = Component->MeshObject->GetSkeletalMeshRenderData().LODRenderData[0];
+	USkinnedMeshComponent::ComputeSkinnedPositions(Component, VertexArray, RefToLocals, LODData, SkinWeightBuffer);
+#endif
 
 	return VertexArray;
 	// SkinnedMeshComponent.cpp::ComputeSkinnedPositions
@@ -274,7 +284,13 @@ TArray<FVector> UVisionBP::StaticMeshComponentGetVertexArray(UStaticMeshComponen
 
 			uint32 NumVertices = LODModel.GetNumVertices();
 
+#if ENGINE_MINOR_VERSION < 19
 			FPositionVertexBuffer& PositionVertexBuffer = LODModel.PositionVertexBuffer;
+#else
+			FStaticMeshVertexBuffers& StaticMeshVertexBuffers = LODModel.VertexBuffers;
+			FPositionVertexBuffer& PositionVertexBuffer = StaticMeshVertexBuffers.PositionVertexBuffer;
+#endif
+
 			for (uint32 VertexIndex = 0; VertexIndex < PositionVertexBuffer.GetNumVertices(); VertexIndex++)
 			{
 				FVector Position = PositionVertexBuffer.VertexPosition(VertexIndex);
