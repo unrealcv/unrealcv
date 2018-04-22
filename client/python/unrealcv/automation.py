@@ -139,7 +139,10 @@ class UE4Automation:
             os.path.expanduser('~/UnrealEngine'),
             os.path.expanduser('~/workspace/UnrealEngine'),
             os.path.expanduser('~/workspace/UE4??'),]
-        mac_candidates = ['/Users/Shared/Epic Games/UE_4.??',]
+        mac_candidates = [
+            '/Users/Shared/Epic Games/UE_4.??',
+            '/Users/Shared/EpicGames/UE_4.??',
+            ]
         search_candidates = {'Linux': linux_candidates, 'Mac': mac_candidates, 'Win64': win_candidates}
         candidates = search_candidates.get(self._get_platform_name())
 
