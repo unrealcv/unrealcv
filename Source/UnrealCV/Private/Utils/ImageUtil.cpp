@@ -1,7 +1,6 @@
 // Weichao Qiu @ 2017
-// Check ImageUtils.cpp !!
-#include "UnrealCVPrivate.h"
 #include "ImageUtil.h"
+#include "UnrealCVPrivate.h"
 #include "FileHelper.h"
 #include "BmpImageSupport.h"
 #include "IImageWrapper.h"

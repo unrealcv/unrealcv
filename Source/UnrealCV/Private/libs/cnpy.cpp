@@ -1,8 +1,8 @@
 // Copyright (C) 2011  Carl Rogers
 // Released under MIT License
 // Simplied by Weichao Qiu (qiuwch@gmail.com) from https://github.com/rogersce/cnpy
-#include "UnrealCVPrivate.h"
 #include "cnpy.h"
+#include "UnrealCVPrivate.h"
 #include <vector>
 #include <complex>
 

@@ -1,8 +1,8 @@
 // Weichao Qiu @ 2018
-#include "UnrealCVPrivate.h"
 #include "SerializeBP.h"
-#include "JsonFormatter.h"
+#include "UnrealCVPrivate.h"
 #include "JsonObject.h"
+#include "Runtime/Json/Public/Serialization/JsonSerializer.h"
 
 // FString USerializeBP::VectorToJson(const FVector& Vec)
 // {
@@ -52,6 +52,30 @@ FJsonObjectBP::FJsonObjectBP(const TArray<FString>& Keys, const TArray<FJsonObje
 	{
 		JsonObject->SetField(Keys[i], Values[i].ToJsonValue());
 	}
+}
+
+FJsonObjectBP::FJsonObjectBP(const TMap<FString, FString>& Dict) 
+{
+	JsonObject = MakeShareable(new FJsonObject());
+	for (const auto& Elem: Dict)
+	{
+		JsonObject->SetStringField(Elem.Key, Elem.Value);
+	}
+}
+
+FString FJsonObjectBP::ToString() const
+{
+	FString OutputString;
+	TSharedRef<TJsonWriter<> > Writer = TJsonWriterFactory<>::Create(&OutputString);
+	if (this->JsonObject.IsValid())
+	{
+		FJsonSerializer::Serialize(this->JsonObject.ToSharedRef(), Writer);
+	}
+	else
+	{
+		FJsonSerializer::Serialize(this->JsonArray, Writer);
+	}
+	return OutputString;
 }
 
 
@@ -132,15 +156,16 @@ FJsonObjectBP USerializeBP::StringMapToJson(const TArray<FString>& Keys, const T
 
 FString USerializeBP::JsonToStr(const FJsonObjectBP& JsonObjectBP)
 {
-	FString OutputString;
-	TSharedRef<TJsonWriter<> > Writer = TJsonWriterFactory<>::Create(&OutputString);
-	if (JsonObjectBP.JsonObject.IsValid())
-	{
-		FJsonSerializer::Serialize(JsonObjectBP.JsonObject.ToSharedRef(), Writer);
-	}
-	else
-	{
-		FJsonSerializer::Serialize(JsonObjectBP.JsonArray, Writer);
-	}
-	return OutputString;
+	// FString OutputString;
+	// TSharedRef<TJsonWriter<> > Writer = TJsonWriterFactory<>::Create(&OutputString);
+	// if (JsonObjectBP.JsonObject.IsValid())
+	// {
+	// 	FJsonSerializer::Serialize(JsonObjectBP.JsonObject.ToSharedRef(), Writer);
+	// }
+	// else
+	// {
+	// 	FJsonSerializer::Serialize(JsonObjectBP.JsonArray, Writer);
+	// }
+	// return OutputString;
+	return JsonObjectBP.ToString();
 }

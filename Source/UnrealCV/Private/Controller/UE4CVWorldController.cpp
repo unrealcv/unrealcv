@@ -1,6 +1,6 @@
 // Weichao Qiu @ 2017
-#include "UnrealCVPrivate.h"
 #include "UE4CVWorldController.h"
+#include "UnrealCVPrivate.h"
 #include "PawnCamSensor.h"
 #include "VisionBP.h"
 #include "UE4CVServer.h"

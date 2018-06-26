@@ -1,7 +1,7 @@
 // Weichao Qiu @ 2018
 
-#include "UnrealCVPrivate.h"
 #include "KeypointComponent.h"
+#include "UnrealCVPrivate.h"
 #include "VisionBP.h"
 #include "Runtime/Core/Public/Misc/FileHelper.h"
 #include "Runtime/Engine/Public/DrawDebugHelpers.h"
@@ -89,11 +89,11 @@ TArray<FKeypoint> UKeypointComponent::LoadKeypointFromJson(FString JsonFilename)
 	// TODO: Cached the loaded keypoints, because there might be many similar instances
 	FString JsonString;
 
-	FString GameDir = FPaths::GameDir();
-	FString GameContentDir = FPaths::GameContentDir();
+	FString GameDir = FPaths::ProjectDir();
+	FString GameContentDir = FPaths::ProjectContentDir();
 	if (!FPaths::FileExists(JsonFilename))
 	{
-		JsonFilename = FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::GameDir(), JsonFilename));
+		JsonFilename = FPaths::ConvertRelativePathToFull(FPaths::Combine(FPaths::ProjectDir(), JsonFilename));
 	}
 
 	FFileHelper::LoadFileToString(JsonString, *JsonFilename);

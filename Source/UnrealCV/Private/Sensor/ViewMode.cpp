@@ -1,5 +1,5 @@
-#include "UnrealCVPrivate.h"
 #include "ViewMode.h"
+#include "UnrealCVPrivate.h"
 #include "BufferVisualizationData.h"
 
 /**

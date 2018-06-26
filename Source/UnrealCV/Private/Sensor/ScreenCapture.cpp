@@ -1,5 +1,5 @@
-#include "UnrealCVPrivate.h"
 #include "ScreenCapture.h"
+#include "UnrealCVPrivate.h"
 #include "UE4CVServer.h"
 #include "ImageUtils.h"
 #include "IImageWrapperModule.h"

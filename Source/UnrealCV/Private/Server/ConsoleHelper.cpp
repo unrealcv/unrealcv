@@ -1,6 +1,7 @@
+// Weichao Qiu @ 2016
+#include "ConsoleHelper.h"
 #include "UnrealCVPrivate.h"
 #include "UE4CVServer.h"
-#include "ConsoleHelper.h"
 #include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
 
 void FConsoleHelper::VBp(const TArray<FString>& Args)

@@ -1,3 +1,4 @@
+#include "TextureReader.h"
 #include "UnrealCVPrivate.h"
 #include "Shader.h"
 #include "GlobalShader.h"

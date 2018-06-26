@@ -1,6 +1,6 @@
 // Weichao Qiu @ 2017
-#include "UnrealCVPrivate.h"
 #include "BaseCameraSensor.h"
+#include "UnrealCVPrivate.h"
 // #include "GlobalShader.h"
 // #include "Shader.h"
 // #include "ScreenRendering.h"

@@ -1,6 +1,6 @@
 // Weichao Qiu @ 2017
-#include "UnrealCVPrivate.h"
 #include "ObjectHandler.h"
+#include "UnrealCVPrivate.h"
 #include "ObjectPainter.h"
 #include "ActorController.h"
 #include "VertexSensor.h"

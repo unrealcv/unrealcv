@@ -1,6 +1,6 @@
 // Weichao Qiu @ 2018
-#include "UnrealCVPrivate.h"
 #include "SensorBP.h"
+#include "UnrealCVPrivate.h"
 #include "UE4CVServer.h"
 #include "FusionCamSensor.h"
 #include "Runtime/Engine/Classes/GameFramework/Pawn.h"

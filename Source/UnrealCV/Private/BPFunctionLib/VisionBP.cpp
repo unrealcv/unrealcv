@@ -1,6 +1,6 @@
 // Weichao Qiu @ 2017
-#include "UnrealCVPrivate.h"
 #include "VisionBP.h"
+#include "UnrealCVPrivate.h"
 #include "ImageUtil.h"
 #include "UE4CVServer.h"
 #include "Serialization.h"

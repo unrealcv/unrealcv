@@ -1,7 +1,7 @@
 // Weichao Qiu @ 2017
 
-#include "UnrealCVPrivate.h"
 #include "ObjectAnnotator.h"
+#include "UnrealCVPrivate.h"
 #include "AnnotationComponent.h"
 #include "Runtime/Engine/Public/EngineUtils.h"
 

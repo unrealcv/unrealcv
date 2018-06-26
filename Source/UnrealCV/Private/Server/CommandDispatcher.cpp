@@ -1,6 +1,7 @@
+// Weichao Qiu @ 2016
+#include "CommandDispatcher.h"
 #include "UnrealCVPrivate.h"
 #include "Regex.h"
-#include "CommandDispatcher.h"
 #include "Runtime/Core/Public/HAL/Runnable.h"
 #include "Runtime/Core/Public/HAL/RunnableThread.h"
 #include "Runtime/Core/Public/Async/Async.h"

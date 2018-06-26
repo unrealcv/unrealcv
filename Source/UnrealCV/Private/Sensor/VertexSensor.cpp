@@ -1,6 +1,6 @@
 // Weichao Qiu @ 2017
-#include "UnrealCVPrivate.h"
 #include "VertexSensor.h"
+#include "UnrealCVPrivate.h"
 #include "VisionBP.h"
 #include "Runtime/Engine/Classes/Components/MeshComponent.h"
 #include "Runtime/Engine/Classes/Components/SkinnedMeshComponent.h"

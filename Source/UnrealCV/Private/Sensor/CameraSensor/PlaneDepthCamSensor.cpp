@@ -1,6 +1,6 @@
 // Weichao Qiu @ 2017
-#include "UnrealCVPrivate.h"
 #include "PlaneDepthCamSensor.h"
+#include "UnrealCVPrivate.h"
 
 UPlaneDepthCamSensor::UPlaneDepthCamSensor(const FObjectInitializer& ObjectInitializer) :
     Super(ObjectInitializer)

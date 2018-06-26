@@ -1,7 +1,7 @@
 // Weichao Qiu @ 2017
 
-#include "UnrealCVPrivate.h"
 #include "FusionCameraActor.h"
+#include "UnrealCVPrivate.h"
 
 AFusionCameraActor::AFusionCameraActor(const FObjectInitializer& ObjectInitializer)
     : Super(ObjectInitializer)

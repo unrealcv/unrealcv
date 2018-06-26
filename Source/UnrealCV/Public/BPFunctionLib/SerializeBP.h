@@ -96,9 +96,13 @@ struct UNREALCV_API FJsonObjectBP
 		return MakeShareable(new FJsonValueArray(JsonArray));
 	}
 
+	FString ToString() const;
+
 	FJsonObjectBP(const TArray<FString>& Keys, const TArray<FJsonObjectBP>& Values);
 
 	FJsonObjectBP(const TArray<FString>& Keys, const TArray<FString>& Values);
+
+	FJsonObjectBP(const TMap<FString, FString>& Dict);
 };
 
 /** A static BP library to serialize data to string, mainly for json */

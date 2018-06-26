@@ -1,6 +1,10 @@
-#include "UnrealCVPrivate.h"
+// Weichao Qiu @ 2016
 #include "ExecStatus.h"
+#include "UnrealCVPrivate.h"
 
+// DECLARE_DELEGATE_OneParam(FDispatcherDelegate, const TArray< FString >&);
+FExecStatus FExecStatus::InvalidArgument = FExecStatus(FExecStatusType::Error, "Argument Invalid");
+FExecStatus FExecStatus::NotImplemented = FExecStatus(FExecStatusType::Error, "Not Implemented");
 
 /** Begin of FPromise functions */
 
@@ -30,8 +34,6 @@ FExecStatus& FExecStatus::operator+=(const FExecStatus& Src)
 }
 
 
-// DECLARE_DELEGATE_OneParam(FDispatcherDelegate, const TArray< FString >&);
-FExecStatus FExecStatus::InvalidArgument = FExecStatus(FExecStatusType::Error, "Argument Invalid");
 
 FPromise& FExecStatus::GetPromise()
 {

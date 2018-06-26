@@ -1,8 +1,8 @@
 // Weichao Qiu @ 2017
 // This is unrealcv command API for FusionSensor
+#include "SensorHandler.h"
 #include "UnrealCVPrivate.h"
 #include "CommandDispatcher.h"
-#include "SensorHandler.h"
 #include "FusionCamSensor.h"
 #include "Serialization.h"
 #include "StrFormatter.h"

@@ -1,4 +1,7 @@
 #pragma once
+
+#include "CoreMinimal.h"
+
 class FServerConfig
 {
 private:

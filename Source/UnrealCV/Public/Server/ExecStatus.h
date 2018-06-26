@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CoreMinimal.h"
+
 class FExecStatus;
 DECLARE_DELEGATE_RetVal(FExecStatus, FPromiseDelegate); // Check task status
 
@@ -51,6 +53,8 @@ public:
 	static FExecStatus Error(FString ErrorMessage);
 	/** Error : Argument Invalid */
 	static FExecStatus InvalidArgument;
+	/** Error : Not implemented */
+	static FExecStatus NotImplemented;
 	/** Pending : Message */
 	static FExecStatus Pending(FString Message=""); // Useful for async task
 	/** Binary : A binary array */

@@ -1,16 +1,18 @@
-#include "UnrealCVPrivate.h"
 #include "PlayerViewMode.h"
+#include "UnrealCVPrivate.h"
 #include "BufferVisualizationData.h"
 #include "CommandDispatcher.h"
 #include "Async.h"
 #include "SceneViewport.h"
 #include "ViewMode.h"
-#include "GTCaptureComponent.h"
 #include "ObjectPainter.h"
-#include "CaptureManager.h"
+#include "UE4CVServer.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "Runtime/Engine/Classes/Components/StaticMeshComponent.h"
 #include "Runtime/Engine/Public/EngineUtils.h"
+#include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
+#include "Runtime/Engine/Classes/Materials/Material.h"
+#include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
 
 DECLARE_DELEGATE(ViewModeFunc)
 
@@ -110,6 +112,50 @@ void FPlayerViewMode::ClearPostProcess()
 	GetPostProcessVolume()->BlendWeight = 0;
 }
 
+UMaterial* GetMaterial(FString InModeName = TEXT(""))
+{
+	// Load material for visualization
+	static TMap<FString, FString>* MaterialPathMap = nullptr;
+	if (MaterialPathMap == nullptr)
+	{
+		MaterialPathMap = new TMap<FString, FString>();
+		MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepthWorldUnits.SceneDepthWorldUnits'"));
+		MaterialPathMap->Add(TEXT("plane_depth"), TEXT("Material'/UnrealCV/ScenePlaneDepthWorldUnits.ScenePlaneDepthWorldUnits'"));
+		MaterialPathMap->Add(TEXT("vis_depth"), TEXT("Material'/UnrealCV/SceneDepth.SceneDepth'"));
+		MaterialPathMap->Add(TEXT("debug"), TEXT("Material'/UnrealCV/debug.debug'"));
+		// MaterialPathMap->Add(TEXT("object_mask"), TEXT("Material'/UnrealCV/VertexColorMaterial.VertexColorMaterial'"));
+		MaterialPathMap->Add(TEXT("normal"), TEXT("Material'/UnrealCV/WorldNormal.WorldNormal'"));
+
+		FString OpaqueMaterialName = "Material'/UnrealCV/OpaqueMaterial.OpaqueMaterial'";
+		MaterialPathMap->Add(TEXT("opaque"), OpaqueMaterialName);
+	}
+
+	static TMap<FString, UMaterial*>* StaticMaterialMap = nullptr;
+	if (StaticMaterialMap == nullptr)
+	{
+		StaticMaterialMap = new TMap<FString, UMaterial*>();
+		for (auto& Elem : *MaterialPathMap)
+		{
+			FString ModeName = Elem.Key;
+			FString MaterialPath = Elem.Value;
+			ConstructorHelpers::FObjectFinder<UMaterial> Material(*MaterialPath); // ConsturctorHelpers is only available for UObject.
+
+			if (Material.Object != NULL)
+			{
+				StaticMaterialMap->Add(ModeName, (UMaterial*)Material.Object);
+			}
+		}
+	}
+
+	UMaterial* Material = StaticMaterialMap->FindRef(InModeName);
+	if (Material == nullptr)
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Can not recognize visualization mode %s"), *InModeName);
+	}
+	return Material;
+}
+
+
 void FPlayerViewMode::ApplyPostProcess(FString ModeName)
 {
 	UWorld* World = FUE4CVServer::Get().GetGameWorld();
@@ -118,7 +164,7 @@ void FPlayerViewMode::ApplyPostProcess(FString ModeName)
 
 	FViewMode::PostProcess(GameViewportClient->EngineShowFlags);
 
-	UMaterial* Material = UGTCaptureComponent::GetMaterial(ModeName);
+	UMaterial* Material = GetMaterial(ModeName);
 	APostProcessVolume* PostProcessVolume = GetPostProcessVolume();
 	PostProcessVolume->Settings.WeightedBlendables.Array.Empty();
 
@@ -234,7 +280,7 @@ void FPlayerViewMode::NoTransparency()
 						// OneComponent->SetMaterial(ComponentMaterialIdx, DynamicMaterialInstance);
 						if (BlendMode == EBlendMode::BLEND_Translucent)
 						{
-							UMaterial* OpaqueMaterial = FCaptureManager::Get().GetCamera(0)->GetMaterial("opaque");
+							UMaterial* OpaqueMaterial = GetMaterial("opaque");
 							OneComponent->SetMaterial(ComponentMaterialIdx, OpaqueMaterial);
 
 							// Change this material to an opaque material.

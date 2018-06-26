@@ -1,9 +1,9 @@
-#include "UnrealCVPrivate.h"
+// Weichao Qiu @ 2016
 #include "UE4CVServer.h"
+#include "UnrealCVPrivate.h"
 #include "PlayerViewMode.h"
 #include "ConsoleHelper.h"
 #include "ObjectPainter.h"
-#include "CaptureManager.h"
 #include "ObjectHandler.h"
 #include "PluginHandler.h"
 #include "ActionHandler.h"

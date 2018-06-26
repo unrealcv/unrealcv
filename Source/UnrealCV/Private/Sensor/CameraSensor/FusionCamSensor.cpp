@@ -1,5 +1,6 @@
-#include "UnrealCVPrivate.h"
+// Weichao Qiu @ 2018
 #include "FusionCamSensor.h"
+#include "UnrealCVPrivate.h"
 #include "ImageUtil.h"
 #include "Serialization.h"
 #include "Runtime/Engine/Classes/Camera/CameraComponent.h"

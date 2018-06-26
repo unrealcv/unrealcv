@@ -1,8 +1,8 @@
 // Weichao Qiu @ 2017
 // Attach two lit sensor and two depth sensor components
 
-#include "UnrealCVPrivate.h"
 #include "StereoCameraActor.h"
+#include "UnrealCVPrivate.h"
 #include "VertexColorPainter.h"
 #include "VisionBP.h"
 

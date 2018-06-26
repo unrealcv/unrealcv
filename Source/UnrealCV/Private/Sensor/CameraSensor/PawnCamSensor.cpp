@@ -1,7 +1,7 @@
 // Weichao Qiu @ 2017
 
-#include "UnrealCVPrivate.h"
 #include "PawnCamSensor.h"
+#include "UnrealCVPrivate.h"
 #include "Runtime/Engine/Classes/GameFramework/Pawn.h"
 #include "Runtime/Engine/Classes/GameFramework/Controller.h"
 

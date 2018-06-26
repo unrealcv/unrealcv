@@ -1,6 +1,8 @@
 // Weichao Qiu @ 2017
 #pragma once
 
+#include "CoreMinimal.h"
+
 /**
  * Information to describe a bone in a SkeletalMesh
  */

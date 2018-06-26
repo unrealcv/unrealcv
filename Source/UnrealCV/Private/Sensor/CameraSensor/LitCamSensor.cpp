@@ -1,6 +1,6 @@
 // Weichao Qiu @ 2017
-#include "UnrealCVPrivate.h"
 #include "LitCamSensor.h"
+#include "UnrealCVPrivate.h"
 
 
 ULitCamSensor::ULitCamSensor(const FObjectInitializer& ObjectInitializer) :

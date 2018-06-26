@@ -1,6 +1,6 @@
 // Weichao Qiu @ 2017
-#include "UnrealCVPrivate.h"
 #include "StencilCamSensor.h"
+#include "UnrealCVPrivate.h"
 
 UStencilCamSensor::UStencilCamSensor(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)

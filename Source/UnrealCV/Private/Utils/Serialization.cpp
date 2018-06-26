@@ -1,5 +1,6 @@
-#include "UnrealCVPrivate.h"
+// Weichao Qiu @ 2018
 #include "Serialization.h"
+#include "UnrealCVPrivate.h"
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
 #include "cnpy.h"

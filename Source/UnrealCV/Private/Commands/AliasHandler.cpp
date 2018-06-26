@@ -1,7 +1,7 @@
-#include "UnrealCVPrivate.h"
 #include "AliasHandler.h"
+#include "UnrealCVPrivate.h"
 #include "UObjectUtils.h"
-#include "JsonFormatter.h"
+#include "SerializeBP.h"
 #include "Runtime/Engine/Public/EngineUtils.h"
 #include "Runtime/Engine/Classes/Engine/LevelScriptActor.h"
 #include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
@@ -120,7 +120,8 @@ FExecStatus FAliasCommandHandler::VExecWithOutput(const TArray<FString>& Args)
 		Cmd += FString::Printf(TEXT(" %s"), *Args[ArgId]);
 		ArgId++;
 	}
-	Cmd = Cmd.TrimTrailing(); // TODO: Simplify this function.
+	// Cmd = Cmd.TrimTrailing(); // TODO: Simplify this function.
+	Cmd = Cmd.TrimEnd(); // New API
 
 	FConsoleOutputDevice OutputDevice(FUE4CVServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
 
@@ -238,7 +239,9 @@ FExecStatus FAliasCommandHandler::VExecWithOutput(const TArray<FString>& Args)
 				// if this is the last string property and we have remaining arguments to process, we have to assume that this
 				// is a sub-command that will be passed to another exec (like "cheat giveall weapons", for example). Therefore
 				// we need to use the whole remaining string as an argument, regardless of quotes, spaces etc.
-				ArgStr = FString(RemainingStr).Trim();
+
+				// ArgStr = FString(RemainingStr).Trim();
+				ArgStr = FString(RemainingStr).TrimStart(); // New API
 			}
 
 			const TCHAR* Result = It->ImportText(*ArgStr, It->ContainerPtrToValuePtr<uint8>(Parms), ExportFlags, NULL );
@@ -331,11 +334,10 @@ FExecStatus FAliasCommandHandler::VExecWithOutput(const TArray<FString>& Args)
 		It->DestroyValue_InContainer(Parms);
 	}
 
-	FJsonFormatter JsonObj;
-	JsonObj << Dict;
+	FJsonObjectBP JsonObjectBP(Dict);
 
 	// Success.
-	return FExecStatus::OK(JsonObj.ToString());
+	return FExecStatus::OK(JsonObjectBP.ToString());
 
 }
 

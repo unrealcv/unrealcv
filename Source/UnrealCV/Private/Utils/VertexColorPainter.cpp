@@ -1,6 +1,6 @@
 // Weichao Qiu @ 2017
-#include "UnrealCVPrivate.h"
 #include "VertexColorPainter.h"
+#include "UnrealCVPrivate.h"
 
 // Vertex Color Painter is only available for UE4 <= 4.16
 #if ENGINE_MINOR_VERSION < 17

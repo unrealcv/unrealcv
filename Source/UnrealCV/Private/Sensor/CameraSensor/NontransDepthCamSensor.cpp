@@ -1,6 +1,6 @@
 // Weichao Qiu @ 2018
-#include "UnrealCVPrivate.h"
 #include "NontransDepthCamSensor.h"
+#include "UnrealCVPrivate.h"
 
 void GetAnnotationComponents(UWorld* World, TArray<TWeakObjectPtr<UPrimitiveComponent> >& ComponentList);
 

@@ -1,6 +1,5 @@
-#include "UnrealCVPrivate.h"
 #include "ActionHandler.h"
-#include "CaptureManager.h"
+#include "UnrealCVPrivate.h"
 #include "VisionBP.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
@@ -116,8 +115,10 @@ FExecStatus FActionCommandHandler::DisableInput(const TArray<FString>& Args)
 	}
 }
 
+/** TODO: Update this with new API */
 FExecStatus FActionCommandHandler::SetStereoDistance(const TArray<FString>& Args)
 {
+	/*
 	if (Args.Num() == 1) // Distance
 	{
 		int Distance = FCString::Atof(*Args[0]);
@@ -129,6 +130,8 @@ FExecStatus FActionCommandHandler::SetStereoDistance(const TArray<FString>& Args
 	{
 		return FExecStatus::Error("Expect argument: eye distance");
 	}
+	*/
+	return FExecStatus::NotImplemented;
 }
 
 /** Return a TFunction to Release the Keyboard */
