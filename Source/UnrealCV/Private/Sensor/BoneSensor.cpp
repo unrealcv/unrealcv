@@ -1,7 +1,10 @@
 #include "UnrealCVPrivate.h"
 #include "BoneSensor.h"
-#include "Engine.h"
 // #include "SkeletalMeshComponent.h"
+#include "Runtime/Engine/Public/BoneIndices.h"
+#include "Runtime/Engine/Classes/Engine/SkeletalMesh.h"
+#include "Runtime/Engine/Classes/Components/SkeletalMeshComponent.h"
+#include "Runtime/Engine/Public/AnimationRuntime.h"
 
 FBoneSensor::FBoneSensor(const USkeletalMeshComponent* InSkeletalMeshComponent)
 {

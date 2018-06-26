@@ -1,6 +1,8 @@
 #pragma once
 #include "UE4CVServer.h"
-#include "Engine.h"
+#include "CoreMinimal.h"
+#include "Runtime/Engine/Classes/Materials/Material.h"
+#include "Runtime/Engine/Classes/Components/SceneCaptureComponent2D.h"
 #include "GTCaptureComponent.generated.h"
 
 struct FGTCaptureTask

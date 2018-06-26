@@ -1,5 +1,7 @@
+// Weichao Qiu @ 2016
 #pragma once
-#include "Engine.h"
+
+#include "Runtime/Engine/Public/ShowFlags.h"
 
 /**
  * A helper class to set EngineShowFlags

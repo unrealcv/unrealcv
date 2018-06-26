@@ -2,6 +2,10 @@
 #include "ActionHandler.h"
 #include "CaptureManager.h"
 #include "VisionBP.h"
+#include "Runtime/Engine/Classes/Engine/World.h"
+#include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
+#include "Runtime/Engine/Public/EngineUtils.h"
+#include "Runtime/Engine/Public/TimerManager.h"
 
 void FActionCommandHandler::RegisterCommands()
 {

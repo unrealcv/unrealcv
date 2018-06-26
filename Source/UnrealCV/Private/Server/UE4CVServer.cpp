@@ -9,9 +9,7 @@
 #include "ActionHandler.h"
 #include "AliasHandler.h"
 #include "SensorHandler.h"
-#if WITH_EDITOR
-#include "UnrealEd.h"
-#endif
+#include "Runtime/Engine/Classes/Engine/GameEngine.h"
 
 void FUE4CVServer::Tick(float DeltaTime)
 {

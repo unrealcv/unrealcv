@@ -5,6 +5,10 @@
 #include "Serialization.h"
 #include "IImageWrapperModule.h"
 #include "Runtime/ImageWrapper/Public/IImageWrapper.h"
+#include "Runtime/Engine/Classes/Engine/TextureRenderTarget2D.h"
+#include "Runtime/Engine/Classes/GameFramework/Pawn.h"
+#include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
+#include "Engine/Engine.h"
 
 DECLARE_CYCLE_STAT(TEXT("SaveExr"), STAT_SaveExr, STATGROUP_UnrealCV);
 DECLARE_CYCLE_STAT(TEXT("SavePng"), STAT_SavePng, STATGROUP_UnrealCV);

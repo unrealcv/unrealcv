@@ -11,6 +11,9 @@
 #include "TextureReader.h"
 #include "FileHelper.h"
 #include "UE4CVServer.h"
+#include "Runtime/Engine/Classes/Components/StaticMeshComponent.h"
+#include "Runtime/Engine/Classes/Engine/CollisionProfile.h"
+#include "Runtime/Engine/Classes/Engine/StaticMesh.h"
 
 DECLARE_CYCLE_STAT(TEXT("ReadBuffer"), STAT_ReadBuffer, STATGROUP_UnrealCV);
 DECLARE_CYCLE_STAT(TEXT("ReadBufferFast"), STAT_ReadBufferFast, STATGROUP_UnrealCV);

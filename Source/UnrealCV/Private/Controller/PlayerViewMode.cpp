@@ -8,6 +8,9 @@
 #include "GTCaptureComponent.h"
 #include "ObjectPainter.h"
 #include "CaptureManager.h"
+#include "Runtime/Engine/Classes/Engine/World.h"
+#include "Runtime/Engine/Classes/Components/StaticMeshComponent.h"
+#include "Runtime/Engine/Public/EngineUtils.h"
 
 DECLARE_DELEGATE(ViewModeFunc)
 

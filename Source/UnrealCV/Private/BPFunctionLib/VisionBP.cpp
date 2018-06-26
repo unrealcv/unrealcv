@@ -10,6 +10,7 @@
 #include "StaticMeshResources.h"
 #include "Runtime/Engine/Public/Rendering/SkeletalMeshLODRenderData.h"
 #include "Runtime/Engine/Public/Rendering/SkeletalMeshRenderData.h"
+#include "Runtime/Engine/Classes/Engine/StaticMesh.h"
 #include "FusionCamSensor.h"
 
 // FString UVisionBP::SerializeBoneInfo(USkeletalMeshComponent* Component)
