@@ -5,6 +5,9 @@
 #include "SceneViewport.h"
 #include "Version.h"
 #include "ColorMap.h"
+#include "Runtime/Engine/Classes/Engine/StaticMesh.h"
+
+FColor GetColorFromColorMap(int32 ObjectIndex);
 
 FObjectPainter& FObjectPainter::Get()
 {

@@ -4,6 +4,7 @@
 #include "cnpy.h"
 #include "Serialization.h"
 #include "IImageWrapperModule.h"
+#include "Runtime/ImageWrapper/Public/IImageWrapper.h"
 
 DECLARE_CYCLE_STAT(TEXT("SaveExr"), STAT_SaveExr, STATGROUP_UnrealCV);
 DECLARE_CYCLE_STAT(TEXT("SavePng"), STAT_SavePng, STATGROUP_UnrealCV);

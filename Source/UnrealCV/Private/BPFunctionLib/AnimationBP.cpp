@@ -1,6 +1,10 @@
 // Weichao Qiu @ 2018
 #include "UnrealCVPrivate.h"
 #include "AnimationBP.h"
+#include "Runtime/CoreUObject/Public/UObject/UObjectIterator.h"
+#include "Runtime/Engine/Classes/Animation/AnimationAsset.h"
+#include "Runtime/Engine/Classes/Animation/Skeleton.h"
+#include "Runtime/Engine/Classes/Animation/AnimSequence.h"
 
 FString UAnimationBP::GetAnimationName(USkeletalMeshComponent* SkeletalMeshComponent)
 {

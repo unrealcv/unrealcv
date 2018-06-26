@@ -2,7 +2,9 @@
 #include "UnrealCVPrivate.h"
 #include "VertexSensor.h"
 #include "VisionBP.h"
-
+#include "Runtime/Engine/Classes/Components/MeshComponent.h"
+#include "Runtime/Engine/Classes/Components/SkinnedMeshComponent.h"
+#include "Runtime/Engine/Classes/Components/StaticMeshComponent.h"
 
 // Use vget /object/[id]/vertex json?
 FVertexSensor::FVertexSensor(const AActor* InActor)

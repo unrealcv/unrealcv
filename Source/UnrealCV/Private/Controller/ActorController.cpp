@@ -1,5 +1,7 @@
 #include "UnrealCVPrivate.h"
 #include "ActorController.h"
+#include "ObjectAnnotator.h"
+#include "UE4CVServer.h"
 
 FActorController::FActorController(AActor* InActor)
 {

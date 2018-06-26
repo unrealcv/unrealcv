@@ -2,6 +2,9 @@
 #include "TestActor.h"
 #include "FusionCamSensor.h"
 #include "ObjectAnnotator.h"
+#include "UE4CVServer.h"
+#include "VisionBP.h"
+#include "Runtime/Engine/Public/EngineUtils.h"
 
 // Run a test command
 void ExecCommand(FString Command);

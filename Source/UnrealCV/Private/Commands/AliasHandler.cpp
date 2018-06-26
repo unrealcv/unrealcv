@@ -2,6 +2,10 @@
 #include "AliasHandler.h"
 #include "UObjectUtils.h"
 #include "JsonFormatter.h"
+#include "Runtime/Engine/Public/EngineUtils.h"
+#include "Runtime/Engine/Classes/Engine/LevelScriptActor.h"
+#include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
+#include "Runtime/Core/Public/UObject/PropertyPortFlags.h"
 
 FExecStatus GetPersistentLevelId(const TArray<FString>& Args)
 {

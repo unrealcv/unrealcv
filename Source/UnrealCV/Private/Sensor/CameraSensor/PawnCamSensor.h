@@ -15,7 +15,8 @@ public:
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * T);
 
-	virtual void SetSensorLocation(FVector Location) override;
-	
-	virtual void SetSensorRotation(FRotator Rotation) override;
+	// virtual void SetSensorLocation(FVector Location) override;
+	// virtual void SetSensorRotation(FRotator Rotation) override;
+	void SetSensorLocation(FVector Location);
+	void SetSensorRotation(FRotator Rotation);
 };

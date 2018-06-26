@@ -8,6 +8,8 @@
 #include "StrFormatter.h"
 #include "SensorBP.h"
 #include "PlayerViewMode.h"
+#include "Runtime/Engine/Classes/GameFramework/Pawn.h"
+#include "Runtime/Engine/Classes/Engine/World.h"
 
 enum EFilenameType
 {

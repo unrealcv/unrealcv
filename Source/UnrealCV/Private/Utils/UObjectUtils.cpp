@@ -1,5 +1,7 @@
 #include "UnrealCVPrivate.h"
 #include "UObjectUtils.h"
+#include "Runtime/Engine/Public/EngineUtils.h"
+#include "Runtime/CoreUObject/Public/UObject/UObjectIterator.h"
 
 AActor* GetActorById(UWorld* World, FString ActorId)
 {

@@ -1,5 +1,6 @@
 #include "UnrealCVPrivate.h"
 #include "ImageWorker.h"
+#include "Runtime/Core/Public/HAL/RunnableThread.h"
 
 FImageWorker::FImageWorker() : Thread(nullptr)
 {

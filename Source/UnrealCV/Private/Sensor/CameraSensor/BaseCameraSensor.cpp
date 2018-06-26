@@ -10,6 +10,7 @@
 // #include "JsonObjectConverter.h"
 #include "TextureReader.h"
 #include "FileHelper.h"
+#include "UE4CVServer.h"
 
 DECLARE_CYCLE_STAT(TEXT("ReadBuffer"), STAT_ReadBuffer, STATGROUP_UnrealCV);
 DECLARE_CYCLE_STAT(TEXT("ReadBufferFast"), STAT_ReadBufferFast, STATGROUP_UnrealCV);

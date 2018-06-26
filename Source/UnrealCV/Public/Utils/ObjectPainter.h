@@ -1,6 +1,10 @@
 #pragma once
 
+#include "CoreMinimal.h"
 #include "ExecStatus.h"
+#include "Runtime/Engine/Classes/Engine/Level.h"
+#include "Runtime/Engine/Classes/GameFramework/Actor.h"
+
 /** [Deprecated] Annotate objects in the scene with a unique color
 * Used to paint vertex color
 */

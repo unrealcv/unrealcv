@@ -24,3 +24,6 @@ namespace cnpy {
 	template<>
 	std::vector<char>& operator+=(std::vector<char>& lhs, const char* rhs);
 }
+
+template std::vector<char> cnpy::create_npy_header<unsigned char>(const unsigned char* data, const std::vector<int> shape);
+template std::vector<char> cnpy::create_npy_header<float>(const float* data, const std::vector<int> shape);

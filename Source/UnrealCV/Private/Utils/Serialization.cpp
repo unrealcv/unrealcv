@@ -3,6 +3,7 @@
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
 #include "cnpy.h"
+#include "Runtime/Core/Public/Modules/ModuleManager.h"
 
 TArray<uint8> FSerializationUtils::Array2Npy(const TArray<float>& ImageData, int32 Width, int32 Height, int32 Channel)
 {

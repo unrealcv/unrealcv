@@ -2,6 +2,7 @@
 #include "FusionCamSensor.h"
 #include "ImageUtil.h"
 #include "Serialization.h"
+#include "Runtime/Engine/Classes/Camera/CameraComponent.h"
 
 // Sensors included in FusionSensor
 #include "LitCamSensor.h"
@@ -19,36 +20,21 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	LitCamSensor = CreateDefaultSubobject<ULitCamSensor>("LitCamSensor");
-	// LitCamSensor = NewObject<ULitCamSensor>(this, "LitCamSensorVersion1");
-	// NewObject will create an error showing graph linked to private property when saving the map.
-	// Use SetupAttachment in CTOR
-	// LitCamSensor->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
 	FusionSensors.Add(LitCamSensor);
-
 	DepthCamSensor = CreateDefaultSubobject<UDepthCamSensor>("DepthCamSensor");
 	FusionSensors.Add(DepthCamSensor);
-
 	VisDepthCamSensor = CreateDefaultSubobject<UVisDepthCamSensor>("VisDepthCamSensor");
 	FusionSensors.Add(VisDepthCamSensor);
-
 	PlaneDepthCamSensor = CreateDefaultSubobject<UPlaneDepthCamSensor>("PlaneDepthCamSensor");
 	FusionSensors.Add(PlaneDepthCamSensor);
-
 	NormalCamSensor = CreateDefaultSubobject<UNormalCamSensor>("NormalCamSensor");
 	FusionSensors.Add(NormalCamSensor);
-
 	NontransDepthCamSensor = CreateDefaultSubobject<UNontransDepthCamSensor>("NontransDepthCamSensor");
 	FusionSensors.Add(NontransDepthCamSensor);
-
-	// VertexColorCamSensor = CreateDefaultSubobject<UVertexColorCamSensor>("VertexColorCamSensor");
-	// FusionSensors.Add(VertexColorCamSensor);
-
 	StencilCamSensor = CreateDefaultSubobject<UStencilCamSensor>("StencilCamSensor");
 	FusionSensors.Add(StencilCamSensor);
-
 	AnnotationCamSensor = CreateDefaultSubobject<UAnnotationCamSensor>("AnnotationCamSensor");
 	FusionSensors.Add(AnnotationCamSensor);
-
 	LitSlowCamSensor = CreateDefaultSubobject<ULitSlowCamSensor>("LitSlowCamSensor");
 	FusionSensors.Add(LitSlowCamSensor);
 
@@ -66,7 +52,6 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 			UE_LOG(LogUnrealCV, Warning, TEXT("Invalid sensor is found in the ctor of FusionCamSensor"));
 		}
 	}
-
 }
 
 void UFusionCamSensor::OnRegister()
@@ -91,7 +76,7 @@ bool UFusionCamSensor::GetEditorPreviewInfo(float DeltaTime, FMinimalViewInfo& V
 	// From CameraComponent
 	if (bIsActive)
 	{
-		GetCameraView(DeltaTime, ViewOut);
+		this->LitCamSensor->GetCameraView(DeltaTime, ViewOut);
 	}
 	return bIsActive;
 }
@@ -140,3 +125,34 @@ void UFusionCamSensor::GetStencil(TArray<FColor>& StencilData, int& Width, int& 
 {
 	this->StencilCamSensor->Capture(StencilData, Width, Height);
 }
+
+FVector UFusionCamSensor::GetSensorLocation()
+{
+	return this->GetComponentLocation(); // World space
+}
+
+FRotator UFusionCamSensor::GetSensorRotation()
+{
+	return this->GetComponentRotation(); // World space
+}
+
+void UFusionCamSensor::SetSensorLocation(FVector Location)
+{
+	this->SetWorldLocation(Location);
+}
+
+void UFusionCamSensor::SetSensorRotation(FRotator Rotator)
+{
+	this->SetWorldRotation(Rotator);
+}
+
+float UFusionCamSensor::GetFilmHeight()
+{
+	return this->LitCamSensor->FilmHeight;
+}
+
+float UFusionCamSensor::GetFilmWidth()
+{
+	return this->LitCamSensor->FilmWidth;
+}
+

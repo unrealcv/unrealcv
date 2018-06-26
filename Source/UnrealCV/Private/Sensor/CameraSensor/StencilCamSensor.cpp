@@ -23,6 +23,6 @@ void UStencilCamSensor::OnRegister()
 	// TextureTarget->InitCustomFormat(Width, Height, EPixelFormat::PF_FloatRGBA, bUseLinearGamma);
 	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 	// this->CaptureSource = ESceneCaptureSource::SCS_SceneDepth;
-	this->bCaptureEveryFrame = true;
+	this->bCaptureEveryFrame = false;
 	this->bCaptureOnMovement = false;
 }

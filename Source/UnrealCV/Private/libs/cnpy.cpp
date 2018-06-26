@@ -8,7 +8,7 @@
 
 using byte = unsigned char;
 
-// namespace cnpy {
+namespace cnpy {
 
 /** from: http://www.cplusplus.com/forum/beginner/155821/ */
 template< typename T > std::vector<byte>  to_bytes(const T& object)
@@ -132,4 +132,4 @@ template<typename T> std::vector<char> cnpy::create_npy_header(const T* data, co
 
 	return header;
 }
-// }
+}

@@ -5,6 +5,9 @@
 #include "Components/SceneCaptureComponent2D.h"
 #include "ImageUtil.h"
 #include "ImageWorker.h"
+#include "Runtime/Engine/Classes/Engine/TextureRenderTarget2D.h"
+#include "Runtime/Engine/Classes/Materials/Material.h"
+#include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "BaseCameraSensor.generated.h"
 
 /**

@@ -2,6 +2,7 @@
 
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
+#include "Runtime/Core/Public/Modules/ModuleManager.h"
 
 class UNREALCV_API FImageUtil
 {

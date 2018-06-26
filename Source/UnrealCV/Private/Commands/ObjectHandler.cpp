@@ -5,6 +5,8 @@
 #include "ActorController.h"
 #include "VertexSensor.h"
 #include "StrFormatter.h"
+#include "UObjectUtils.h"
+#include "VisionBP.h"
 
 FExecStatus GetObjectMobility(const TArray<FString>& Args);
 

@@ -3,6 +3,11 @@
 #include "UnrealCVPrivate.h"
 #include "KeypointComponent.h"
 #include "VisionBP.h"
+#include "Runtime/Core/Public/Misc/FileHelper.h"
+#include "Runtime/Engine/Public/DrawDebugHelpers.h"
+#include "Runtime/Core/Public/Misc/Paths.h"
+#include "Runtime/Json/Public/Serialization/JsonReader.h"
+#include "Runtime/Json/Public/Serialization/JsonSerializer.h"
 
 UKeypointComponent::UKeypointComponent(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

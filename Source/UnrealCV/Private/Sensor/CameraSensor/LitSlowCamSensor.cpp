@@ -1,6 +1,7 @@
 // Weichao Qiu @ 2017
 #include "UnrealCVPrivate.h"
 #include "LitSlowCamSensor.h"
+#include "Runtime/Engine/Classes/Engine/Engine.h"
 
 ULitSlowCamSensor::ULitSlowCamSensor(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer)
@@ -17,7 +18,7 @@ void ULitSlowCamSensor::OnRegister()
 	TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
 
 	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-	this->bCaptureEveryFrame = true; 
+	this->bCaptureEveryFrame = false; 
 	this->bCaptureOnMovement = false;
 }
 

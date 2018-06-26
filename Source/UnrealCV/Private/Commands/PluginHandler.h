@@ -1,5 +1,6 @@
 #pragma once
 #include "CommandDispatcher.h"
+#include "CommandHandler.h"
 
 class FPluginCommandHandler : public FCommandHandler
 {

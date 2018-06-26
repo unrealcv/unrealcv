@@ -5,6 +5,7 @@
 #include "FileHelper.h"
 #include "BmpImageSupport.h"
 #include "IImageWrapper.h"
+#include "Runtime/Core/Public/Serialization/BufferArchive.h"
 
 DECLARE_CYCLE_STAT(TEXT("FColorToPng"), STAT_FColorToPng, STATGROUP_UnrealCV);
 DECLARE_CYCLE_STAT(TEXT("FColorToJpg"), STAT_FColorToJpg, STATGROUP_UnrealCV);
@@ -104,7 +105,7 @@ bool FImageUtil::ConvertToBmp(const TArray<FColor>& ImageData, int Width, int He
 
 bool FImageUtil::SaveFile(const TArray<uint8>& BinaryData, const FString& Filename)
 {
-	SCOPE_CYCLE_COUNTER(STAT_SaveFile);
+	// SCOPE_CYCLE_COUNTER(STAT_SaveFile);
 
 	if (FFileHelper::SaveArrayToFile(BinaryData, *Filename))
 	{

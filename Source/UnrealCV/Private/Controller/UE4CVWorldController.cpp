@@ -4,6 +4,10 @@
 #include "PawnCamSensor.h"
 #include "VisionBP.h"
 #include "UE4CVServer.h"
+#include "PlayerViewMode.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Runtime/Engine/Classes/GameFramework/Pawn.h"
+#include "Runtime/Engine/Classes/Engine/World.h"
 
 AUE4CVWorldController::AUE4CVWorldController(const FObjectInitializer& ObjectInitializer)
 {

@@ -2,6 +2,9 @@
 #include "UnrealCVPrivate.h"
 #include "SensorBP.h"
 #include "UE4CVServer.h"
+#include "FusionCamSensor.h"
+#include "Runtime/Engine/Classes/GameFramework/Pawn.h"
+#include "Runtime/CoreUObject/Public/UObject/UObjectHash.h"
 
 TArray<UFusionCamSensor*> USensorBP::GetFusionSensorList()
 {

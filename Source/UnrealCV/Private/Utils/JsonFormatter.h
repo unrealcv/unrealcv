@@ -1,6 +1,7 @@
 // Weichao Qiu @ 2017
 #pragma once
 #include "JsonObject.h"
+#include "Runtime/Json/Public/Serialization/JsonSerializer.h"
 
 /** Serialize data to json format */
 class FJsonFormatter : public FArchive

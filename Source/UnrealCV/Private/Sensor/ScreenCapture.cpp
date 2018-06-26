@@ -3,6 +3,9 @@
 #include "UE4CVServer.h"
 #include "ImageUtils.h"
 #include "IImageWrapperModule.h"
+#include "Runtime/ImageWrapper/Public/IImageWrapper.h"
+#include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
+#include "Runtime/Engine/Classes/Engine/World.h"
 
 /** Sync operation for screen capture */
 bool CaptureWithSync(UGameViewportClient *ViewportClient, const FString& CaptureFilename)

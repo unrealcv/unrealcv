@@ -7,8 +7,11 @@
 #include "IUObjectPlugin.h"
 */
 // Precompiled header file for UnrealCV
-#include "Engine.h"
+// #include "Engine.h" // This makes compilation super slow
+#include "CoreMinimal.h"
 #include "Version.h"
+#include "Runtime/Core/Public/Misc/App.h"
+#include "Runtime/Core/Public/Stats/Stats.h"
 
 DECLARE_STATS_GROUP(TEXT("UnrealCV"), STATGROUP_UnrealCV, STATCAT_Advanced);
 

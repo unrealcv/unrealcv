@@ -2,7 +2,8 @@
 #include "Shader.h"
 #include "GlobalShader.h"
 #include "ScreenRendering.h"
-
+#include "Runtime/Engine/Classes/Engine/TextureRenderTarget2D.h"
+#include "Runtime/ShaderCore/Public/StaticBoundShaderState.h"
 
 DECLARE_CYCLE_STAT(TEXT("ResizeReadBufferFast"), STAT_ResizeReadBufferFast, STATGROUP_UnrealCV);
 

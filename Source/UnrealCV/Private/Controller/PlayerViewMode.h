@@ -2,6 +2,8 @@
 
 #pragma once
 #include "CommandDispatcher.h"
+#include "Runtime/Engine/Classes/Engine/PostProcessVolume.h"
+#include "Runtime/Engine/Public/ShowFlags.h"
 /**
  * Define different ViewModes of the scene
  * Provide functions for vset /viewmode

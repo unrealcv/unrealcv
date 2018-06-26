@@ -4,6 +4,7 @@
 #include "Networking.h"
 #include <string>
 #include "ImageUtils.h"
+#include "UE4CVServer.h"
 
 AUE4CVGameMode::AUE4CVGameMode()
 {

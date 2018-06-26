@@ -1,6 +1,10 @@
 #include "UnrealCVPrivate.h"
 #include "Regex.h"
 #include "CommandDispatcher.h"
+#include "Runtime/Core/Public/HAL/Runnable.h"
+#include "Runtime/Core/Public/HAL/RunnableThread.h"
+#include "Runtime/Core/Public/Async/Async.h"
+#include "Runtime/Core/Public/Containers/Queue.h"
 
 // CommandDispatcher->BindCommand("vset /mode/(?<ViewMode>.*)", SetViewMode); // Better to check the correctness at compile time
 // The regular expression for float number is from here, http://stackoverflow.com/questions/12643009/regular-expression-for-floating-point-numbers

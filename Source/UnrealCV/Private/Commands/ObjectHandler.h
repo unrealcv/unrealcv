@@ -1,5 +1,6 @@
 #pragma once
 #include "CommandDispatcher.h"
+#include "CommandHandler.h"
 
 /** Handle vget/vset /object/... commands */
 class FObjectCommandHandler : public FCommandHandler

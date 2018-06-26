@@ -1,6 +1,7 @@
 // Weichao Qiu @ 2017
 #pragma once
 
+#include "Runtime/Engine/Classes/Components/StaticMeshComponent.h"
 #include "AnnotationComponent.generated.h"
 
 /** A proxy component class to render annotation color

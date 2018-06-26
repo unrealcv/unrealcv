@@ -1,5 +1,7 @@
 #include "UnrealCVPrivate.h"
 #include "ServerConfig.h"
+#include "Runtime/Core/Public/HAL/FileManager.h"
+#include "Runtime/Core/Public/Misc/ConfigCacheIni.h"
 
 // TODO: Try to simplify the implementation of this class
 FServerConfig::FServerConfig()

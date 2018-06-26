@@ -1,6 +1,8 @@
 #include "UnrealCVPrivate.h"
 #include "Runtime/Core/Public/Misc/CommandLine.h"
 #include "Runtime/Core/Public/Misc/Parse.h"
+#include "Runtime/Engine/Classes/Engine/Engine.h"
+#include "UE4CVServer.h"
 
 DEFINE_LOG_CATEGORY(LogUnrealCV);
 

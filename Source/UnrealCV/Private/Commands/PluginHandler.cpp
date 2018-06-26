@@ -2,6 +2,7 @@
 #include "PluginHandler.h"
 #include "IPluginManager.h"
 #include "UE4CVServer.h"
+#include "Runtime/Engine/Classes/Engine/World.h"
 
 FExecStatus FPluginCommandHandler::Echo(const TArray<FString>& Args)
 {
