@@ -2,14 +2,15 @@
 // This is unrealcv command API for FusionSensor
 #include "SensorHandler.h"
 #include "UnrealCVPrivate.h"
+#include "Runtime/Engine/Classes/GameFramework/Pawn.h"
+#include "Runtime/Engine/Classes/Engine/World.h"
 #include "CommandDispatcher.h"
 #include "FusionCamSensor.h"
 #include "Serialization.h"
-#include "StrFormatter.h"
+#include "Utils/StrFormatter.h"
 #include "SensorBP.h"
-#include "PlayerViewMode.h"
-#include "Runtime/Engine/Classes/GameFramework/Pawn.h"
-#include "Runtime/Engine/Classes/Engine/World.h"
+#include "Controller/PlayerViewMode.h"
+#include "Controller/UE4CVWorldController.h"
 
 enum EFilenameType
 {
@@ -406,6 +407,19 @@ FExecStatus GetScreenshot(const TArray<FString>& Args)
 	return ExecStatus;
 }
 
+FExecStatus SetViewMode(const TArray<FString>& Args)
+{
+	TWeakObjectPtr<AUE4CVWorldController> WorldController = FUE4CVServer::Get().WorldController;
+	return WorldController->PlayerViewMode->SetMode(Args);
+}
+
+FExecStatus GetViewMode(const TArray<FString>& Args)
+{
+	TWeakObjectPtr<AUE4CVWorldController> WorldController = FUE4CVServer::Get().WorldController;
+	return WorldController->PlayerViewMode->GetMode(Args);
+}
+
+
 void FSensorHandler::RegisterCommands()
 {
 	CommandDispatcher->BindCommand(
@@ -501,13 +515,13 @@ void FSensorHandler::RegisterCommands()
 
 	CommandDispatcher->BindCommand(
 		"vset /viewmode [str]",
-		FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::SetMode),
+		FDispatcherDelegate::CreateStatic(SetViewMode),
 		"Set ViewMode to (lit, normal, depth, object_mask)"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vget /viewmode",
-		FDispatcherDelegate::CreateRaw(&FPlayerViewMode::Get(), &FPlayerViewMode::GetMode),
+		FDispatcherDelegate::CreateStatic(GetViewMode),
 		"Get current ViewMode"
 	);
 

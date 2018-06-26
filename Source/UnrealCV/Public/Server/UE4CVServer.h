@@ -5,7 +5,7 @@
 #include "TcpServer.h"
 #include "Tickable.h"
 #include "ServerConfig.h"
-#include "UE4CVWorldController.h"
+#include "Controller/UE4CVWorldController.h"
 
 class FCommandDispatcher;
 class FCommandHandler;

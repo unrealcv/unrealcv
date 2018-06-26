@@ -4,26 +4,6 @@
 #include "JsonObject.h"
 #include "Runtime/Json/Public/Serialization/JsonSerializer.h"
 
-// FString USerializeBP::VectorToJson(const FVector& Vec)
-// {
-// 	FJsonFormatter Ar;
-// 	Ar << Vec;
-// 	return Ar.ToString();
-// }
-
-// FString USerializeBP::RotatorToJson(const FRotator& Rotator)
-// {
-// 	FString JsonStr;
-// 	return JsonStr;
-// }
-//
-// FString USerializeBP::ColorToJson(const FColor& Color)
-// {
-// 	FJsonFormatter Ar;
-// 	Ar << Color;
-// 	return Ar.ToString();
-// }
-
 FJsonObjectBP::FJsonObjectBP(const TArray<FString>& Keys, const TArray<FString>& Values)
 {
 	JsonObject = MakeShareable(new FJsonObject());
@@ -156,16 +136,5 @@ FJsonObjectBP USerializeBP::StringMapToJson(const TArray<FString>& Keys, const T
 
 FString USerializeBP::JsonToStr(const FJsonObjectBP& JsonObjectBP)
 {
-	// FString OutputString;
-	// TSharedRef<TJsonWriter<> > Writer = TJsonWriterFactory<>::Create(&OutputString);
-	// if (JsonObjectBP.JsonObject.IsValid())
-	// {
-	// 	FJsonSerializer::Serialize(JsonObjectBP.JsonObject.ToSharedRef(), Writer);
-	// }
-	// else
-	// {
-	// 	FJsonSerializer::Serialize(JsonObjectBP.JsonArray, Writer);
-	// }
-	// return OutputString;
 	return JsonObjectBP.ToString();
 }

@@ -16,11 +16,45 @@
 
 DECLARE_DELEGATE(ViewModeFunc)
 
-FPlayerViewMode::FPlayerViewMode() : CurrentViewMode("lit")
+UPlayerViewMode::UPlayerViewMode() : CurrentViewMode("lit")
 {
+	// Load material for visualization
+	TMap<FString, FString> MaterialPathMap;
+	MaterialPathMap.Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepthWorldUnits.SceneDepthWorldUnits'"));
+	MaterialPathMap.Add(TEXT("plane_depth"), TEXT("Material'/UnrealCV/ScenePlaneDepthWorldUnits.ScenePlaneDepthWorldUnits'"));
+	MaterialPathMap.Add(TEXT("vis_depth"), TEXT("Material'/UnrealCV/SceneDepth.SceneDepth'"));
+	MaterialPathMap.Add(TEXT("debug"), TEXT("Material'/UnrealCV/debug.debug'"));
+	// MaterialPathMap->Add(TEXT("object_mask"), TEXT("Material'/UnrealCV/VertexColorMaterial.VertexColorMaterial'"));
+	MaterialPathMap.Add(TEXT("normal"), TEXT("Material'/UnrealCV/WorldNormal.WorldNormal'"));
+	FString OpaqueMaterialName = "Material'/UnrealCV/OpaqueMaterial.OpaqueMaterial'";
+	MaterialPathMap.Add(TEXT("opaque"), OpaqueMaterialName);
+
+	for (auto& Elem : MaterialPathMap)
+	{
+		FString ModeName = Elem.Key;
+		FString MaterialPath = Elem.Value;
+		ConstructorHelpers::FObjectFinder<UMaterial> Material(*MaterialPath); 
+		// ConsturctorHelpers is only available in the CTOR of UObject.
+
+		if (Material.Object != NULL)
+		{
+			PPMaterialMap.Add(ModeName, Cast<UMaterial>(Material.Object));
+		}
+	}
+
 }
 
-APostProcessVolume* FPlayerViewMode::GetPostProcessVolume()
+UMaterial* UPlayerViewMode::GetMaterial(FString InModeName)
+{
+	UMaterial* Material = PPMaterialMap.FindRef(InModeName);
+	if (Material == nullptr)
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Can not recognize visualization mode %s"), *InModeName);
+	}
+	return Material;
+}
+
+APostProcessVolume* UPlayerViewMode::GetPostProcessVolume()
 {
 	UWorld* World = FUE4CVServer::Get().GetGameWorld();
 	static APostProcessVolume* PostProcessVolume = nullptr;
@@ -34,15 +68,15 @@ APostProcessVolume* FPlayerViewMode::GetPostProcessVolume()
 	return PostProcessVolume;
 }
 
-FPlayerViewMode::~FPlayerViewMode() {}
+// UPlayerViewMode::~UPlayerViewMode() {}
 
-FPlayerViewMode& FPlayerViewMode::Get()
-{
-	static FPlayerViewMode Singleton;
-	return Singleton;
-}
+// UPlayerViewMode& UPlayerViewMode::Get()
+// {
+// 	static UPlayerViewMode* Singleton = NewObject<UPlayerViewMode>();
+// 	return *Singleton;
+// }
 
-void FPlayerViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
+void UPlayerViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 {
 	// A complete list can be found from Engine/Config/BaseEngine.ini, Engine.BufferVisualizationMaterials
 	// TODO: BaseColor is weird, check BUG.
@@ -64,7 +98,7 @@ void FPlayerViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 	}
 }
 
-void FPlayerViewMode::DepthWorldUnits()
+void UPlayerViewMode::DepthWorldUnits()
 {
 	UWorld* World = FUE4CVServer::Get().GetGameWorld();
 	UGameViewportClient* Viewport = World->GetGameViewport();
@@ -72,22 +106,22 @@ void FPlayerViewMode::DepthWorldUnits()
 	SetCurrentBufferVisualizationMode(TEXT("SceneDepthWorldUnits"));
 }
 
-void FPlayerViewMode::Depth()
+void UPlayerViewMode::Depth()
 {
 	this->ApplyPostProcess("vis_depth");
 }
 
-void FPlayerViewMode::Normal()
+void UPlayerViewMode::Normal()
 {
 	this->ApplyPostProcess("normal");
 }
 
-void FPlayerViewMode::BaseColor()
+void UPlayerViewMode::BaseColor()
 {
 	SetCurrentBufferVisualizationMode(TEXT("BaseColor"));
 }
 
-void FPlayerViewMode::Lit()
+void UPlayerViewMode::Lit()
 {
 	UWorld* World = FUE4CVServer::Get().GetGameWorld();
 	this->ClearPostProcess();
@@ -100,63 +134,21 @@ void FPlayerViewMode::Lit()
 	// FViewMode::Lit(Viewport->EngineShowFlags);
 }
 
-void FPlayerViewMode::Unlit()
+void UPlayerViewMode::Unlit()
 {
 	UWorld* World = FUE4CVServer::Get().GetGameWorld();
 	auto Viewport = World->GetGameViewport();
 	FViewMode::Unlit(Viewport->EngineShowFlags);
 }
 
-void FPlayerViewMode::ClearPostProcess()
+void UPlayerViewMode::ClearPostProcess()
 {
 	GetPostProcessVolume()->BlendWeight = 0;
 }
 
-UMaterial* GetMaterial(FString InModeName = TEXT(""))
-{
-	// Load material for visualization
-	static TMap<FString, FString>* MaterialPathMap = nullptr;
-	if (MaterialPathMap == nullptr)
-	{
-		MaterialPathMap = new TMap<FString, FString>();
-		MaterialPathMap->Add(TEXT("depth"), TEXT("Material'/UnrealCV/SceneDepthWorldUnits.SceneDepthWorldUnits'"));
-		MaterialPathMap->Add(TEXT("plane_depth"), TEXT("Material'/UnrealCV/ScenePlaneDepthWorldUnits.ScenePlaneDepthWorldUnits'"));
-		MaterialPathMap->Add(TEXT("vis_depth"), TEXT("Material'/UnrealCV/SceneDepth.SceneDepth'"));
-		MaterialPathMap->Add(TEXT("debug"), TEXT("Material'/UnrealCV/debug.debug'"));
-		// MaterialPathMap->Add(TEXT("object_mask"), TEXT("Material'/UnrealCV/VertexColorMaterial.VertexColorMaterial'"));
-		MaterialPathMap->Add(TEXT("normal"), TEXT("Material'/UnrealCV/WorldNormal.WorldNormal'"));
-
-		FString OpaqueMaterialName = "Material'/UnrealCV/OpaqueMaterial.OpaqueMaterial'";
-		MaterialPathMap->Add(TEXT("opaque"), OpaqueMaterialName);
-	}
-
-	static TMap<FString, UMaterial*>* StaticMaterialMap = nullptr;
-	if (StaticMaterialMap == nullptr)
-	{
-		StaticMaterialMap = new TMap<FString, UMaterial*>();
-		for (auto& Elem : *MaterialPathMap)
-		{
-			FString ModeName = Elem.Key;
-			FString MaterialPath = Elem.Value;
-			ConstructorHelpers::FObjectFinder<UMaterial> Material(*MaterialPath); // ConsturctorHelpers is only available for UObject.
-
-			if (Material.Object != NULL)
-			{
-				StaticMaterialMap->Add(ModeName, (UMaterial*)Material.Object);
-			}
-		}
-	}
-
-	UMaterial* Material = StaticMaterialMap->FindRef(InModeName);
-	if (Material == nullptr)
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("Can not recognize visualization mode %s"), *InModeName);
-	}
-	return Material;
-}
 
 
-void FPlayerViewMode::ApplyPostProcess(FString ModeName)
+void UPlayerViewMode::ApplyPostProcess(FString ModeName)
 {
 	UWorld* World = FUE4CVServer::Get().GetGameWorld();
 	UGameViewportClient* GameViewportClient = World->GetGameViewport();
@@ -173,12 +165,12 @@ void FPlayerViewMode::ApplyPostProcess(FString ModeName)
 	PostProcessVolume->BlendWeight = 1;
 }
 
-void FPlayerViewMode::DebugMode()
+void UPlayerViewMode::DebugMode()
 {
 	ApplyPostProcess("debug");
 }
 
-void FPlayerViewMode::Object()
+void UPlayerViewMode::Object()
 {
 	UWorld* World = FUE4CVServer::Get().GetGameWorld();
 	auto Viewport = World->GetGameViewport();
@@ -186,7 +178,7 @@ void FPlayerViewMode::Object()
 	// ApplyPostProcess("object_mask");
 }
 
-FExecStatus FPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input arguments
+FExecStatus UPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input arguments
 {
 	UWorld* World = FUE4CVServer::Get().GetGameWorld();
 	UE_LOG(LogUnrealCV, Warning, TEXT("Run SetMode %s"), *Args[0]);
@@ -196,17 +188,17 @@ FExecStatus FPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input
 	if (ViewModeHandlers == nullptr)
 	{
 		ViewModeHandlers = new TMap<FString, ViewModeFunc>();
-		ViewModeHandlers->Add(TEXT("depth"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::Depth));
-		ViewModeHandlers->Add(TEXT("normal"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::Normal));
-		ViewModeHandlers->Add(TEXT("object_mask"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::Object));
+		ViewModeHandlers->Add(TEXT("depth"), ViewModeFunc::CreateUObject(this, &UPlayerViewMode::Depth));
+		ViewModeHandlers->Add(TEXT("normal"), ViewModeFunc::CreateUObject(this, &UPlayerViewMode::Normal));
+		ViewModeHandlers->Add(TEXT("object_mask"), ViewModeFunc::CreateUObject(this, &UPlayerViewMode::Object));
 		// ViewModeHandlers->Add(TEXT("vertex_color"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::VertexColor));
-		ViewModeHandlers->Add(TEXT("lit"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::Lit));
-		ViewModeHandlers->Add(TEXT("unlit"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::Unlit));
-		ViewModeHandlers->Add(TEXT("base_color"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::BaseColor));
-		ViewModeHandlers->Add(TEXT("debug"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::DebugMode));
+		ViewModeHandlers->Add(TEXT("lit"), ViewModeFunc::CreateUObject(this, &UPlayerViewMode::Lit));
+		ViewModeHandlers->Add(TEXT("unlit"), ViewModeFunc::CreateUObject(this, &UPlayerViewMode::Unlit));
+		ViewModeHandlers->Add(TEXT("base_color"), ViewModeFunc::CreateUObject(this, &UPlayerViewMode::BaseColor));
+		ViewModeHandlers->Add(TEXT("debug"), ViewModeFunc::CreateUObject(this, &UPlayerViewMode::DebugMode));
 		ViewModeHandlers->Add(TEXT("wireframe"), ViewModeFunc::CreateLambda([World]() { FViewMode::Wireframe(World->GetGameViewport()->EngineShowFlags);  }));
-		ViewModeHandlers->Add(TEXT("vertex_color"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::VertexColor));
-		ViewModeHandlers->Add(TEXT("no_transparency"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::NoTransparency));
+		ViewModeHandlers->Add(TEXT("vertex_color"), ViewModeFunc::CreateUObject(this, &UPlayerViewMode::VertexColor));
+		ViewModeHandlers->Add(TEXT("no_transparency"), ViewModeFunc::CreateUObject(this, &UPlayerViewMode::NoTransparency));
 	}
 
 	// Check args
@@ -236,12 +228,12 @@ FExecStatus FPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input
 }
 
 
-FExecStatus FPlayerViewMode::GetMode(const TArray<FString>& Args) // Check input arguments
+FExecStatus UPlayerViewMode::GetMode(const TArray<FString>& Args) // Check input arguments
 {
 	return FExecStatus::OK(CurrentViewMode);
 }
 
-void FPlayerViewMode::SaveGameDefault(FEngineShowFlags ShowFlags)
+void UPlayerViewMode::SaveGameDefault(FEngineShowFlags ShowFlags)
 {
 	if (this->GameShowFlags != nullptr)
 	{
@@ -251,13 +243,13 @@ void FPlayerViewMode::SaveGameDefault(FEngineShowFlags ShowFlags)
 	GameShowFlags = new FEngineShowFlags(ShowFlags);
 }
 
-void FPlayerViewMode::VertexColor()
+void UPlayerViewMode::VertexColor()
 {
 	auto Viewport = FUE4CVServer::Get().GetGameWorld()->GetGameViewport();
 	FViewMode::VertexColor(Viewport->EngineShowFlags);
 }
 
-void FPlayerViewMode::NoTransparency()
+void UPlayerViewMode::NoTransparency()
 {
 	// Iterate over all the materials in the scene and replace transparent materials to non-transparent 
 	for (TActorIterator<AActor> ActorItr(FUE4CVServer::Get().GetGameWorld()); ActorItr; ++ActorItr)

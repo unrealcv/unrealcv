@@ -248,9 +248,15 @@ TArray<FVector> UVisionBP::SkinnedMeshComponentGetVertexArray(USkinnedMeshCompon
 	Component->ComputeSkinnedPositions(VertexArray);
 #else
 	// Ref: https://github.com/EpicGames/UnrealEngine/blob/4.19/Engine/Source/Runtime/Engine/Private/PhysicsEngine/PhysAnim.cpp#L671
+	if (Component->MeshObject == nullptr)
+	{
+		return VertexArray;
+	}
+
 	TArray<FMatrix> RefToLocals;
 	FSkinWeightVertexBuffer& SkinWeightBuffer = *Component->GetSkinWeightBuffer(0);
 	const FSkeletalMeshLODRenderData& LODData = Component->MeshObject->GetSkeletalMeshRenderData().LODRenderData[0];
+	Component->CacheRefToLocalMatrices(RefToLocals);
 	USkinnedMeshComponent::ComputeSkinnedPositions(Component, VertexArray, RefToLocals, LODData, SkinWeightBuffer);
 #endif
 

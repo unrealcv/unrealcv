@@ -2,7 +2,7 @@
 #include "TestActor.h"
 #include "UnrealCVPrivate.h"
 #include "FusionCamSensor.h"
-#include "ObjectAnnotator.h"
+#include "Controller/ObjectAnnotator.h"
 #include "UE4CVServer.h"
 #include "VisionBP.h"
 #include "Runtime/Engine/Public/EngineUtils.h"

@@ -1,14 +1,14 @@
 // Weichao Qiu @ 2016
 #include "UE4CVServer.h"
 #include "UnrealCVPrivate.h"
-#include "PlayerViewMode.h"
+#include "Controller/PlayerViewMode.h"
 #include "ConsoleHelper.h"
 #include "ObjectPainter.h"
-#include "ObjectHandler.h"
-#include "PluginHandler.h"
-#include "ActionHandler.h"
-#include "AliasHandler.h"
-#include "SensorHandler.h"
+#include "Commands/ObjectHandler.h"
+#include "Commands/PluginHandler.h"
+#include "Commands/ActionHandler.h"
+#include "Commands/AliasHandler.h"
+#include "Commands/SensorHandler.h"
 #include "Runtime/Engine/Classes/Engine/GameEngine.h"
 
 void FUE4CVServer::Tick(float DeltaTime)
@@ -163,7 +163,7 @@ bool FUE4CVServer::InitWorld()
 		UpdateInput(Config.EnableInput);
 
 		FEngineShowFlags ShowFlags = World->GetGameViewport()->EngineShowFlags;
-		FPlayerViewMode::Get().SaveGameDefault(ShowFlags);
+		UPlayerViewMode::Get().SaveGameDefault(ShowFlags);
 
 		CurrentWorld = World;
 	}

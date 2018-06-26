@@ -1,7 +1,7 @@
 // Weichao Qiu @ 2017
 #include "UE4CVWorldController.h"
 #include "UnrealCVPrivate.h"
-#include "PawnCamSensor.h"
+#include "Sensor/CameraSensor/PawnCamSensor.h"
 #include "VisionBP.h"
 #include "UE4CVServer.h"
 #include "PlayerViewMode.h"
@@ -11,7 +11,7 @@
 
 AUE4CVWorldController::AUE4CVWorldController(const FObjectInitializer& ObjectInitializer)
 {
-
+	PlayerViewMode = CreateDefaultSubobject<UPlayerViewMode>(TEXT("PlayerViewMode"));
 }
 
 void AttachPawnSensor(APawn* Pawn)
@@ -63,7 +63,7 @@ void AUE4CVWorldController::BeginPlay()
 	ObjectAnnotator.AnnotateWorld(GetWorld());
 
 	FEngineShowFlags ShowFlags = GetWorld()->GetGameViewport()->EngineShowFlags;
-	FPlayerViewMode::Get().SaveGameDefault(ShowFlags);
+	this->PlayerViewMode->SaveGameDefault(ShowFlags);
 
 	// TODO: remove legacy code
 	// Update camera FOV

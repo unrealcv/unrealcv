@@ -1,18 +1,21 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// Weichao Qiu @ 2016
 #pragma once
 #include "CommandDispatcher.h"
 #include "Runtime/Engine/Classes/Engine/PostProcessVolume.h"
 #include "Runtime/Engine/Public/ShowFlags.h"
+#include "PlayerViewMode.generated.h"
+
 /**
  * Define different ViewModes of the scene
  * Provide functions for vset /viewmode
  */
-class UNREALCV_API FPlayerViewMode
+UCLASS()
+class UNREALCV_API UPlayerViewMode : public UObject
 {
+	GENERATED_BODY()
 public:
-	static FPlayerViewMode& Get();
-	~FPlayerViewMode();
+	// static UPlayerViewMode& Get();
+	// ~UPlayerViewMode();
 	void Depth();
 	void DepthWorldUnits();
 	void Normal();
@@ -36,10 +39,14 @@ public:
 
 	/** Save the default rendering configuration of game for switching back from GT modes */
 	void SaveGameDefault(FEngineShowFlags ShowFlags);
+
+	UMaterial* GetMaterial(FString InModeName);
 private:
 	FEngineShowFlags* GameShowFlags;
 	void SetCurrentBufferVisualizationMode(FString ViewMode);
-	FPlayerViewMode();
+	UPlayerViewMode();
 	FString CurrentViewMode;
 	void ClearPostProcess();
+
+	TMap<FString, UMaterial*> PPMaterialMap;
 };

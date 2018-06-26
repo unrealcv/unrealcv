@@ -3,7 +3,6 @@
 
 #include "StereoCameraActor.h"
 #include "UnrealCVPrivate.h"
-#include "VertexColorPainter.h"
 #include "VisionBP.h"
 
 AStereoCameraActor::AStereoCameraActor(const FObjectInitializer& ObjectInitializer)

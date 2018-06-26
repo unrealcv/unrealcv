@@ -2,10 +2,10 @@
 #include "ObjectHandler.h"
 #include "UnrealCVPrivate.h"
 #include "ObjectPainter.h"
-#include "ActorController.h"
+#include "Controller/ActorController.h"
 #include "VertexSensor.h"
-#include "StrFormatter.h"
-#include "UObjectUtils.h"
+#include "Utils/StrFormatter.h"
+#include "Utils/UObjectUtils.h"
 #include "VisionBP.h"
 
 FExecStatus GetObjectMobility(const TArray<FString>& Args);
