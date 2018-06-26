@@ -4,7 +4,7 @@
 #include "Runtime/Engine/Classes/Engine/CollisionProfile.h"
 #include "Runtime/Engine/Classes/Engine/StaticMesh.h"
 #include "TextureReader.h"
-#include "UE4CVServer.h"
+#include "UnrealcvServer.h"
 #include "UnrealcvStats.h"
 #include "UnrealcvLog.h"
 
@@ -22,7 +22,7 @@ UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer
 
 	this->ShowFlags.SetPostProcessing(true);
 	
-	FServerConfig& Config = FUE4CVServer::Get().Config;
+	FServerConfig& Config = FUnrealcvServer::Get().Config;
 	FilmWidth = Config.Width;
 	FilmHeight = Config.Height; 
 	this->FOVAngle = Config.FOV;

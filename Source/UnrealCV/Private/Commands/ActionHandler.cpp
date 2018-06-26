@@ -77,7 +77,7 @@ FExecStatus FActionCommandHandler::OpenLevel(const TArray<FString>& Args)
 	if (Args.Num() == 1) // Level name
 	{
 		FString LevelName = Args[0];
-		FUE4CVServer::Get().WorldController->OpenLevel(FName(*LevelName));
+		FUnrealcvServer::Get().WorldController->OpenLevel(FName(*LevelName));
 		return FExecStatus::OK();
 	}
 	else
@@ -88,7 +88,7 @@ FExecStatus FActionCommandHandler::OpenLevel(const TArray<FString>& Args)
 
 FExecStatus FActionCommandHandler::EnableInput(const TArray<FString>& Args)
 {
-	APawn* Pawn = FUE4CVServer::Get().GetPawn();
+	APawn* Pawn = FUnrealcvServer::Get().GetPawn();
 	if (IsValid(Pawn))
 	{
 		UVisionBP::UpdateInput(Pawn, true);
@@ -102,7 +102,7 @@ FExecStatus FActionCommandHandler::EnableInput(const TArray<FString>& Args)
 
 FExecStatus FActionCommandHandler::DisableInput(const TArray<FString>& Args)
 {
-	APawn* Pawn = FUE4CVServer::Get().GetPawn();
+	APawn* Pawn = FUnrealcvServer::Get().GetPawn();
 	if (IsValid(Pawn))
 	{
 		UVisionBP::UpdateInput(Pawn, true);

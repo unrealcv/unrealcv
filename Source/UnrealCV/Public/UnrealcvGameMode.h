@@ -4,28 +4,28 @@
 #include "GameFramework/Pawn.h"
 #include "Runtime/Engine/Classes/GameFramework/DefaultPawn.h"
 #include "Runtime/Engine/Classes/GameFramework/Character.h"
-#include "UE4CVGameMode.generated.h"
+#include "UnrealcvGameMode.generated.h"
 
 /**
  *
  */
 UCLASS()
-class UNREALCV_API AUE4CVGameMode : public AGameMode
+class UNREALCV_API AUnrealcvGameMode : public AGameMode
 {
 	GENERATED_BODY()
-	AUE4CVGameMode();
+	AUnrealcvGameMode();
 };
 
 /**
- * UE4CVPawn can move freely in the 3D space
+ * UnrealcvPawn can move freely in the 3D space
  */
 UCLASS()
-class UNREALCV_API AUE4CVPawn : public ADefaultPawn
+class UNREALCV_API AUnrealcvPawn : public ADefaultPawn
 {
 	GENERATED_BODY()
 
 public:
-	AUE4CVPawn();
+	AUnrealcvPawn();
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaSeconds ) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
@@ -33,15 +33,15 @@ public:
 };
 
 /**
- * UE4CVCharacter acts like a walking human
+ * UnrealcvCharacter acts like a walking human
  */
 UCLASS()
-class UNREALCV_API AUE4CVCharacter : public ACharacter
+class UNREALCV_API AUnrealcvCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
 public:
-	AUE4CVCharacter();
+	AUnrealcvCharacter();
 	virtual void BeginPlay() override;
 	virtual void Tick( float DeltaSeconds ) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;

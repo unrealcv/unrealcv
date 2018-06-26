@@ -8,12 +8,12 @@
 UCLASS()
 class ATestActor : public AActor
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
 	ATestActor(const FObjectInitializer& ObjectInitializer);
 
-    virtual void BeginPlay() override;
+	virtual void BeginPlay() override;
 
 	virtual void Tick(float FloatSeconds) override;
 
@@ -21,13 +21,13 @@ public:
 
 	void StopTest();
 
-    void SetBenchmarkCmd(const TArray<FString>& Args);
+	void SetBenchmarkCmd(const TArray<FString>& Args);
 
 private:
 	bool bRunningTest;
 	TArray<FConsoleCommandDelegate> TickFunctions;
 
-    FString BenchmarkCmd;
+	FString BenchmarkCmd;
 
 	void LitBenchmark();
 };

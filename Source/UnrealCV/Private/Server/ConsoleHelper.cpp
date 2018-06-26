@@ -1,7 +1,7 @@
 // Weichao Qiu @ 2016
 #include "ConsoleHelper.h"
 #include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
-#include "UE4CVServer.h"
+#include "UnrealcvServer.h"
 #include "UnrealcvLog.h"
 
 void FConsoleHelper::VBp(const TArray<FString>& Args)
@@ -76,7 +76,7 @@ void FConsoleHelper::SetCommandDispatcher(TSharedPtr<FCommandDispatcher> InComma
 
 TSharedPtr<FConsoleOutputDevice> FConsoleHelper::GetConsole() // The ConsoleOutputDevice will depend on the external world, so we need to use a get function
 {
-	TSharedPtr<FConsoleOutputDevice> ConsoleOutputDevice(new FConsoleOutputDevice(FUE4CVServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole));
+	TSharedPtr<FConsoleOutputDevice> ConsoleOutputDevice(new FConsoleOutputDevice(FUnrealcvServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole));
 	return ConsoleOutputDevice;
 }
 
@@ -96,7 +96,7 @@ void FConsoleHelper::VRun(const TArray<FString>& Args)
 		Cmd += Args[ArgIndex] + " ";
 	}
 	Cmd += Args[NumArgs-1]; // Maybe a more elegant implementation for joining string
-	// FUE4CVServer::Get().InitWorld();
+	// FUnrealcvServer::Get().InitWorld();
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
 	UE_LOG(LogUnrealCV, Warning, TEXT("vrun helper function, the real command is %s"), *Cmd);
 	// In the console mode, output should be writen to the output log.
@@ -122,7 +122,7 @@ void FConsoleHelper::VGet(const TArray<FString>& Args)
 		Cmd += Args[ArgIndex] + " ";
 	}
 	Cmd += Args[NumArgs-1]; // Maybe a more elegant implementation for joining string
-	// FUE4CVServer::Get().InitWorld();
+	// FUnrealcvServer::Get().InitWorld();
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
 	UE_LOG(LogUnrealCV, Warning, TEXT("vget helper function, the real command is %s"), *Cmd);
 	// In the console mode, output should be writen to the output log.
@@ -146,7 +146,7 @@ void FConsoleHelper::VSet(const TArray<FString>& Args)
 		Cmd += Args[ArgIndex] + " ";
 	}
 	Cmd += Args[NumArgs-1];
-	// FUE4CVServer::Get().InitWorld();
+	// FUnrealcvServer::Get().InitWorld();
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
 	// Output result to the console
 	UE_LOG(LogUnrealCV, Warning, TEXT("vset helper function, the real command is %s"), *Cmd);

@@ -2,7 +2,7 @@
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "Runtime/Projects/Public/Interfaces/IPluginManager.h"
 
-#include "UE4CVServer.h"
+#include "UnrealcvServer.h"
 #include "UnrealcvShim.h"
 
 FExecStatus FPluginCommandHandler::Echo(const TArray<FString>& Args)
@@ -22,7 +22,7 @@ FExecStatus FPluginCommandHandler::Echo(const TArray<FString>& Args)
 FExecStatus FPluginCommandHandler::GetUnrealCVStatus(const TArray<FString>& Args)
 {
 	FString Msg;
-	FUE4CVServer& Server = FUE4CVServer::Get(); // TODO: Can not use a copy constructor, need to disable copy constructor
+	FUnrealcvServer& Server = FUnrealcvServer::Get(); // TODO: Can not use a copy constructor, need to disable copy constructor
 
 	if (Server.NetworkManager->IsListening())
 	{
@@ -42,7 +42,7 @@ FExecStatus FPluginCommandHandler::GetUnrealCVStatus(const TArray<FString>& Args
 	}
 	Msg += FString::Printf(TEXT("%d\n"), Server.NetworkManager->PortNum);
 	Msg += "Configuration\n";
-	Msg += FUE4CVServer::Get().Config.ToString();
+	Msg += FUnrealcvServer::Get().Config.ToString();
 	return FExecStatus::OK(Msg);
 }
 
@@ -89,7 +89,7 @@ FExecStatus FPluginCommandHandler::GetSceneName(const TArray<FString>& Args)
 
 FExecStatus GetLevelName(const TArray<FString>& Args)
 {
-	FUE4CVServer& Server = FUE4CVServer::Get();
+	FUnrealcvServer& Server = FUnrealcvServer::Get();
 	FString PrefixedMapName = Server.GetGameWorld()->GetMapName();	
 	FString Prefix = Server.GetGameWorld()->StreamingLevelsPrefix;
 	FString MapName = PrefixedMapName.Mid(Prefix.Len());

@@ -1,7 +1,7 @@
 #include "Runtime/Core/Public/Misc/CommandLine.h"
 #include "Runtime/Core/Public/Misc/Parse.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
-#include "UE4CVServer.h"
+#include "UnrealcvServer.h"
 #include "UnrealcvLog.h"
 
 DEFINE_LOG_CATEGORY(LogUnrealCV);
@@ -16,7 +16,7 @@ IMPLEMENT_MODULE(FUnrealCVPlugin, UnrealCV)
 
 void FUnrealCVPlugin::StartupModule()
 {
-	FUE4CVServer &Server = FUE4CVServer::Get();
+	FUnrealcvServer &Server = FUnrealcvServer::Get();
 	Server.RegisterCommandHandlers();
 
 	int OverridePort = Server.Config.Port;

@@ -1,6 +1,6 @@
 #include "ActorController.h"
 #include "ObjectAnnotator.h"
-#include "UE4CVServer.h"
+#include "UnrealcvServer.h"
 
 FActorController::FActorController(AActor* InActor)
 {
@@ -44,12 +44,12 @@ void FActorController::Hide()
 
 void FActorController::GetAnnotationColor(FColor& AnnotationColor)
 {
-	FObjectAnnotator& Annotator = FUE4CVServer::Get().WorldController->ObjectAnnotator;
+	FObjectAnnotator& Annotator = FUnrealcvServer::Get().WorldController->ObjectAnnotator;
 	Annotator.GetAnnotationColor(Actor, AnnotationColor);
 }
 
 void FActorController::SetAnnotationColor(const FColor& AnnotationColor)
 {
-	FObjectAnnotator& Annotator = FUE4CVServer::Get().WorldController->ObjectAnnotator;
+	FObjectAnnotator& Annotator = FUnrealcvServer::Get().WorldController->ObjectAnnotator;
 	Annotator.SetAnnotationColor(Actor, AnnotationColor);
 }

@@ -10,7 +10,7 @@
 #include "CommandDispatcher.h"
 #include "ViewMode.h"
 #include "ObjectPainter.h"
-#include "UE4CVServer.h"
+#include "UnrealcvServer.h"
 #include "UnrealcvLog.h"
 
 DECLARE_DELEGATE(ViewModeFunc)
@@ -55,7 +55,7 @@ UMaterial* UPlayerViewMode::GetMaterial(FString InModeName)
 
 APostProcessVolume* UPlayerViewMode::GetPostProcessVolume()
 {
-	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	UWorld* World = FUnrealcvServer::Get().GetGameWorld();
 	static APostProcessVolume* PostProcessVolume = nullptr;
 	static UWorld* CurrentWorld = nullptr; // Check whether the world has been restarted.
 	if (PostProcessVolume == nullptr || CurrentWorld != World)
@@ -99,7 +99,7 @@ void UPlayerViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 
 void UPlayerViewMode::DepthWorldUnits()
 {
-	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	UWorld* World = FUnrealcvServer::Get().GetGameWorld();
 	UGameViewportClient* Viewport = World->GetGameViewport();
 	FViewMode::BufferVisualization(Viewport->EngineShowFlags);
 	SetCurrentBufferVisualizationMode(TEXT("SceneDepthWorldUnits"));
@@ -122,7 +122,7 @@ void UPlayerViewMode::BaseColor()
 
 void UPlayerViewMode::Lit()
 {
-	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	UWorld* World = FUnrealcvServer::Get().GetGameWorld();
 	this->ClearPostProcess();
 	if (GameShowFlags == nullptr)
 	{
@@ -135,7 +135,7 @@ void UPlayerViewMode::Lit()
 
 void UPlayerViewMode::Unlit()
 {
-	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	UWorld* World = FUnrealcvServer::Get().GetGameWorld();
 	auto Viewport = World->GetGameViewport();
 	FViewMode::Unlit(Viewport->EngineShowFlags);
 }
@@ -149,7 +149,7 @@ void UPlayerViewMode::ClearPostProcess()
 
 void UPlayerViewMode::ApplyPostProcess(FString ModeName)
 {
-	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	UWorld* World = FUnrealcvServer::Get().GetGameWorld();
 	UGameViewportClient* GameViewportClient = World->GetGameViewport();
 	FSceneViewport* SceneViewport = GameViewportClient->GetGameViewport();
 
@@ -171,7 +171,7 @@ void UPlayerViewMode::DebugMode()
 
 void UPlayerViewMode::Object()
 {
-	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	UWorld* World = FUnrealcvServer::Get().GetGameWorld();
 	auto Viewport = World->GetGameViewport();
 	FViewMode::VertexColor(Viewport->EngineShowFlags);
 	// ApplyPostProcess("object_mask");
@@ -179,7 +179,7 @@ void UPlayerViewMode::Object()
 
 FExecStatus UPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input arguments
 {
-	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	UWorld* World = FUnrealcvServer::Get().GetGameWorld();
 	UE_LOG(LogUnrealCV, Warning, TEXT("Run SetMode %s"), *Args[0]);
 
 	static TMap<FString, ViewModeFunc>* ViewModeHandlers;
@@ -244,14 +244,14 @@ void UPlayerViewMode::SaveGameDefault(FEngineShowFlags ShowFlags)
 
 void UPlayerViewMode::VertexColor()
 {
-	auto Viewport = FUE4CVServer::Get().GetGameWorld()->GetGameViewport();
+	auto Viewport = FUnrealcvServer::Get().GetGameWorld()->GetGameViewport();
 	FViewMode::VertexColor(Viewport->EngineShowFlags);
 }
 
 void UPlayerViewMode::NoTransparency()
 {
 	// Iterate over all the materials in the scene and replace transparent materials to non-transparent 
-	for (TActorIterator<AActor> ActorItr(FUE4CVServer::Get().GetGameWorld()); ActorItr; ++ActorItr)
+	for (TActorIterator<AActor> ActorItr(FUnrealcvServer::Get().GetGameWorld()); ActorItr; ++ActorItr)
 	{
 		// Iterate over all the material of the actor
 		TArray<UActorComponent*> TheComponents;

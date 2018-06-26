@@ -3,7 +3,7 @@
 #include "Runtime/Engine/Public/EngineUtils.h"
 #include "FusionCamSensor.h"
 #include "Controller/ObjectAnnotator.h"
-#include "UE4CVServer.h"
+#include "UnrealcvServer.h"
 #include "VisionBP.h"
 #include "UnrealcvLog.h"
 
@@ -97,10 +97,10 @@ void ExecCommand(FString Command)
 	// ScreenLog(Msg);
 
 	//FStringOutputDevice StringOutputDevice(TEXT("StringOutputDevice")); // seems this is not the right way to use it
-	//IConsoleManager::Get().ProcessUserConsoleInput(*Command, StringOutputDevice, FUE4CVServer::Get().GetGameWorld());
+	//IConsoleManager::Get().ProcessUserConsoleInput(*Command, StringOutputDevice, FUnrealcvServer::Get().GetGameWorld());
 
-	FConsoleOutputDevice ConsoleOutputDevice(FUE4CVServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
-	IConsoleManager::Get().ProcessUserConsoleInput(*Command, ConsoleOutputDevice, FUE4CVServer::Get().GetGameWorld());
+	FConsoleOutputDevice ConsoleOutputDevice(FUnrealcvServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
+	IConsoleManager::Get().ProcessUserConsoleInput(*Command, ConsoleOutputDevice, FUnrealcvServer::Get().GetGameWorld());
 
 	// How to get the output of the Console command??
 
@@ -168,7 +168,7 @@ void TestAnnotator(const TArray<FString>& Args)
 	int Width, Height;
 
 	TArray<UFusionCamSensor*> SensorList;
-	// = GetFusionSensorList(FUE4CVServer::Get().GetGameWorld());
+	// = GetFusionSensorList(FUnrealcvServer::Get().GetGameWorld());
 	UFusionCamSensor* Sensor = SensorList[0];
 	Sensor->GetObjectMask(Data, Width, Height);
 
@@ -216,7 +216,7 @@ void TestAnnotator(const TArray<FString>& Args)
 
 void TestSensorList()
 {
-	// UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	// UWorld* World = FUnrealcvServer::Get().GetGameWorld();
 	// TArray<UObject*> ObjectList;
 	// bool bIncludeDerivedClasses = false;
 	// EObjectFlags ExclusionFlags = EObjectFlags::RF_ClassDefaultObject;
@@ -235,7 +235,7 @@ void TestSensorList()
 	// 	{
 	// 		UE_LOG(LogUnrealCV, Warning, TEXT("PIE World: %s"), *WorldTypeStr( Component->GetWorld()->WorldType));
 	// 		UE_LOG(LogUnrealCV, Warning, TEXT("World: %s"), *Component->GetWorld()->GetName());
-	// 		UE_LOG(LogUnrealCV, Warning, TEXT("Same world?: %s"), Component->GetWorld() == FUE4CVServer::Get().GetGameWorld() ? TEXT("True") : TEXT("False"));
+	// 		UE_LOG(LogUnrealCV, Warning, TEXT("Same world?: %s"), Component->GetWorld() == FUnrealcvServer::Get().GetGameWorld() ? TEXT("True") : TEXT("False"));
 	// 	}
 	// 	if (Component->TextureTarget)
 	// 	{

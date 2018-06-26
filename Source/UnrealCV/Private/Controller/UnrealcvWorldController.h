@@ -5,10 +5,10 @@
 #include "ObjectAnnotator.h"
 #include "Runtime/Engine/Classes/GameFramework/Actor.h"
 #include "Controller/PlayerViewMode.h"
-#include "UE4CVWorldController.generated.h"
+#include "UnrealcvWorldController.generated.h"
 
 UCLASS()
-class AUE4CVWorldController : public AActor
+class AUnrealcvWorldController : public AActor
 {
 	GENERATED_BODY()
 
@@ -18,7 +18,7 @@ public:
 	UPROPERTY()
 	UPlayerViewMode* PlayerViewMode;
 
-	AUE4CVWorldController(const FObjectInitializer& ObjectInitializer);
+	AUnrealcvWorldController(const FObjectInitializer& ObjectInitializer);
 
 	virtual void BeginPlay() override;
 

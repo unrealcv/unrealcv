@@ -1,5 +1,5 @@
 // Weichao Qiu @ 2016
-#include "UE4CVServer.h"
+#include "UnrealcvServer.h"
 #include "Runtime/Engine/Classes/Engine/GameEngine.h"
 #include "Controller/PlayerViewMode.h"
 #include "ConsoleHelper.h"
@@ -11,14 +11,14 @@
 #include "Commands/SensorHandler.h"
 #include "UnrealcvLog.h"
 
-void FUE4CVServer::Tick(float DeltaTime)
+void FUnrealcvServer::Tick(float DeltaTime)
 {
-	// Spawn a AUE4CVWorldController, which is responsible for modifying the world to add UnrealCV functions.
+	// Spawn a AUnrealcvWorldController, which is responsible for modifying the world to add UnrealCV functions.
 	// TODO: Check whether stopping the game will reset this ptr?
 	UWorld* GameWorld = GetGameWorld();
 	if (IsValid(GameWorld) && !WorldController.IsValid())
 	{
-		this->WorldController = Cast<AUE4CVWorldController>(GameWorld->SpawnActor(AUE4CVWorldController::StaticClass()));
+		this->WorldController = Cast<AUnrealcvWorldController>(GameWorld->SpawnActor(AUnrealcvWorldController::StaticClass()));
 		// Its BeginPlay event will extend the GameWorld
 	}
 
@@ -26,7 +26,7 @@ void FUE4CVServer::Tick(float DeltaTime)
 }
 
 /** Only available during game play */
-APawn* FUE4CVServer::GetPawn()
+APawn* FUnrealcvServer::GetPawn()
 {
 	UWorld* World = GetGameWorld();
 	if (!IsValid(World))
@@ -44,9 +44,9 @@ APawn* FUE4CVServer::GetPawn()
 	return Pawn;
 }
 
-FUE4CVServer& FUE4CVServer::Get()
+FUnrealcvServer& FUnrealcvServer::Get()
 {
-	static FUE4CVServer Singleton;
+	static FUnrealcvServer Singleton;
 	return Singleton;
 }
 
@@ -62,7 +62,7 @@ FUE4CVServer& FUE4CVServer::Get()
  1. Update this pawn with GTCaptureComponent
  */
 
-void FUE4CVServer::RegisterCommandHandlers()
+void FUnrealcvServer::RegisterCommandHandlers()
 {
 	// Taken from ctor, because might cause loop-invoke.
 	CommandHandlers.Add(new FObjectCommandHandler());
@@ -77,24 +77,24 @@ void FUE4CVServer::RegisterCommandHandlers()
 	}
 }
 
-FUE4CVServer::FUE4CVServer()
+FUnrealcvServer::FUnrealcvServer()
 {
-	// Code defined here should not use FUE4CVServer::Get();
+	// Code defined here should not use FUnrealcvServer::Get();
 	NetworkManager = NewObject<UNetworkManager>();
 	CommandDispatcher = TSharedPtr<FCommandDispatcher>(new FCommandDispatcher());
 	FConsoleHelper::Get().SetCommandDispatcher(CommandDispatcher);
 
 	NetworkManager->AddToRoot(); // Avoid GC
-	NetworkManager->OnReceived().AddRaw(this, &FUE4CVServer::HandleRawMessage);
-	NetworkManager->OnError().AddRaw(this, &FUE4CVServer::HandleError);
+	NetworkManager->OnReceived().AddRaw(this, &FUnrealcvServer::HandleRawMessage);
+	NetworkManager->OnError().AddRaw(this, &FUnrealcvServer::HandleError);
 }
 
-FUE4CVServer::~FUE4CVServer()
+FUnrealcvServer::~FUnrealcvServer()
 {
 	// this->NetworkManager->FinishDestroy(); // TODO: Check is this usage correct?
 }
 
-UWorld* FUE4CVServer::GetGameWorld()
+UWorld* FUnrealcvServer::GetGameWorld()
 {
 	UWorld* World = nullptr;
 	// The correct way to get GameWorld;
@@ -135,10 +135,10 @@ UWorld* FUE4CVServer::GetGameWorld()
 
 
 /**
- * Make sure the UE4CVServer is correctly configured.
+ * Make sure the UnrealcvServer is correctly configured.
  */
-/* TODO: Make sure the BeginPlay or UE4CVWorldController did exactlly the same thing
-bool FUE4CVServer::InitWorld()
+/* TODO: Make sure the BeginPlay or UnrealcvWorldController did exactlly the same thing
+bool FUnrealcvServer::InitWorld()
 {
 	UWorld *World = GetGameWorld();
 	if (World == nullptr)
@@ -171,7 +171,7 @@ bool FUE4CVServer::InitWorld()
 }
 */
 
-// void FUE4CVServer::UpdateInput(bool Enable)
+// void FUnrealcvServer::UpdateInput(bool Enable)
 // {
 // 	APlayerController* PlayerController = GetGameWorld()->GetFirstPlayerController();
 // 	check(PlayerController);
@@ -187,7 +187,7 @@ bool FUE4CVServer::InitWorld()
 // 	}
 // }
 
-// void FUE4CVServer::OpenLevel(FName LevelName)
+// void FUnrealcvServer::OpenLevel(FName LevelName)
 // {
 // 	UGameplayStatics::OpenLevel(GetGameWorld(), LevelName);
 // 	UGameplayStatics::FlushLevelStreaming(GetGameWorld());
@@ -195,7 +195,7 @@ bool FUE4CVServer::InitWorld()
 // }
 
 // Each tick of GameThread.
-void FUE4CVServer::ProcessPendingRequest()
+void FUnrealcvServer::ProcessPendingRequest()
 {
 	while (!PendingRequest.IsEmpty())
 	{
@@ -223,7 +223,7 @@ void FUE4CVServer::ProcessPendingRequest()
 }
 
 /** Message handler for server */
-void FUE4CVServer::HandleRawMessage(const FString& InRawMessage)
+void FUnrealcvServer::HandleRawMessage(const FString& InRawMessage)
 {
 	UE_LOG(LogUnrealCV, Warning, TEXT("Request: %s"), *InRawMessage);
 	// Parse Raw Message
@@ -248,7 +248,7 @@ void FUE4CVServer::HandleRawMessage(const FString& InRawMessage)
 }
 
 /** Error handler for server */
-void FUE4CVServer::HandleError(const FString& InErrorMessage)
+void FUnrealcvServer::HandleError(const FString& InErrorMessage)
 {
 	if (Config.ExitOnFailure)
 	{
@@ -257,7 +257,7 @@ void FUE4CVServer::HandleError(const FString& InErrorMessage)
 	}
 }
 
-void FUE4CVServer::SendClientMessage(FString Message)
+void FUnrealcvServer::SendClientMessage(FString Message)
 {
 	// TODO: Do not use game thread to send message.
 	NetworkManager->SendMessage(Message);

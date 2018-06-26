@@ -9,7 +9,7 @@
 
 FExecStatus GetPersistentLevelId(const TArray<FString>& Args)
 {
-	UWorld* GameWorld = FUE4CVServer::Get().GetGameWorld();
+	UWorld* GameWorld = FUnrealcvServer::Get().GetGameWorld();
 	
 	if (IsValid(GameWorld) && IsValid(GameWorld->PersistentLevel))
 	{
@@ -23,7 +23,7 @@ FExecStatus GetPersistentLevelId(const TArray<FString>& Args)
 
 FExecStatus GetLevelScriptActorId(const TArray<FString>& Args)
 {
-	UWorld* GameWorld = FUE4CVServer::Get().GetGameWorld();
+	UWorld* GameWorld = FUnrealcvServer::Get().GetGameWorld();
 
 	if (IsValid(GameWorld) && IsValid(GameWorld->PersistentLevel))
 	{
@@ -87,7 +87,7 @@ FExecStatus FAliasCommandHandler::VRun(const TArray<FString>& Args)
 		Cmd += Args[ArgIndex] + " ";
 	}
 	Cmd += Args[NumArgs-1];
-	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	UWorld* World = FUnrealcvServer::Get().GetGameWorld();
 	check(World->IsGameWorld());
 
 	APlayerController* PlayerController = World->GetFirstPlayerController();
@@ -123,7 +123,7 @@ FExecStatus FAliasCommandHandler::VExecWithOutput(const TArray<FString>& Args)
 	// Cmd = Cmd.TrimTrailing(); // TODO: Simplify this function.
 	Cmd = Cmd.TrimEnd(); // New API
 
-	FConsoleOutputDevice OutputDevice(FUE4CVServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
+	FConsoleOutputDevice OutputDevice(FUnrealcvServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
 
 
 	// if (Obj->CallFunctionByNameWithArguments(*Cmd, OutputDevice, nullptr, true))
@@ -382,7 +382,7 @@ FExecStatus FAliasCommandHandler::VExec(const TArray<FString>& Args)
 	}
 
 	// FOutputDeviceNull OutputDevice;
-	FConsoleOutputDevice OutputDevice(FUE4CVServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
+	FConsoleOutputDevice OutputDevice(FUnrealcvServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
 	// APlayerController* TestPlayerController = this->GetWorld()->GetFirstPlayerController();
 	// FString ControllerName = TestPlayerController->GetName();
 	// TestPlayerController->CallFunctionByNameWithArguments(TEXT("SetRotation 30 30 30"), ar, NULL, true);

@@ -5,10 +5,10 @@
 class UNREALCV_API FVertexSensor
 {
 public:
-    FVertexSensor(const AActor* InActor);
+	FVertexSensor(const AActor* InActor);
 
-    TArray<FVector> GetVertexArray();
+	TArray<FVector> GetVertexArray();
 
 private:
-    const AActor* OwnerActor;
+	const AActor* OwnerActor;
 };

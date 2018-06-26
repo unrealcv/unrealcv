@@ -8,12 +8,12 @@
 UCLASS(meta = (BlueprintSpawnableComponent))
 class ULitSlowCamSensor : public UBaseCameraSensor
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
-    ULitSlowCamSensor(const FObjectInitializer& ObjectInitializer);
+	ULitSlowCamSensor(const FObjectInitializer& ObjectInitializer);
 
-    virtual void OnRegister() override;
+	virtual void OnRegister() override;
 
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	virtual void Capture(TArray<FColor>& ImageData, int& Width, int& Height) override;

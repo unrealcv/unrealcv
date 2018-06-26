@@ -9,7 +9,7 @@
 #include "Utils/StrFormatter.h"
 #include "SensorBP.h"
 #include "Controller/PlayerViewMode.h"
-#include "Controller/UE4CVWorldController.h"
+#include "Controller/UnrealcvWorldController.h"
 
 enum EFilenameType
 {
@@ -372,7 +372,7 @@ FExecStatus MoveTo(const TArray<FString>& Args)
 	bool Sweep = true;
 	// if sweep is true, the object can not move through another object
 	// Check invalid location and move back a bit.
-	bool Success = FUE4CVServer::Get().GetPawn()->SetActorLocation(Location, Sweep, NULL, ETeleportType::TeleportPhysics);
+	bool Success = FUnrealcvServer::Get().GetPawn()->SetActorLocation(Location, Sweep, NULL, ETeleportType::TeleportPhysics);
 
 	return FExecStatus::OK();
 }
@@ -383,7 +383,7 @@ FExecStatus GetScreenshot(const TArray<FString>& Args)
 {
 	FString Filename = Args[0];
 
-	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	UWorld* World = FUnrealcvServer::Get().GetGameWorld();
 	UGameViewportClient* ViewportClient = World->GetGameViewport();
 
 	bool bScreenshotSuccessful = false;
@@ -408,13 +408,13 @@ FExecStatus GetScreenshot(const TArray<FString>& Args)
 
 FExecStatus SetViewMode(const TArray<FString>& Args)
 {
-	TWeakObjectPtr<AUE4CVWorldController> WorldController = FUE4CVServer::Get().WorldController;
+	TWeakObjectPtr<AUnrealcvWorldController> WorldController = FUnrealcvServer::Get().WorldController;
 	return WorldController->PlayerViewMode->SetMode(Args);
 }
 
 FExecStatus GetViewMode(const TArray<FString>& Args)
 {
-	TWeakObjectPtr<AUE4CVWorldController> WorldController = FUE4CVServer::Get().WorldController;
+	TWeakObjectPtr<AUnrealcvWorldController> WorldController = FUnrealcvServer::Get().WorldController;
 	return WorldController->PlayerViewMode->GetMode(Args);
 }
 

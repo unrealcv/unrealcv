@@ -6,7 +6,7 @@
 #include "Runtime/Engine/Public/SkeletalRenderPublic.h"
 #include "Runtime/Launch/Resources/Version.h"
 #include "ImageUtil.h"
-#include "UE4CVServer.h"
+#include "UnrealcvServer.h"
 #include "Serialization.h"
 #include "VertexSensor.h"
 #include "BoneSensor.h"
@@ -95,7 +95,7 @@ bool UVisionBP::AppendData(const FString& Data, const FString& Filename)
 
 bool UVisionBP::SendMessageBP(const FString& Message)
 {
-	FUE4CVServer::Get().NetworkManager->SendMessage(Message);
+	FUnrealcvServer::Get().NetworkManager->SendMessage(Message);
 	return true;
 }
 
@@ -188,7 +188,7 @@ void UVisionBP::UpdateInput(APawn* Pawn, bool Enable)
 		UE_LOG(LogUnrealCV, Warning, TEXT("Can not update Pawn input, invalid input"));
 		return;
 	}
-	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	UWorld* World = FUnrealcvServer::Get().GetGameWorld();
 	if (!World) return;
 
 	APlayerController* PlayerController = World->GetFirstPlayerController();
@@ -216,14 +216,14 @@ void UVisionBP::GetActorList(TArray<AActor*>& ActorList)
 	for (UObject* ActorObject : UObjectList)
 	{
 		AActor* Actor = Cast<AActor>(ActorObject);
-		if (Actor->GetWorld() != FUE4CVServer::Get().GetGameWorld()) continue;
+		if (Actor->GetWorld() != FUnrealcvServer::Get().GetGameWorld()) continue;
 		ActorList.AddUnique(Actor);
 	}
 }
 
 void UVisionBP::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor)
 {
-	AUE4CVWorldController* WorldController = FUE4CVServer::Get().WorldController.Get();
+	AUnrealcvWorldController* WorldController = FUnrealcvServer::Get().WorldController.Get();
 	if (IsValid(WorldController))
 	{
 		WorldController->ObjectAnnotator.GetAnnotationColor(Actor, AnnotationColor);
@@ -232,10 +232,10 @@ void UVisionBP::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor)
 
 void UVisionBP::AnnotateWorld()
 {
-	AUE4CVWorldController* WorldController = FUE4CVServer::Get().WorldController.Get();
+	AUnrealcvWorldController* WorldController = FUnrealcvServer::Get().WorldController.Get();
 	if (IsValid(WorldController))
 	{
-		WorldController->ObjectAnnotator.AnnotateWorld(FUE4CVServer::Get().GetGameWorld());
+		WorldController->ObjectAnnotator.AnnotateWorld(FUnrealcvServer::Get().GetGameWorld());
 	}
 }
 
@@ -334,7 +334,7 @@ TArray<FVector> UVisionBP::GetVertexArrayFromMeshComponent(UMeshComponent* MeshC
 
 UFusionCamSensor* UVisionBP::GetPlayerSensor()
 {
-	APawn* Pawn = FUE4CVServer::Get().GetPawn();
+	APawn* Pawn = FUnrealcvServer::Get().GetPawn();
 	if (!IsValid(Pawn)) return nullptr;
 
 	UActorComponent* ActorComponent = Pawn->GetComponentByClass(UFusionCamSensor::StaticClass());

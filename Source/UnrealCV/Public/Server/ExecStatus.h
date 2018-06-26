@@ -64,7 +64,7 @@ public:
 	 * For an async task, return a special pending FExecStatus
 	 * Use the CheckStatus of FPromise to check whether the task is completed
 	 * If the CheckStatus function returns no longer pending, means the async task finished
-	 * see UE4CVCommandsCamera.cpp : GetCameraViewAsyncQuery for an example
+	 * see UnrealcvCommandsCamera.cpp : GetCameraViewAsyncQuery for an example
 	 */
 	static FExecStatus AsyncQuery(FPromise Promise);
 

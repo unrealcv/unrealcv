@@ -1,6 +1,6 @@
 #pragma once
 #include "CommandDispatcher.h"
-#include "UE4CVServer.h"
+#include "UnrealcvServer.h"
 
 // FExecStatus should only be used in CommandHandler
 class FCommandHandler
@@ -10,7 +10,7 @@ public:
 	virtual ~FCommandHandler() {};
 	UWorld* GetWorld()
 	{
-		return FUE4CVServer::Get().GetGameWorld();
+		return FUnrealcvServer::Get().GetGameWorld();
 	}
 	TSharedPtr<FCommandDispatcher> CommandDispatcher;
 };

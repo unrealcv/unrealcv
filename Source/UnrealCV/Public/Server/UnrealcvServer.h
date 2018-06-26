@@ -5,7 +5,7 @@
 #include "TcpServer.h"
 #include "Tickable.h"
 #include "ServerConfig.h"
-#include "Controller/UE4CVWorldController.h"
+#include "Controller/UnrealcvWorldController.h"
 
 class FCommandDispatcher;
 class FCommandHandler;
@@ -38,17 +38,17 @@ public:
 /**
  * UnrealCV server to interact with external programs
  */
-class UNREALCV_API FUE4CVServer : public FTickableGameObject
+class UNREALCV_API FUnrealcvServer : public FTickableGameObject
 {
 public:
-	~FUE4CVServer();
+	~FUnrealcvServer();
 
 	/** Send a string message to connected clients */
 	void SendClientMessage(FString Message);
 
 
 	/** Get the singleton */
-	static FUE4CVServer& Get();
+	static FUnrealcvServer& Get();
 
 	/** The CommandDispatcher to handle a pending request */
 	TSharedPtr<FCommandDispatcher> CommandDispatcher;
@@ -56,7 +56,7 @@ public:
 	/** Return the Pawn of this game */
 	APawn* GetPawn();
 
-	/** Implement ticking function of UE4CVServer itself */
+	/** Implement ticking function of UnrealcvServer itself */
 	virtual void Tick(float DeltaTime) override;
 
 	virtual bool IsTickable() const{
@@ -70,12 +70,12 @@ public:
 
 	virtual TStatId GetStatId() const
 	{
-		RETURN_QUICK_DECLARE_CYCLE_STAT( FUE4CVServer, STATGROUP_Tickables );
+		RETURN_QUICK_DECLARE_CYCLE_STAT( FUnrealcvServer, STATGROUP_Tickables );
 	}
 
 	void RegisterCommandHandlers();
 
-	/** Make sure UE4CVServer correctly initialized itself in the GameWorld */
+	/** Make sure UnrealcvServer correctly initialized itself in the GameWorld */
 	// bool InitWorld();
 
 	/** Return the GameWorld of the editor or of the game */
@@ -87,14 +87,14 @@ public:
 	/** Open new level */
 	// void OpenLevel(FName LevelName);
 
-	/** The config of UE4CVServer */
+	/** The config of UnrealcvServer */
 	FServerConfig Config;
 
 	/** The underlying class to handle network connection, ip and port are configured here */
 	UNetworkManager* NetworkManager;
 
 	/** A controller to control the UE4 world */
-	TWeakObjectPtr<AUE4CVWorldController> WorldController;
+	TWeakObjectPtr<AUnrealcvWorldController> WorldController;
 private:
 	/** Handlers for UnrealCV commands */
 	TArray<FCommandHandler*> CommandHandlers;
@@ -108,7 +108,7 @@ private:
 	bool bIsTicking = true;
 
 	/** Construct a server */
-	FUE4CVServer();
+	FUnrealcvServer();
 
 	/** Store pending requests, A new request will be stored here and be processed in the next tick of GameThread */
 	TQueue<FRequest, EQueueMode::Spsc> PendingRequest; // TQueue is a thread safe implementation

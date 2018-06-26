@@ -96,7 +96,7 @@ void FObjectCommandHandler::RegisterCommands()
 AActor* GetActor(const TArray<FString>& Args)
 {
 	FString ActorId = Args[0];
-	AActor* Actor = GetActorById(FUE4CVServer::Get().GetGameWorld(), ActorId);
+	AActor* Actor = GetActorById(FUnrealcvServer::Get().GetGameWorld(), ActorId);
 	return Actor;
 }
 

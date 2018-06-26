@@ -1,5 +1,5 @@
 // Weichao Qiu @ 2017
-#include "UE4CVWorldController.h"
+#include "UnrealcvWorldController.h"
 
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/GameFramework/Pawn.h"
@@ -7,11 +7,11 @@
 
 #include "Sensor/CameraSensor/PawnCamSensor.h"
 #include "VisionBP.h"
-#include "UE4CVServer.h"
+#include "UnrealcvServer.h"
 #include "PlayerViewMode.h"
 #include "UnrealcvLog.h"
 
-AUE4CVWorldController::AUE4CVWorldController(const FObjectInitializer& ObjectInitializer)
+AUnrealcvWorldController::AUnrealcvWorldController(const FObjectInitializer& ObjectInitializer)
 {
 	PlayerViewMode = CreateDefaultSubobject<UPlayerViewMode>(TEXT("PlayerViewMode"));
 }
@@ -23,13 +23,13 @@ void AttachPawnSensor(APawn* Pawn)
 		UE_LOG(LogUnrealCV, Warning, TEXT("The pawn is invalid, can not attach a PawnSensor to it."));
 		return;
 	}
-	ScreenLog("Attach a UE4CVSensor to the pawn");
+	ScreenLog("Attach a UnrealcvSensor to the pawn");
 	// Make sure this is the first one.
 	UPawnCamSensor* PawnCamSensor = NewObject<UPawnCamSensor>(Pawn, TEXT("PawnSensor")); // Make Pawn as the owner of the component
 	// UFusionCamSensor* FusionCamSensor = ConstructObject<UFusionCamSensor>(UFusionCamSensor::StaticClass(), Pawn);
 
-	UWorld *PawnWorld = Pawn->GetWorld(), *GameWorld = FUE4CVServer::Get().GetGameWorld();
-	// check(Pawn->GetWorld() == FUE4CVServer::GetGameWorld());
+	UWorld *PawnWorld = Pawn->GetWorld(), *GameWorld = FUnrealcvServer::Get().GetGameWorld();
+	// check(Pawn->GetWorld() == FUnrealcvServer::GetGameWorld());
 	check(PawnWorld == GameWorld);
 	PawnCamSensor->AttachToComponent(Pawn->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	// AActor* OwnerActor = FusionCamSensor->GetOwner();
@@ -38,12 +38,12 @@ void AttachPawnSensor(APawn* Pawn)
 
 
 
-void AUE4CVWorldController::BeginPlay()
+void AUnrealcvWorldController::BeginPlay()
 {
 	ScreenLog("Overwrite the world setting with some UnrealCV extensions");
 
-	FUE4CVServer& UE4CVServer = FUE4CVServer::Get();
-	if (UE4CVServer.NetworkManager && !UE4CVServer.NetworkManager->IsListening())
+	FUnrealcvServer& UnrealcvServer = FUnrealcvServer::Get();
+	if (UnrealcvServer.NetworkManager && !UnrealcvServer.NetworkManager->IsListening())
 	{
 		ScreenLog("The tcp server is not running");
 	}
@@ -51,7 +51,7 @@ void AUE4CVWorldController::BeginPlay()
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 	check(PlayerController);
 	APawn* Pawn = PlayerController->GetPawn();
-	FUE4CVServer& Server = FUE4CVServer::Get();
+	FUnrealcvServer& Server = FUnrealcvServer::Get();
 	if (IsValid(Pawn))
 	{
 		AttachPawnSensor(Pawn);
@@ -76,7 +76,7 @@ void AUE4CVWorldController::BeginPlay()
 
 
 
-void AUE4CVWorldController::OpenLevel(FName LevelName)
+void AUnrealcvWorldController::OpenLevel(FName LevelName)
 {
 	UWorld* World = GetWorld();
 	if (!World) return;

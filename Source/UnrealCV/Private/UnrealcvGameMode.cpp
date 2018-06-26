@@ -1,51 +1,51 @@
 // Weichao Qiu @ 2016
-#include "UE4CVGameMode.h"
+#include "UnrealcvGameMode.h"
 #include <string>
 #include "ImageUtils.h"
-#include "UE4CVServer.h"
+#include "UnrealcvServer.h"
 #include "UnrealcvLog.h"
 
-AUE4CVGameMode::AUE4CVGameMode()
+AUnrealcvGameMode::AUnrealcvGameMode()
 {
-	DefaultPawnClass = AUE4CVPawn::StaticClass();
+	DefaultPawnClass = AUnrealcvPawn::StaticClass();
 }
 
 // TODO: Remove the requirement of modifying pawn
 /**
-  * UE4CVCharacter acts like a walking human
+  * UnrealcvCharacter acts like a walking human
   */
-AUE4CVCharacter::AUE4CVCharacter()
+AUnrealcvCharacter::AUnrealcvCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-void AUE4CVCharacter::BeginPlay()
+void AUnrealcvCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-void AUE4CVCharacter::Tick( float DeltaTime )
+void AUnrealcvCharacter::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 }
 
-void AUE4CVCharacter::SetupPlayerInputComponent(class UInputComponent* InInputComponent)
+void AUnrealcvCharacter::SetupPlayerInputComponent(class UInputComponent* InInputComponent)
 {
 	Super::SetupPlayerInputComponent(InInputComponent);
 
 	check(InputComponent);
 
-	InputComponent->BindAxis("MoveForward", this, &AUE4CVCharacter::MoveForward);
-	InputComponent->BindAxis("MoveRight", this, &AUE4CVCharacter::MoveRight);
+	InputComponent->BindAxis("MoveForward", this, &AUnrealcvCharacter::MoveForward);
+	InputComponent->BindAxis("MoveRight", this, &AUnrealcvCharacter::MoveRight);
 
 	// Handle Mouse Input
 	InputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	InputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 
-	InputComponent->BindAction("Fire", IE_Pressed, this, &AUE4CVCharacter::OnFire);
+	InputComponent->BindAction("Fire", IE_Pressed, this, &AUnrealcvCharacter::OnFire);
 }
 
-void AUE4CVCharacter::MoveForward(float Value)
+void AUnrealcvCharacter::MoveForward(float Value)
 {
 	if (Value != 0.0f)
 	{
@@ -53,7 +53,7 @@ void AUE4CVCharacter::MoveForward(float Value)
 	}
 }
 
-void AUE4CVCharacter::MoveRight(float Value)
+void AUnrealcvCharacter::MoveRight(float Value)
 {
 	if (Value != 0.0f)
 	{
@@ -61,18 +61,18 @@ void AUE4CVCharacter::MoveRight(float Value)
 	}
 }
 
-void AUE4CVCharacter::OnFire()
+void AUnrealcvCharacter::OnFire()
 {
 	// Send a message to notify client an event just happened
-	FUE4CVServer::Get().SendClientMessage("clicked");
+	FUnrealcvServer::Get().SendClientMessage("clicked");
 	UE_LOG(LogUnrealCV, Warning, TEXT("Mouse Clicked"));
 }
 
 
 /**
- * UE4CVPawn can move freely in the 3D space
+ * UnrealcvPawn can move freely in the 3D space
  */
-AUE4CVPawn::AUE4CVPawn()
+AUnrealcvPawn::AUnrealcvPawn()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -81,29 +81,29 @@ AUE4CVPawn::AUE4CVPawn()
 	// this->CollisionComponent->SetSphereRadius(1.0f);
 }
 
-void AUE4CVPawn::BeginPlay()
+void AUnrealcvPawn::BeginPlay()
 {
 	Super::BeginPlay();
 }
 
-void AUE4CVPawn::Tick( float DeltaTime )
+void AUnrealcvPawn::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
-	// FUE4CVServer::Get().ProcessPendingRequest();
+	// FUnrealcvServer::Get().ProcessPendingRequest();
 	FRotator ControlRotation = this->Controller->GetControlRotation();
 	this->SetActorRotation(ControlRotation);
 }
 
-void AUE4CVPawn::SetupPlayerInputComponent(class UInputComponent* InInputComponent)
+void AUnrealcvPawn::SetupPlayerInputComponent(class UInputComponent* InInputComponent)
 {
 	Super::SetupPlayerInputComponent(InInputComponent);
 
-	InputComponent->BindKey(FKey("LeftMouseButton"), IE_Pressed, this, &AUE4CVPawn::OnFire);
+	InputComponent->BindKey(FKey("LeftMouseButton"), IE_Pressed, this, &AUnrealcvPawn::OnFire);
 }
 
-void AUE4CVPawn::OnFire()
+void AUnrealcvPawn::OnFire()
 {
 	// Send a message to notify client an event just happened
-	FUE4CVServer::Get().SendClientMessage("clicked");
+	FUnrealcvServer::Get().SendClientMessage("clicked");
 	UE_LOG(LogUnrealCV, Warning, TEXT("Mouse Clicked"));
 }

@@ -4,7 +4,7 @@
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "Runtime/ImageWrapper/Public/IImageWrapperModule.h"
 
-#include "UE4CVServer.h"
+#include "UnrealcvServer.h"
 #include "ImageUtils.h"
 
 /** Sync operation for screen capture */
@@ -190,7 +190,7 @@ FExecStatus ScreenCaptureSync(const FString& FullFilename)
 	// Warning: This can only work within editor
 	// Reimplement a GameViewportClient is required according to the discussion from here
 	// https://forums.unrealengine.com/showthread.php?50857-FViewPort-ReadPixels-crash-while-play-on-quot-standalone-Game-quot-mode
-	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	UWorld* World = FUnrealcvServer::Get().GetGameWorld();
 	UGameViewportClient* ViewportClient = World->GetGameViewport();
 	if (CaptureWithSync(ViewportClient, FullFilename))
 	{

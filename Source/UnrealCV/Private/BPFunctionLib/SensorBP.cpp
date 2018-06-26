@@ -1,6 +1,6 @@
 // Weichao Qiu @ 2018
 #include "SensorBP.h"
-#include "UE4CVServer.h"
+#include "UnrealcvServer.h"
 #include "FusionCamSensor.h"
 #include "Runtime/Engine/Classes/GameFramework/Pawn.h"
 #include "Runtime/CoreUObject/Public/UObject/UObjectHash.h"
@@ -9,10 +9,10 @@ TArray<UFusionCamSensor*> USensorBP::GetFusionSensorList()
 {
 	TArray<UFusionCamSensor*> SensorList;
 
-	UWorld* World = FUE4CVServer::Get().GetGameWorld();
+	UWorld* World = FUnrealcvServer::Get().GetGameWorld();
 	if (!World) return SensorList;
 
-	TArray<UActorComponent*> PawnComponents =  FUE4CVServer::Get().GetPawn()->GetComponentsByClass(UFusionCamSensor::StaticClass());
+	TArray<UActorComponent*> PawnComponents =  FUnrealcvServer::Get().GetPawn()->GetComponentsByClass(UFusionCamSensor::StaticClass());
 	// Make sure the one attached to the pawn is the first one.
 	for (UActorComponent* FusionCamSensor : PawnComponents)
 	{
