@@ -3,13 +3,14 @@
 #include "CommandDispatcher.h"
 #include "Runtime/Engine/Classes/Engine/PostProcessVolume.h"
 #include "Runtime/Engine/Public/ShowFlags.h"
+#include "Runtime/Engine/Classes/Materials/Material.h"
 #include "PlayerViewMode.generated.h"
 
 /**
  * Define different ViewModes of the scene
  * Provide functions for vset /viewmode
  */
-UCLASS()
+UCLASS() 
 class UNREALCV_API UPlayerViewMode : public UObject
 {
 	GENERATED_BODY()
