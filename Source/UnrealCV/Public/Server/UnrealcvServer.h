@@ -1,9 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// Weichao Qiu @ 2016
 #pragma once
 
+#include "Runtime/Engine/Public/Tickable.h"
+#include "Runtime/Core/Public/Containers/Queue.h"
 #include "TcpServer.h"
-#include "Tickable.h"
 #include "ServerConfig.h"
 #include "Controller/UnrealcvWorldController.h"
 
@@ -91,7 +91,7 @@ public:
 	FServerConfig Config;
 
 	/** The underlying class to handle network connection, ip and port are configured here */
-	UNetworkManager* NetworkManager;
+	UTcpServer* NetworkManager;
 
 	/** A controller to control the UE4 world */
 	TWeakObjectPtr<AUnrealcvWorldController> WorldController;

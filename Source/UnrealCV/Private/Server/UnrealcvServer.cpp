@@ -1,6 +1,7 @@
 // Weichao Qiu @ 2016
 #include "UnrealcvServer.h"
 #include "Runtime/Engine/Classes/Engine/GameEngine.h"
+#include "Runtime/Core/Public/Internationalization/Regex.h"
 #include "Controller/PlayerViewMode.h"
 #include "ConsoleHelper.h"
 #include "ObjectPainter.h"
@@ -80,7 +81,7 @@ void FUnrealcvServer::RegisterCommandHandlers()
 FUnrealcvServer::FUnrealcvServer()
 {
 	// Code defined here should not use FUnrealcvServer::Get();
-	NetworkManager = NewObject<UNetworkManager>();
+	NetworkManager = NewObject<UTcpServer>();
 	CommandDispatcher = TSharedPtr<FCommandDispatcher>(new FCommandDispatcher());
 	FConsoleHelper::Get().SetCommandDispatcher(CommandDispatcher);
 

@@ -2,7 +2,8 @@
 #pragma once
 
 #include "CommandDispatcher.h"
-#include "EngineUtils.h"
+#include "Runtime/Engine/Public/EngineUtils.h"
+
 /**
  * Helper class to bind UnrealCV commands to Unreal Engine console
  */

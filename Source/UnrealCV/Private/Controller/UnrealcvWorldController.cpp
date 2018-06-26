@@ -4,6 +4,7 @@
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/GameFramework/Pawn.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
+#include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
 
 #include "Sensor/CameraSensor/PawnCamSensor.h"
 #include "VisionBP.h"

@@ -1,4 +1,6 @@
+// Weichao Qiu @ 2016
 #pragma once
+
 #include "CommandDispatcher.h"
 #include "UnrealcvServer.h"
 

@@ -1,5 +1,6 @@
 // Weichao Qiu @ 2018
 #pragma once
+
 #include "Runtime/Engine/Classes/Kismet/BlueprintFunctionLibrary.h"
 #include "AnimationBP.generated.h"
 

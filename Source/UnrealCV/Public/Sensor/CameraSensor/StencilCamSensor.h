@@ -1,5 +1,6 @@
 // Weichao Qiu @ 2017
 #pragma once
+
 #include "BaseCameraSensor.h"
 #include "StencilCamSensor.generated.h"
 

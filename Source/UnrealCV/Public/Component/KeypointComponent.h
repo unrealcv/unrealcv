@@ -84,5 +84,5 @@ private:
 
 	TArray<FKeypoint> Keypoints;
 
-	TArray<FKeypoint> LoadKeypointFromJson(FString JsonFilename);
+	TArray<FKeypoint> LoadKeypointFromJson();
 };

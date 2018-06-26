@@ -5,6 +5,8 @@
 #include "Runtime/Engine/Classes/Engine/StaticMesh.h"
 #include "Runtime/Engine/Public/SkeletalRenderPublic.h"
 #include "Runtime/Launch/Resources/Version.h"
+#include "Runtime/Core/Public/Misc/FileHelper.h"
+
 #include "ImageUtil.h"
 #include "UnrealcvServer.h"
 #include "Serialization.h"

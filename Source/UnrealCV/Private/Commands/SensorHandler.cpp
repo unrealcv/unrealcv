@@ -3,6 +3,8 @@
 #include "SensorHandler.h"
 #include "Runtime/Engine/Classes/GameFramework/Pawn.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
+#include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
+
 #include "CommandDispatcher.h"
 #include "FusionCamSensor.h"
 #include "Serialization.h"
@@ -10,6 +12,7 @@
 #include "SensorBP.h"
 #include "Controller/PlayerViewMode.h"
 #include "Controller/UnrealcvWorldController.h"
+#include "ImageUtil.h"
 
 enum EFilenameType
 {

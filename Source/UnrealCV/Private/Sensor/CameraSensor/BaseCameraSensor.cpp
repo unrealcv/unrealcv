@@ -7,12 +7,13 @@
 #include "UnrealcvServer.h"
 #include "UnrealcvStats.h"
 #include "UnrealcvLog.h"
+#include "ImageUtil.h"
 
 DECLARE_CYCLE_STAT(TEXT("ReadBuffer"), STAT_ReadBuffer, STATGROUP_UnrealCV);
 DECLARE_CYCLE_STAT(TEXT("ReadBufferFast"), STAT_ReadBufferFast, STATGROUP_UnrealCV);
 // DECLARE_CYCLE_STAT(TEXT("ReadPixels"), STAT_ReadPixels, STATGROUP_UnrealCV);
 
-FImageWorker UBaseCameraSensor::ImageWorker;
+// FImageWorker UBaseCameraSensor::ImageWorker;
 
 UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -108,6 +109,7 @@ void UBaseCameraSensor::CaptureFast(TArray<FColor>& ImageData, int& Width, int& 
 
 void UBaseCameraSensor::CaptureToFile(const FString& Filename)
 {
+	/** Provide funtions to convert image format and save file */
 	auto Callback = [=](FColor* ColorBuffer, int Width, int Height)
 	{
 		// Initialize the image data array
@@ -124,6 +126,7 @@ void UBaseCameraSensor::CaptureToFile(const FString& Filename)
 
 		// ImageWorker.SaveFile(Dest, Width, Height, Filename);
 		// ImageUtil.SaveBmpFile(Dest, Width, Height, FString::Printf(TEXT("%s_%d.bmp"), *Filename, GFrameNumber));
+		FImageUtil ImageUtil;
 		ImageUtil.SaveBmpFile(Dest, Width, Height, Filename);
 	};
 	this->CaptureScene();

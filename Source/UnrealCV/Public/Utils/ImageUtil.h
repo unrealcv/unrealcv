@@ -1,7 +1,8 @@
+// Weichao Qiu @ 2016
 #pragma once
 
-#include "IImageWrapper.h"
-#include "IImageWrapperModule.h"
+#include "Runtime/ImageWrapper/Public/IImageWrapper.h"
+#include "Runtime/ImageWrapper/Public/IImageWrapperModule.h"
 #include "Runtime/Core/Public/Modules/ModuleManager.h"
 
 class UNREALCV_API FImageUtil

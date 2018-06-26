@@ -1,3 +1,4 @@
+// Weichao Qiu @ 2016
 #pragma once
 
 #include "CoreMinimal.h"

@@ -1,6 +1,8 @@
 // Weichao @ 2017
 #pragma once
+
 #include "ImageUtil.h"
+#include "Runtime/Core/Public/Math/Color.h"
 #include "Runtime/Core/Public/HAL/Runnable.h"
 #include "Runtime/Core/Public/Containers/Queue.h"
 

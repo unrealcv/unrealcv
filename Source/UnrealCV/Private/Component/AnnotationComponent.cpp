@@ -222,18 +222,20 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy()
 	AnnotationMID->SetVectorParameterValue("AnnotationColor", LinearAnnotationColor);
 
 	USceneComponent* Parent = this->GetAttachParent();
-	StaticMeshComponent = Cast<UStaticMeshComponent>(Parent);
-	SkeletalMeshComponent = Cast<USkeletalMeshComponent>(Parent);
+	UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(Parent);
+	USkeletalMeshComponent* SkeletalMeshComponent = Cast<USkeletalMeshComponent>(Parent);
+	// StaticMeshComponent = Cast<UStaticMeshComponent>(Parent);
+	// SkeletalMeshComponent = Cast<USkeletalMeshComponent>(Parent);
 
 	if (IsValid(StaticMeshComponent))
 	{
 		// FPrimitiveSceneProxy* PrimitiveSceneProxy = StaticMeshComponent->CreateSceneProxy();
 		// FStaticMeshSceneProxy* StaticMeshSceneProxy = (FStaticMeshSceneProxy*)PrimitiveSceneProxy;
 
-		UStaticMesh* StaticMesh = StaticMeshComponent->GetStaticMesh();
-		if(StaticMesh == NULL
-			|| StaticMesh->RenderData == NULL
-			|| StaticMesh->RenderData->LODResources.Num() == 0)
+		UStaticMesh* ParentStaticMesh = StaticMeshComponent->GetStaticMesh();
+		if(ParentStaticMesh == NULL
+			|| ParentStaticMesh->RenderData == NULL
+			|| ParentStaticMesh->RenderData->LODResources.Num() == 0)
 			// || StaticMesh->RenderData->LODResources[0].VertexBuffer.GetNumVertices() == 0)
 		{
 			return NULL;

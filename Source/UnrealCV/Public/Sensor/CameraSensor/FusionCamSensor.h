@@ -1,8 +1,6 @@
 // Weichao Qiu @ 2017
 #pragma once
 
-#include "BaseCameraSensor.h"
-#include "LitCamSensor.h"
 #include "Runtime/Engine/Classes/Components/PrimitiveComponent.h"
 #include "FusionCamSensor.generated.h"
 
@@ -115,10 +113,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	float GetFilmWidth();
 
-
 private:
-	FImageUtil ImageUtil;
-
 	UPROPERTY()
-	TArray<UBaseCameraSensor*> FusionSensors;
+	TArray<class UBaseCameraSensor*> FusionSensors;
 };

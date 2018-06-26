@@ -25,7 +25,7 @@ void UKeypointComponent::OnRegister()
 void UKeypointComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	this->Keypoints = LoadKeypointFromJson(this->JsonFilename);
+	this->Keypoints = LoadKeypointFromJson();
 
 	if (bMatchNearestVertex)
 	{
@@ -54,7 +54,7 @@ void UKeypointComponent::MatchNearestVertex()
 			TArray<FVector> VertexArray = UVisionBP::GetVertexArrayFromMeshComponent(MeshComponent);
 
 			double MinDistance = 10e10;
-			int VertexIndex;
+			int VertexIndex = -1;
 			for (int i = 0; i < VertexArray.Num(); i++)
 			{
 				FVector Vertex = VertexArray[i];
@@ -77,7 +77,7 @@ void UKeypointComponent::MatchNearestVertex()
 	}
 }
 
-TArray<FKeypoint> UKeypointComponent::LoadKeypointFromJson(FString JsonFilename)
+TArray<FKeypoint> UKeypointComponent::LoadKeypointFromJson()
 {
 	TArray<FKeypoint> Points;
 	if (JsonFilename.IsEmpty())

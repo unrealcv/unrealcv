@@ -1,6 +1,8 @@
 // Weichao Qiu @ 2018
 #include "TestActor.h"
+#include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
 #include "Runtime/Engine/Public/EngineUtils.h"
+
 #include "FusionCamSensor.h"
 #include "Controller/ObjectAnnotator.h"
 #include "UnrealcvServer.h"

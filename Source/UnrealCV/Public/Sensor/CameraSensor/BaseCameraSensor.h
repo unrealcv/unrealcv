@@ -7,8 +7,6 @@
 #include "Runtime/Engine/Classes/Materials/Material.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 
-#include "ImageUtil.h"
-#include "ImageWorker.h"
 #include "BaseCameraSensor.generated.h"
 
 /**
@@ -95,12 +93,10 @@ public:
 	void GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView);
 
 protected:
-	/** Provide funtions to convert image format and save file */
-	FImageUtil ImageUtil;
 
 	/** Image manipulation on the background, share one worker */
 	// static FImageWorker ImageWorker;
-	static FImageWorker ImageWorker;
+	// static FImageWorker ImageWorker;
 
 private:
 

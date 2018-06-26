@@ -1,5 +1,6 @@
 // Weichao Qiu @ 2018
 #pragma once
+
 #include "Runtime/Json/Public/Dom/JsonObject.h"
 #include "Runtime/Engine/Classes/Kismet/BlueprintFunctionLibrary.h"
 #include "SerializeBP.generated.h"

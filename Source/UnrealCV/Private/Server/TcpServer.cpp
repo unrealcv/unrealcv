@@ -1,5 +1,7 @@
 // Weichao Qiu @ 2016
 #include "TcpServer.h"
+#include "Runtime/Core/Public/Serialization/BufferArchive.h"
+#include "Runtime/Core/Public/Serialization/MemoryReader.h"
 #include <string>
 #include "UnrealcvLog.h"
 #include "UnrealcvShim.h"
@@ -170,13 +172,13 @@ void BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray
 }
 
 
-bool UNetworkManager::IsConnected()
+bool UTcpServer::IsConnected()
 {
 	return (this->ConnectionSocket != nullptr);
 }
 
 /* Provide a dummy echo service to echo received data back for development purpose */
-bool UNetworkManager::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
+bool UTcpServer::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
 	if (!this->ConnectionSocket) // Only maintain one active connection, So just reuse the TCPListener thread.
 	{
@@ -216,7 +218,7 @@ bool UNetworkManager::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoin
   * Start message service in listening thread
   * TODO: Start a new background thread to receive message
   */
-bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
+bool UTcpServer::StartMessageService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
 	if (!this->ConnectionSocket)
 	{
@@ -264,7 +266,7 @@ bool UNetworkManager::StartMessageService(FSocket* ClientSocket, const FIPv4Endp
 }
 
 /** Connected Handler */
-bool UNetworkManager::Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
+bool UTcpServer::Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
 	bool ServiceStatus = false;
 	BroadcastConnected(*ClientEndpoint.ToString());
@@ -275,7 +277,7 @@ bool UNetworkManager::Connected(FSocket* ClientSocket, const FIPv4Endpoint& Clie
 }
 
 
-bool UNetworkManager::Start(int32 InPortNum) // Restart the server if configuration changed
+bool UTcpServer::Start(int32 InPortNum) // Restart the server if configuration changed
 {
 	if (InPortNum == this->PortNum && this->bIsListening) return true; // Already started
 
@@ -316,7 +318,7 @@ bool UNetworkManager::Start(int32 InPortNum) // Restart the server if configurat
 	TcpListener = TSharedPtr<FTcpListener>(new FTcpListener(*ServerSocket));
 	// TcpListener = new FTcpListener(Endpoint); // This will be released after start
 	// In FSocket, when a FSocket is set as reusable, it means SO_REUSEADDR, not SO_REUSEPORT.  see SocketsBSD.cpp
-	TcpListener->OnConnectionAccepted().BindUObject(this, &UNetworkManager::Connected);
+	TcpListener->OnConnectionAccepted().BindUObject(this, &UTcpServer::Connected);
 	if (TcpListener->Init())
 	{
 		this->bIsListening = true;
@@ -331,7 +333,7 @@ bool UNetworkManager::Start(int32 InPortNum) // Restart the server if configurat
 	}
 }
 
-bool UNetworkManager::SendMessage(const FString& Message)
+bool UTcpServer::SendMessage(const FString& Message)
 {
 	if (ConnectionSocket)
 	{
@@ -345,7 +347,7 @@ bool UNetworkManager::SendMessage(const FString& Message)
 	return false;
 }
 
-bool UNetworkManager::SendData(const TArray<uint8>& Payload)
+bool UTcpServer::SendData(const TArray<uint8>& Payload)
 {
 	if (ConnectionSocket)
 	{
@@ -357,6 +359,6 @@ bool UNetworkManager::SendData(const TArray<uint8>& Payload)
 	return false;
 }
 
-UNetworkManager::~UNetworkManager()
+UTcpServer::~UTcpServer()
 {
 }

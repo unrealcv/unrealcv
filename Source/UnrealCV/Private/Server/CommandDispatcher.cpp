@@ -4,6 +4,7 @@
 #include "Runtime/Core/Public/HAL/RunnableThread.h"
 #include "Runtime/Core/Public/Async/Async.h"
 #include "Runtime/Core/Public/Containers/Queue.h"
+#include "Runtime/Core/Public/Internationalization/Regex.h"
 #include "UnrealcvStats.h"
 #include "UnrealcvLog.h"
 

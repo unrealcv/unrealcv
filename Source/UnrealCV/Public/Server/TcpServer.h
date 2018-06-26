@@ -1,10 +1,11 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// Weichao Qiu @ 2016
 #pragma once
 
-#include "Object.h"
-#include "Networking.h"
-#include "NetworkMessage.h"
+#include "Runtime/Sockets/Public/Sockets.h"
+#include "Runtime/Networking/Public/Common/TcpListener.h"
+#include "Runtime/Networking/Public/Interfaces/IPv4/IPv4Endpoint.h"
+#include "Runtime/Core/Public/Serialization/ArrayReader.h"
+
 #include "TcpServer.generated.h"
 
 /**
@@ -32,15 +33,15 @@ public:
 	static bool ReceivePayload(FArrayReader& OutPayload, FSocket* Socket, bool* unknown_error);
 };
 
-DECLARE_EVENT_OneParam(UNetworkManager, FReceivedEvent, const FString&)
-DECLARE_EVENT_OneParam(UNetworkManager, FErrorEvent, const FString&)
-DECLARE_EVENT_OneParam(UNetworkManager, FConnectedEvent, const FString&)
+DECLARE_EVENT_OneParam(UTcpServer, FReceivedEvent, const FString&)
+DECLARE_EVENT_OneParam(UTcpServer, FErrorEvent, const FString&)
+DECLARE_EVENT_OneParam(UTcpServer, FConnectedEvent, const FString&)
 
 /**
  * Server to send and receive message
  */
 UCLASS()
-class UNREALCV_API UNetworkManager : public UObject
+class UNREALCV_API UTcpServer : public UObject
 // NetworkManager needs to be an UObject, so that we can bind ip and port to UI.
 {
 	GENERATED_BODY()
@@ -88,7 +89,7 @@ private:
 	/** TcpListener used to listen new incoming connection */
 	TSharedPtr<FTcpListener> TcpListener;
 
-	~UNetworkManager();
+	~UTcpServer();
 
 	/** (Debug) Start a service that echo whatever it got, for debug purpose */
 	bool StartEchoService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
