@@ -10,9 +10,9 @@ using byte = unsigned char;
 namespace cnpy {
 
 /** from: http://www.cplusplus.com/forum/beginner/155821/ */
-template< typename T > std::vector<byte>  to_bytes(const T& object)
-{
-}
+// template< typename T > std::vector<byte>  to_bytes(const T& object)
+// {
+// }
 
 char BigEndianTest() {
 	unsigned char x[] = { 1,0 };
@@ -48,7 +48,7 @@ char BigEndianTest() {
 // }
 
 template<typename T>
-std::string tostring(T i, int pad = 0, char padval = ' ') {
+std::string tostring(T i) {
 	std::stringstream s;
 	s << i;
 	return s.str();
@@ -79,26 +79,27 @@ std::vector<char>& cnpy::operator+=(std::vector<char>& lhs, const char* rhs) {
 // 	for (int i = 0; i < ndims; i++) nels *= shape[i];
 // }
 
-char map_type(const double* data) { return 'f'; }
-char map_type(const float* data) { return 'f'; }
-char map_type(const long double* data) { return 'f'; }
+char map_type(const double* ) { return 'f'; }
+char map_type(const float* ) { return 'f'; }
+char map_type(const long double* ) { return 'f'; }
 
-char map_type(const int* data) { return 'i'; }
-char map_type(const char* data) { return 'i'; }
-char map_type(const short* data) { return 'i'; }
-char map_type(const long* data) { return 'i'; }
-char map_type(const long long* data) { return 'i'; }
+char map_type(const int* ) { return 'i'; }
+char map_type(const char* ) { return 'i'; }
+char map_type(const short* ) { return 'i'; }
+char map_type(const long* ) { return 'i'; }
+char map_type(const long long* ) { return 'i'; }
 
-char map_type(const unsigned int* data) { return 'u'; }
-char map_type(const unsigned char* data) { return 'u'; }
-char map_type(const unsigned short* data) { return 'u'; }
-char map_type(const unsigned long* data) { return 'u'; }
-char map_type(const unsigned long long* data) { return 'u'; }
+char map_type(const unsigned int* ) { return 'u'; }
+char map_type(const unsigned char* ) { return 'u'; }
+char map_type(const unsigned short* ) { return 'u'; }
+char map_type(const unsigned long* ) { return 'u'; }
+char map_type(const unsigned long long* ) { return 'u'; }
 
-char map_type(const bool* data) { return 'b'; }
+char map_type(const bool* ) { return 'b'; }
 
 /** data is mainly used for determining T */
-template<typename T> std::vector<char> cnpy::create_npy_header(const T* data, const std::vector<int> shape)
+template<typename T> 
+std::vector<char> cnpy::create_npy_header(const T* data, const std::vector<int> shape)
 {
 	std::vector<char> dict;
 	dict += "{'descr': '";
@@ -109,7 +110,7 @@ template<typename T> std::vector<char> cnpy::create_npy_header(const T* data, co
 	dict += "', 'fortran_order': False, 'shape': (";
 	dict += tostring(shape[0]);
 
-	int ndims = shape.size();
+	size_t ndims = shape.size();
 	for (int i = 1; i < ndims; i++) {
 		dict += ", ";
 		dict += tostring(shape[i]);

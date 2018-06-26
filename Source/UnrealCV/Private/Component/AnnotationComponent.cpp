@@ -309,7 +309,6 @@ FBoxSphereBounds UAnnotationComponent::CalcBounds(const FTransform & LocalToWorl
 	UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(Parent);
 	USkeletalMeshComponent* SkeletalMeshComponent = Cast<USkeletalMeshComponent>(Parent);
 
-	FBoxSphereBounds Bounds;
 	if (IsValid(StaticMeshComponent))
 	{
 		return StaticMeshComponent->CalcBounds(LocalToWorld);
@@ -320,5 +319,6 @@ FBoxSphereBounds UAnnotationComponent::CalcBounds(const FTransform & LocalToWorl
 		return SkeletalMeshComponent->CalcBounds(LocalToWorld);
 	}
 
-	return Bounds;
+	FBoxSphereBounds DefaultBounds;
+	return DefaultBounds;
 }
