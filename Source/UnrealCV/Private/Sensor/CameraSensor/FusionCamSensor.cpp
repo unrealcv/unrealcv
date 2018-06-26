@@ -1,9 +1,9 @@
 // Weichao Qiu @ 2018
 #include "FusionCamSensor.h"
-#include "UnrealCVPrivate.h"
+#include "Runtime/Engine/Classes/Camera/CameraComponent.h"
 #include "ImageUtil.h"
 #include "Serialization.h"
-#include "Runtime/Engine/Classes/Camera/CameraComponent.h"
+#include "UnrealcvLog.h"
 
 // Sensors included in FusionSensor
 #include "LitCamSensor.h"

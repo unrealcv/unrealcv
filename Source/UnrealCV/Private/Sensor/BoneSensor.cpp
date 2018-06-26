@@ -1,6 +1,4 @@
 #include "BoneSensor.h"
-#include "UnrealCVPrivate.h"
-// #include "SkeletalMeshComponent.h"
 #include "Runtime/Engine/Public/BoneIndices.h"
 #include "Runtime/Engine/Classes/Engine/SkeletalMesh.h"
 #include "Runtime/Engine/Classes/Components/SkeletalMeshComponent.h"

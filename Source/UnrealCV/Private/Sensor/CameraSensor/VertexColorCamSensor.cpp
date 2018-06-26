@@ -1,7 +1,4 @@
 #include "VertexColorCamSensor.h"
-#include "UnrealCVPrivate.h"
-#include "EngineModule.h"
-#include "PrimitiveSceneInfo.h"
 
 UVertexColorCamSensor::UVertexColorCamSensor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {

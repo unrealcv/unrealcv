@@ -9,15 +9,15 @@
 UCLASS(meta = (BlueprintSpawnableComponent))
 class UNormalCamSensor : public UBaseCameraSensor
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
-    UNormalCamSensor(const FObjectInitializer& ObjectInitializer);
+	UNormalCamSensor(const FObjectInitializer& ObjectInitializer);
 
-    virtual void OnRegister() override;
+	virtual void OnRegister() override;
 
 private:
-    /** Post process material to extract surface normal data */
-    UPROPERTY()
-    UMaterial* SurfaceNormalPPMaterial;
+	/** Post process material to extract surface normal data */
+	UPROPERTY()
+	UMaterial* SurfaceNormalPPMaterial;
 };

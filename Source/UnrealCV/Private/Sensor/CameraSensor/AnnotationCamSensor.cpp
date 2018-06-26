@@ -1,10 +1,10 @@
 // Weichao Qiu @ 2017
 #include "AnnotationCamSensor.h"
-#include "UnrealCVPrivate.h"
-#include "AnnotationComponent.h"
 #include "Runtime/Engine/Classes/Engine/TextureRenderTarget2D.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "Runtime/CoreUObject/Public/UObject/UObjectHash.h"
+#include "AnnotationComponent.h"
+#include "UnrealcvLog.h"
 
 UAnnotationCamSensor::UAnnotationCamSensor(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer)

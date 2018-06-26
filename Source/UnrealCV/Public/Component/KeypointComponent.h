@@ -1,8 +1,8 @@
 // Weichao Qiu @ 2018
 #pragma once
 
-#include "SerializeBP.h"
 #include "Runtime/Engine/Classes/Components/MeshComponent.h"
+#include "SerializeBP.h"
 #include "KeypointComponent.generated.h"
 
 struct FMatchedVertexInfo

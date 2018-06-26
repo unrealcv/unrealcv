@@ -1,7 +1,5 @@
 // Weichao Qiu @ 2018
 #include "SerializeBP.h"
-#include "UnrealCVPrivate.h"
-#include "JsonObject.h"
 #include "Runtime/Json/Public/Serialization/JsonSerializer.h"
 
 FJsonObjectBP::FJsonObjectBP(const TArray<FString>& Keys, const TArray<FString>& Values)

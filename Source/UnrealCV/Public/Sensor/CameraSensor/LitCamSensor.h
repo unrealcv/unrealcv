@@ -8,14 +8,14 @@
 UCLASS(meta = (BlueprintSpawnableComponent))
 class ULitCamSensor : public UBaseCameraSensor
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
-    ULitCamSensor(const FObjectInitializer& ObjectInitializer);
+	ULitCamSensor(const FObjectInitializer& ObjectInitializer);
 
-    virtual void OnRegister() override;
+	virtual void OnRegister() override;
 
 private:
-    UPROPERTY()
-    UMaterial* LitPPMaterial;
+	UPROPERTY()
+	UMaterial* LitPPMaterial;
 };

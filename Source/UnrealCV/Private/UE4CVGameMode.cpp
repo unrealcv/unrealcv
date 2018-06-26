@@ -1,11 +1,9 @@
 // Weichao Qiu @ 2016
 #include "UE4CVGameMode.h"
-#include "UnrealCVPrivate.h"
-#include "StaticMeshResources.h"
-#include "Networking.h"
 #include <string>
 #include "ImageUtils.h"
 #include "UE4CVServer.h"
+#include "UnrealcvLog.h"
 
 AUE4CVGameMode::AUE4CVGameMode()
 {

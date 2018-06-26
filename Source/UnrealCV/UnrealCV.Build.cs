@@ -16,8 +16,6 @@ public class UnrealcvBuildConfig
 		PublicIncludePaths.AddRange(
 			new string[]
 			{
-				EnginePath + "Source/Runtime/Launch/Resources",
-				// To get Unreal Engine minor version
 			}
 		);
 

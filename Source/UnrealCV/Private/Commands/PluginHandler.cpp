@@ -1,8 +1,9 @@
 #include "PluginHandler.h"
-#include "UnrealCVPrivate.h"
-#include "IPluginManager.h"
-#include "UE4CVServer.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
+#include "Runtime/Projects/Public/Interfaces/IPluginManager.h"
+
+#include "UE4CVServer.h"
+#include "UnrealcvShim.h"
 
 FExecStatus FPluginCommandHandler::Echo(const TArray<FString>& Args)
 {

@@ -9,12 +9,12 @@
 UCLASS(meta = (BlueprintSpawnableComponent))
 class UAnnotationCamSensor : public UBaseCameraSensor
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
-    UAnnotationCamSensor(const FObjectInitializer& ObjectInitializer);
+	UAnnotationCamSensor(const FObjectInitializer& ObjectInitializer);
 
-    virtual void OnRegister() override;
+	virtual void OnRegister() override;
 
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * T);
 

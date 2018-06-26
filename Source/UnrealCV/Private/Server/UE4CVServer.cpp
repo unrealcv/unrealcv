@@ -1,6 +1,6 @@
 // Weichao Qiu @ 2016
 #include "UE4CVServer.h"
-#include "UnrealCVPrivate.h"
+#include "Runtime/Engine/Classes/Engine/GameEngine.h"
 #include "Controller/PlayerViewMode.h"
 #include "ConsoleHelper.h"
 #include "ObjectPainter.h"
@@ -9,7 +9,7 @@
 #include "Commands/ActionHandler.h"
 #include "Commands/AliasHandler.h"
 #include "Commands/SensorHandler.h"
-#include "Runtime/Engine/Classes/Engine/GameEngine.h"
+#include "UnrealcvLog.h"
 
 void FUE4CVServer::Tick(float DeltaTime)
 {

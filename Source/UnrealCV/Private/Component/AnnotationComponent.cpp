@@ -1,10 +1,12 @@
 #include "AnnotationComponent.h"
-#include "UnrealCVPrivate.h"
-#include "SkeletalMeshTypes.h"
+#include "Runtime/Engine/Public/SkeletalMeshTypes.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "Runtime/Engine/Classes/Materials/MaterialInstanceDynamic.h"
 #include "Runtime/Engine/Classes/Engine/StaticMesh.h"
 #include "Runtime/Engine/Classes/Components/SkeletalMeshComponent.h"
+#include "Runtime/Launch/Resources/Version.h"
+
+#include "UnrealcvLog.h"
 
 #if ENGINE_MINOR_VERSION >= 19
 #include "SkeletalMeshRenderData.h"

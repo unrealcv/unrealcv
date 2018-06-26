@@ -1,18 +1,17 @@
 #include "PlayerViewMode.h"
-#include "UnrealCVPrivate.h"
-#include "BufferVisualizationData.h"
-#include "CommandDispatcher.h"
-#include "Async.h"
-#include "SceneViewport.h"
-#include "ViewMode.h"
-#include "ObjectPainter.h"
-#include "UE4CVServer.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "Runtime/Engine/Classes/Components/StaticMeshComponent.h"
 #include "Runtime/Engine/Public/EngineUtils.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "Runtime/Engine/Classes/Materials/Material.h"
 #include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
+#include "Runtime/Engine/Public/BufferVisualizationData.h"
+
+#include "CommandDispatcher.h"
+#include "ViewMode.h"
+#include "ObjectPainter.h"
+#include "UE4CVServer.h"
+#include "UnrealcvLog.h"
 
 DECLARE_DELEGATE(ViewModeFunc)
 

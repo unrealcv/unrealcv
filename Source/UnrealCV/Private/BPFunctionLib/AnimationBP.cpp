@@ -1,6 +1,5 @@
 // Weichao Qiu @ 2018
 #include "AnimationBP.h"
-#include "UnrealCVPrivate.h"
 #include "Runtime/CoreUObject/Public/UObject/UObjectIterator.h"
 #include "Runtime/Engine/Classes/Animation/AnimationAsset.h"
 #include "Runtime/Engine/Classes/Animation/Skeleton.h"

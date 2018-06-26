@@ -8,10 +8,10 @@
 UCLASS(meta = (BlueprintSpawnableComponent))
 class UVertexColorCamSensor : public UBaseCameraSensor
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
-    UVertexColorCamSensor(const FObjectInitializer& ObjectInitializer);
+	UVertexColorCamSensor(const FObjectInitializer& ObjectInitializer);
 
-    virtual void OnRegister() override;
+	virtual void OnRegister() override;
 };

@@ -1,9 +1,8 @@
 // Weichao Qiu @ 2017
 #include "VisDepthCamSensor.h"
-#include "UnrealCVPrivate.h"
 
 UVisDepthCamSensor::UVisDepthCamSensor(const FObjectInitializer& ObjectInitializer) :
-    Super(ObjectInitializer)
+	Super(ObjectInitializer)
 {
 	FString VisDepthPPMaterialPath = TEXT("Material'/UnrealCV/SceneDepthWorldUnits.SceneDepthWorldUnits'");
 	ConstructorHelpers::FObjectFinder<UMaterial> Material(*VisDepthPPMaterialPath);
@@ -13,7 +12,7 @@ UVisDepthCamSensor::UVisDepthCamSensor(const FObjectInitializer& ObjectInitializ
 
 void UVisDepthCamSensor::CaptureDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height)
 {
-    // this->CaptureScene(); // To check whether this update is real time and how fast it is
+	// this->CaptureScene(); // To check whether this update is real time and how fast it is
 	Width = this->TextureTarget->SizeX, Height = TextureTarget->SizeY;
 	DepthData.AddZeroed(Width * Height);
 	FTextureRenderTargetResource* RenderTargetResource = this->TextureTarget->GameThread_GetRenderTargetResource();
@@ -27,7 +26,7 @@ void UVisDepthCamSensor::OnRegister()
 	TextureTarget = NewObject<UTextureRenderTarget2D>(this);
 
 	bool bUseLinearGamma = true;
-    // TODO: Check whether InitAutoFormat = Float + UseLinearGamma?
+	// TODO: Check whether InitAutoFormat = Float + UseLinearGamma?
 	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, EPixelFormat::PF_FloatRGBA, bUseLinearGamma);
 
 	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;

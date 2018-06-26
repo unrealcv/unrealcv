@@ -1,6 +1,6 @@
 #include "ImageWorker.h"
-#include "UnrealCVPrivate.h"
 #include "Runtime/Core/Public/HAL/RunnableThread.h"
+#include "UnrealcvLog.h"
 
 FImageWorker::FImageWorker() : Thread(nullptr)
 {

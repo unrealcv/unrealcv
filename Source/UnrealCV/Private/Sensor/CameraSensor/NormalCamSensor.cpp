@@ -1,5 +1,5 @@
+// Weichao Qiu @ 2018
 #include "NormalCamSensor.h"
-#include "UnrealCVPrivate.h"
 
 UNormalCamSensor::UNormalCamSensor(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)

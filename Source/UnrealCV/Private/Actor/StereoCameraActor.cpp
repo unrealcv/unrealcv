@@ -2,8 +2,6 @@
 // Attach two lit sensor and two depth sensor components
 
 #include "StereoCameraActor.h"
-#include "UnrealCVPrivate.h"
-#include "VisionBP.h"
 
 AStereoCameraActor::AStereoCameraActor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer), BaseLineDistance(80)

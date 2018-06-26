@@ -1,7 +1,6 @@
 // Weichao Qiu @ 2017
 // This is unrealcv command API for FusionSensor
 #include "SensorHandler.h"
-#include "UnrealCVPrivate.h"
 #include "Runtime/Engine/Classes/GameFramework/Pawn.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "CommandDispatcher.h"

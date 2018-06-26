@@ -1,6 +1,5 @@
 // Weichao Qiu @ 2016
 #include "ExecStatus.h"
-#include "UnrealCVPrivate.h"
 
 // DECLARE_DELEGATE_OneParam(FDispatcherDelegate, const TArray< FString >&);
 FExecStatus FExecStatus::InvalidArgument = FExecStatus(FExecStatusType::Error, "Argument Invalid");

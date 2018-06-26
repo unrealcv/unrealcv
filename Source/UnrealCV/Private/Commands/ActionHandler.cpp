@@ -1,10 +1,9 @@
 #include "ActionHandler.h"
-#include "UnrealCVPrivate.h"
-#include "VisionBP.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
 #include "Runtime/Engine/Public/EngineUtils.h"
 #include "Runtime/Engine/Public/TimerManager.h"
+#include "VisionBP.h"
 
 void FActionCommandHandler::RegisterCommands()
 {

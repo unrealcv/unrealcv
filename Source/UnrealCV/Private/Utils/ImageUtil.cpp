@@ -1,10 +1,10 @@
 // Weichao Qiu @ 2017
 #include "ImageUtil.h"
-#include "UnrealCVPrivate.h"
-#include "FileHelper.h"
-#include "BmpImageSupport.h"
-#include "IImageWrapper.h"
 #include "Runtime/Core/Public/Serialization/BufferArchive.h"
+#include "Runtime/ImageWrapper/Public/BmpImageSupport.h"
+#include "Runtime/Core/Public/Misc/FileHelper.h"
+#include "UnrealcvStats.h"
+#include "UnrealcvLog.h"
 
 DECLARE_CYCLE_STAT(TEXT("FColorToPng"), STAT_FColorToPng, STATGROUP_UnrealCV);
 DECLARE_CYCLE_STAT(TEXT("FColorToJpg"), STAT_FColorToJpg, STATGROUP_UnrealCV);

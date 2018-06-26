@@ -1,9 +1,9 @@
 // Weichao Qiu @ 2017
-
 #include "ObjectAnnotator.h"
-#include "UnrealCVPrivate.h"
-#include "AnnotationComponent.h"
 #include "Runtime/Engine/Public/EngineUtils.h"
+#include "Runtime/Launch/Resources/Version.h"
+#include "AnnotationComponent.h"
+#include "UnrealcvLog.h"
 
 FColor GetColorFromColorMap(int32 ObjectIndex);
 

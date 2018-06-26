@@ -1,13 +1,15 @@
 // Weichao Qiu @ 2017
 #include "UE4CVWorldController.h"
-#include "UnrealCVPrivate.h"
+
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Runtime/Engine/Classes/GameFramework/Pawn.h"
+#include "Runtime/Engine/Classes/Engine/World.h"
+
 #include "Sensor/CameraSensor/PawnCamSensor.h"
 #include "VisionBP.h"
 #include "UE4CVServer.h"
 #include "PlayerViewMode.h"
-#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
-#include "Runtime/Engine/Classes/GameFramework/Pawn.h"
-#include "Runtime/Engine/Classes/Engine/World.h"
+#include "UnrealcvLog.h"
 
 AUE4CVWorldController::AUE4CVWorldController(const FObjectInitializer& ObjectInitializer)
 {

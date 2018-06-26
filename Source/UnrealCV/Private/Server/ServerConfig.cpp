@@ -1,8 +1,8 @@
 // Weichao Qiu @ 2016
 #include "ServerConfig.h"
-#include "UnrealCVPrivate.h"
 #include "Runtime/Core/Public/HAL/FileManager.h"
 #include "Runtime/Core/Public/Misc/ConfigCacheIni.h"
+#include "UnrealcvLog.h"
 
 // TODO: Try to simplify the implementation of this class
 FServerConfig::FServerConfig()

@@ -1,14 +1,12 @@
 // Weichao Qiu @ 2017
 #include "LitCamSensor.h"
-#include "UnrealCVPrivate.h"
-
 
 ULitCamSensor::ULitCamSensor(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer)
 {
 	// FString LitPPMaterialPath = TEXT("Material'/ue4_human/PostProcessMaterial/LitPPM.LitPPM'");
 	// ConstructorHelpers::FObjectFinder<UMaterial> Material(*LitPPMaterialPath);
-    //
+	//
 	// LitPPMaterial = Material.Object;
 	// // ConsturctorHelpers is only available for UObject.
 	// SetPostProcessMaterial(LitPPMaterial);

@@ -1,6 +1,5 @@
 // Weichao Qiu @ 2017
 #include "DepthCamSensor.h"
-#include "UnrealCVPrivate.h"
 
 UDepthCamSensor::UDepthCamSensor(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer)

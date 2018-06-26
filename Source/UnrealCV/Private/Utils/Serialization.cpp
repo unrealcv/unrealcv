@@ -1,10 +1,11 @@
 // Weichao Qiu @ 2018
 #include "Serialization.h"
-#include "UnrealCVPrivate.h"
-#include "IImageWrapper.h"
-#include "IImageWrapperModule.h"
-#include "libs/cnpy.h"
 #include "Runtime/Core/Public/Modules/ModuleManager.h"
+#include "Runtime/ImageWrapper/Public/IImageWrapper.h"
+#include "Runtime/ImageWrapper/Public/IImageWrapperModule.h"
+
+#include "libs/cnpy.h"
+#include "UnrealcvLog.h"
 
 TArray<uint8> FSerializationUtils::Array2Npy(const TArray<float>& ImageData, int32 Width, int32 Height, int32 Channel)
 {

@@ -1,11 +1,11 @@
 // Weichao Qiu @ 2018
 #include "TestActor.h"
-#include "UnrealCVPrivate.h"
+#include "Runtime/Engine/Public/EngineUtils.h"
 #include "FusionCamSensor.h"
 #include "Controller/ObjectAnnotator.h"
 #include "UE4CVServer.h"
 #include "VisionBP.h"
-#include "Runtime/Engine/Public/EngineUtils.h"
+#include "UnrealcvLog.h"
 
 // Run a test command
 void ExecCommand(FString Command);
@@ -205,9 +205,9 @@ void TestAnnotator(const TArray<FString>& Args)
 		// This will not take effect until the rendering thread catch up
 
 	}
-    //
+	//
 	// FString ObjectId;
-    //
+	//
 	// FColor AnnotationColor;
 	// Annotator.GetObjInstanceColor(ObjectId, AnnotationColor);
 	// ExecCommand(TEXT("vget /sensor/0/object_mask png"));
@@ -222,7 +222,7 @@ void TestSensorList()
 	// EObjectFlags ExclusionFlags = EObjectFlags::RF_ClassDefaultObject;
 	// EInternalObjectFlags ExclusionInternalFlags = EInternalObjectFlags::AllFlags;
 	// GetObjectsOfClass(UFusionCamSensor::StaticClass(), ObjectList, bIncludeDerivedClasses, ExclusionFlags, ExclusionInternalFlags);
-    //
+	//
 	// // Test the valid of FusionSensors
 	// // For Debug
 	// for (TObjectIterator<UFusionCamSensor> Itr; Itr; ++Itr)
@@ -243,7 +243,7 @@ void TestSensorList()
 	// 	}
 	// 	ScreenLog(Itr->GetName());
 	// }
-    //
+	//
 	// GetObjectsOfClass(UFusionCamSensor::StaticClass(), ObjectList, bIncludeDerivedClasses, ExclusionFlags, ExclusionInternalFlags);
 	// for (TObjectIterator<UFusionCamSensor> Itr; Itr; ++Itr)
 	// {

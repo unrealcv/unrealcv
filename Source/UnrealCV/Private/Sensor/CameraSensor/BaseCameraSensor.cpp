@@ -1,19 +1,12 @@
 // Weichao Qiu @ 2017
 #include "BaseCameraSensor.h"
-#include "UnrealCVPrivate.h"
-// #include "GlobalShader.h"
-// #include "Shader.h"
-// #include "ScreenRendering.h"
-// #include "SceneRendering.h"
-// #include "ScenePrivate.h"
-// #include "ClearQuad.h"
-// #include "JsonObjectConverter.h"
-#include "TextureReader.h"
-#include "FileHelper.h"
-#include "UE4CVServer.h"
 #include "Runtime/Engine/Classes/Components/StaticMeshComponent.h"
 #include "Runtime/Engine/Classes/Engine/CollisionProfile.h"
 #include "Runtime/Engine/Classes/Engine/StaticMesh.h"
+#include "TextureReader.h"
+#include "UE4CVServer.h"
+#include "UnrealcvStats.h"
+#include "UnrealcvLog.h"
 
 DECLARE_CYCLE_STAT(TEXT("ReadBuffer"), STAT_ReadBuffer, STATGROUP_UnrealCV);
 DECLARE_CYCLE_STAT(TEXT("ReadBufferFast"), STAT_ReadBufferFast, STATGROUP_UnrealCV);

@@ -1,6 +1,5 @@
 // Weichao Qiu @ 2017
 #include "LitSlowCamSensor.h"
-#include "UnrealCVPrivate.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
 
 ULitSlowCamSensor::ULitSlowCamSensor(const FObjectInitializer& ObjectInitializer) :

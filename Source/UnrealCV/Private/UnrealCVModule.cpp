@@ -1,8 +1,8 @@
-#include "UnrealCVPrivate.h"
 #include "Runtime/Core/Public/Misc/CommandLine.h"
 #include "Runtime/Core/Public/Misc/Parse.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
 #include "UE4CVServer.h"
+#include "UnrealcvLog.h"
 
 DEFINE_LOG_CATEGORY(LogUnrealCV);
 
@@ -21,25 +21,25 @@ void FUnrealCVPlugin::StartupModule()
 
 	int OverridePort = Server.Config.Port;
 	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVPort"), OverridePort)) {
-    UE_LOG(LogUnrealCV, Warning, TEXT("Overriding listening port to %d"), OverridePort);
+	UE_LOG(LogUnrealCV, Warning, TEXT("Overriding listening port to %d"), OverridePort);
 		Server.Config.Port = OverridePort;
 	}
 
 	int OverrideWidth = Server.Config.Width;
 	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVWidth"), OverrideWidth)) {
-    UE_LOG(LogUnrealCV, Warning, TEXT("Overriding width to %d"), OverrideWidth);
+	UE_LOG(LogUnrealCV, Warning, TEXT("Overriding width to %d"), OverrideWidth);
 		Server.Config.Width = OverrideWidth;
 	}
 
 	int OverrideHeight = Server.Config.Height;
 	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVHeight"), OverrideHeight)) {
-    UE_LOG(LogUnrealCV, Warning, TEXT("Overriding height to %d"), OverrideHeight);
+	UE_LOG(LogUnrealCV, Warning, TEXT("Overriding height to %d"), OverrideHeight);
 		Server.Config.Height = OverrideHeight;
 	}
 
 	float OverrideFOV = Server.Config.FOV;
 	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVFOV"), OverrideFOV)) {
-    UE_LOG(LogUnrealCV, Warning, TEXT("Overriding FOV to %f"), OverrideFOV);
+	UE_LOG(LogUnrealCV, Warning, TEXT("Overriding FOV to %f"), OverrideFOV);
 		Server.Config.FOV = OverrideFOV;
 	}
 
@@ -87,7 +87,3 @@ void FUnrealCVPlugin::ShutdownModule()
 {
 }
 
-void ScreenLog(const FString& Message)
-{
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, Message);
-}

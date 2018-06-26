@@ -1,11 +1,8 @@
 // Weichao Qiu @ 2018
 #include "ObjectPainter.h"
-#include "UnrealCVPrivate.h"
-#include "StaticMeshResources.h"
-#include "UE4CVServer.h"
-#include "SceneViewport.h"
-#include "Version.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "Runtime/Engine/Classes/Engine/StaticMesh.h"
+#include "UE4CVServer.h"
 
 FColor GetColorFromColorMap(int32 ObjectIndex);
 

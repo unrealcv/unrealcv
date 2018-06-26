@@ -2,7 +2,6 @@
 // Released under MIT License
 // Simplied by Weichao Qiu (qiuwch@gmail.com) from https://github.com/rogersce/cnpy
 #include "cnpy.h"
-#include "UnrealCVPrivate.h"
 #include <vector>
 #include <complex>
 

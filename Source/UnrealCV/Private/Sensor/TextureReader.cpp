@@ -1,10 +1,11 @@
 #include "TextureReader.h"
-#include "UnrealCVPrivate.h"
-#include "Shader.h"
-#include "GlobalShader.h"
-#include "ScreenRendering.h"
 #include "Runtime/Engine/Classes/Engine/TextureRenderTarget2D.h"
 #include "Runtime/ShaderCore/Public/StaticBoundShaderState.h"
+#include "Runtime/ShaderCore/Public/GlobalShader.h"
+#include "Runtime/Engine/Public/ScreenRendering.h"
+
+#include "UnrealcvStats.h"
+#include "UnrealcvLog.h"
 
 DECLARE_CYCLE_STAT(TEXT("ResizeReadBufferFast"), STAT_ResizeReadBufferFast, STATGROUP_UnrealCV);
 

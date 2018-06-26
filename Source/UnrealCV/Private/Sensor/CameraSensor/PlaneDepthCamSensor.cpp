@@ -1,9 +1,8 @@
 // Weichao Qiu @ 2017
 #include "PlaneDepthCamSensor.h"
-#include "UnrealCVPrivate.h"
 
 UPlaneDepthCamSensor::UPlaneDepthCamSensor(const FObjectInitializer& ObjectInitializer) :
-    Super(ObjectInitializer)
+	Super(ObjectInitializer)
 {
 	FString PlaneDepthPPMaterialPath = TEXT("Material'/UnrealCV/ScenePlaneDepthWorldUnits.ScenePlaneDepthWorldUnits'");
 	ConstructorHelpers::FObjectFinder<UMaterial> Material(*PlaneDepthPPMaterialPath);
@@ -27,7 +26,7 @@ void UPlaneDepthCamSensor::OnRegister()
 	TextureTarget = NewObject<UTextureRenderTarget2D>(this);
 
 	bool bUseLinearGamma = true;
-    // TODO: Check whether InitAutoFormat = Float + UseLinearGamma?
+	// TODO: Check whether InitAutoFormat = Float + UseLinearGamma?
 	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, EPixelFormat::PF_FloatRGBA, bUseLinearGamma);
 
 	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;

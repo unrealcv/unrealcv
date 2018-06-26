@@ -1,17 +1,17 @@
 // Weichao Qiu @ 2017
 #include "VisionBP.h"
-#include "UnrealCVPrivate.h"
+#include "Runtime/Engine/Public/Rendering/SkeletalMeshLODRenderData.h"
+#include "Runtime/Engine/Public/Rendering/SkeletalMeshRenderData.h"
+#include "Runtime/Engine/Classes/Engine/StaticMesh.h"
+#include "Runtime/Engine/Public/SkeletalRenderPublic.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "ImageUtil.h"
 #include "UE4CVServer.h"
 #include "Serialization.h"
 #include "VertexSensor.h"
 #include "BoneSensor.h"
-#include "SkeletalRenderPublic.h"
-#include "StaticMeshResources.h"
-#include "Runtime/Engine/Public/Rendering/SkeletalMeshLODRenderData.h"
-#include "Runtime/Engine/Public/Rendering/SkeletalMeshRenderData.h"
-#include "Runtime/Engine/Classes/Engine/StaticMesh.h"
 #include "FusionCamSensor.h"
+#include "UnrealcvLog.h"
 
 // FString UVisionBP::SerializeBoneInfo(USkeletalMeshComponent* Component)
 // {
@@ -268,11 +268,11 @@ TArray<FVector> UVisionBP::SkinnedMeshComponentGetVertexArray(USkinnedMeshCompon
 	// }
 	// USkeletalMesh* SkeletalMesh = Component->SkeletalMesh;
 	// if (!IsValid(SkeletalMesh)) return;
-    //
+	//
 	// TIndirectArray<FStaticLODModel>& LODModels = SkeletalMesh->GetResourceForRendering()->LODModels;
-    //
+	//
 	// uint32 NumLODLevel = LODModels.Num();
-    //
+	//
 	// for (uint32 LODIndex = 0; LODIndex < NumLODLevel; LODIndex++)
 	// {
 	// }

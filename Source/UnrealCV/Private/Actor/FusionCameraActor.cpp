@@ -1,13 +1,12 @@
 // Weichao Qiu @ 2017
 
 #include "FusionCameraActor.h"
-#include "UnrealCVPrivate.h"
 
 AFusionCameraActor::AFusionCameraActor(const FObjectInitializer& ObjectInitializer)
-    : Super(ObjectInitializer)
+	: Super(ObjectInitializer)
 {
-    PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = true;
 
-    FusionCamSensor = CreateDefaultSubobject<UFusionCamSensor>(TEXT("FusionCameraSensor"));
-    RootComponent = FusionCamSensor;
+	FusionCamSensor = CreateDefaultSubobject<UFusionCamSensor>(TEXT("FusionCameraSensor"));
+	RootComponent = FusionCamSensor;
 }

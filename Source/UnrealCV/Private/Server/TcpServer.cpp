@@ -1,8 +1,8 @@
 // Weichao Qiu @ 2016
 #include "TcpServer.h"
-#include "UnrealCVPrivate.h"
-#include "Networking.h"
 #include <string>
+#include "UnrealcvLog.h"
+#include "UnrealcvShim.h"
 
 uint32 FSocketMessageHeader::DefaultMagic = 0x9E2B83C1;
 
@@ -16,32 +16,32 @@ bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, FSoc
 	Ar.Append(Payload);
 
 	int32 TotalAmountSent = 0; // How many bytes have been sent
-    int32 AmountToSend = Ar.Num();
-    int NumTrial = 100; // Only try a limited amount of times
-    // int ChunkSize = 4096;
-    while (AmountToSend > 0)
-    {
-        int AmountSent = 0;
-        // GetData returns a uint8 pointer
-        Socket->Send(Ar.GetData() + TotalAmountSent, Ar.Num() - TotalAmountSent, AmountSent);
-        NumTrial--;
+	int32 AmountToSend = Ar.Num();
+	int NumTrial = 100; // Only try a limited amount of times
+	// int ChunkSize = 4096;
+	while (AmountToSend > 0)
+	{
+		int AmountSent = 0;
+		// GetData returns a uint8 pointer
+		Socket->Send(Ar.GetData() + TotalAmountSent, Ar.Num() - TotalAmountSent, AmountSent);
+		NumTrial--;
 
-        if (AmountSent == -1)
-        {
-            continue;
-        }
+		if (AmountSent == -1)
+		{
+			continue;
+		}
 
-        if (NumTrial < 0)
-        {
-            UE_LOG(LogUnrealCV, Error, TEXT("Unable to send. Expect to send %d, sent %d"), Ar.Num(), TotalAmountSent);
-            return false;
-        }
+		if (NumTrial < 0)
+		{
+			UE_LOG(LogUnrealCV, Error, TEXT("Unable to send. Expect to send %d, sent %d"), Ar.Num(), TotalAmountSent);
+			return false;
+		}
 
-        UE_LOG(LogUnrealCV, Verbose, TEXT("Sending bytes %d/%d, sent %d"), TotalAmountSent, Ar.Num(), AmountSent);
-        AmountToSend -= AmountSent;
-        TotalAmountSent += AmountSent;
-    }
-    check(AmountToSend == 0);
+		UE_LOG(LogUnrealCV, Verbose, TEXT("Sending bytes %d/%d, sent %d"), TotalAmountSent, Ar.Num(), AmountSent);
+		AmountToSend -= AmountSent;
+		TotalAmountSent += AmountSent;
+	}
+	check(AmountToSend == 0);
 	return true;
 }
 
@@ -96,9 +96,9 @@ bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize, bool* 
 
 		const TCHAR* LastErrorMsg = ISocketSubsystem::Get()->GetSocketError(LastError);
 		UE_LOG(LogUnrealCV, Error, TEXT("Unexpected error of socket happend, error %s"), LastErrorMsg);
-    if (unknown_error != nullptr) {
-      *unknown_error = true;
-    }
+	if (unknown_error != nullptr) {
+	  *unknown_error = true;
+	}
 		return false;
 	}
 	return true;
