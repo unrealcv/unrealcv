@@ -3,6 +3,9 @@
 
 #include "Engine.h"
 
+/**
+ * Information to describe a bone in a SkeletalMesh
+ */
 struct FBoneInfo
 {
 	FString BoneName;
@@ -16,19 +19,24 @@ struct FBoneInfo
 	}
 };
 
-/** A native BoneSensor, use VisionBP to involve in blueprint */
-class FBoneSensor
+/** 
+ * A native BoneSensor, use VisionBP to involve in blueprint 
+ */
+class UNREALCV_API FBoneSensor
 {
 public:
+	/** Construct a BoneSensor to extract data from a SkeletalMeshComponent */
 	FBoneSensor(const class USkeletalMeshComponent* InSkeletalMeshComponent);
 
+	/** The bone names this BoneSensor should extract */
 	void SetBones(const TArray<FString>& InIncludedBoneNames);
 
+	/** Read information and return as an array */
 	TArray<FBoneInfo> GetBonesInfo();
-
-private:
-	const USkeletalMeshComponent* Component;
 
 	/** Only track the bone information specified in this list */
 	TArray<FString> IncludedBoneNames;
+
+private:
+	const USkeletalMeshComponent* Component;
 };

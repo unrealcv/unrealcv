@@ -1,8 +1,8 @@
 // Weichao Qiu @ 2017
-
 #pragma once
+#include "Runtime/Engine/Classes/GameFramework/Actor.h"
 
-class FVertexSensor
+class UNREALCV_API FVertexSensor
 {
 public:
     FVertexSensor(const AActor* InActor);

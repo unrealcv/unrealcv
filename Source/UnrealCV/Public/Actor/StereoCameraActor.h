@@ -2,6 +2,7 @@
 #pragma once
 
 #include "FusionCamSensor.h"
+#include "Runtime/Engine/Classes/GameFramework/Actor.h"
 #include "StereoCameraActor.generated.h"
 
 UCLASS()

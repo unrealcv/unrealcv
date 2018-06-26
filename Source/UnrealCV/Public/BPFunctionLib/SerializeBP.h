@@ -1,5 +1,7 @@
 // Weichao Qiu @ 2018
 #pragma once
+#include "Runtime/Json/Public/Dom/JsonObject.h"
+#include "Runtime/Engine/Classes/Kismet/BlueprintFunctionLibrary.h"
 #include "SerializeBP.generated.h"
 
 // Make JsonValue accessible in blueprint
@@ -78,35 +80,6 @@ struct UNREALCV_API FJsonObjectBP
 		}
 	}
 
-	FJsonObjectBP(const TArray<FString>& Keys, const TArray<FString>& Values)
-	{
-		JsonObject = MakeShareable(new FJsonObject());
-		if (Keys.Num() != Values.Num())
-		{
-			UE_LOG(LogUnrealCV, Warning, TEXT("Length of keys and values are mismatch"));
-			return;
-		}
-
-		for (int i = 0; i < Keys.Num(); i++)
-		{
-			JsonObject->SetStringField(Keys[i], Values[i]);
-		}
-	}
-
-	FJsonObjectBP(const TArray<FString>& Keys, const TArray<FJsonObjectBP>& Values)
-	{
-		JsonObject = MakeShareable(new FJsonObject());
-		if (Keys.Num() != Values.Num())
-		{
-			UE_LOG(LogUnrealCV, Warning, TEXT("Length of keys and values are mismatch"));
-			return;
-		}
-
-		for (int i = 0; i < Keys.Num(); i++)
-		{
-			JsonObject->SetField(Keys[i], Values[i].ToJsonValue());
-		}
-	}
 
 	TSharedPtr<FJsonValue> ToJsonValue() const
 	{
@@ -123,6 +96,9 @@ struct UNREALCV_API FJsonObjectBP
 		return MakeShareable(new FJsonValueArray(JsonArray));
 	}
 
+	FJsonObjectBP(const TArray<FString>& Keys, const TArray<FJsonObjectBP>& Values);
+
+	FJsonObjectBP(const TArray<FString>& Keys, const TArray<FString>& Values);
 };
 
 /** A static BP library to serialize data to string, mainly for json */

@@ -2,10 +2,11 @@
 #pragma once
 
 #include "FusionCamSensor.h"
+#include "Runtime/Engine/Classes/GameFramework/Actor.h"
 #include "FusionCameraActor.generated.h"
 
 UCLASS()
-class AFusionCameraActor : public AActor
+class UNREALCV_API AFusionCameraActor : public AActor
 {
 	GENERATED_BODY()
 

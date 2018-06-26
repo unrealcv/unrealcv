@@ -1,5 +1,6 @@
 // Weichao Qiu @ 2018
 #pragma once
+#include "Runtime/Engine/Classes/Kismet/BlueprintFunctionLibrary.h"
 #include "AnimationBP.generated.h"
 
 /** A static BP library to control the animation in UE4 */

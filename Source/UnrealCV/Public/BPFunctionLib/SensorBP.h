@@ -1,6 +1,7 @@
 // Weichao Qiu @ 2018
 #pragma once
 
+#include "Runtime/Engine/Classes/Kismet/BlueprintFunctionLibrary.h"
 #include "SensorBP.generated.h"
 
 /** Sensor related function library */

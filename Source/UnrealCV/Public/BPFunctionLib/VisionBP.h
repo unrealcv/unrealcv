@@ -1,6 +1,8 @@
 // Weichao Qiu @ 2018
 #pragma once
 
+#include "SerializeBP.h"
+#include "Runtime/Engine/Classes/Kismet/BlueprintFunctionLibrary.h"
 #include "VisionBP.generated.h"
 
 UENUM(BlueprintType)
