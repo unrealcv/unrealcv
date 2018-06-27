@@ -1,18 +1,18 @@
 // Weichao Qiu @ 2018
-#include "AnimationBP.h"
+#include "AnimationBPLib.h"
 #include "Runtime/CoreUObject/Public/UObject/UObjectIterator.h"
 #include "Runtime/Engine/Classes/Animation/AnimationAsset.h"
 #include "Runtime/Engine/Classes/Animation/Skeleton.h"
 #include "Runtime/Engine/Classes/Animation/AnimSequence.h"
 
-FString UAnimationBP::GetAnimationName(USkeletalMeshComponent* SkeletalMeshComponent)
+FString UAnimationBPLib::GetAnimationName(USkeletalMeshComponent* SkeletalMeshComponent)
 {
 	FString AnimationName;
 	return AnimationName;
 }
 
 // From: https://answers.unrealengine.com/questions/263204/getting-the-animations-list-from-persona.html
-TArray<UAnimationAsset *> UAnimationBP::GetAllAnimationOfSkeleton(USkeleton *Skeleton)
+TArray<UAnimationAsset *> UAnimationBPLib::GetAllAnimationOfSkeleton(USkeleton *Skeleton)
 {
 	TArray<UAnimationAsset *> AnimsArray;
 
@@ -36,7 +36,7 @@ TArray<UAnimationAsset *> UAnimationBP::GetAllAnimationOfSkeleton(USkeleton *Ske
 	return AnimsArray;
 }
 
-TArray<UAnimSequence *> UAnimationBP::GetAllAnimationSequenceOfSkeleton(USkeleton *Skeleton)
+TArray<UAnimSequence *> UAnimationBPLib::GetAllAnimationSequenceOfSkeleton(USkeleton *Skeleton)
 {
 	TArray<UAnimSequence*> AnimsArray;
 
@@ -60,7 +60,7 @@ TArray<UAnimSequence *> UAnimationBP::GetAllAnimationSequenceOfSkeleton(USkeleto
 	return AnimsArray;
 }
 
-// void UAnimationBP::PlayAnimationToEnd(
+// void UAnimationBPLib::PlayAnimationToEnd(
 // 	USkeletalMeshComponent* SkeletalMeshComponent, 
 // 	UAnimationAsset* AnimationAsset)
 // {

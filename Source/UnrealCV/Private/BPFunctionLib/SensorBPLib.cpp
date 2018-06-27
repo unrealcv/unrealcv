@@ -1,11 +1,11 @@
 // Weichao Qiu @ 2018
-#include "SensorBP.h"
+#include "SensorBPLib.h"
 #include "UnrealcvServer.h"
 #include "FusionCamSensor.h"
 #include "Runtime/Engine/Classes/GameFramework/Pawn.h"
 #include "Runtime/CoreUObject/Public/UObject/UObjectHash.h"
 
-TArray<UFusionCamSensor*> USensorBP::GetFusionSensorList()
+TArray<UFusionCamSensor*> USensorBPLib::GetFusionSensorList()
 {
 	TArray<UFusionCamSensor*> SensorList;
 
@@ -38,9 +38,9 @@ TArray<UFusionCamSensor*> USensorBP::GetFusionSensorList()
 	return SensorList;
 }
 
-UFusionCamSensor* USensorBP::GetSensorById(int SensorId)
+UFusionCamSensor* USensorBPLib::GetSensorById(int SensorId)
 {
-	TArray<UFusionCamSensor*> SensorList = USensorBP::GetFusionSensorList();
+	TArray<UFusionCamSensor*> SensorList = USensorBPLib::GetFusionSensorList();
 	if (SensorId < 0 || SensorId >= SensorList.Num()) return nullptr;
 	return SensorList[SensorId];
 }

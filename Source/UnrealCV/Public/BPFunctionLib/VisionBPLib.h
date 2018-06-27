@@ -1,9 +1,9 @@
 // Weichao Qiu @ 2018
 #pragma once
 
-#include "SerializeBP.h"
+#include "SerializeBPLib.h"
 #include "Runtime/Engine/Classes/Kismet/BlueprintFunctionLibrary.h"
-#include "VisionBP.generated.h"
+#include "VisionBPLib.generated.h"
 
 UENUM(BlueprintType)
 enum class EFileFormat : uint8
@@ -14,7 +14,7 @@ enum class EFileFormat : uint8
 
 /** A static bp library for computer vision */
 UCLASS()
-class UNREALCV_API UVisionBP : public UBlueprintFunctionLibrary
+class UNREALCV_API UVisionBPLib : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 public:

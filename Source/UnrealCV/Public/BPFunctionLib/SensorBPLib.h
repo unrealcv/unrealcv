@@ -2,11 +2,11 @@
 #pragma once
 
 #include "Runtime/Engine/Classes/Kismet/BlueprintFunctionLibrary.h"
-#include "SensorBP.generated.h"
+#include "SensorBPLib.generated.h"
 
 /** Sensor related function library */
 UCLASS()
-class UNREALCV_API USensorBP : public UBlueprintFunctionLibrary
+class UNREALCV_API USensorBPLib : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 

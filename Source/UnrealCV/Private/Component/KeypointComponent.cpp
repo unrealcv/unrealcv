@@ -6,7 +6,7 @@
 #include "Runtime/Core/Public/Misc/Paths.h"
 #include "Runtime/Json/Public/Serialization/JsonReader.h"
 #include "Runtime/Json/Public/Serialization/JsonSerializer.h"
-#include "VisionBP.h"
+#include "VisionBPLib.h"
 #include "UnrealcvLog.h"
 
 UKeypointComponent::UKeypointComponent(const FObjectInitializer& ObjectInitializer)
@@ -51,7 +51,7 @@ void UKeypointComponent::MatchNearestVertex()
 		for (UActorComponent* Component : MeshComponents)
 		{
 			UMeshComponent* MeshComponent = Cast<UMeshComponent>(Component);
-			TArray<FVector> VertexArray = UVisionBP::GetVertexArrayFromMeshComponent(MeshComponent);
+			TArray<FVector> VertexArray = UVisionBPLib::GetVertexArrayFromMeshComponent(MeshComponent);
 
 			double MinDistance = 10e10;
 			int VertexIndex = -1;
@@ -173,7 +173,7 @@ void UKeypointComponent::TickComponent(float DeltaTime, enum ELevelTick TickType
 		// 		}
 
 		// 		UMeshComponent* MeshComponent = VertexInfo.MeshComponent;
-		// 		TArray<FVector> VertexArray = UVisionBP::GetVertexArrayFromMeshComponent(MeshComponent);
+		// 		TArray<FVector> VertexArray = UVisionBPLib::GetVertexArrayFromMeshComponent(MeshComponent);
 		// 		if (VertexInfo.VertexIndex < 0 || VertexInfo.VertexIndex >= VertexArray.Num())
 		// 		{
 		// 			UE_LOG(LogUnrealCV, Warning, TEXT("Unexpected error in the MatchedVertexInfo"));
@@ -225,7 +225,7 @@ void UKeypointComponent::GetKeypoints(
 			}
 
 			UMeshComponent* MeshComponent = VertexInfo.MeshComponent;
-			TArray<FVector> VertexArray = UVisionBP::GetVertexArrayFromMeshComponent(MeshComponent);
+			TArray<FVector> VertexArray = UVisionBPLib::GetVertexArrayFromMeshComponent(MeshComponent);
 			if (VertexInfo.VertexIndex < 0 || VertexInfo.VertexIndex >= VertexArray.Num())
 			{
 				UE_LOG(LogUnrealCV, Warning, TEXT("Unexpected error in the MatchedVertexInfo"));

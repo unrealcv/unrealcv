@@ -3,7 +3,7 @@
 #include "Runtime/Engine/Classes/Components/MeshComponent.h"
 #include "Runtime/Engine/Classes/Components/SkinnedMeshComponent.h"
 #include "Runtime/Engine/Classes/Components/StaticMeshComponent.h"
-#include "VisionBP.h"
+#include "VisionBPLib.h"
 
 // Use vget /object/[id]/vertex json?
 FVertexSensor::FVertexSensor(const AActor* InActor)
@@ -25,12 +25,12 @@ TArray<FVector> FVertexSensor::GetVertexArray()
 	{
 		if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(MeshComponent))
 		{
-			TArray<FVector> ComponentVertexArray = UVisionBP::StaticMeshComponentGetVertexArray(StaticMeshComponent);
+			TArray<FVector> ComponentVertexArray = UVisionBPLib::StaticMeshComponentGetVertexArray(StaticMeshComponent);
 			VertexArray.Append(ComponentVertexArray);
 		}
 		if (USkinnedMeshComponent* SkinnedMeshComponent = Cast<USkinnedMeshComponent>(MeshComponent))
 		{
-			TArray<FVector> ComponentVertexArray = UVisionBP::SkinnedMeshComponentGetVertexArray(SkinnedMeshComponent);
+			TArray<FVector> ComponentVertexArray = UVisionBPLib::SkinnedMeshComponentGetVertexArray(SkinnedMeshComponent);
 			VertexArray.Append(ComponentVertexArray);
 		}
 	}

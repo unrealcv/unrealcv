@@ -3,7 +3,7 @@
 #include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
 #include "Runtime/Engine/Public/EngineUtils.h"
 #include "Runtime/Engine/Public/TimerManager.h"
-#include "VisionBP.h"
+#include "VisionBPLib.h"
 
 void FActionCommandHandler::RegisterCommands()
 {
@@ -91,7 +91,7 @@ FExecStatus FActionCommandHandler::EnableInput(const TArray<FString>& Args)
 	APawn* Pawn = FUnrealcvServer::Get().GetPawn();
 	if (IsValid(Pawn))
 	{
-		UVisionBP::UpdateInput(Pawn, true);
+		UVisionBPLib::UpdateInput(Pawn, true);
 		return FExecStatus::OK();
 	}
 	else
@@ -105,7 +105,7 @@ FExecStatus FActionCommandHandler::DisableInput(const TArray<FString>& Args)
 	APawn* Pawn = FUnrealcvServer::Get().GetPawn();
 	if (IsValid(Pawn))
 	{
-		UVisionBP::UpdateInput(Pawn, true);
+		UVisionBPLib::UpdateInput(Pawn, true);
 		return FExecStatus::OK();
 	}
 	else

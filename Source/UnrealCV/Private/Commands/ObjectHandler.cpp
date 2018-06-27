@@ -5,7 +5,7 @@
 #include "VertexSensor.h"
 #include "Utils/StrFormatter.h"
 #include "Utils/UObjectUtils.h"
-#include "VisionBP.h"
+#include "VisionBPLib.h"
 
 FExecStatus GetObjectMobility(const TArray<FString>& Args);
 
@@ -103,7 +103,7 @@ AActor* GetActor(const TArray<FString>& Args)
 FExecStatus GetActorList(const TArray<FString>& Args)
 {
 	TArray<AActor*> ActorList;
-	UVisionBP::GetActorList(ActorList);
+	UVisionBPLib::GetActorList(ActorList);
 
 	FString StrActorList;
 	for (AActor* Actor : ActorList)

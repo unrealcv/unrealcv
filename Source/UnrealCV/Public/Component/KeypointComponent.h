@@ -2,7 +2,7 @@
 #pragma once
 
 #include "Runtime/Engine/Classes/Components/MeshComponent.h"
-#include "SerializeBP.h"
+#include "SerializeBPLib.h"
 #include "KeypointComponent.generated.h"
 
 struct FMatchedVertexInfo

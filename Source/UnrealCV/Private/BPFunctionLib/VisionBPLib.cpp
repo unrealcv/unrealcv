@@ -1,5 +1,5 @@
 // Weichao Qiu @ 2017
-#include "VisionBP.h"
+#include "VisionBPLib.h"
 #include "Runtime/Engine/Public/Rendering/SkeletalMeshLODRenderData.h"
 #include "Runtime/Engine/Public/Rendering/SkeletalMeshRenderData.h"
 #include "Runtime/Engine/Classes/Engine/StaticMesh.h"
@@ -15,7 +15,7 @@
 #include "FusionCamSensor.h"
 #include "UnrealcvLog.h"
 
-// FString UVisionBP::SerializeBoneInfo(USkeletalMeshComponent* Component)
+// FString UVisionBPLib::SerializeBoneInfo(USkeletalMeshComponent* Component)
 // {
 // 	FString Data;
 // 	TArray<FBoneIndexType> RequiredBones = Component->RequiredBones;
@@ -49,7 +49,7 @@
 // 	return Data;
 // }
 
-bool UVisionBP::CreateFile(const FString& Filename)
+bool UVisionBPLib::CreateFile(const FString& Filename)
 {
 	if (FFileHelper::SaveStringToFile("", *Filename))
 	{
@@ -62,7 +62,7 @@ bool UVisionBP::CreateFile(const FString& Filename)
 	}
 }
 
-bool UVisionBP::SaveData(const FString& Data, const FString& Filename)
+bool UVisionBPLib::SaveData(const FString& Data, const FString& Filename)
 {
 	if (FFileHelper::SaveStringToFile(Data, *Filename))
 	{
@@ -75,7 +75,7 @@ bool UVisionBP::SaveData(const FString& Data, const FString& Filename)
 	}
 }
 
-bool UVisionBP::AppendData(const FString& Data, const FString& Filename)
+bool UVisionBPLib::AppendData(const FString& Data, const FString& Filename)
 {
 	// https://answers.unrealengine.com/questions/250210/append-to-text-file-instead-of-overwrite-whats-the.html
 	if (FFileHelper::SaveStringToFile(Data, *Filename, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), FILEWRITE_Append))
@@ -89,19 +89,19 @@ bool UVisionBP::AppendData(const FString& Data, const FString& Filename)
 	}
 }
 
-// FString UVisionBP::FormatFrameFilename(FString FilenameFmt)
+// FString UVisionBPLib::FormatFrameFilename(FString FilenameFmt)
 // {
 // 	int FrameNumber = GFrameNumber;
 // 	return FString::Printf(*FilenameFmt, FrameNumber);
 // }
 
-bool UVisionBP::SendMessageBP(const FString& Message)
+bool UVisionBPLib::SendMessageBP(const FString& Message)
 {
 	FUnrealcvServer::Get().NetworkManager->SendMessage(Message);
 	return true;
 }
 
-void UVisionBP::SavePng(const TArray<FColor>& InImageData, int Width, int Height, FString Filename, bool bKeepAlpha)
+void UVisionBPLib::SavePng(const TArray<FColor>& InImageData, int Width, int Height, FString Filename, bool bKeepAlpha)
 {
 	FImageUtil ImageUtil;
 	if (!bKeepAlpha)
@@ -121,14 +121,14 @@ void UVisionBP::SavePng(const TArray<FColor>& InImageData, int Width, int Height
 	}
 }
 
-void UVisionBP::SaveNpy(const TArray<float>& FloatData, int Width, int Height, FString Filename)
+void UVisionBPLib::SaveNpy(const TArray<float>& FloatData, int Width, int Height, FString Filename)
 {
 	FImageUtil ImageUtil;
 	TArray<uint8> BinaryData = FSerializationUtils::Array2Npy(FloatData, Width, Height, 1);
 	ImageUtil.SaveFile(BinaryData, Filename);
 }
 
-void UVisionBP::GetBoneTransform(
+void UVisionBPLib::GetBoneTransform(
 	const USkeletalMeshComponent* SkeletalMeshComponent,
 	const TArray<FString>& IncludedBones,
 	TArray<FString>& BoneNames,
@@ -154,7 +154,7 @@ void UVisionBP::GetBoneTransform(
 	}
 }
 
-void UVisionBP::GetBoneTransformJson(
+void UVisionBPLib::GetBoneTransformJson(
 	const USkeletalMeshComponent* SkeletalMeshComponent,
 	const TArray<FString>& IncludedBones,
 	TArray<FString>& BoneNames,
@@ -177,13 +177,13 @@ void UVisionBP::GetBoneTransformJson(
 	}
 }
 
-void UVisionBP::GetVertexArray(const AActor* Actor, TArray<FVector>& VertexArray)
+void UVisionBPLib::GetVertexArray(const AActor* Actor, TArray<FVector>& VertexArray)
 {
 	FVertexSensor VertexSensor(Actor);
 	VertexArray = VertexSensor.GetVertexArray();
 }
 
-void UVisionBP::UpdateInput(APawn* Pawn, bool Enable)
+void UVisionBPLib::UpdateInput(APawn* Pawn, bool Enable)
 {
 	if (!IsValid(Pawn))
 	{
@@ -207,7 +207,7 @@ void UVisionBP::UpdateInput(APawn* Pawn, bool Enable)
 	}
 }
 
-void UVisionBP::GetActorList(TArray<AActor*>& ActorList)
+void UVisionBPLib::GetActorList(TArray<AActor*>& ActorList)
 {
 	TArray<UObject*> UObjectList;
 	bool bIncludeDerivedClasses = true;
@@ -223,7 +223,7 @@ void UVisionBP::GetActorList(TArray<AActor*>& ActorList)
 	}
 }
 
-void UVisionBP::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor)
+void UVisionBPLib::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor)
 {
 	AUnrealcvWorldController* WorldController = FUnrealcvServer::Get().WorldController.Get();
 	if (IsValid(WorldController))
@@ -232,7 +232,7 @@ void UVisionBP::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor)
 	}
 }
 
-void UVisionBP::AnnotateWorld()
+void UVisionBPLib::AnnotateWorld()
 {
 	AUnrealcvWorldController* WorldController = FUnrealcvServer::Get().WorldController.Get();
 	if (IsValid(WorldController))
@@ -241,7 +241,7 @@ void UVisionBP::AnnotateWorld()
 	}
 }
 
-TArray<FVector> UVisionBP::SkinnedMeshComponentGetVertexArray(USkinnedMeshComponent* Component)
+TArray<FVector> UVisionBPLib::SkinnedMeshComponentGetVertexArray(USkinnedMeshComponent* Component)
 {
 	TArray<FVector> VertexArray;
 	if (!IsValid(Component)) return VertexArray;
@@ -281,7 +281,7 @@ TArray<FVector> UVisionBP::SkinnedMeshComponentGetVertexArray(USkinnedMeshCompon
 }
 
 // Make sure the make the Mesh CPU accessible, otherwise the vertex location can not be read from the packaged game
-TArray<FVector> UVisionBP::StaticMeshComponentGetVertexArray(UStaticMeshComponent* StaticMeshComponent)
+TArray<FVector> UVisionBPLib::StaticMeshComponentGetVertexArray(UStaticMeshComponent* StaticMeshComponent)
 {
 	UStaticMesh* StaticMesh = StaticMeshComponent->GetStaticMesh();
 	TArray<FVector> VertexArray;
@@ -320,21 +320,21 @@ TArray<FVector> UVisionBP::StaticMeshComponentGetVertexArray(UStaticMeshComponen
 	return VertexArray;
 }
 
-TArray<FVector> UVisionBP::GetVertexArrayFromMeshComponent(UMeshComponent* MeshComponent)
+TArray<FVector> UVisionBPLib::GetVertexArrayFromMeshComponent(UMeshComponent* MeshComponent)
 {
 	TArray<FVector> VertexArray;
 	if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(MeshComponent))
 	{
-		VertexArray = UVisionBP::StaticMeshComponentGetVertexArray(StaticMeshComponent);
+		VertexArray = UVisionBPLib::StaticMeshComponentGetVertexArray(StaticMeshComponent);
 	}
 	if (USkinnedMeshComponent* SkinnedMeshComponent = Cast<USkinnedMeshComponent>(MeshComponent))
 	{
-		VertexArray = UVisionBP::SkinnedMeshComponentGetVertexArray(SkinnedMeshComponent);
+		VertexArray = UVisionBPLib::SkinnedMeshComponentGetVertexArray(SkinnedMeshComponent);
 	}
 	return VertexArray;
 }
 
-UFusionCamSensor* UVisionBP::GetPlayerSensor()
+UFusionCamSensor* UVisionBPLib::GetPlayerSensor()
 {
 	APawn* Pawn = FUnrealcvServer::Get().GetPawn();
 	if (!IsValid(Pawn)) return nullptr;

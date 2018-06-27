@@ -20,7 +20,7 @@ struct FBoneInfo
 };
 
 /** 
- * A native BoneSensor, use VisionBP to involve in blueprint 
+ * A native BoneSensor, use VisionBPLib to involve in blueprint 
  */
 class UNREALCV_API FBoneSensor
 {

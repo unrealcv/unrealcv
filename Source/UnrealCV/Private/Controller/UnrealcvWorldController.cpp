@@ -7,7 +7,7 @@
 #include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
 
 #include "Sensor/CameraSensor/PawnCamSensor.h"
-#include "VisionBP.h"
+#include "VisionBPLib.h"
 #include "UnrealcvServer.h"
 #include "PlayerViewMode.h"
 #include "UnrealcvLog.h"
@@ -56,7 +56,7 @@ void AUnrealcvWorldController::BeginPlay()
 	if (IsValid(Pawn))
 	{
 		AttachPawnSensor(Pawn);
-		UVisionBP::UpdateInput(Pawn, Server.Config.EnableInput);
+		UVisionBPLib::UpdateInput(Pawn, Server.Config.EnableInput);
 	}
 	else
 	{

@@ -2,11 +2,11 @@
 #pragma once
 
 #include "Runtime/Engine/Classes/Kismet/BlueprintFunctionLibrary.h"
-#include "AnimationBP.generated.h"
+#include "AnimationBPLib.generated.h"
 
 /** A static BP library to control the animation in UE4 */
 UCLASS()
-class UNREALCV_API UAnimationBP : public UBlueprintFunctionLibrary
+class UNREALCV_API UAnimationBPLib : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 

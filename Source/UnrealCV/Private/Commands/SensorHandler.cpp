@@ -9,7 +9,7 @@
 #include "FusionCamSensor.h"
 #include "Serialization.h"
 #include "Utils/StrFormatter.h"
-#include "SensorBP.h"
+#include "SensorBPLib.h"
 #include "Controller/PlayerViewMode.h"
 #include "Controller/UnrealcvWorldController.h"
 #include "ImageUtil.h"
@@ -49,7 +49,7 @@ UFusionCamSensor* GetSensor(const TArray<FString>& Args, FExecStatus& Status)
 		return nullptr;
 	}
 	int SensorId = FCString::Atoi(*Args[0]);
-	UFusionCamSensor* FusionSensor = USensorBP::GetSensorById(SensorId);
+	UFusionCamSensor* FusionSensor = USensorBPLib::GetSensorById(SensorId);
 	if (!IsValid(FusionSensor)) 
 	{
 		Status = FExecStatus::Error("Invalid sensor id");
@@ -62,7 +62,7 @@ UFusionCamSensor* GetSensor(const TArray<FString>& Args, FExecStatus& Status)
 /** vget /sensors , List all sensors in the world */
 FExecStatus GetSensorList(const TArray<FString>& Args)
 {
-	TArray<UFusionCamSensor*> GameWorldSensorList = USensorBP::GetFusionSensorList();
+	TArray<UFusionCamSensor*> GameWorldSensorList = USensorBPLib::GetFusionSensorList();
 
 	FString StrSensorList;
 	for (UFusionCamSensor* Sensor : GameWorldSensorList)

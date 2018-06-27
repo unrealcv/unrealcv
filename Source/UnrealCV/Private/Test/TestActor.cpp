@@ -6,7 +6,7 @@
 #include "FusionCamSensor.h"
 #include "Controller/ObjectAnnotator.h"
 #include "UnrealcvServer.h"
-#include "VisionBP.h"
+#include "VisionBPLib.h"
 #include "UnrealcvLog.h"
 
 // Run a test command
@@ -158,7 +158,7 @@ void TestAnnotator(const TArray<FString>& Args)
 {
 	// ExecCommand(TEXT("vset /viewmode object_mask"));
 	TArray<AActor*> Actors;
-	UVisionBP::GetActorList(Actors);
+	UVisionBPLib::GetActorList(Actors);
 
 	FObjectAnnotator Annotator;
 	// int ObjectIndex = 0;
