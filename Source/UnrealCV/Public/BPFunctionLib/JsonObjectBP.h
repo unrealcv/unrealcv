@@ -32,6 +32,8 @@ struct UNREALCV_API FJsonObjectBP
 
 	FJsonObjectBP(const FTransform& Transform);
 
+	FJsonObjectBP(const TArray<FString>& StrArray);
+
 	FJsonObjectBP(const TArray<FJsonObjectBP>& Array);
 
 	FJsonObjectBP(const TArray<FString>& Keys, const TArray<FJsonObjectBP>& Values);
@@ -39,6 +41,8 @@ struct UNREALCV_API FJsonObjectBP
 	FJsonObjectBP(const TArray<FString>& Keys, const TArray<FString>& Values);
 
 	FJsonObjectBP(const TMap<FString, FString>& Dict);
+
+    FJsonObjectBP(const TMap<FString, FJsonObjectBP>& Dict);
 
 	TSharedPtr<FJsonValue> ToJsonValue() const;
 

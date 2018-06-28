@@ -2,9 +2,8 @@
 #include "UnrealcvServer.h"
 #include "Runtime/Engine/Classes/Engine/GameEngine.h"
 #include "Runtime/Core/Public/Internationalization/Regex.h"
-#include "Controller/PlayerViewMode.h"
+
 #include "ConsoleHelper.h"
-#include "ObjectPainter.h"
 #include "Commands/ObjectHandler.h"
 #include "Commands/PluginHandler.h"
 #include "Commands/ActionHandler.h"
@@ -81,18 +80,18 @@ void FUnrealcvServer::RegisterCommandHandlers()
 FUnrealcvServer::FUnrealcvServer()
 {
 	// Code defined here should not use FUnrealcvServer::Get();
-	NetworkManager = NewObject<UTcpServer>();
+	TcpServer = NewObject<UTcpServer>();
 	CommandDispatcher = TSharedPtr<FCommandDispatcher>(new FCommandDispatcher());
 	FConsoleHelper::Get().SetCommandDispatcher(CommandDispatcher);
 
-	NetworkManager->AddToRoot(); // Avoid GC
-	NetworkManager->OnReceived().AddRaw(this, &FUnrealcvServer::HandleRawMessage);
-	NetworkManager->OnError().AddRaw(this, &FUnrealcvServer::HandleError);
+	TcpServer->AddToRoot(); // Avoid GC
+	TcpServer->OnReceived().AddRaw(this, &FUnrealcvServer::HandleRawMessage);
+	TcpServer->OnError().AddRaw(this, &FUnrealcvServer::HandleError);
 }
 
 FUnrealcvServer::~FUnrealcvServer()
 {
-	// this->NetworkManager->FinishDestroy(); // TODO: Check is this usage correct?
+	// this->TcpServer->FinishDestroy(); // TODO: Check is this usage correct?
 }
 
 UWorld* FUnrealcvServer::GetGameWorld()
@@ -158,7 +157,6 @@ bool FUnrealcvServer::InitWorld()
 		// Update camera FOV
 		PlayerController->PlayerCameraManager->SetFOV(Config.FOV);
 
-		FObjectPainter::Get().Reset(GetPawn()->GetLevel());
 		FCaptureManager::Get().AttachGTCaptureComponentToCamera(GetPawn()); // TODO: Make this configurable in the editor
 
 		UpdateInput(Config.EnableInput);
@@ -217,7 +215,7 @@ void FUnrealcvServer::ProcessPendingRequest()
 			FExecStatus::BinaryArrayFromString(Header, ReplyData);
 
 			ReplyData += ExecStatus.GetData();
-			NetworkManager->SendData(ReplyData);
+			TcpServer->SendData(ReplyData);
 		});
 		CommandDispatcher->ExecAsync(Request.Message, CallbackDelegate);
 	}
@@ -261,5 +259,5 @@ void FUnrealcvServer::HandleError(const FString& InErrorMessage)
 void FUnrealcvServer::SendClientMessage(FString Message)
 {
 	// TODO: Do not use game thread to send message.
-	NetworkManager->SendMessage(Message);
+	TcpServer->SendMessage(Message);
 }

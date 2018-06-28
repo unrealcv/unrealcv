@@ -1,6 +1,5 @@
 // Weichao Qiu @ 2017
 #include "ObjectHandler.h"
-#include "ObjectPainter.h"
 #include "Controller/ActorController.h"
 #include "VertexSensor.h"
 #include "Utils/StrFormatter.h"

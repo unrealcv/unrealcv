@@ -42,7 +42,7 @@ DECLARE_EVENT_OneParam(UTcpServer, FConnectedEvent, const FString&)
  */
 UCLASS()
 class UNREALCV_API UTcpServer : public UObject
-// NetworkManager needs to be an UObject, so that we can bind ip and port to UI.
+// TcpServer needs to be an UObject, so that we can bind ip and port to UI.
 {
 	GENERATED_BODY()
 

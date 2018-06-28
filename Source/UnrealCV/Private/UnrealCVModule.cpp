@@ -69,7 +69,7 @@ void FUnrealCVPlugin::StartupModule()
 		Server.Config.ExitOnFailure = OverrideExitOnFailure;
 	}
 
-	bool StartSuccess = Server.NetworkManager->Start(Server.Config.Port);
+	bool StartSuccess = Server.TcpServer->Start(Server.Config.Port);
 	if (!StartSuccess)
 	{
 		UE_LOG(LogUnrealCV, Warning, TEXT("Failed to start network server"));

@@ -9,7 +9,6 @@
 
 #include "CommandDispatcher.h"
 #include "ViewMode.h"
-#include "ObjectPainter.h"
 #include "UnrealcvServer.h"
 #include "UnrealcvLog.h"
 

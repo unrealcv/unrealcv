@@ -24,7 +24,8 @@ void AttachPawnSensor(APawn* Pawn)
 		UE_LOG(LogUnrealCV, Warning, TEXT("The pawn is invalid, can not attach a PawnSensor to it."));
 		return;
 	}
-	ScreenLog("Attach a UnrealcvSensor to the pawn");
+
+	UE_LOG(LogUnrealCV, Display, TEXT("Attach a UnrealcvSensor to the pawn"));
 	// Make sure this is the first one.
 	UPawnCamSensor* PawnCamSensor = NewObject<UPawnCamSensor>(Pawn, TEXT("PawnSensor")); // Make Pawn as the owner of the component
 	// UFusionCamSensor* FusionCamSensor = ConstructObject<UFusionCamSensor>(UFusionCamSensor::StaticClass(), Pawn);
@@ -41,12 +42,12 @@ void AttachPawnSensor(APawn* Pawn)
 
 void AUnrealcvWorldController::BeginPlay()
 {
-	ScreenLog("Overwrite the world setting with some UnrealCV extensions");
+	UE_LOG(LogUnrealCV, Display, TEXT("Overwrite the world setting with some UnrealCV extensions"));
 
 	FUnrealcvServer& UnrealcvServer = FUnrealcvServer::Get();
-	if (UnrealcvServer.NetworkManager && !UnrealcvServer.NetworkManager->IsListening())
+	if (UnrealcvServer.TcpServer && !UnrealcvServer.TcpServer->IsListening())
 	{
-		ScreenLog("The tcp server is not running");
+		UE_LOG(LogUnrealCV, Warning, TEXT("The tcp server is not running"));
 	}
 
 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();

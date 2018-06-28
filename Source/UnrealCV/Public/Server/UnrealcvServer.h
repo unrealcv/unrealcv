@@ -91,7 +91,7 @@ public:
 	FServerConfig Config;
 
 	/** The underlying class to handle network connection, ip and port are configured here */
-	UTcpServer* NetworkManager;
+	UTcpServer* TcpServer;
 
 	/** A controller to control the UE4 world */
 	TWeakObjectPtr<AUnrealcvWorldController> WorldController;
@@ -113,10 +113,10 @@ private:
 	/** Store pending requests, A new request will be stored here and be processed in the next tick of GameThread */
 	TQueue<FRequest, EQueueMode::Spsc> PendingRequest; // TQueue is a thread safe implementation
 
-	/** Handle the raw message from NetworkManager and parse raw message to a FRequest */
+	/** Handle the raw message from TcpServer and parse raw message to a FRequest */
 	void HandleRawMessage(const FString& RawMessage);
 
-	/** Handle errors from NetworkManager */
+	/** Handle errors from TcpServer */
 	void HandleError(const FString& ErrorMessage);
 
 };
