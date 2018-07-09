@@ -18,8 +18,16 @@ DECLARE_CYCLE_STAT(TEXT("ReadBufferFast"), STAT_ReadBufferFast, STATGROUP_Unreal
 UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("/Engine/EditorMeshes/MatineeCam_SM"));
-	// static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("StaticMesh'/Engine/EditorMeshes/Camera/SM_CineCam.SM_CineCam'"));
-	CameraMesh = EditorCameraMesh.Object;
+	// Another choice is "StaticMesh'/Engine/EditorMeshes/Camera/SM_CineCam.SM_CineCam'"
+
+	// Add a visualization camera mesh
+	// ProxyMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("Visualization Camera Mesh");
+	// ProxyMeshComponent->SetupAttachment(this);
+	// ProxyMeshComponent->bIsEditorOnly = true;
+	// ProxyMeshComponent->SetStaticMesh(EditorCameraMesh.Object);
+	// ProxyMeshComponent->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+	// ProxyMeshComponent->bHiddenInGame = true;
+	// ProxyMeshComponent->CastShadow = false;
 
 	this->ShowFlags.SetPostProcessing(true);
 	
@@ -37,23 +45,8 @@ void UBaseCameraSensor::OnRegister()
 	this->bCaptureEveryFrame = false;
 	this->bCaptureOnMovement = false;
 
-	// Add a visualization camera mesh
-	if (GetOwner()) // Check whether this is a template project
+	// if (GetOwner()) // Check whether this is a template project
 	// if (!IsTemplate())
-	{
-		ProxyMeshComponent = NewObject<UStaticMeshComponent>(GetOwner(), NAME_None, RF_Transactional | RF_TextExportTransient);
-		// ProxyMeshComponent = this->CreateDefaultSubobject<UStaticMeshComponent>("Visualization Camera Mesh");
-		ProxyMeshComponent->SetupAttachment(this);
-		ProxyMeshComponent->bIsEditorOnly = true;
-		ProxyMeshComponent->SetStaticMesh(CameraMesh);
-		ProxyMeshComponent->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
-		ProxyMeshComponent->bHiddenInGame = true;
-		ProxyMeshComponent->CastShadow = false;
-		ProxyMeshComponent->PostPhysicsComponentTick.bCanEverTick = false;
-		ProxyMeshComponent->CreationMethod = CreationMethod;
-		ProxyMeshComponent->RegisterComponentWithWorld(GetWorld());
-	}
-
 }
 
 

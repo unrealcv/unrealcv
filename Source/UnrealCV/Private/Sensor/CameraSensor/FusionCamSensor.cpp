@@ -20,6 +20,9 @@
 UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	PreviewCamera = CreateDefaultSubobject<UCameraComponent>("PreviewCamera");
+	PreviewCamera->SetupAttachment(this);
+
 	LitCamSensor = CreateDefaultSubobject<ULitCamSensor>("LitCamSensor");
 	FusionSensors.Add(LitCamSensor);
 	DepthCamSensor = CreateDefaultSubobject<UDepthCamSensor>("DepthCamSensor");
@@ -38,9 +41,6 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	FusionSensors.Add(AnnotationCamSensor);
 	LitSlowCamSensor = CreateDefaultSubobject<ULitSlowCamSensor>("LitSlowCamSensor");
 	FusionSensors.Add(LitSlowCamSensor);
-
-	PreviewCamera = CreateDefaultSubobject<UCameraComponent>("PreviewCamera");
-	PreviewCamera->SetupAttachment(this);
 
 	for (UBaseCameraSensor* Sensor : FusionSensors)
 	{

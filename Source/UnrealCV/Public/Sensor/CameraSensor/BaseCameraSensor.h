@@ -16,7 +16,6 @@ UCLASS(meta = (BlueprintSpawnableComponent))
 class UNREALCV_API UBaseCameraSensor : public USceneCaptureComponent2D
 {
 	GENERATED_BODY()
-	// GENERATED_UCLASS_BODY()
 
 public:
 	UBaseCameraSensor(const FObjectInitializer& ObjectInitializer);
@@ -74,30 +73,22 @@ public:
 	void SetPostProcessMaterial(UMaterial* PostProcessMaterial);
 
 	/** The TextureBuffer width */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "unrealcv")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int FilmWidth;
 
 	/** The TextureBuffer height */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "unrealcv")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int FilmHeight;
 
-	UPROPERTY(transient)
-	UStaticMesh* CameraMesh;
-
-	// The camera mesh to show visually where the camera is placed
-	/** Change the scale of this would not effect the capture component */
-	UPROPERTY(transient, EditAnywhere, BlueprintReadWrite, Category = "unrealcv")
-	UStaticMeshComponent* ProxyMeshComponent;
-
-	// Similar function to GetCameraView in UCameraComponent, without lockToHMD feature
+	/** Similar function to GetCameraView in UCameraComponent, without lockToHMD feature */
 	void GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView);
 
 protected:
 
-	/** Image manipulation on the background, share one worker */
-	// static FImageWorker ImageWorker;
-	// static FImageWorker ImageWorker;
-
 private:
-
+	/** The camera mesh to show visually where the camera is placed
+	Change the scale of this would not effect the capture component */
+	// UPROPERTY()
+	// UStaticMeshComponent* ProxyMeshComponent;
+	// This might not be neccessary
 };

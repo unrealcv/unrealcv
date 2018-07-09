@@ -16,44 +16,7 @@ public:
 
 	virtual bool GetEditorPreviewInfo(float DeltaTime, FMinimalViewInfo& ViewOut);
 
-	UPROPERTY(Instanced, VisibleAnywhere, BlueprintReadOnly)
-	class ULitCamSensor* LitCamSensor;
 
-	UPROPERTY(Instanced, VisibleAnywhere, BlueprintReadOnly)
-	class UDepthCamSensor* DepthCamSensor;
-
-	UPROPERTY(Instanced, VisibleAnywhere, BlueprintReadOnly)
-	class UVertexColorCamSensor* VertexColorCamSensor;
-
-	UPROPERTY(Instanced, VisibleAnywhere, BlueprintReadOnly)
-	class UNormalCamSensor* NormalCamSensor;
-
-	UPROPERTY(Instanced, VisibleAnywhere, BlueprintReadOnly)
-	class UStencilCamSensor* StencilCamSensor;
-
-	UPROPERTY(Instanced, VisibleAnywhere, BlueprintReadOnly)
-	class UAnnotationCamSensor* AnnotationCamSensor;
-
-	UPROPERTY(Instanced, VisibleAnywhere, BlueprintReadOnly)
-	class UPlaneDepthCamSensor* PlaneDepthCamSensor;
-
-	UPROPERTY(Instanced, VisibleAnywhere, BlueprintReadOnly)
-	class UVisDepthCamSensor* VisDepthCamSensor;
-
-	UPROPERTY(Instanced, VisibleAnywhere, BlueprintReadOnly)
-	class UNontransDepthCamSensor* NontransDepthCamSensor;
-
-	UPROPERTY(Instanced, VisibleAnywhere, BlueprintReadOnly)
-	class ULitSlowCamSensor* LitSlowCamSensor;
-
-	/** This preview camera is used for UE version < 4.17 which only support UCameraComponent PIP preview
-	See the difference between
-	https://github.com/EpicGames/UnrealEngine/blob/4.17/Engine/Source/Editor/LevelEditor/Private/SLevelViewport.cpp#L3927
-	and
-	https://github.com/EpicGames/UnrealEngine/blob/4.16/Engine/Source/Editor/LevelEditor/Private/SLevelViewport.cpp#L3908
-	*/
-	UPROPERTY(Instanced, VisibleAnywhere, BlueprintReadOnly)
-	class UCameraComponent* PreviewCamera;
 
 	/** Get rgb data */
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
@@ -113,7 +76,49 @@ public:
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	float GetFilmWidth();
 
+	UPROPERTY(meta = (AllowPrivateAccess= "true"))
+	class UCameraComponent* PreviewCamera;
+
 private:
 	UPROPERTY()
 	TArray<class UBaseCameraSensor*> FusionSensors;
+
+	// UPROPERTY(Instanced, VisibleAnywhere, BlueprintReadOnly), the previous definition
+	// Editing to these component should not be allowed
+	UPROPERTY()
+	class ULitCamSensor* LitCamSensor;
+
+	UPROPERTY()
+	class UDepthCamSensor* DepthCamSensor;
+
+	UPROPERTY()
+	class UVertexColorCamSensor* VertexColorCamSensor;
+
+	UPROPERTY()
+	class UNormalCamSensor* NormalCamSensor;
+
+	UPROPERTY()
+	class UStencilCamSensor* StencilCamSensor;
+
+	UPROPERTY()
+	class UAnnotationCamSensor* AnnotationCamSensor;
+
+	UPROPERTY()
+	class UPlaneDepthCamSensor* PlaneDepthCamSensor;
+
+	UPROPERTY()
+	class UVisDepthCamSensor* VisDepthCamSensor;
+
+	UPROPERTY()
+	class UNontransDepthCamSensor* NontransDepthCamSensor;
+
+	UPROPERTY()
+	class ULitSlowCamSensor* LitSlowCamSensor;
+
+	/** This preview camera is used for UE version < 4.17 which only support UCameraComponent PIP preview
+	See the difference between
+	https://github.com/EpicGames/UnrealEngine/blob/4.17/Engine/Source/Editor/LevelEditor/Private/SLevelViewport.cpp#L3927
+	and
+	https://github.com/EpicGames/UnrealEngine/blob/4.16/Engine/Source/Editor/LevelEditor/Private/SLevelViewport.cpp#L3908
+	*/
 };

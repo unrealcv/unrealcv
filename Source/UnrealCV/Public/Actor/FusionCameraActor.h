@@ -13,6 +13,7 @@ class UNREALCV_API AFusionCameraActor : public AActor
 public:
 	AFusionCameraActor(const FObjectInitializer& ObjectInitializer);
 
+	// Define it to be VisibleAnywhere not EditableAnywhere. This is enough for changing the component property
 	UPROPERTY(Category = AFusionCameraActor, VisibleAnywhere, BlueprintReadOnly)
 	UFusionCamSensor* FusionCamSensor;
 };

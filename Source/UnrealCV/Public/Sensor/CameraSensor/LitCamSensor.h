@@ -4,7 +4,11 @@
 #include "BaseCameraSensor.h"
 #include "LitCamSensor.generated.h"
 
-/** RGB color sensor */
+/** 
+ * RGB color sensor 
+ * The alias issue was reported here
+ * https://forums.unrealengine.com/development-discussion/rendering/59403-scenecapturecomponent2d-antialiasing
+ */
 UCLASS(meta = (BlueprintSpawnableComponent))
 class ULitCamSensor : public UBaseCameraSensor
 {
