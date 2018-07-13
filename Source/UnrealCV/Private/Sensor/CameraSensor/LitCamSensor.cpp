@@ -34,5 +34,5 @@ void ULitCamSensor::OnRegister()
 	this->bCaptureEveryFrame = false; // TODO: Check the performance overhead for this
 	this->bCaptureOnMovement = false;
 
-	// ImageWorker.Start();
+	this->bAlwaysPersistRenderingState = true; // This is needed if we want to disable bCaptureEveryFrame
 }

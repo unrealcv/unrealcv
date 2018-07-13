@@ -22,4 +22,7 @@ void UNormalCamSensor::OnRegister()
 	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 	this->bCaptureEveryFrame = false;
 	this->bCaptureOnMovement = false;
+
+	this->bAlwaysPersistRenderingState = true; // This is needed if we want to disable bCaptureEveryFrame
+											   // https://answers.unrealengine.com/questions/723947/scene-capture-with-post-process-mat-works-only-wit.html?sort=oldest
 }

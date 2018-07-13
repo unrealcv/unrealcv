@@ -17,7 +17,7 @@ void ULitSlowCamSensor::OnRegister()
 	TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
 
 	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-	this->bCaptureEveryFrame = false; 
+	this->bCaptureEveryFrame = false; // It seems this is required for post processing
 	this->bCaptureOnMovement = false;
 }
 
