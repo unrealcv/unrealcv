@@ -5,7 +5,8 @@
 #include "LitSlowCamSensor.generated.h"
 
 /** RGB color sensor */
-UCLASS(meta = (BlueprintSpawnableComponent))
+// UCLASS(meta = (BlueprintSpawnableComponent))
+UCLASS()
 class ULitSlowCamSensor : public UBaseCameraSensor
 {
 	GENERATED_BODY()
@@ -13,8 +14,8 @@ class ULitSlowCamSensor : public UBaseCameraSensor
 public:
 	ULitSlowCamSensor(const FObjectInitializer& ObjectInitializer);
 
-	virtual void OnRegister() override;
-
-	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	// UFUNCTION(BlueprintPure, Category = "unrealcv")
 	virtual void Capture(TArray<FColor>& ImageData, int& Width, int& Height) override;
+
+	virtual void SetupRenderTarget() override;
 };

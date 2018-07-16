@@ -12,7 +12,7 @@ class UPlaneDepthCamSensor : public UBaseCameraSensor
 public:
 	UPlaneDepthCamSensor(const FObjectInitializer& ObjectInitializer);
 
-	virtual void OnRegister() override;
+	virtual void SetupRenderTarget() override;
 
 	void CaptureDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height);
 };

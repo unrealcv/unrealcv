@@ -14,8 +14,7 @@ class UDepthCamSensor : public UBaseCameraSensor
 public:
 	UDepthCamSensor(const FObjectInitializer& ObjectInitializer);
 
-	virtual	void OnRegister() override;
-
-	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	void CaptureDepth(TArray<float>& DepthData, int& Width, int& Height);
+
+	virtual void SetupRenderTarget() override;
 };

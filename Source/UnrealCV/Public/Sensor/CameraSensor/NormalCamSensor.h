@@ -5,7 +5,7 @@
 #include "NormalCamSensor.generated.h"
 
 /** Surface normal sensor */
-UCLASS(meta = (BlueprintSpawnableComponent))
+UCLASS()
 class UNormalCamSensor : public UBaseCameraSensor
 {
 	GENERATED_BODY()
@@ -13,7 +13,7 @@ class UNormalCamSensor : public UBaseCameraSensor
 public:
 	UNormalCamSensor(const FObjectInitializer& ObjectInitializer);
 
-	virtual void OnRegister() override;
+	virtual void SetupRenderTarget() override;
 
 private:
 	/** Post process material to extract surface normal data */

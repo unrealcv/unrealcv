@@ -4,11 +4,20 @@
 UDepthCamSensor::UDepthCamSensor(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer)
 {
+	// this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
+	this->CaptureSource = ESceneCaptureSource::SCS_SceneDepth;
+}
 
+void UDepthCamSensor::SetupRenderTarget()
+{
+	bool bUseLinearGamma = true;
+	// TextureTarget->InitCustomFormat(Width, Height, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
+	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, EPixelFormat::PF_FloatRGBA, bUseLinearGamma);
 }
 
 void UDepthCamSensor::CaptureDepth(TArray<float>& DepthData, int& Width, int& Height)
 {
+	this->SetupRenderTarget();
 	this->CaptureScene();
 	Width = this->TextureTarget->SizeX, Height = TextureTarget->SizeY;
 	DepthData.AddZeroed(Width * Height); // or AddUninitialized(FloatColorDepthData.Num());
@@ -22,20 +31,4 @@ void UDepthCamSensor::CaptureDepth(TArray<float>& DepthData, int& Width, int& He
 		FFloat16Color& FloatColor = FloatColorDepthData[i];
 		DepthData[i] = FloatColor.R;
 	}
-}
-
-void UDepthCamSensor::OnRegister()
-{
-	Super::OnRegister();
-
-	TextureTarget = NewObject<UTextureRenderTarget2D>(this);
-
-	bool bUseLinearGamma = true;
-	// TextureTarget->InitCustomFormat(Width, Height, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
-	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, EPixelFormat::PF_FloatRGBA, bUseLinearGamma);
-
-	// this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-	this->CaptureSource = ESceneCaptureSource::SCS_SceneDepth;
-	this->bCaptureEveryFrame = false; // true by default
-	this->bCaptureOnMovement = false;
 }

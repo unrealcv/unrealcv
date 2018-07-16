@@ -13,7 +13,7 @@ class UStencilCamSensor : public UBaseCameraSensor
 public:
 	UStencilCamSensor(const FObjectInitializer& ObjectInitializer);
 
-	virtual void OnRegister() override;
+	virtual void SetupRenderTarget() override;
 
 private:
 	UPROPERTY()

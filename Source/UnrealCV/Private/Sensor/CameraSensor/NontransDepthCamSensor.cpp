@@ -10,19 +10,13 @@ UNontransDepthCamSensor::UNontransDepthCamSensor(const FObjectInitializer& Objec
 	this->ShowFlags.SetPostProcessing(false);
 }
 
-void UNontransDepthCamSensor::OnRegister()
+void UNontransDepthCamSensor::SetupRenderTarget()
 {
-	Super::OnRegister();
-
-	TextureTarget = NewObject<UTextureRenderTarget2D>(this);
-
 	bool bUseLinearGamma = true;
 	// TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
 	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, EPixelFormat::PF_FloatRGBA, bUseLinearGamma);
 	// this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 	this->CaptureSource = ESceneCaptureSource::SCS_SceneDepth;
-	this->bCaptureEveryFrame = false;
-	this->bCaptureOnMovement = false;
 }
 
 void UNontransDepthCamSensor::CaptureDepth(TArray<float>& DepthData, int& Width, int& Height)

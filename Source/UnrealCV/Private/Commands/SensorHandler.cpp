@@ -252,7 +252,7 @@ FExecStatus GetSensorLit(const TArray<FString>& Args)
 
 	TArray<FColor> Data;
 	int Width, Height;
-	FusionCamSensor->GetLitSlow(Data, Width, Height);
+	FusionCamSensor->GetLit(Data, Width, Height);
 	SaveData(Data, Width, Height, Args, ExecStatus);
 	return ExecStatus;
 }
@@ -283,6 +283,7 @@ FExecStatus GetSensorDepth(const TArray<FString>& Args)
 	return ExecStatus;
 }
 
+/*
 FExecStatus GetSensorPlaneDepth(const TArray<FString>& Args)
 {
 	FExecStatus ExecStatus = FExecStatus::OK();
@@ -291,7 +292,7 @@ FExecStatus GetSensorPlaneDepth(const TArray<FString>& Args)
 
 	TArray<FFloat16Color> Data;
 	int Width, Height;
-	FusionCamSensor->GetPlaneDepth(Data, Width, Height);
+	FusionCamSensor->GetDepth(Data, Width, Height);
 	SaveData(Data, Width, Height, Args, ExecStatus);
 	return ExecStatus;
 }
@@ -308,6 +309,7 @@ FExecStatus GetSensorVisDepth(const TArray<FString>& Args)
 	SaveData(Data, Width, Height, Args, ExecStatus);
 	return ExecStatus;
 }
+*/
 
 FExecStatus GetSensorNormal(const TArray<FString>& Args)
 {
@@ -330,7 +332,7 @@ FExecStatus GetSensorObjMask(const TArray<FString>& Args)
 
 	TArray<FColor> Data;
 	int Width, Height;
-	FusionCamSensor->GetObjectMask(Data, Width, Height);
+	FusionCamSensor->GetSeg(Data, Width, Height);
 	// TODO: Remove this later for better performance
 	for (int i = 0; i < Width * Height; i++)
 	{
@@ -340,6 +342,7 @@ FExecStatus GetSensorObjMask(const TArray<FString>& Args)
 	return ExecStatus;
 }
 
+/*
 FExecStatus GetSensorDepthStencil(const TArray<FString>& Args)
 {
 	FExecStatus ExecStatus = FExecStatus::OK();
@@ -352,6 +355,7 @@ FExecStatus GetSensorDepthStencil(const TArray<FString>& Args)
 	SaveData(Data, Width, Height, Args, ExecStatus);
 	return ExecStatus;
 }
+*/
 
 FExecStatus MoveTo(const TArray<FString>& Args)
 {
@@ -490,15 +494,15 @@ void FSensorHandler::RegisterCommands()
 		FDispatcherDelegate::CreateStatic(GetSensorDepth),
 		"Get npy binary data from depth sensor");
 
-	CommandDispatcher->BindCommand(
-		"vget /camera/[uint]/vis_depth [str]",
-		FDispatcherDelegate::CreateStatic(GetSensorVisDepth),
-		"Get npy binary data from vis depth sensor");
+	// CommandDispatcher->BindCommand(
+	// 	"vget /camera/[uint]/vis_depth [str]",
+	// 	FDispatcherDelegate::CreateStatic(GetSensorVisDepth),
+	// 	"Get npy binary data from vis depth sensor");
 
-	CommandDispatcher->BindCommand(
-		"vget /camera/[uint]/plane_depth [str]",
-		FDispatcherDelegate::CreateStatic(GetSensorPlaneDepth),
-		"Get npy binary data from plane depth sensor");
+	// CommandDispatcher->BindCommand(
+	// 	"vget /camera/[uint]/plane_depth [str]",
+	// 	FDispatcherDelegate::CreateStatic(GetSensorPlaneDepth),
+	// 	"Get npy binary data from plane depth sensor");
 
 	CommandDispatcher->BindCommand(
 		"vget /camera/[uint]/normal [str]",
@@ -510,10 +514,10 @@ void FSensorHandler::RegisterCommands()
 		FDispatcherDelegate::CreateStatic(GetSensorObjMask),
 		"Get npy binary data from depth sensor");
 
-	CommandDispatcher->BindCommand(
-		"vget /camera/[uint]/depth_stencil [str]",
-		FDispatcherDelegate::CreateStatic(GetSensorDepthStencil),
-		"Get depth stencil data as an alternative way for object mask");
+	// CommandDispatcher->BindCommand(
+	// 	"vget /camera/[uint]/depth_stencil [str]",
+	// 	FDispatcherDelegate::CreateStatic(GetSensorDepthStencil),
+	// 	"Get depth stencil data as an alternative way for object mask");
 
 	CommandDispatcher->BindCommand(
 		"vset /viewmode [str]",

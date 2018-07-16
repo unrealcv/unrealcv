@@ -14,20 +14,12 @@ UVertexColorCamSensor::UVertexColorCamSensor(const FObjectInitializer& ObjectIni
 	// this->ShowFlags.SetRendering(false); // This will disable the rendering
 }
 
-void UVertexColorCamSensor::OnRegister()
+void UVertexColorCamSensor::SetupRenderTarget()
 {
-	Super::OnRegister();
-
-	TextureTarget = NewObject<UTextureRenderTarget2D>(this);
 	// bool bUseLinearGamma = false;
 	bool bUseLinearGamma = true; // disable sRGB !
 	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
-	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-	this->bCaptureEveryFrame = false;
-	this->bCaptureOnMovement = false;
 }
-
-
 
 	/*
 	UWorld* World = GetWorld();

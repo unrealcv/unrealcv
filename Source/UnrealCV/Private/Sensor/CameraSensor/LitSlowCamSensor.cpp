@@ -5,24 +5,20 @@
 ULitSlowCamSensor::ULitSlowCamSensor(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer)
 {
-	SetFOV(90);
 }
 
-void ULitSlowCamSensor::OnRegister()
+void ULitSlowCamSensor::SetupRenderTarget()
 {
-	Super::OnRegister();
-
-	TextureTarget = NewObject<UTextureRenderTarget2D>(this);
-	TextureTarget->InitAutoFormat(FilmWidth, FilmHeight);
-	TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
-
-	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-	this->bCaptureEveryFrame = false; // It seems this is required for post processing
-	this->bCaptureOnMovement = false;
+	if (!IsValid(TextureTarget) || TextureTarget->SizeX != FilmWidth || TextureTarget->SizeY != FilmHeight) 
+	{
+		TextureTarget->InitAutoFormat(FilmWidth, FilmHeight);
+		TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
+	}
 }
 
 void ULitSlowCamSensor::Capture(TArray<FColor>& Image, int& Width, int& Height)
 {
+	this->SetupRenderTarget();
 	this->CaptureScene();
 	FReadSurfaceDataFlags ReadSurfaceDataFlags;
 	ReadSurfaceDataFlags.SetLinearToGamma(false); 

@@ -13,5 +13,5 @@ class UVertexColorCamSensor : public UBaseCameraSensor
 public:
 	UVertexColorCamSensor(const FObjectInitializer& ObjectInitializer);
 
-	virtual void OnRegister() override;
+	virtual void SetupRenderTarget() override;
 };

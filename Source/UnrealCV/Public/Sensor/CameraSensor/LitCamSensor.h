@@ -9,7 +9,7 @@
  * The alias issue was reported here
  * https://forums.unrealengine.com/development-discussion/rendering/59403-scenecapturecomponent2d-antialiasing
  */
-UCLASS(meta = (BlueprintSpawnableComponent))
+UCLASS()
 class ULitCamSensor : public UBaseCameraSensor
 {
 	GENERATED_BODY()
@@ -17,9 +17,5 @@ class ULitCamSensor : public UBaseCameraSensor
 public:
 	ULitCamSensor(const FObjectInitializer& ObjectInitializer);
 
-	virtual void OnRegister() override;
-
-private:
-	UPROPERTY()
-	UMaterial* LitPPMaterial;
+	virtual void SetupRenderTarget() override;
 };

@@ -19,17 +19,10 @@ void UVisDepthCamSensor::CaptureDepth(TArray<FFloat16Color>& DepthData, int& Wid
 	RenderTargetResource->ReadFloat16Pixels(DepthData);
 }
 
-void UVisDepthCamSensor::OnRegister()
+void UVisDepthCamSensor::SetupRenderTarget()
 {
-	Super::OnRegister();
-
-	TextureTarget = NewObject<UTextureRenderTarget2D>(this);
-
 	bool bUseLinearGamma = true;
 	// TODO: Check whether InitAutoFormat = Float + UseLinearGamma?
 	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, EPixelFormat::PF_FloatRGBA, bUseLinearGamma);
-
-	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-	this->bCaptureEveryFrame = false;
-	this->bCaptureOnMovement = false;
 }
+

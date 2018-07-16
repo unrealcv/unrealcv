@@ -4,46 +4,90 @@
 #include "Runtime/Engine/Classes/Components/PrimitiveComponent.h"
 #include "FusionCamSensor.generated.h"
 
+UENUM(BlueprintType)
+enum class ELitMode : uint8
+{
+	Lit,
+	Slow
+};
+
+UENUM(BlueprintType)
+enum class EDepthMode : uint8
+{
+	PlaneDepth,
+	DistToCamCenter
+};
+
+UENUM(BlueprintType)
+enum class ESegMode : uint8
+{
+	AnnotationComponent,
+	VertexColor,
+	CustomStencil
+};
+
+UENUM(BlueprintType)
+enum class EPresetFilmSize : uint8
+{
+	F640x480,
+	F720p,
+	F1080p
+};
+
+
 // class UNREALCV_API UFusionCamSensor : public UBaseCameraSensor
 UCLASS(meta = (BlueprintSpawnableComponent))
 class UNREALCV_API UFusionCamSensor : public UPrimitiveComponent
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditInstanceOnly)
+	EPresetFilmSize PresetFilmSize;
+
+	UPROPERTY(EditInstanceOnly)
+	int FilmWidth;
+
+	UPROPERTY(EditInstanceOnly)
+	int FilmHeight;
+
 public:
 	UFusionCamSensor(const FObjectInitializer& ObjectInitializer);
 
-	virtual void OnRegister() override;
+	// virtual void OnRegister() override;
 
 	virtual bool GetEditorPreviewInfo(float DeltaTime, FMinimalViewInfo& ViewOut);
 
-
-
 	/** Get rgb data */
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
-	void GetLit(TArray<FColor>& LitData, int& InOutWidth, int& InOutHeight);
+	void GetLit(TArray<FColor>& LitData, int& InOutWidth, int& InOutHeight, ELitMode LitMode = ELitMode::Lit);
 
-	UFUNCTION(BlueprintPure, Category = "unrealcv")
-	void GetLitSlow(TArray<FColor>& LitData, int& InOutWidth, int& InOutHeight);
+	// UFUNCTION(BlueprintPure, Category = "unrealcv")
+	// void GetLitSlow(TArray<FColor>& LitData, int& InOutWidth, int& InOutHeight);
 
 	/** Get depth data */
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
-	void GetDepth(TArray<float>& DepthData, int& InOutWidth, int& InOutHeight);
-	void GetPlaneDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height);
-	void GetVisDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height);
+	void GetDepth(TArray<float>& DepthData, int& InOutWidth, int& InOutHeight, EDepthMode DepthMode = EDepthMode::PlaneDepth);
+	// void GetPlaneDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height);
+	// void GetVisDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height);
 
 	/** Get surface normal data */
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	void GetNormal(TArray<FColor>& NormalData, int& Width, int& Height);
 
-	/** Get object mask data, the annotation color can be extracted from FObjectAnnotator */
-	UFUNCTION(BlueprintPure, Category = "unrealcv")
-	void GetObjectMask(TArray<FColor>& ObjMaskData, int& Width, int& Height);
 
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
-	void GetVertexColor(TArray<FColor>& VertexColorData, int& Width, int& Height);
+	void GetSeg(TArray<FColor>& ObjMaskData, int& Width, int& Height, ESegMode SegMode = ESegMode::AnnotationComponent);
 
-	UFUNCTION(BlueprintPure, Category = "unrealcv")
-	void GetStencil(TArray<FColor>& StencilData, int& Width, int& Height);
+	// /** Get object mask data, the annotation color can be extracted from FObjectAnnotator */
+	// UFUNCTION(BlueprintPure, Category = "unrealcv")
+	// void GetObjectMask(TArray<FColor>& ObjMaskData, int& Width, int& Height);
+
+	// UFUNCTION(BlueprintPure, Category = "unrealcv")
+	// void GetVertexColor(TArray<FColor>& VertexColorData, int& Width, int& Height);
+
+	// UFUNCTION(BlueprintPure, Category = "unrealcv")
+	// void GetStencil(TArray<FColor>& StencilData, int& Width, int& Height);
 
 	// void GetLitFilename(const FString& Filename);
 	// void GetLitPng(TArray<uint8>& PngBinaryData);
@@ -70,14 +114,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "unrealcv")
 	void SetSensorRotation(FRotator Rotator);
 
-	UFUNCTION(BlueprintPure, Category = "unrealcv")
-	float GetFilmHeight();
+	// UFUNCTION(BlueprintPure, Category = "unrealcv")
+	// float GetFilmHeight();
 
-	UFUNCTION(BlueprintPure, Category = "unrealcv")
-	float GetFilmWidth();
+	// UFUNCTION(BlueprintPure, Category = "unrealcv")
+	// float GetFilmWidth();
+
+	// void SetFilmSize(int Width, int Height);
 
 	UPROPERTY(meta = (AllowPrivateAccess= "true"))
 	class UCameraComponent* PreviewCamera;
+
+
+	virtual void BeginPlay() override;
+
+	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
 
 private:
 	UPROPERTY()

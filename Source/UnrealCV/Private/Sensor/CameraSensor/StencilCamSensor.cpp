@@ -11,17 +11,8 @@ UStencilCamSensor::UStencilCamSensor(const FObjectInitializer& ObjectInitializer
 	SetPostProcessMaterial(StencilPPMaterial);
 }
 
-void UStencilCamSensor::OnRegister()
+void UStencilCamSensor::SetupRenderTarget()
 {
-	Super::OnRegister();
-
-	TextureTarget = NewObject<UTextureRenderTarget2D>(this);
-
 	bool bUseLinearGamma = true;
 	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
-	// TextureTarget->InitCustomFormat(Width, Height, EPixelFormat::PF_FloatRGBA, bUseLinearGamma);
-	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-	// this->CaptureSource = ESceneCaptureSource::SCS_SceneDepth;
-	this->bCaptureEveryFrame = false;
-	this->bCaptureOnMovement = false;
 }

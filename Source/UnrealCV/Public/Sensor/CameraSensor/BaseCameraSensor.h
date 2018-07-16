@@ -1,4 +1,5 @@
 // Weichao Qiu @ 2017
+// Should not be used in blueprint
 #pragma once
 
 #include "CoreMinimal.h"
@@ -12,78 +13,68 @@
 /**
  *
  */
-UCLASS(meta = (BlueprintSpawnableComponent))
+UCLASS(abstract)
 class UNREALCV_API UBaseCameraSensor : public USceneCaptureComponent2D
 {
 	GENERATED_BODY()
 
 public:
 	UBaseCameraSensor(const FObjectInitializer& ObjectInitializer);
-	// The order of this function declaration matters
 
-	virtual void OnRegister() override;
+	// virtual void OnRegister() override;
 
+	virtual void SetupRenderTarget();
+
+public:
 	// 	FlushRenderingCommands() can make sure the rendering command is finished, but will slow down the game thread
-	// Should be override by child classes
-	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	virtual void CaptureFast(TArray<FColor>& ImageData, int& Width, int& Height);
 
 	/** Save lit to an image file, send the capture command to rendering thread */
-	UFUNCTION(BlueprintCallable, Category = "unrealcv")
 	virtual void CaptureToFile(const FString& Filename);
 
 	/** The old version to read TextureBuffer, slow but is sync operation and  correct */
-	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	virtual void Capture(TArray<FColor>& ImageData, int& Width, int& Height);
 
-	UFUNCTION(BlueprintPure, Category = "unrealcv")
-	virtual FVector GetSensorLocation()
+	FVector GetSensorLocation()
 	{
 		return this->GetComponentLocation(); // World space
 	}
-
-	UFUNCTION(BlueprintPure, Category = "unrealcv")
-	virtual FRotator GetSensorRotation()
-	{
-		return this->GetComponentRotation(); // World space
-	}
-
-	UFUNCTION(BlueprintCallable, Category = "unrealcv")
-	virtual void SetSensorLocation(FVector Location)
+	void SetSensorLocation(FVector Location)
 	{
 		this->SetWorldLocation(Location);
 	}
 
-	UFUNCTION(BlueprintCallable, Category = "unrealcv")
-	virtual void SetSensorRotation(FRotator Rotator)
+	FRotator GetSensorRotation()
+	{
+		return this->GetComponentRotation(); // World space
+	}
+	void SetSensorRotation(FRotator Rotator)
 	{
 		this->SetWorldRotation(Rotator);
 	}
 
 	/** Get the FOV of this camera */
-	UFUNCTION(BlueprintPure, Category = "unrealcv")
-	float GetSensorFOV() { return this->FOVAngle; }
-
-	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	float GetFOV() { return this->FOVAngle; }
 	void SetFOV(float FOV) { this->FOVAngle = FOV; }
+
+	int FilmWidth;
+	int FilmHeight;
 
 	/** Get the projection matrix of this camera */
 	FString GetProjectionMatrix();
 
 	void SetPostProcessMaterial(UMaterial* PostProcessMaterial);
 
-	/** The TextureBuffer width */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int FilmWidth;
-
-	/** The TextureBuffer height */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int FilmHeight;
 
 	/** Similar function to GetCameraView in UCameraComponent, without lockToHMD feature */
 	void GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView);
 
 protected:
+	/** The TextureBuffer width */
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite)
+
+	/** The TextureBuffer height */
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite)
 
 private:
 	/** The camera mesh to show visually where the camera is placed

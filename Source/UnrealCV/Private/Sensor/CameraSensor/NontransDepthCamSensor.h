@@ -13,8 +13,7 @@ class UNontransDepthCamSensor : public UBaseCameraSensor
 public:
 	UNontransDepthCamSensor(const FObjectInitializer& ObjectInitializer);
 
-	virtual void OnRegister() override;
+	virtual void SetupRenderTarget() override;
 
-	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	virtual void CaptureDepth(TArray<float>& DepthData, int& Width, int& Height);
 };
