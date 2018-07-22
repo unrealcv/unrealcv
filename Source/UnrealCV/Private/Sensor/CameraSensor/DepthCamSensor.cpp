@@ -6,14 +6,17 @@ UDepthCamSensor::UDepthCamSensor(const FObjectInitializer& ObjectInitializer) :
 {
 	// this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 	this->CaptureSource = ESceneCaptureSource::SCS_SceneDepth;
+
+	PixelFormat = EPixelFormat::PF_FloatRGBA;
+	bUseLinearGamma = true;
 }
 
-void UDepthCamSensor::SetupRenderTarget()
-{
-	bool bUseLinearGamma = true;
-	// TextureTarget->InitCustomFormat(Width, Height, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
-	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, EPixelFormat::PF_FloatRGBA, bUseLinearGamma);
-}
+// void UDepthCamSensor::SetupRenderTarget()
+// {
+// 	bool bUseLinearGamma = true;
+// 	// TextureTarget->InitCustomFormat(Width, Height, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
+// 	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, EPixelFormat::PF_FloatRGBA, bUseLinearGamma);
+// }
 
 void UDepthCamSensor::CaptureDepth(TArray<float>& DepthData, int& Width, int& Height)
 {

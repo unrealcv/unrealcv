@@ -70,6 +70,8 @@ public:
 	void GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView);
 
 protected:
+	EPixelFormat PixelFormat;
+	bool bUseLinearGamma;
 	/** The TextureBuffer width */
 	// UPROPERTY(EditAnywhere, BlueprintReadWrite)
 
