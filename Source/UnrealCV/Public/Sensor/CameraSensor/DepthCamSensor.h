@@ -16,5 +16,5 @@ public:
 
 	void CaptureDepth(TArray<float>& DepthData, int& Width, int& Height);
 
-	virtual void SetupRenderTarget() override;
+	// virtual void SetupRenderTarget() override;
 };

@@ -31,20 +31,26 @@ UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer
 
 	this->ShowFlags.SetPostProcessing(true);
 	
-
 	// Avoid calling virtual function in a constructor
-	TextureTarget = CreateDefaultSubobject<UTextureRenderTarget2D>(TEXT("CamSensorRenderTarget"));
 
 	// Explicitly make a request to render frames
-	this->bCaptureEveryFrame = false;
-	this->bCaptureOnMovement = false;
-	this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
-	this->bAlwaysPersistRenderingState = true; 
+	bCaptureEveryFrame = false;
+	bCaptureOnMovement = false;
+	CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
+	bAlwaysPersistRenderingState = true; 
 	// This is needed if we want to disable bCaptureEveryFrame
 	// https://answers.unrealengine.com/questions/723947/scene-capture-with-post-process-mat-works-only-wit.html?sort=oldest
 
 	// if (GetOwner()) // Check whether this is a template project
 	// if (!IsTemplate())
+
+	FilmWidth = 640;
+	FilmHeight = 480;
+	PixelFormat = EPixelFormat::PF_B8G8R8A8;
+	bUseLinearGamma = false;
+	// NOTE: Avoid creating TextureTarget in the CTOR, this will make CamSensor not savable in a BP actor
+	// TextureTarget = CreateDefaultSubobject<UTextureRenderTarget2D>(TEXT("CamSensorRenderTarget"));
+	// SetupRenderTarget();
 }
 
 // void UBaseCameraSensor::OnRegister()
@@ -55,10 +61,16 @@ UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer
 // Postpone this to a lazy initialization stage to avoid unnecessary memory usage.
 void UBaseCameraSensor::SetupRenderTarget()
 {
-	if (!IsValid(TextureTarget) || TextureTarget->SizeX != FilmWidth || TextureTarget->SizeY != FilmHeight) 
+	if (!IsValid(TextureTarget))
 	{
-		bool bUseLinearGamma = false;
-		TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
+		TextureTarget = NewObject<UTextureRenderTarget2D>(this); 
+	}
+	// TextureTarget = CreateDefaultSubobject<UTextureRenderTarget2D>(TEXT("CamSensorRenderTarget"));
+	
+	if (TextureTarget->SizeX != FilmWidth || TextureTarget->SizeY != FilmHeight) 
+	{
+		// bool bUseLinearGamma = false;
+		TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, PixelFormat, bUseLinearGamma);
 	}
 }
 

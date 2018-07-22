@@ -12,8 +12,8 @@ UNormalCamSensor::UNormalCamSensor(const FObjectInitializer& ObjectInitializer)
 	SetPostProcessMaterial(Material.Object);
 }
 
-void UNormalCamSensor::SetupRenderTarget()
-{
-	bool bUseLinearGamma = false;
-	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
-}
+// void UNormalCamSensor::SetupRenderTarget()
+// {
+// 	bool bUseLinearGamma = false;
+// 	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
+// }
