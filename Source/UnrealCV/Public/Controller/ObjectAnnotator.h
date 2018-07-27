@@ -16,7 +16,7 @@ Annotate each object instance with a unique color, three ways to annotate an obj
 2. CustomDepthStencil, which is used in AirSim, but only supports 0 - 255 and needs to modify project setting
 3. AnnotationComponent, which generates a dummy annotation component on the fly, which is used after unrealcv v0.4
 */
-class FObjectAnnotator
+class UNREALCV_API FObjectAnnotator
 {
 public:
 	FObjectAnnotator();

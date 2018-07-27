@@ -119,11 +119,15 @@ public:
 
 	void CaptureVertex();
 
+	void CapturePuppeteer();
+
 	void ExitGame();
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 
 	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
+
+	FString MakeFilename(FString CameraName, FString DataType, FString FileExtension);
 
 protected:
 	// Called when the game starts or when spawned
@@ -137,8 +141,6 @@ private:
 	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UPROPERTY()
 	class UMaterialBillboardComponent* Billboard;
-
-	FString MakeFilename(FString CameraName, FString DataType, FString FileExtension);
 
 	UClass* SearchCommonClass(UClass* Class);
 };

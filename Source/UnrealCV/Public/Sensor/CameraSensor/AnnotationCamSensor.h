@@ -16,6 +16,4 @@ public:
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * T);
 
 	virtual void Capture(TArray<FColor>& ImageData, int& Width, int& Height) override;
-
-	virtual void SetupRenderTarget() override;
 };

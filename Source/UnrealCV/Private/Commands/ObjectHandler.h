@@ -2,7 +2,12 @@
 #include "CommandDispatcher.h"
 #include "CommandHandler.h"
 
-/** Handle vget/vset /object/... commands */
+/** 
+ * Handle vget/vset /object/... commands 
+ * The definition of object is any actor contains a MeshComponent in the runtime
+ * This includes StaticMesh, SkeletalMesh, ProceduralMesh (tree), Landscape, Foliage
+ * Object is different than actor, only actor contains mesh can be called as object
+*/
 class FObjectCommandHandler : public FCommandHandler
 {
 public:

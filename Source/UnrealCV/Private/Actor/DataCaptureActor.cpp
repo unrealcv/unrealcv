@@ -99,6 +99,7 @@ void ADataCaptureActor::CaptureFrame()
 	CaptureScene();
 	CaptureJoint();
 	CaptureVertex();
+	CapturePuppeteer();
 	FrameCounter += 1;
 	// CaptureSceneSummary();
 	// CaptureSceneInfo();
@@ -183,11 +184,6 @@ void ADataCaptureActor::CaptureScene()
 			UVisionBPLib::GetAnnotationColor(Actor, AnnotationColor);
 			ActorDetails.Emplace("AnnotationColor", AnnotationColor);
 		}
-		// Save puppeteer data to meta data file
-		if (IsValid(Puppeteer))
-		{
-			ActorDetails.Emplace("Puppeteer", Puppeteer->GetState(this));
-		}
 
 		ActorsDataMap.Emplace(Actor->GetName(), FJsonObjectBP(ActorDetails));
 	}
@@ -215,6 +211,15 @@ void ADataCaptureActor::CaptureVertex()
 	FString JsonFilename = MakeFilename("", "vertex", ".json");
 	FString JsonStr = FJsonObjectBP(VertexDataMap).ToString(); 
 	UVisionBPLib::SaveData(JsonStr, JsonFilename);
+}
+
+void ADataCaptureActor::CapturePuppeteer()
+{
+	// Save puppeteer data to meta data file
+	if (IsValid(Puppeteer))
+	{
+		Puppeteer->GetState(this);
+	}
 }
 
 void ADataCaptureActor::CaptureJoint()

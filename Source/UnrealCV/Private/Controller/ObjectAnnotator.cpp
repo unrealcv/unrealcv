@@ -1,17 +1,18 @@
 // Weichao Qiu @ 2017
-#include "ObjectAnnotator.h"
+#include "Controller/ObjectAnnotator.h"
 #include "Runtime/Engine/Public/EngineUtils.h"
 #include "Runtime/Launch/Resources/Version.h"
-#include "AnnotationComponent.h"
+#include "Component/AnnotationComponent.h"
 #include "UnrealcvLog.h"
+
+// For UE4 < 17
+// check https://github.com/unrealcv/unrealcv/blob/1369a72be8428547318d8a52ae2d63e1eb57a001/Source/UnrealCV/Private/Controller/ObjectAnnotator.cpp#L1
 
 FColor GetColorFromColorMap(int32 ObjectIndex);
 
 FObjectAnnotator::FObjectAnnotator()
 {
 }
-
-
 
 /** Annotate all static mesh in the world */
 void FObjectAnnotator::AnnotateWorld(UWorld* World)
@@ -48,9 +49,17 @@ void FObjectAnnotator::SetAnnotationColor(AActor* Actor, const FColor& Annotatio
 		return;
 	}
 	// CHECK: Add the annotation color regardless successful or not
-	// this->PaintVertexColor(Actor, AnnotationColor);
-	this->CreateAnnotationComponent(Actor, AnnotationColor);
+	TArray<UActorComponent*> AnnotationComponents = Actor->GetComponentsByClass(UAnnotationComponent::StaticClass());
+	if (AnnotationComponents.Num() == 0)
+	{
+		CreateAnnotationComponent(Actor, AnnotationColor);
+	}
+	else
+	{
+		UpdateAnnotationComponent(Actor, AnnotationColor);
+	}
 	this->AnnotationColors.Emplace(Actor->GetName(), AnnotationColor);
+	// TODO: Remote AnnotationColor Map!
 }
 
 void FObjectAnnotator::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor)
@@ -61,13 +70,25 @@ void FObjectAnnotator::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor
 		return;
 	}
 
-	FString ActorName = Actor->GetName();
-	if (!this->AnnotationColors.Contains(ActorName))
+	// FString ActorName = Actor->GetName();
+	// if (!this->AnnotationColors.Contains(ActorName))
+	// {
+	// 	UE_LOG(LogUnrealCV, Warning, TEXT("Can not find actor %s in GetAnnotationColor"), *ActorName);
+	// 	return;
+	// }
+	// AnnotationColor = this->AnnotationColors[ActorName];
+
+	// Another way to get annotation color is directly read color from AnnotationComponent
+	// TODO: Remove the first only leave the second method
+	TArray<UActorComponent*> AnnotationComponents = Actor->GetComponentsByClass(UAnnotationComponent::StaticClass());
+	if (AnnotationComponents.Num() == 0) return;
+	if (AnnotationComponents.Num() > 1)
 	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("Can not find actor %s in GetAnnotationColor"), *ActorName);
-		return;
+		UE_LOG(LogTemp, Warning, TEXT("More than one AnnotationComponent for MeshComponent."));
 	}
-	AnnotationColor = this->AnnotationColors[ActorName];
+	UAnnotationComponent* AnnotationComponent = Cast<UAnnotationComponent>(AnnotationComponents[0]);
+	// check(AnnotationColor == AnnotationComponent->AnnotationColor);
+	AnnotationColor = AnnotationComponent->AnnotationColor;
 }
 
 void FObjectAnnotator::GetAnnotableActors(UWorld* World, TArray<AActor*>& ActorArray)
@@ -85,20 +106,11 @@ void FObjectAnnotator::GetAnnotableActors(UWorld* World, TArray<AActor*>& ActorA
 	}
 }
 
-#if ENGINE_MINOR_VERSION < 17
-void FObjectAnnotator::PaintVertexColor(AActor* Actor, const FColor& AnnotationColor)
-{
-	if (!IsValid(Actor))
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("Invalid actor in PaintVertexColor"));
-		return;
-	}
-	PaintVertexColor(Actor, AnnotationColor);
-}
-#endif
-
 void FObjectAnnotator::CreateAnnotationComponent(AActor* Actor, const FColor& AnnotationColor)
 {
+	// Two special type of actors
+	// https://api.unrealengine.com/INT/API/Runtime/Landscape/ALandscape/index.html
+	// https://api.unrealengine.com/INT/API/Runtime/Foliage/AInstancedFoliageActor/index.html
 	if (!IsValid(Actor))
 	{
 		UE_LOG(LogUnrealCV, Warning, TEXT("Invalid actor in CreateAnnotationComponent"));
@@ -111,13 +123,16 @@ void FObjectAnnotator::CreateAnnotationComponent(AActor* Actor, const FColor& An
 		return;
 	}
 
+	UE_LOG(LogTemp, Log, TEXT("Annotate actor %s with color %s"), *Actor->GetName(), *AnnotationColor.ToString());
 	TArray<UActorComponent*> MeshComponents = Actor->GetComponentsByClass(UMeshComponent::StaticClass());
 	for (UActorComponent* Component : MeshComponents)
 	{
 		UMeshComponent* MeshComponent = Cast<UMeshComponent>(Component);
 
 		UAnnotationComponent* AnnotationComponent = NewObject<UAnnotationComponent>(MeshComponent);
+		UE_LOG(LogTemp, Log, TEXT("Annotate %s with color %s"), *MeshComponent->GetName(), *AnnotationColor.ToString());
 		AnnotationComponent->AnnotationColor = AnnotationColor;
+		// AnnotationComponent->AnnotationColor = FColor::MakeRandomColor();
 		AnnotationComponent->SetupAttachment(MeshComponent);
 		AnnotationComponent->RegisterComponent();
 		AnnotationComponent->MarkRenderStateDirty();
@@ -139,8 +154,6 @@ void FObjectAnnotator::UpdateAnnotationComponent(AActor* Actor, const FColor& An
 		AnnotationComponent->MarkRenderStateDirty();
 	}
 }
-
-
 
 FColor FObjectAnnotator::GetDefaultColor(AActor* Actor)
 {
@@ -233,95 +246,3 @@ FColor GetColorFromColorMap(int32 ObjectIndex)
 	}
 	return ColorMap[ObjectIndex];
 }
-
-// Vertex Color Painter is only available for UE4 <= 4.16
-#if ENGINE_MINOR_VERSION < 17
-void PaintStaticMesh(UStaticMeshComponent* StaticMeshComponent, const FColor& VertexColor);
-void PaintSkelMesh(USkinnedMeshComponent* SkinnedMeshComponent, const FColor& VertexColor);
-
-void PaintVertexColor(AActor* Actor, const FColor& PaintColor)
-{
-	TArray<UMeshComponent*> PaintableComponents;
-	Actor->GetComponents<UMeshComponent>(PaintableComponents);
-
-	for (auto MeshComponent : PaintableComponents)
-	{
-		if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(MeshComponent))
-		{
-			PaintStaticMesh(StaticMeshComponent, PaintColor);
-		}
-		if (USkinnedMeshComponent* SkinnedMeshComponent = Cast<USkinnedMeshComponent>(MeshComponent))
-		{
-			PaintSkelMesh(SkinnedMeshComponent, PaintColor);
-		}
-	}
-}
-
-void PaintStaticMesh(UStaticMeshComponent* StaticMeshComponent, const FColor& VertexColor)
-{
-	UStaticMesh* StaticMesh;
-#if ENGINE_MINOR_VERSION >= 14  // Assume major version is 4
-	StaticMesh = StaticMeshComponent->GetStaticMesh(); // This is a new function introduced in 4.14
-#else
-	StaticMesh = StaticMeshComponent->StaticMesh; // This is deprecated in 4.14, add here for backward compatibility
-#endif
-	if (!StaticMesh)
-	{
-		return;
-	}
-
-	uint32 NumLODLevel = StaticMesh->RenderData->LODResources.Num();
-	for (uint32 PaintingMeshLODIndex = 0; PaintingMeshLODIndex < NumLODLevel; PaintingMeshLODIndex++)
-	{
-		FStaticMeshLODResources& LODModel = StaticMesh->RenderData->LODResources[PaintingMeshLODIndex];
-		FStaticMeshComponentLODInfo* InstanceMeshLODInfo = NULL;
-
-		// PaintingMeshLODIndex + 1 is the minimum requirement, enlarge if not satisfied
-		StaticMeshComponent->SetLODDataCount(PaintingMeshLODIndex + 1, StaticMeshComponent->LODData.Num());
-		InstanceMeshLODInfo = &StaticMeshComponent->LODData[PaintingMeshLODIndex];
-
-		InstanceMeshLODInfo->ReleaseOverrideVertexColorsAndBlock();
-		InstanceMeshLODInfo->OverrideVertexColors = new FColorVertexBuffer;
-		check(InstanceMeshLODInfo->OverrideVertexColors);
-
-		InstanceMeshLODInfo->OverrideVertexColors->InitFromSingleColor(VertexColor, LODModel.GetNumVertices());
-
-		BeginInitResource(InstanceMeshLODInfo->OverrideVertexColors);
-		StaticMeshComponent->MarkRenderStateDirty();
-	}
-}
-
-void PaintSkelMesh(USkinnedMeshComponent* SkinnedMeshComponent, const FColor& VertexColor)
-{
-	USkeletalMesh* SkeletalMesh = SkinnedMeshComponent->SkeletalMesh;
-	if (!SkeletalMesh)
-	{
-		return;
-	}
-
-	TIndirectArray<FStaticLODModel>& LODModels = SkeletalMesh->GetResourceForRendering()->LODModels;
-	uint32 NumLODLevel = LODModels.Num();
-	// SkinnedMeshComponent->SetLODDataCount(NumLODLevel, NumLODLevel);
-
-	for (uint32 LODIndex = 0; LODIndex < NumLODLevel; LODIndex++)
-	{
-		FStaticLODModel& LODModel = LODModels[LODIndex];
-		FSkelMeshComponentLODInfo* LODInfo = &SkinnedMeshComponent->LODInfo[LODIndex];
-		if (LODInfo->OverrideVertexColors)
-		{
-			BeginReleaseResource(LODInfo->OverrideVertexColors);
-			// Ensure the RT no longer accessed the data, might slow down
-			FlushRenderingCommands();
-			// The RT thread has no access to it any more so it's safe to delete it.
-			// CleanUp();
-		}
-		// LODInfo->ReleaseOverrideVertexColorsAndBlock();
-		LODInfo->OverrideVertexColors = new FColorVertexBuffer;
-		LODInfo->OverrideVertexColors->InitFromSingleColor(VertexColor, LODModel.NumVertices);
-
-		BeginInitResource(LODInfo->OverrideVertexColors);
-	}
-	SkinnedMeshComponent->MarkRenderStateDirty();
-}
-
-#endif

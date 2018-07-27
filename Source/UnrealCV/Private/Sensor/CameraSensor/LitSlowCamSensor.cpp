@@ -9,7 +9,12 @@ ULitSlowCamSensor::ULitSlowCamSensor(const FObjectInitializer& ObjectInitializer
 
 void ULitSlowCamSensor::SetupRenderTarget()
 {
-	if (!IsValid(TextureTarget) || TextureTarget->SizeX != FilmWidth || TextureTarget->SizeY != FilmHeight) 
+	if (!IsValid(TextureTarget))
+	{
+		TextureTarget = NewObject<UTextureRenderTarget2D>(this); 
+	}
+
+	if (TextureTarget->SizeX != FilmWidth || TextureTarget->SizeY != FilmHeight) 
 	{
 		TextureTarget->InitAutoFormat(FilmWidth, FilmHeight);
 		TextureTarget->TargetGamma = GEngine->GetDisplayGamma();

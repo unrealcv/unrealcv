@@ -3,7 +3,8 @@
 #include "Runtime/Engine/Classes/Engine/TextureRenderTarget2D.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "Runtime/CoreUObject/Public/UObject/UObjectHash.h"
-#include "AnnotationComponent.h"
+
+#include "Component/AnnotationComponent.h"
 #include "UnrealcvLog.h"
 
 UAnnotationCamSensor::UAnnotationCamSensor(const FObjectInitializer& ObjectInitializer) :
@@ -13,6 +14,12 @@ UAnnotationCamSensor::UAnnotationCamSensor(const FObjectInitializer& ObjectIniti
 	this->ShowFlags.SetMaterials(false); // Check AnnotationComponent.cpp::GetViewRelevance
 	this->ShowFlags.SetLighting(false);
 	this->ShowFlags.SetPostProcessing(false);
+	this->ShowFlags.SetColorGrading(false);
+	this->ShowFlags.SetTonemapper(false); // Important to disable this
+
+	// Note: The "exposure compensation" in "PostProcessVolume3" in the RR map will destroy the color
+	// Note: Saturate the color to 1. This is a mysterious behavior after tedious debug.
+	// Note: and the PostProcessing false here seems obvious not enough.
 
 	// this->ShowFlags.SetBSPTriangles(true);
 	// this->ShowFlags.SetVertexColors(true);
@@ -20,12 +27,18 @@ UAnnotationCamSensor::UAnnotationCamSensor(const FObjectInitializer& ObjectIniti
 	// this->ShowFlags.SetTonemapper(false); // This won't take effect here
 	// GVertexColorViewMode = EVertexColorViewMode::Color;
 
-}
+	// Note: the default value of CaptureSource is FinalColorLDR, but the FinalColor might be impact by PostProcessing
+	// Note: even though PostProcessing flag is disabled
+	// Note: Another option is tuning the PostProcess option flag in the SceneCaptureComponent2D
+	// Note: CaptureSource = ESceneCaptureSource::SCS_BaseColor;
 
-void UAnnotationCamSensor::SetupRenderTarget()
-{
-	bool bUseLinearGamma = true;
-	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, EPixelFormat::PF_B8G8R8A8, bUseLinearGamma);
+	// TODO: The generated image is completely dark, which might be caused be the PixelFormat
+	// Note: After a lot of trial and error, this is a solution that can work.
+	this->PostProcessSettings.bOverride_AutoExposureBias = true;
+	this->PostProcessSettings.AutoExposureBias = 0; // Overwrite anychange in the scene.
+
+	PixelFormat = EPixelFormat::PF_B8G8R8A8;
+	bUseLinearGamma = true;
 }
 
 // Only available for 4.17+
