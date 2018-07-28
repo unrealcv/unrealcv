@@ -9,6 +9,11 @@ using byte = unsigned char;
 
 namespace cnpy {
 
+template 
+std::vector<char> create_npy_header<unsigned char>(const unsigned char* data, const std::vector<int> shape);
+template 
+std::vector<char> create_npy_header<float>(const float* data, const std::vector<int> shape);
+
 /** from: http://www.cplusplus.com/forum/beginner/155821/ */
 // template< typename T > std::vector<byte>  to_bytes(const T& object)
 // {
@@ -55,13 +60,13 @@ std::string tostring(T i) {
 }
 
 template<>
-std::vector<char>& cnpy::operator+=(std::vector<char>& lhs, const std::string rhs) {
+std::vector<char>& operator+=(std::vector<char>& lhs, const std::string rhs) {
 	lhs.insert(lhs.end(), rhs.begin(), rhs.end());
 	return lhs;
 }
 
 template<>
-std::vector<char>& cnpy::operator+=(std::vector<char>& lhs, const char* rhs) {
+std::vector<char>& operator+=(std::vector<char>& lhs, const char* rhs) {
 	//write in little endian
 	size_t len = strlen(rhs);
 	lhs.reserve(len);
@@ -99,7 +104,7 @@ char map_type(const bool* ) { return 'b'; }
 
 /** data is mainly used for determining T */
 template<typename T> 
-std::vector<char> cnpy::create_npy_header(const T* data, const std::vector<int> shape)
+std::vector<char> create_npy_header(const T* data, const std::vector<int> shape)
 {
 	std::vector<char> dict;
 	dict += "{'descr': '";
