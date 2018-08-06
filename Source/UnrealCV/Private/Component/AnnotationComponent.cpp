@@ -321,7 +321,8 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy()
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("The data of SkeletalMeshComponent is invalid."), *Parent->GetClass()->GetName());
+			// TODO: FIXME: Why this always trigger?
+			// UE_LOG(LogTemp, Warning, TEXT("The data of SkeletalMeshComponent is invalid."), *Parent->GetClass()->GetName());
 			return nullptr;
 		}
 	}

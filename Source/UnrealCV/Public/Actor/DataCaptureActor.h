@@ -49,7 +49,7 @@ public:
 	UPROPERTY(EditInstanceOnly, Category = "DataCapture")
 	EFolderStructure FolderStructure;
 
-	/** How frequent to capture data to the disk, 0 means capture every frame */
+	/** How frequent to capture data to the disk, 0 means capture every frame, negative value means no automatic capture */
 	UPROPERTY(EditInstanceOnly, Category = "DataCapture")
 	float CaptureInterval;
 

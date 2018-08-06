@@ -14,6 +14,7 @@
 #include "BPFunctionLib/VisionBPLib.h"
 #include "BPFunctionLib/JsonObjectBP.h"
 #include "Puppeteer.h"
+// #include "VertexSensorComponent.h"
 
 // Sets default values
 ADataCaptureActor::ADataCaptureActor()
@@ -148,6 +149,29 @@ FJsonObjectBP ReadVertexInfo(AActor* Actor)
 		JsonBPArray.Add(FJsonObjectBP(Loc));
 	}
 	return FJsonObjectBP(JsonBPArray);	
+
+	// Note: new version uses vertex capture component to capture vertex
+	// TArray<UActorComponent*> VertexCaptureComponents = Actor->GetComponentsByClass(UVertexCaptureComponent::StaticClass());
+	// if (VertexCaptureComponents.Num() == 0) continue;
+	// if (VertexCaptureComponents.Num() > 1)
+	// {
+	// 	UE_LOG(LogTemp, Warning, TEXT("More than one VertexCaptureComponent for MeshComponent."));
+	// }
+
+	// TArray<FVector> ActorVertexs;
+	// for (UActorComponent* VertexCaptureComponent : VertexCaptureComponents)
+	// {
+	// 	TArray<FVector> ComponentVertexs = Cast<UVertexCaptureComponent>(VertexCaptureComponent)->GetVertexArray();
+	// 	// Append to ActorVertexs
+	// 	ActorVertexs.Append(ComponentVertexs);
+	// }
+	// TArray<FJsonObjectBP> JsonBPArray;
+	// // TODO: Speed up this
+	// for (FVector Loc: ActorVertexs) 
+	// {
+	// 	JsonBPArray.Add(FJsonObjectBP(Loc));
+	// }
+	// return FJsonObjectBP(JsonBPArray);
 }
 
 UClass* SearchCommonClass(UClass *Class)
