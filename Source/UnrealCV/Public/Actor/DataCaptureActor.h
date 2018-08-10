@@ -130,7 +130,9 @@ public:
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 
+#if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
+#endif
 
 	FString MakeFilename(FString CameraName, FString DataType, FString FileExtension);
 
