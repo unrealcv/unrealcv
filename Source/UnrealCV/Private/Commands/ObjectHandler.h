@@ -1,3 +1,4 @@
+// Weichao Qiu @ 2016
 #pragma once
 #include "CommandDispatcher.h"
 #include "CommandHandler.h"

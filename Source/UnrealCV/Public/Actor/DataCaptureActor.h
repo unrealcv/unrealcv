@@ -49,7 +49,9 @@ public:
 	UPROPERTY(EditInstanceOnly, Category = "DataCapture")
 	EFolderStructure FolderStructure;
 
-	/** How frequent to capture data to the disk, 0 means capture every frame, negative value means no automatic capture */
+	/** How frequent to capture data to the disk, 0 means capture every frame, negative value means no automatic capture 
+	 * Note: this is the real world time, not the game world time which can be dilated.
+	*/
 	UPROPERTY(EditInstanceOnly, Category = "DataCapture")
 	float CaptureInterval;
 
@@ -59,7 +61,7 @@ public:
 
 	/** Reduce the simulation speed to a percentage */
 	UPROPERTY(EditInstanceOnly, Category = "DataCapture")
-	float TimeDialation;
+	float TimeDilation;
 
 	/** How many frames have been saved in this session */
 	int FrameCounter;
@@ -105,6 +107,9 @@ public:
 
 	UPROPERTY(EditInstanceOnly, Category = "DataCapture| Scene Setting")
 	bool bCaptureAnnotationColor;
+
+	UPROPERTY(EditInstanceOnly, Category = "DataCapture| Scene Setting")
+	bool bCapturePuppeteer;
 
 	/** Capture the scene details */
 	void CaptureScene();
