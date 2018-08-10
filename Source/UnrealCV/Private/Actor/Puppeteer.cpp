@@ -2,6 +2,7 @@
 #include "Puppeteer.h"
 #include "Runtime/Engine/Classes/Components/MaterialBillboardComponent.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
+#include "Runtime/Engine/Classes/Materials/Material.h"
 
 // Sets default values
 APuppeteer::APuppeteer()
