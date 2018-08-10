@@ -9,6 +9,10 @@
 #include "Runtime/Core/Public/HAL/PlatformFilemanager.h"
 #include "Runtime/Engine/Classes/Animation/SkeletalMeshActor.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Runtime/Engine/Classes/Materials/Material.h"
+#include "Runtime/Engine/Public/TimerManager.h"
+#include "Runtime/Engine/Classes/Components/SkeletalMeshComponent.h"
+#include "Runtime/Engine/Classes/Engine/Engine.h"
 
 #include "Actor/FusionCameraActor.h"
 #include "BPFunctionLib/VisionBPLib.h"
@@ -351,6 +355,7 @@ void ADataCaptureActor::ExitGame() {
 	GetWorld()->GetFirstPlayerController()->ConsoleCommand(TEXT("quit"));
 }
 
+#if WITH_EDITOR
 void ADataCaptureActor::PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent)
 {
 	// This is important, otherwise the change will be lost
@@ -368,8 +373,8 @@ void ADataCaptureActor::PostEditChangeProperty(FPropertyChangedEvent &PropertyCh
 		}
 		bListSensors = false;
 	}
-
 }
+#endif
 
 FString ADataCaptureActor::MakeFilename(FString CameraName, FString DataType, FString FileExtension)
 {

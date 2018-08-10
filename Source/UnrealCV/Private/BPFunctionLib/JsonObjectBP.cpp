@@ -1,5 +1,6 @@
 // Weichao Qiu @ 2018
 #include "JsonObjectBP.h"
+#include "Runtime/Json/Public/Serialization/JsonSerializer.h"
 
 FJsonObjectBP::FJsonObjectBP(float Value)
 {

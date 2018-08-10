@@ -178,6 +178,7 @@ void UFusionCamSensor::SetSensorRotation(FRotator Rotator)
 	this->SetWorldRotation(Rotator);
 }
 
+#if WITH_EDITOR
 void UFusionCamSensor::PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -202,3 +203,4 @@ void UFusionCamSensor::PostEditChangeProperty(FPropertyChangedEvent &PropertyCha
 		}
 	}
 }
+#endif
