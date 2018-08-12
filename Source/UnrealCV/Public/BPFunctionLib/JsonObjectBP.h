@@ -40,6 +40,8 @@ struct UNREALCV_API FJsonObjectBP
 
 	FJsonObjectBP(const TArray<FString>& Keys, const TArray<FString>& Values);
 
+	FJsonObjectBP(const TMap<FString, float>& Dict);
+
 	FJsonObjectBP(const TMap<FString, FString>& Dict);
 
     FJsonObjectBP(const TMap<FString, FJsonObjectBP>& Dict);

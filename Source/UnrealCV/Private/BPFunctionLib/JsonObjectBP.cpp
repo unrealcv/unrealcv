@@ -102,6 +102,15 @@ FJsonObjectBP::FJsonObjectBP(const TArray<FString>& Keys, const TArray<FJsonObje
 	}
 }
 
+FJsonObjectBP::FJsonObjectBP(const TMap<FString, float>& Dict) 
+{
+	JsonObject = MakeShareable(new FJsonObject());
+	for (const auto& Elem: Dict)
+	{
+		JsonObject->SetNumberField(Elem.Key, Elem.Value);
+	}
+}
+
 FJsonObjectBP::FJsonObjectBP(const TMap<FString, FString>& Dict) 
 {
 	JsonObject = MakeShareable(new FJsonObject());
