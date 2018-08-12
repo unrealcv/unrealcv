@@ -38,11 +38,13 @@ ADataCaptureActor::ADataCaptureActor()
 	bCaptureSceneInfo = true;
 	bCaptureAnnotationColor = true;
 	bCaptureVertex = false;
+	bCapturePuppeteer = true;
 
 	CaptureInterval = 1.0f;
-	SimDuration = 30.0f;
+	SimDuration = 3600.0f; // One hour
 	ImageIdType = EImageId::GameFrameId;
-	TimeDialation = 1.0f;
+	TimeDilation = 1.0f;
+	ImageIdType = EImageId::RecordedFrameId;
 	// Set default to dump folder
 
 	FolderStructure = EFolderStructure::Tree;
@@ -71,7 +73,7 @@ void ADataCaptureActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), this->TimeDialation);
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), this->TimeDilation);
 
 	// Bind capture event to functions
 	// Start a timer for data capture
@@ -82,7 +84,8 @@ void ADataCaptureActor::BeginPlay()
 	World->GetTimerManager().SetTimer(
 		CaptureTimerHandle, 
 		this, 
-		&ADataCaptureActor::CaptureFrame, CaptureInterval, true);
+		// Note: We want to control the interval with a real world time, not a game time
+		&ADataCaptureActor::CaptureFrame, CaptureInterval * TimeDilation, true);
 
 	World->GetTimerManager().SetTimer(
 		SimTimerHandle,
@@ -244,9 +247,12 @@ void ADataCaptureActor::CaptureVertex()
 void ADataCaptureActor::CapturePuppeteer()
 {
 	// Save puppeteer data to meta data file
-	if (IsValid(Puppeteer))
+	if (bCapturePuppeteer && IsValid(Puppeteer))
 	{
-		Puppeteer->GetState(this);
+		// Puppeteer can save data by itself, or return a JsonObjectBP
+		FJsonObjectBP JsonObjectBP = Puppeteer->GetState(this);
+		FString Filename = MakeFilename("", "puppeteer", ".json");
+		UVisionBPLib::SaveData(JsonObjectBP.ToString(), Filename);
 	}
 }
 
