@@ -55,6 +55,8 @@ public:
 	static FExecStatus InvalidArgument;
 	/** Error : Not implemented */
 	static FExecStatus NotImplemented;
+	/** Error : Invalid Pointer */
+	static FExecStatus InvalidPointer;
 	/** Pending : Message */
 	static FExecStatus Pending(FString Message=""); // Useful for async task
 	/** Binary : A binary array */

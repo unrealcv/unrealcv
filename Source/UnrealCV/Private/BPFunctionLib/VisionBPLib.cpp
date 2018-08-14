@@ -14,6 +14,7 @@
 #include "BoneSensor.h"
 #include "FusionCamSensor.h"
 #include "UnrealcvLog.h"
+#include "Controller/UnrealcvWorldController.h"
 
 // FString UVisionBPLib::SerializeBoneInfo(USkeletalMeshComponent* Component)
 // {

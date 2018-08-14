@@ -1,6 +1,7 @@
 #include "ActorController.h"
 #include "ObjectAnnotator.h"
 #include "UnrealcvServer.h"
+#include "UnrealcvWorldController.h"
 
 FActorController::FActorController(AActor* InActor)
 {

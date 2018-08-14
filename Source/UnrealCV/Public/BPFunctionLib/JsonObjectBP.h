@@ -42,7 +42,7 @@ struct UNREALCV_API FJsonObjectBP
 
 	FJsonObjectBP(const TMap<FString, FString>& Dict);
 
-    FJsonObjectBP(const TMap<FString, FJsonObjectBP>& Dict);
+	FJsonObjectBP(const TMap<FString, FJsonObjectBP>& Dict);
 
 	TSharedPtr<FJsonValue> ToJsonValue() const;
 

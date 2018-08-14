@@ -3,6 +3,7 @@
 #include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
 #include "Runtime/Engine/Public/EngineUtils.h"
 #include "Runtime/Engine/Public/TimerManager.h"
+#include "Controller/UnrealcvWorldController.h"
 #include "VisionBPLib.h"
 
 void FActionCommandHandler::RegisterCommands()

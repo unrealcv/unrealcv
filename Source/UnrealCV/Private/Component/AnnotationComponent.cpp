@@ -289,7 +289,8 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy()
 			|| ParentStaticMesh->RenderData->LODResources.Num() == 0)
 			// || StaticMesh->RenderData->LODResources[0].VertexBuffer.GetNumVertices() == 0)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ParentStaticMesh is invalid."));
+			// TODO: Check this error
+			// UE_LOG(LogTemp, Warning, TEXT("ParentStaticMesh is invalid."));
 			return NULL;
 		}
 
@@ -367,9 +368,9 @@ FBoxSphereBounds UAnnotationComponent::CalcBounds(const FTransform & LocalToWorl
 
 // Extra overhead for the game scene
 void UAnnotationComponent::TickComponent(
-    float DeltaTime,
-    enum ELevelTick TickType,
-    FActorComponentTickFunction * ThisTickFunction)
+	float DeltaTime,
+	enum ELevelTick TickType,
+	FActorComponentTickFunction * ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction); 
 

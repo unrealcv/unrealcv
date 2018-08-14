@@ -5,7 +5,6 @@
 #include "Runtime/Core/Public/Containers/Queue.h"
 #include "TcpServer.h"
 #include "ServerConfig.h"
-#include "Controller/UnrealcvWorldController.h"
 
 class FCommandDispatcher;
 class FCommandHandler;
@@ -94,7 +93,7 @@ public:
 	UTcpServer* TcpServer;
 
 	/** A controller to control the UE4 world */
-	TWeakObjectPtr<AUnrealcvWorldController> WorldController;
+	TWeakObjectPtr<class AUnrealcvWorldController> WorldController;
 private:
 	/** Handlers for UnrealCV commands */
 	TArray<FCommandHandler*> CommandHandlers;

@@ -9,6 +9,7 @@
 #include "Commands/ActionHandler.h"
 #include "Commands/AliasHandler.h"
 #include "Commands/SensorHandler.h"
+#include "Controller/UnrealcvWorldController.h"
 #include "UnrealcvLog.h"
 
 void FUnrealcvServer::Tick(float DeltaTime)

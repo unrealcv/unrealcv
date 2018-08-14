@@ -136,36 +136,37 @@ private:
 	UPROPERTY()
 	TArray<class UBaseCameraSensor*> FusionSensors;
 
+	// TODO: Clean up the sensor list.
 	// UPROPERTY(Instanced, VisibleAnywhere, BlueprintReadOnly), the previous definition
 	// Editing to these component should not be allowed
-	UPROPERTY()
-	class ULitCamSensor* LitCamSensor;
+	// UPROPERTY()
+	// class ULitCamSensor* LitCamSensor;
 
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly)
 	class UDepthCamSensor* DepthCamSensor;
 
-	UPROPERTY()
-	class UVertexColorCamSensor* VertexColorCamSensor;
+	// UPROPERTY()
+	// class UVertexColorCamSensor* VertexColorCamSensor;
 
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly)
 	class UNormalCamSensor* NormalCamSensor;
 
-	UPROPERTY()
-	class UStencilCamSensor* StencilCamSensor;
+	// UPROPERTY()
+	// class UStencilCamSensor* StencilCamSensor;
 
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly)
 	class UAnnotationCamSensor* AnnotationCamSensor;
 
-	UPROPERTY()
-	class UPlaneDepthCamSensor* PlaneDepthCamSensor;
+	// UPROPERTY()
+	// class UPlaneDepthCamSensor* PlaneDepthCamSensor;
 
-	UPROPERTY()
-	class UVisDepthCamSensor* VisDepthCamSensor;
+	// UPROPERTY()
+	// class UVisDepthCamSensor* VisDepthCamSensor;
 
-	UPROPERTY()
-	class UNontransDepthCamSensor* NontransDepthCamSensor;
+	// UPROPERTY()
+	// class UNontransDepthCamSensor* NontransDepthCamSensor;
 
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly)
 	class ULitSlowCamSensor* LitSlowCamSensor;
 
 	/** This preview camera is used for UE version < 4.17 which only support UCameraComponent PIP preview

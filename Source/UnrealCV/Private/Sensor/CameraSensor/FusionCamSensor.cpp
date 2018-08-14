@@ -24,20 +24,20 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	PreviewCamera = CreateDefaultSubobject<UCameraComponent>("PreviewCamera");
 	PreviewCamera->SetupAttachment(this);
 
-	LitCamSensor = CreateDefaultSubobject<ULitCamSensor>("LitCamSensor");
-	FusionSensors.Add(LitCamSensor);
+	// LitCamSensor = CreateDefaultSubobject<ULitCamSensor>("LitCamSensor");
+	// FusionSensors.Add(LitCamSensor);
 	DepthCamSensor = CreateDefaultSubobject<UDepthCamSensor>("DepthCamSensor");
 	FusionSensors.Add(DepthCamSensor);
-	VisDepthCamSensor = CreateDefaultSubobject<UVisDepthCamSensor>("VisDepthCamSensor");
-	FusionSensors.Add(VisDepthCamSensor);
-	PlaneDepthCamSensor = CreateDefaultSubobject<UPlaneDepthCamSensor>("PlaneDepthCamSensor");
-	FusionSensors.Add(PlaneDepthCamSensor);
+	// VisDepthCamSensor = CreateDefaultSubobject<UVisDepthCamSensor>("VisDepthCamSensor");
+	// FusionSensors.Add(VisDepthCamSensor);
+	// PlaneDepthCamSensor = CreateDefaultSubobject<UPlaneDepthCamSensor>("PlaneDepthCamSensor");
+	// FusionSensors.Add(PlaneDepthCamSensor);
 	NormalCamSensor = CreateDefaultSubobject<UNormalCamSensor>("NormalCamSensor");
 	FusionSensors.Add(NormalCamSensor);
-	NontransDepthCamSensor = CreateDefaultSubobject<UNontransDepthCamSensor>("NontransDepthCamSensor");
-	FusionSensors.Add(NontransDepthCamSensor);
-	StencilCamSensor = CreateDefaultSubobject<UStencilCamSensor>("StencilCamSensor");
-	FusionSensors.Add(StencilCamSensor);
+	// NontransDepthCamSensor = CreateDefaultSubobject<UNontransDepthCamSensor>("NontransDepthCamSensor");
+	// FusionSensors.Add(NontransDepthCamSensor);
+	// StencilCamSensor = CreateDefaultSubobject<UStencilCamSensor>("StencilCamSensor");
+	// FusionSensors.Add(StencilCamSensor);
 	AnnotationCamSensor = CreateDefaultSubobject<UAnnotationCamSensor>("AnnotationCamSensor");
 	FusionSensors.Add(AnnotationCamSensor);
 	LitSlowCamSensor = CreateDefaultSubobject<ULitSlowCamSensor>("LitSlowCamSensor");
@@ -100,7 +100,7 @@ bool UFusionCamSensor::GetEditorPreviewInfo(float DeltaTime, FMinimalViewInfo& V
 	// From CameraComponent
 	if (bIsActive)
 	{
-		this->LitCamSensor->GetCameraView(DeltaTime, ViewOut);
+		this->LitSlowCamSensor->GetCameraView(DeltaTime, ViewOut);
 	}
 	return bIsActive;
 }
@@ -110,7 +110,8 @@ void UFusionCamSensor::GetLit(TArray<FColor>& LitData, int& Width, int& Height, 
 	switch (LitMode)
 	{
 		case ELitMode::Lit:
-			this->LitCamSensor->Capture(LitData, Width, Height);
+			// TODO: Fix this
+			this->LitSlowCamSensor->Capture(LitData, Width, Height);
 			break;
 		case ELitMode::Slow:
 			this->LitSlowCamSensor->Capture(LitData, Width, Height);

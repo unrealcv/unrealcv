@@ -4,6 +4,7 @@
 // DECLARE_DELEGATE_OneParam(FDispatcherDelegate, const TArray< FString >&);
 FExecStatus FExecStatus::InvalidArgument = FExecStatus(FExecStatusType::Error, "Argument Invalid");
 FExecStatus FExecStatus::NotImplemented = FExecStatus(FExecStatusType::Error, "Not Implemented");
+FExecStatus FExecStatus::InvalidPointer = FExecStatus(FExecStatusType::Error, "Pointer to object invalid, check log for details");
 
 /** Begin of FPromise functions */
 

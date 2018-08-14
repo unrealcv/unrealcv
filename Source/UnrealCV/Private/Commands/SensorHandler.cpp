@@ -45,14 +45,18 @@ UFusionCamSensor* GetSensor(const TArray<FString>& Args, FExecStatus& Status)
 {
 	if (Args.Num() < 1)
 	{
-		Status = FExecStatus::Error("No sensor id is available");
+		FString Msg = TEXT("No sensor id is available");
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *Msg);
+		Status = FExecStatus::Error(Msg);
 		return nullptr;
 	}
 	int SensorId = FCString::Atoi(*Args[0]);
 	UFusionCamSensor* FusionSensor = USensorBPLib::GetSensorById(SensorId);
 	if (!IsValid(FusionSensor)) 
 	{
-		Status = FExecStatus::Error("Invalid sensor id");
+		FString Msg = TEXT("Invalid sensor id");
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *Msg);
+		Status = FExecStatus::Error(Msg);
 		return nullptr;
 	}
 	return FusionSensor;
@@ -98,8 +102,25 @@ FExecStatus SetSensorLocation(const TArray<FString>& Args)
 	float X = FCString::Atof(*Args[1]), Y = FCString::Atof(*Args[2]), Z = FCString::Atof(*Args[3]);
 	FVector Location = FVector(X, Y, Z);
 
-	// Check USceneComponent
-	FusionCamSensor->SetSensorLocation(Location);
+	if (Args[0] == "0")
+	{
+		// Note: For camera 0, we want to change the player location
+
+		bool Sweep = false;
+		// Note: If sweep is true, the object can not move through another object
+		// Note: It will check invalid location and move back a bit.
+		APawn* Pawn = FUnrealcvServer::Get().GetPawn();
+		if (!IsValid(Pawn))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("The Pawn of the scene is invalid."));
+			return FExecStatus::InvalidArgument;
+		}
+		Pawn->SetActorLocation(Location, Sweep, NULL, ETeleportType::TeleportPhysics);
+	}
+	else
+	{
+		FusionCamSensor->SetSensorLocation(Location);
+	}
 
 	return FExecStatus::OK();
 }
@@ -126,7 +147,28 @@ FExecStatus SetSensorRotation(const TArray<FString>& Args)
 	if (Args.Num() != 4) return FExecStatus::InvalidArgument; // ID, X, Y, Z
 	float Pitch = FCString::Atof(*Args[1]), Yaw = FCString::Atof(*Args[2]), Roll = FCString::Atof(*Args[3]);
 	FRotator Rotator = FRotator(Pitch, Yaw, Roll);
-	FusionCamSensor->SetSensorRotation(Rotator);
+
+	// Note: For camera 0, we want to change the player rotation
+	if (Args[0] == "0")
+	{
+		APawn* Pawn = FUnrealcvServer::Get().GetPawn();
+		if (!IsValid(Pawn))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("The Pawn of the scene is invalid."));
+			return FExecStatus::InvalidArgument;
+		}
+		AController* Controller = Pawn->GetController();
+		if (!IsValid(Controller))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("The Controller of the Pawn is invalid."));
+			return FExecStatus::InvalidArgument;
+		}
+		Controller->ClientSetRotation(Rotator); // Teleport action
+	}
+	else
+	{
+		FusionCamSensor->SetSensorRotation(Rotator);
+	}
 
 	return FExecStatus::OK();
 }
