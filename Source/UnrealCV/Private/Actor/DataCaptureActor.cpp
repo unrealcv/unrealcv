@@ -115,23 +115,28 @@ void ADataCaptureActor::CaptureFrame()
 
 // Utility function to read 3D joint information 
 FJsonObjectBP ReadJointInfo(AActor* Actor)
+// FJsonObjectBP ReadJointInfo(USkeletalMeshComponent* SkelComponent)
 {
 	FJsonObjectBP JsonObjectBP;
-	ASkeletalMeshActor* SkelMeshActor = Cast<ASkeletalMeshActor>(Actor);
-	if (!IsValid(SkelMeshActor)) return JsonObjectBP;
+	
+	// ASkeletalMeshActor* SkelMeshActor = Cast<ASkeletalMeshActor>(Actor);
+	if (!IsValid(Actor)) return JsonObjectBP;
 
-	USkeletalMeshComponent* SkelComponent = SkelMeshActor->GetSkeletalMeshComponent();
+	UActorComponent* ActorComponent = Actor->GetComponentByClass(USkeletalMeshComponent::StaticClass());
+	// USkeletalMeshComponent* SkelComponent = SkelMeshActor->GetSkeletalMeshComponent();
+	USkeletalMeshComponent* SkelComponent = Cast<USkeletalMeshComponent>(ActorComponent);
 
 	if (!IsValid(SkelComponent))
 	{
 		return JsonObjectBP;
 	}
+	
 
 	TMap<FString, FJsonObjectBP> HumanInfo;
 
-	HumanInfo.Emplace("ActorName", FJsonObjectBP(SkelMeshActor->GetName()));
-	HumanInfo.Emplace("ActorLocation", FJsonObjectBP(SkelMeshActor->GetActorLocation()));
-	HumanInfo.Emplace("ActorRotation", FJsonObjectBP(SkelMeshActor->GetActorRotation()));
+	HumanInfo.Emplace("ActorName", FJsonObjectBP(Actor->GetName()));
+	HumanInfo.Emplace("ActorLocation", FJsonObjectBP(Actor->GetActorLocation()));
+	HumanInfo.Emplace("ActorRotation", FJsonObjectBP(Actor->GetActorRotation()));
 
 	TArray<FString> IncludedBones;
 	TArray<FString> BoneNames;
@@ -263,17 +268,23 @@ void ADataCaptureActor::CaptureJoint()
 		return;
 	}
 
-	TArray<ASkeletalMeshActor*> HumanActorList;
-	for (TActorIterator<ASkeletalMeshActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+	TArray<AActor*> HumanActorList;
+	// for (TActorIterator<ASkeletalMeshActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+	for (TActorIterator<AActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
 	{
-		HumanActorList.Add(*ActorItr);
+		AActor* Actor = *ActorItr;
+		UActorComponent* SkelComponent = Actor->GetComponentByClass(USkeletalMeshComponent::StaticClass());
+		if (IsValid(SkelComponent))
+		{ 
+			HumanActorList.Add(*ActorItr);
+		}
 	}
 
 	// Capture 3D human keypoints
 	// Iterate over human in this scene and save data to disk
 	TMap<FString, FJsonObjectBP> JointInfoMap;
 
-	for (ASkeletalMeshActor* HumanActor : HumanActorList)
+	for (AActor* HumanActor : HumanActorList)
 	{
 		FString HumanName = HumanActor->GetName();
 		JointInfoMap.Emplace(HumanName, ReadJointInfo(HumanActor));
