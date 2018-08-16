@@ -203,7 +203,7 @@ void TestAnnotator(const TArray<FString>& Args)
 		}
 
 		LastFrameColor = AnnotationColor;
-		FlushRenderingCommands();
+		// FlushRenderingCommands();
 		// This will not take effect until the rendering thread catch up
 
 	}
