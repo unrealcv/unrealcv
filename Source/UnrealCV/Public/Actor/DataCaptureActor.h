@@ -34,7 +34,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditInstanceOnly, Category = "DataCapture")
-	FString DataFolder;
+	FDirectoryPath DataFolder;
 
 	/** A button to list all sensors in the map */
 	UPROPERTY(EditInstanceOnly, Category = "DataCapture| Camera Setting")
@@ -129,6 +129,8 @@ public:
 	void ExitGame();
 
 	virtual void OnConstruction(const FTransform& Transform) override;
+
+	virtual void PostActorCreated() override;
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
