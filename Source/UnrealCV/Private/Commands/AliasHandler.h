@@ -15,4 +15,9 @@ public:
 		Can support arguments, but can not support return value
 	*/
 	FExecStatus VExec(const TArray<FString>& Args);
+
+	/**vlevelexec : run level blueprint	
+	*/
+
+	FExecStatus LevelEvent(const TArray<FString>& Args);
 };
