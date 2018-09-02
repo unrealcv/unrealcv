@@ -10,5 +10,5 @@ git-lfs
 sphinx-issues
 pillow
 nbsphinx
-numpydoc
+# numpydoc
 recommonmark

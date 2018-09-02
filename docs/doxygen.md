@@ -1,7 +1,15 @@
-
 UnrealCV features are implemented with native c++ and can be used in blueprint or through python API.
 
-# Multiple camera system
+## Supported UE4
+
+## Headless rendering
+
+## Useful actors
+
+- ADataCaptureActor
+
+
+## Multiple camera system
 
 unrealcv supports multi-modal data capture from a virtual scene.
 
@@ -17,9 +25,11 @@ Implemented `CameraSensor` are:
 - `UAnnotationCamSensor`
 - `UDepthCamSensor`
 - `ULitCamSensor`
+- `UNormalCamSensor`
+
+
 - `ULitSlowCamSensor`
 - `UNontransDepthCamSensor`
-- `UNormalCamSensor`
 - `UPlaneDepthCamSensor`
 - `UStencilCamSensor`
 - `UVertexColorCamSensor`
@@ -30,7 +40,8 @@ Implemented `CameraSensor` are:
 
 Lit, depth, normal, annotation sensors are useful. Others are not.
 
-# Non camera sensor
+
+## Non camera sensor (legacy)
 
 There are other non-camera sensors to support extracting other information, such as human skeleton, etc.
 
@@ -39,7 +50,11 @@ A partial list is
 - `FVertexSensor`, extract vertex data from a mesh
 - `FBoneSensor`
 
-# Controller
+## Control component
+
+- UCameraControlComponent
+- ULightControlComponent
+- UMaterialControlComponent
 
 Sensor is used to extract data from the virtual scene. The input is implemented with controller.
 
@@ -64,16 +79,24 @@ The python API is a wrapper for the C++ core to make an AI program easy to contr
 
 If you want to implement a new command, please start from `FUE4CVServer`
 
+## How unrealcv is installed into a game
+
+- The server will start when the editor or the game launches
+
+- AUnrealcvWorldControllerActor will be spawned into the game to annotate objects in the world and register unrealcv commands.
+
+
+
 # Automatic injection when a game starts
 
 The design of unrealcv makes it able to automatically inject into any existing UE4 game.
 
 This happens as follow.
 
-`FUE4CVServer` starts and listen for python commands.
+`FUnrealcvServer` starts and listen for python commands.
 
-`FUE4CVController` makes changes to the level / map / world. 
+`FUnrealcvWorldController` makes changes to the level / map / world. 
 
-# Use unrealcv in blueprint
+## Use unrealcv in blueprint
 
 Many unrealcv classes are designed to be able to use in blueprint, which means you can reuse components or use blueprint to easily extend existing features.
