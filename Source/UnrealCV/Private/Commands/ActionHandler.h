@@ -1,5 +1,6 @@
 #pragma once
 #include "CommandHandler.h"
+#include "Runtime/InputCore/Classes/InputCoreTypes.h"
 
 class FActionCommandHandler : public FCommandHandler
 {

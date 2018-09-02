@@ -65,7 +65,14 @@ ADataCaptureActor::ADataCaptureActor()
 void ADataCaptureActor::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	DataFolder = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), GetWorld()->GetMapName());
+	// Note: Can not put this in CTOR, in ctor the GetWorld is nullptr
+}
+
+// Note: what is the difference?
+void ADataCaptureActor::PostActorCreated()
+{
+	Super::PostActorCreated();
+	DataFolder.Path = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir(), GetWorld()->GetMapName());
 }
 
 // Called when the game starts or when spawned
@@ -383,7 +390,7 @@ void ADataCaptureActor::CaptureImage()
 		// USerializeBPLib::VectorToJson();
 		FJsonObjectBP JsonObject = USerializeBPLib::TMapToJson(Keys, Values);
 		FString JsonStr = USerializeBPLib::JsonToStr(JsonObject);
-		JsonFilename = FPaths::ConvertRelativePathToFull(DataFolder, JsonFilename);
+		JsonFilename = FPaths::ConvertRelativePathToFull(DataFolder.Path, JsonFilename);
 		UVisionBPLib::SaveData(JsonStr, JsonFilename);
 	}
 	FString ScreenMessage = FString::Printf(TEXT("%d frames / %d images are captured from %d cameras"), FrameCounter, FrameCounter * Sensors.Num(), Sensors.Num());
@@ -473,6 +480,6 @@ FString ADataCaptureActor::MakeFilename(FString CameraName, FString DataType, FS
 		}
 	}
 
-	Filename = FPaths::ConvertRelativePathToFull(DataFolder, Filename);
+	Filename = FPaths::ConvertRelativePathToFull(DataFolder.Path, Filename);
 	return Filename;
 }
