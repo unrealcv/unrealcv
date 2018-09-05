@@ -25,3 +25,19 @@ void AStereoCameraActor::BeginPlay()
 {
 	Super::BeginPlay(); // Enable ticking actor
 }
+
+TArray<FString> AStereoCameraActor::GetSensorNames()
+{
+	return { 
+		this->GetName() + TEXT("_") + LeftSensor->GetName(),
+		this->GetName() + TEXT("_") + RightSensor->GetName(),
+	};
+}
+
+TArray<UFusionCamSensor*> AStereoCameraActor::GetSensors()
+{
+	return {
+		this->LeftSensor,
+		this->RightSensor,
+	};
+}

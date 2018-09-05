@@ -36,18 +36,21 @@ public:
 	UPROPERTY(EditInstanceOnly, Category = "DataCapture")
 	FDirectoryPath DataFolder;
 
-	/** A button to list all sensors in the map */
-	UPROPERTY(EditInstanceOnly, Category = "DataCapture| Camera Setting")
-	bool bListSensors;
+	// Add Timestamp if necessary
+	FString FinalDataFolder;
 
-	UPROPERTY(EditInstanceOnly, Category = "DataCapture| Camera Setting")
-	TArray<class AFusionCameraActor*> Sensors;
-
+	/** Do not support resume, merge two generated batch later if needed */
 	UPROPERTY(EditInstanceOnly, Category = "DataCapture")
-	class APuppeteer* Puppeteer;
+	bool bAddTimestamp;
 
 	UPROPERTY(EditInstanceOnly, Category = "DataCapture")
 	EFolderStructure FolderStructure;
+
+	UPROPERTY(EditInstanceOnly, Category = "DataCapture")
+	bool bListPuppeteers;
+
+	UPROPERTY(EditInstanceOnly, Category = "DataCapture")
+	TArray<class APuppeteer*> Puppeteers;
 
 	/** How frequent to capture data to the disk, 0 means capture every frame, negative value means no automatic capture 
 	 * Note: this is the real world time, not the game world time which can be dilated.
@@ -63,14 +66,22 @@ public:
 	UPROPERTY(EditInstanceOnly, Category = "DataCapture")
 	float TimeDilation;
 
+	UPROPERTY(EditInstanceOnly, Category = "DataCapture")
+	EImageId ImageIdType;
+
 	/** How many frames have been saved in this session */
 	int FrameCounter;
 
 	/** --------- Per camera information ----------- */
 	void CaptureFrame();
 
-	UPROPERTY(EditInstanceOnly, Category = "DataCapture")
-	EImageId ImageIdType;
+	/** A button to list all sensors in the map */
+	UPROPERTY(EditInstanceOnly, Category = "DataCapture| Camera Setting")
+	bool bListSensors;
+
+	UPROPERTY(EditInstanceOnly, Category = "DataCapture| Camera Setting")
+	TArray<class AFusionCameraActor*> Sensors;
+
 
 	UPROPERTY(EditInstanceOnly, Category = "DataCapture| Camera Setting")
 	bool bCaptureImage;
@@ -89,6 +100,7 @@ public:
 
 	void CaptureImage();
 	
+	void CaptureImageFromSensor(FString SensorName, class UFusionCamSensor* Sensor);
 
 	/** ---------- Scene information ---------- */
 	/** Because the scene is static, we only need the first frame for a better speed */

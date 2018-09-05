@@ -6,7 +6,12 @@
 // Generate a color for annotating an object
 class FColorGenerator
 {
+public:
+	FColor GetColorFromColorMap(int32 ObjectIndex);
 
+private:
+	int32 GetChannelValue(uint32 Index);
+	void GetColors(int32 MaxVal, bool Fix1, bool Fix2, bool Fix3, TArray<FColor>& ColorMap);
 };
 
 /** FObjectAnnotator supports annotate and update the annotation of an object,
@@ -24,6 +29,9 @@ public:
 	// Annotate all StaticMesh actor in the world
 	void AnnotateWorld(UWorld* World);
 
+	/** Annotate all MeshComponents in the world */
+	void AnnotateMeshComponents(UWorld* World);
+
 	// Annotate actor
 	void SetAnnotationColor(AActor* Actor, const FColor& AnnotationColor);
 
@@ -31,6 +39,8 @@ public:
 	void GetAnnotationColor(AActor* Actor, FColor& AnnotationColor);
 
 private:
+	FColorGenerator ColorGenerator;
+
 	// Get all annotable actors in the world
 	void GetAnnotableActors(UWorld* World, TArray<AActor*>& ActorArray);
 

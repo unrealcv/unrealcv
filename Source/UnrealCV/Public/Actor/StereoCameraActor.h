@@ -1,12 +1,13 @@
 // Weichao Qiu @ 2017
 #pragma once
 
-#include "FusionCamSensor.h"
 #include "Runtime/Engine/Classes/GameFramework/Actor.h"
+#include "FusionCamSensor.h"
+#include "FusionCameraActor.h"
 #include "StereoCameraActor.generated.h"
 
 UCLASS()
-class AStereoCameraActor : public AActor
+class UNREALCV_API AStereoCameraActor : public AFusionCameraActor
 {
 	GENERATED_BODY()
 
@@ -15,9 +16,14 @@ public:
 
 	virtual void BeginPlay() override;
 
-	UPROPERTY()
+	UPROPERTY(EditInstanceOnly)
 	float BaseLineDistance;
 
+	virtual TArray<FString> GetSensorNames() override;
+
+	virtual TArray<UFusionCamSensor*> GetSensors() override;
+
+private:
 	UPROPERTY(Instanced, Category = StereoCameraActor, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UFusionCamSensor* LeftSensor;
 

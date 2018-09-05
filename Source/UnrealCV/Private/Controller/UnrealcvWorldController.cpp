@@ -65,6 +65,7 @@ void AUnrealcvWorldController::BeginPlay()
 	}
 
 	ObjectAnnotator.AnnotateWorld(GetWorld());
+	// ObjectAnnotator.AnnotateMeshComponents(GetWorld());
 
 	FEngineShowFlags ShowFlags = GetWorld()->GetGameViewport()->EngineShowFlags;
 	this->PlayerViewMode->SaveGameDefault(ShowFlags);
