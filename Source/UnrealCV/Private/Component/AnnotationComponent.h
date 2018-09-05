@@ -18,7 +18,10 @@ enum class EParentMeshType
  * Should be attached to a MeshComponent to provide annotation color for AnnotationCamSensor
 */
 UCLASS(meta = (BlueprintSpawnableComponent))
-class UAnnotationComponent : public UMeshComponent
+// class UAnnotationComponent : public UMeshComponent
+// Note: if define UAnnotationComponent as a UMeshComponent, then some confusion will raise
+// for example: compare the number of MeshComponent and AnnotationComponent
+class UAnnotationComponent : public UPrimitiveComponent
 {
 	GENERATED_BODY()
 
@@ -39,9 +42,11 @@ public:
 		enum ELevelTick TickType,
 		FActorComponentTickFunction * ThisTickFunction) override;
 
-	
+	void SetAnnotationColor(FColor AnnotationColor);
 
-	FColor AnnotationColor;
+	FColor GetAnnotationColor();
+
+	virtual void OnRegister() override;
 
 private:
 	// FParentMeshInfo ParentMeshInfo;
@@ -52,4 +57,6 @@ private:
 
 	UPROPERTY()
 	UMaterialInstanceDynamic* AnnotationMID;
+
+	FColor AnnotationColor;
 };

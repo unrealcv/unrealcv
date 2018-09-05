@@ -17,6 +17,8 @@ UAnnotationCamSensor::UAnnotationCamSensor(const FObjectInitializer& ObjectIniti
 	this->ShowFlags.SetColorGrading(false);
 	this->ShowFlags.SetTonemapper(false); // Important to disable this
 
+	this->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
+
 	// Note: The "exposure compensation" in "PostProcessVolume3" in the RR map will destroy the color
 	// Note: Saturate the color to 1. This is a mysterious behavior after tedious debug.
 	// Note: and the PostProcessing false here seems obvious not enough.
