@@ -10,3 +10,13 @@ AFusionCameraActor::AFusionCameraActor(const FObjectInitializer& ObjectInitializ
 	FusionCamSensor = CreateDefaultSubobject<UFusionCamSensor>(TEXT("FusionCameraSensor"));
 	RootComponent = FusionCamSensor;
 }
+
+TArray<FString> AFusionCameraActor::GetSensorNames()
+{
+	return { this->GetName() };
+}
+
+TArray<UFusionCamSensor*> AFusionCameraActor::GetSensors()
+{
+	return { this->FusionCamSensor };
+}

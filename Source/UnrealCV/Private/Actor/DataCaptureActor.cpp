@@ -18,6 +18,7 @@
 #include "BPFunctionLib/VisionBPLib.h"
 #include "BPFunctionLib/JsonObjectBP.h"
 #include "Puppeteer.h"
+#include "FusionCamSensor.h"
 // #include "VertexSensorComponent.h"
 
 // Sets default values
@@ -45,6 +46,7 @@ ADataCaptureActor::ADataCaptureActor()
 	ImageIdType = EImageId::GameFrameId;
 	TimeDilation = 1.0f;
 	ImageIdType = EImageId::RecordedFrameId;
+	bAddTimestamp = true;
 	// Set default to dump folder
 
 	FolderStructure = EFolderStructure::Tree;
@@ -98,6 +100,19 @@ void ADataCaptureActor::BeginPlay()
 		SimTimerHandle,
 		this,
 		&ADataCaptureActor::ExitGame, SimDuration, false);
+
+
+	if (bAddTimestamp)
+	{
+		// See the format here https://en.wikipedia.org/wiki/ISO_8601
+		// or in python
+		FString TimestampStr = FDateTime::Now().ToString(TEXT("%Y%m%d_%H%M"));
+		FinalDataFolder = FPaths::Combine(DataFolder.Path, TimestampStr);
+	}
+	else
+	{
+		FinalDataFolder = DataFolder.Path;
+	}
 }
 
 // Called every frame
@@ -259,12 +274,17 @@ void ADataCaptureActor::CaptureVertex()
 void ADataCaptureActor::CapturePuppeteer()
 {
 	// Save puppeteer data to meta data file
-	if (bCapturePuppeteer && IsValid(Puppeteer))
+	if (!bCapturePuppeteer) return;
+
+	for (APuppeteer* Puppeteer : Puppeteers)
 	{
-		// Puppeteer can save data by itself, or return a JsonObjectBP
-		FJsonObjectBP JsonObjectBP = Puppeteer->GetState(this);
-		FString Filename = MakeFilename("", "puppeteer", ".json");
-		UVisionBPLib::SaveData(JsonObjectBP.ToString(), Filename);
+		if (IsValid(Puppeteer))
+		{
+			// Puppeteer can save data by itself, or return a JsonObjectBP
+			FJsonObjectBP JsonObjectBP = Puppeteer->GetState(this);
+			FString Filename = MakeFilename("", "puppeteer", ".json");
+			UVisionBPLib::SaveData(JsonObjectBP.ToString(), Filename);
+		}
 	}
 }
 
@@ -308,6 +328,84 @@ void ADataCaptureActor::CaptureSceneSummary()
 	// A summary of the scene in this frame
 }
 
+void ADataCaptureActor::CaptureImageFromSensor(FString SensorName, UFusionCamSensor* Sensor)
+{
+	// FString CameraName = CameraActor->GetName();
+	FString LitFilename = MakeFilename(SensorName, "lit", ".png");
+	FString SegFilename = MakeFilename(SensorName, "seg", ".png");
+	FString DepthFilename = MakeFilename(SensorName, "depth", ".npy");
+	FString JsonFilename = MakeFilename(SensorName, "caminfo", ".json");
+	FString NormalFilename = MakeFilename(SensorName, "normal", ".png");
+
+	if (bCaptureImage)
+	{
+		int Width, Height;
+		TArray<FColor> LitData;
+		if (bLitSlow)
+		{
+			Sensor->GetLit(LitData, Width, Height, ELitMode::Slow);
+		}
+		else
+		{
+			Sensor->GetLit(LitData, Width, Height, ELitMode::Lit);
+		}
+		UE_LOG(LogTemp, Display, TEXT("Save lit image to %s"), *LitFilename);
+		UVisionBPLib::SavePng(LitData, Width, Height, LitFilename);
+	}
+
+	if (bCaptureSegMask)
+	{
+		int Width, Height;
+		TArray<FColor> SegData;
+		Sensor->GetSeg(SegData, Width, Height);
+		UVisionBPLib::SavePng(SegData, Width, Height, SegFilename);
+	}
+
+	if (bCaptureDepth)
+	{
+		int Width, Height;
+		TArray<float> DepthData;
+		Sensor->GetDepth(DepthData, Width, Height);
+		UVisionBPLib::SaveNpy(DepthData, Width, Height, DepthFilename);
+	}
+
+	if (bCaptureNormal)
+	{
+		int Width, Height;
+		TArray<FColor> NormalData;
+		Sensor->GetNormal(NormalData, Width, Height);
+		UVisionBPLib::SavePng(NormalData, Width, Height, NormalFilename);
+	}
+
+	// TArray<float> DepthData;
+	// CameraActor->FusionCamSensor->GetDepth(DepthData, Width, Height);
+	
+	TArray<FString> Keys = {
+		"SensorName", 
+		"Location", 
+		"Rotation", 
+		"FilmWidth", 
+		"FilmHeight",
+		// "IntrinsicMatrix"
+		};
+	// Save camera information
+	FMatrix Matrix;
+	TArray<FJsonObjectBP> Values
+	{
+		FJsonObjectBP(SensorName),
+		FJsonObjectBP(Sensor->GetSensorLocation()),
+		FJsonObjectBP(Sensor->GetSensorRotation()),
+		FJsonObjectBP(Sensor->FilmWidth),
+		FJsonObjectBP(Sensor->FilmHeight),
+		// FJsonObjectBP(Matrix)
+	};
+
+	// USerializeBPLib::VectorToJson();
+	FJsonObjectBP JsonObject = USerializeBPLib::TMapToJson(Keys, Values);
+	FString JsonStr = USerializeBPLib::JsonToStr(JsonObject);
+	JsonFilename = FPaths::ConvertRelativePathToFull(DataFolder.Path, JsonFilename);
+	UVisionBPLib::SaveData(JsonStr, JsonFilename);
+}
 
 void ADataCaptureActor::CaptureImage()
 {
@@ -315,83 +413,22 @@ void ADataCaptureActor::CaptureImage()
 	for (AFusionCameraActor* CameraActor : Sensors)
 	{
 		if (!IsValid(CameraActor)) continue;
-
-		FString CameraName = CameraActor->GetName();
-
-		FString LitFilename = MakeFilename(CameraName, "lit", ".png");
-		FString SegFilename = MakeFilename(CameraName, "seg", ".png");
-		FString DepthFilename = MakeFilename(CameraName, "depth", ".npy");
-		FString JsonFilename = MakeFilename(CameraName, "caminfo", ".json");
-		FString NormalFilename = MakeFilename(CameraName, "normal", ".png");
-
-		if (bCaptureImage)
-		{
-			int Width, Height;
-			TArray<FColor> LitData;
-			if (bLitSlow)
-			{
-				CameraActor->FusionCamSensor->GetLit(LitData, Width, Height, ELitMode::Slow);
-			}
-			else
-			{
-				CameraActor->FusionCamSensor->GetLit(LitData, Width, Height, ELitMode::Lit);
-			}
-			UE_LOG(LogTemp, Display, TEXT("Save lit image to %s"), *LitFilename);
-			UVisionBPLib::SavePng(LitData, Width, Height, LitFilename);
-		}
-
-		if (bCaptureSegMask)
-		{
-			int Width, Height;
-			TArray<FColor> SegData;
-			CameraActor->FusionCamSensor->GetSeg(SegData, Width, Height);
-			UVisionBPLib::SavePng(SegData, Width, Height, SegFilename);
-		}
-
-		if (bCaptureDepth)
-		{
-			int Width, Height;
-			TArray<float> DepthData;
-			CameraActor->FusionCamSensor->GetDepth(DepthData, Width, Height);
-			UVisionBPLib::SaveNpy(DepthData, Width, Height, DepthFilename);
-		}
-
-		if (bCaptureNormal)
-		{
-			int Width, Height;
-			TArray<FColor> NormalData;
-			CameraActor->FusionCamSensor->GetNormal(NormalData, Width, Height);
-			UVisionBPLib::SavePng(NormalData, Width, Height, NormalFilename);
-		}
-
-		// TArray<float> DepthData;
-		// CameraActor->FusionCamSensor->GetDepth(DepthData, Width, Height);
 		
-		TArray<FString> Keys = {
-			"SensorName", 
-			"Location", 
-			"Rotation", 
-			"FilmWidth", 
-			"FilmHeight",
-			// "IntrinsicMatrix"
-			};
-		// Save camera information
-		FMatrix Matrix;
-		TArray<FJsonObjectBP> Values
-		{
-			FJsonObjectBP(CameraActor->GetName()),
-			FJsonObjectBP(CameraActor->FusionCamSensor->GetSensorLocation()),
-			FJsonObjectBP(CameraActor->FusionCamSensor->GetSensorRotation()),
-			FJsonObjectBP(CameraActor->FusionCamSensor->FilmWidth),
-			FJsonObjectBP(CameraActor->FusionCamSensor->FilmHeight),
-			// FJsonObjectBP(Matrix)
-		};
+		// Get all sensors in this camera actor
+		TArray<FString> SensorNames = CameraActor->GetSensorNames();
+		TArray<UFusionCamSensor*> Sensors = CameraActor->GetSensors();
 
-		// USerializeBPLib::VectorToJson();
-		FJsonObjectBP JsonObject = USerializeBPLib::TMapToJson(Keys, Values);
-		FString JsonStr = USerializeBPLib::JsonToStr(JsonObject);
-		JsonFilename = FPaths::ConvertRelativePathToFull(DataFolder.Path, JsonFilename);
-		UVisionBPLib::SaveData(JsonStr, JsonFilename);
+		if (SensorNames.Num() != Sensors.Num())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("The number of CameraNames and Cameras are mismatch."));
+			continue;
+		}
+
+		for (int i = 0; i < Sensors.Num(); i++)
+		{
+			this->CaptureImageFromSensor(SensorNames[i], Sensors[i]);
+		}
+
 	}
 	FString ScreenMessage = FString::Printf(TEXT("%d frames / %d images are captured from %d cameras"), FrameCounter, FrameCounter * Sensors.Num(), Sensors.Num());
 	GEngine->AddOnScreenDebugMessage(-1, -1.0f, FColor::Green, *ScreenMessage);
@@ -403,26 +440,6 @@ void ADataCaptureActor::ExitGame() {
 	GetWorld()->GetFirstPlayerController()->ConsoleCommand(TEXT("quit"));
 }
 
-#if WITH_EDITOR
-void ADataCaptureActor::PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent)
-{
-	// This is important, otherwise the change will be lost
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-
-	FName PropertyName = (PropertyChangedEvent.Property != NULL) ? PropertyChangedEvent.Property->GetFName() : NAME_None;
-	if (PropertyName == GET_MEMBER_NAME_CHECKED(ADataCaptureActor, bListSensors))
-	{
-		Sensors.Empty();
-		TArray<UObject *> SensorObjects;
-		GetObjectsOfClass(AFusionCameraActor::StaticClass(), SensorObjects, false);
-		for (UObject *Obj : SensorObjects)
-		{
-			Sensors.Add(Cast<AFusionCameraActor>(Obj));
-		}
-		bListSensors = false;
-	}
-}
-#endif
 
 FString ADataCaptureActor::MakeFilename(FString CameraName, FString DataType, FString FileExtension)
 {
@@ -480,6 +497,45 @@ FString ADataCaptureActor::MakeFilename(FString CameraName, FString DataType, FS
 		}
 	}
 
-	Filename = FPaths::ConvertRelativePathToFull(DataFolder.Path, Filename);
+
+	Filename = FPaths::ConvertRelativePathToFull(FinalDataFolder, Filename);
 	return Filename;
 }
+
+
+#if WITH_EDITOR
+void ADataCaptureActor::PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent)
+{
+	// This is important, otherwise the change will be lost
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	FName PropertyName = (PropertyChangedEvent.Property != NULL) ? PropertyChangedEvent.Property->GetFName() : NAME_None;
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(ADataCaptureActor, bListSensors))
+	{
+		Sensors.Empty();
+		// TArray<UObject *> SensorObjects;
+		// GetObjectsOfClass(AFusionCameraActor::StaticClass(), SensorObjects, false);
+		// for (UObject *Obj : SensorObjects)
+		// {
+		// 	Sensors.Add(Cast<AFusionCameraActor>(Obj));
+		// }
+		for (TActorIterator<AFusionCameraActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+		{
+			AFusionCameraActor* Actor = *ActorItr;
+			Sensors.Add(Actor);
+		}
+		bListSensors = false;
+	}
+
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(ADataCaptureActor, bListPuppeteers))
+	{
+		Puppeteers.Empty();
+		for (TActorIterator<APuppeteer> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+		{
+			APuppeteer* Actor = *ActorItr;
+			Puppeteers.Add(Actor);
+		}
+		bListPuppeteers = false;
+	}
+}
+#endif

@@ -13,7 +13,16 @@ class UNREALCV_API AFusionCameraActor : public AActor
 public:
 	AFusionCameraActor(const FObjectInitializer& ObjectInitializer);
 
+
+	virtual int GetSensorNum() { return GetSensors().Num(); }
+
+	// This can be extended to support multiple cameras
+	virtual TArray<FString> GetSensorNames();
+
+	virtual TArray<UFusionCamSensor*> GetSensors();
+
+private:
 	// Define it to be VisibleAnywhere not EditableAnywhere. This is enough for changing the component property
-	UPROPERTY(Category = AFusionCameraActor, VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(Category = AFusionCameraActor, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	UFusionCamSensor* FusionCamSensor;
 };
