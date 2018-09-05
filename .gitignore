@@ -21,6 +21,7 @@ UE4Binaries/
 **/.DS_Store
 **/.ipynb_checkpoints/
 **/.idea/
+.vscode/
 
 # Ignore binary folders produced by sphinx and doxygen
 docs/_build/
