@@ -8,8 +8,6 @@
 // For UE4 < 17
 // check https://github.com/unrealcv/unrealcv/blob/1369a72be8428547318d8a52ae2d63e1eb57a001/Source/UnrealCV/Private/Controller/ObjectAnnotator.cpp#L1
 
-FColor GetColorFromColorMap(int32 ObjectIndex);
-
 FObjectAnnotator::FObjectAnnotator()
 {
 }
@@ -80,15 +78,24 @@ void FObjectAnnotator::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor
 
 	// Another way to get annotation color is directly read color from AnnotationComponent
 	// TODO: Remove the first only leave the second method
+
+	// Check its direct children, do not recursive, otherwise it is very easy to trigger the warning.
 	TArray<UActorComponent*> AnnotationComponents = Actor->GetComponentsByClass(UAnnotationComponent::StaticClass());
+	TArray<UActorComponent*> MeshComponents = Actor->GetComponentsByClass(UMeshComponent::StaticClass());
+	// Note: Strange that the MeshComponents.Num() is twice the number of AnnotationComponents.Num()
 	if (AnnotationComponents.Num() == 0) return;
-	if (AnnotationComponents.Num() > 1)
+	if (AnnotationComponents.Num() != MeshComponents.Num())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("More than one AnnotationComponent for MeshComponent."));
+		// UE_LOG(LogTemp, Warning, TEXT("More than one AnnotationComponent for MeshComponent."));
+		UE_LOG(LogTemp, Warning, TEXT("In actor %s, the number of MeshComponent (%d) and AnnotationComponent (%d) is different."), *Actor->GetName(), MeshComponents.Num(), AnnotationComponents.Num());
+		// for (UActorComponent* Component : MeshComponents)
+		// {
+		// 	UE_LOG(LogTemp, Warning, TEXT("%s"), *Component->GetName()); 
+		// }
 	}
 	UAnnotationComponent* AnnotationComponent = Cast<UAnnotationComponent>(AnnotationComponents[0]);
 	// check(AnnotationColor == AnnotationComponent->AnnotationColor);
-	AnnotationColor = AnnotationComponent->AnnotationColor;
+	AnnotationColor = AnnotationComponent->GetAnnotationColor();
 }
 
 void FObjectAnnotator::GetAnnotableActors(UWorld* World, TArray<AActor*>& ActorArray)
@@ -131,8 +138,8 @@ void FObjectAnnotator::CreateAnnotationComponent(AActor* Actor, const FColor& An
 
 		UAnnotationComponent* AnnotationComponent = NewObject<UAnnotationComponent>(MeshComponent);
 		UE_LOG(LogTemp, Log, TEXT("Annotate %s with color %s"), *MeshComponent->GetName(), *AnnotationColor.ToString());
-		AnnotationComponent->AnnotationColor = AnnotationColor;
-		// AnnotationComponent->AnnotationColor = FColor::MakeRandomColor();
+		AnnotationComponent->SetAnnotationColor(AnnotationColor);
+		// AnnotationComponent->AnnotationColor = FColor::MakeRandomColor(); // Debug
 		AnnotationComponent->SetupAttachment(MeshComponent);
 		AnnotationComponent->RegisterComponent();
 		AnnotationComponent->MarkRenderStateDirty();
@@ -150,7 +157,7 @@ void FObjectAnnotator::UpdateAnnotationComponent(AActor* Actor, const FColor& An
 	for (UActorComponent* Component : AnnotationComponents)
 	{
 		UAnnotationComponent* AnnotationComponent = Cast<UAnnotationComponent>(Component);
-		AnnotationComponent->AnnotationColor = AnnotationColor;
+		AnnotationComponent->SetAnnotationColor(AnnotationColor);
 		AnnotationComponent->MarkRenderStateDirty();
 	}
 }
@@ -165,13 +172,75 @@ FColor FObjectAnnotator::GetDefaultColor(AActor* Actor)
 	}
 
 	int ColorIndex = AnnotationColors.Num();
-	FColor AnnotationColor = GetColorFromColorMap(ColorIndex);
+	FColor AnnotationColor = ColorGenerator.GetColorFromColorMap(ColorIndex);
 
 	return AnnotationColor;
 }
 
+void FObjectAnnotator::AnnotateMeshComponents(UWorld* World)
+{
+	if (!IsValid(World))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Can not annotate world, the world is not valid"));
+		return;
+	}
+
+	// List all MeshComponents in the scene
+	TArray<UMeshComponent*> ComponentList;
+	TArray<UObject*> UObjectList;
+	bool bIncludeDerivedClasses = true;
+	EObjectFlags ExclusionFlags = EObjectFlags::RF_ClassDefaultObject;
+	EInternalObjectFlags ExclusionInternalFlags = EInternalObjectFlags::AllFlags;
+	GetObjectsOfClass(UMeshComponent::StaticClass(), UObjectList, bIncludeDerivedClasses, ExclusionFlags, ExclusionInternalFlags);
+	for (UObject* Object : UObjectList)
+	{
+		UMeshComponent* Component = Cast<UMeshComponent>(Object);
+
+		if (Component->GetWorld() == World
+		&& !ComponentList.Contains(Component))
+		{
+			ComponentList.Add(Component);
+		}
+	}
+
+	for (int i = 0; i < ComponentList.Num(); i++)	
+	// for (UMeshComponent* MeshComponent : ComponentList)
+	{
+		UMeshComponent* MeshComponent = ComponentList[i];
+		if (!IsValid(MeshComponent))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("MeshComponent is invalid."));
+			continue;
+		}
+
+		UAnnotationComponent* AnnotationComponent = nullptr;
+		TArray<USceneComponent*> AttachChildren = MeshComponent->GetAttachChildren();
+		for (USceneComponent* Child : AttachChildren)
+		{
+			AnnotationComponent = Cast<UAnnotationComponent>(Child);
+			if (IsValid(AnnotationComponent))
+			{
+				break;
+			}
+		}
+		if (!IsValid(AnnotationComponent))
+		{
+			// Create a new one
+			AnnotationComponent = NewObject<UAnnotationComponent>(MeshComponent);
+			AnnotationComponent->SetupAttachment(MeshComponent);
+			AnnotationComponent->RegisterComponent();
+			AnnotationComponent->MarkRenderStateDirty();
+		}
+		// UE_LOG(LogTemp, Log, TEXT("Annotate %s with color %s"), *MeshComponent->GetName(), *AnnotationColor.ToString());
+		// FColor AnnotationColor = FColor::MakeRandomColor();
+		FColor AnnotationColor = ColorGenerator.GetColorFromColorMap(i);
+		AnnotationComponent->SetAnnotationColor(AnnotationColor);
+		// AnnotationComponent->AnnotationColor = FColor::MakeRandomColor(); // Debug
+	}
+}
+
 /** Utility function to generate color map */
-int32 GetChannelValue(uint32 Index)
+int32 FColorGenerator::GetChannelValue(uint32 Index)
 {
 	static int32 Values[256] = { 0 };
 	static bool Init = false;
@@ -203,7 +272,7 @@ int32 GetChannelValue(uint32 Index)
 	}
 }
 
-void GetColors(int32 MaxVal, bool Fix1, bool Fix2, bool Fix3, TArray<FColor>& ColorMap)
+void FColorGenerator::GetColors(int32 MaxVal, bool Fix1, bool Fix2, bool Fix3, TArray<FColor>& ColorMap)
 {
 	for (int32 I = 0; I <= (Fix1 ? 0 : MaxVal - 1); I++)
 	{
@@ -221,7 +290,7 @@ void GetColors(int32 MaxVal, bool Fix1, bool Fix2, bool Fix3, TArray<FColor>& Co
 	}
 }
 
-FColor GetColorFromColorMap(int32 ObjectIndex)
+FColor FColorGenerator::GetColorFromColorMap(int32 ObjectIndex)
 {
 	static TArray<FColor> ColorMap;
 	int NumPerChannel = 32;
