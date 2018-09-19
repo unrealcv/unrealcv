@@ -21,7 +21,7 @@ UCLASS(meta = (BlueprintSpawnableComponent))
 // class UAnnotationComponent : public UMeshComponent
 // Note: if define UAnnotationComponent as a UMeshComponent, then some confusion will raise
 // for example: compare the number of MeshComponent and AnnotationComponent
-class UAnnotationComponent : public UPrimitiveComponent
+class UNREALCV_API UAnnotationComponent : public UPrimitiveComponent
 {
 	GENERATED_BODY()
 

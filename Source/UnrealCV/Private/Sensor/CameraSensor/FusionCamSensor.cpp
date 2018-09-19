@@ -21,27 +21,37 @@
 UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	PreviewCamera = CreateDefaultSubobject<UCameraComponent>("PreviewCamera");
+	FString ComponentName;
+	ComponentName = FString::Printf(TEXT("%s_%s"), *this->GetName(), TEXT("PreviewCamera"));
+	PreviewCamera = CreateDefaultSubobject<UCameraComponent>(*ComponentName);
 	PreviewCamera->SetupAttachment(this);
+
+	ComponentName = FString::Printf(TEXT("%s_%s"), *this->GetName(), TEXT("DepthCamSensor"));
+	DepthCamSensor = CreateDefaultSubobject<UDepthCamSensor>(*ComponentName);
+	FusionSensors.Add(DepthCamSensor);
+
+	ComponentName = FString::Printf(TEXT("%s_%s"), *this->GetName(), TEXT("NormalCamSensor"));
+	NormalCamSensor = CreateDefaultSubobject<UNormalCamSensor>(*ComponentName);
+	FusionSensors.Add(NormalCamSensor);
+
+	ComponentName = FString::Printf(TEXT("%s_%s"), *this->GetName(), TEXT("AnnotationCamSensor"));
+	AnnotationCamSensor = CreateDefaultSubobject<UAnnotationCamSensor>(*ComponentName);
+	FusionSensors.Add(AnnotationCamSensor);
+
+	ComponentName = FString::Printf(TEXT("%s_%s"), *this->GetName(), TEXT("LitCamSensor"));
+	LitSlowCamSensor = CreateDefaultSubobject<ULitSlowCamSensor>(*ComponentName);
+	FusionSensors.Add(LitSlowCamSensor);
 
 	// LitCamSensor = CreateDefaultSubobject<ULitCamSensor>("LitCamSensor");
 	// FusionSensors.Add(LitCamSensor);
-	DepthCamSensor = CreateDefaultSubobject<UDepthCamSensor>("DepthCamSensor");
-	FusionSensors.Add(DepthCamSensor);
 	// VisDepthCamSensor = CreateDefaultSubobject<UVisDepthCamSensor>("VisDepthCamSensor");
 	// FusionSensors.Add(VisDepthCamSensor);
 	// PlaneDepthCamSensor = CreateDefaultSubobject<UPlaneDepthCamSensor>("PlaneDepthCamSensor");
 	// FusionSensors.Add(PlaneDepthCamSensor);
-	NormalCamSensor = CreateDefaultSubobject<UNormalCamSensor>("NormalCamSensor");
-	FusionSensors.Add(NormalCamSensor);
 	// NontransDepthCamSensor = CreateDefaultSubobject<UNontransDepthCamSensor>("NontransDepthCamSensor");
 	// FusionSensors.Add(NontransDepthCamSensor);
 	// StencilCamSensor = CreateDefaultSubobject<UStencilCamSensor>("StencilCamSensor");
 	// FusionSensors.Add(StencilCamSensor);
-	AnnotationCamSensor = CreateDefaultSubobject<UAnnotationCamSensor>("AnnotationCamSensor");
-	FusionSensors.Add(AnnotationCamSensor);
-	LitSlowCamSensor = CreateDefaultSubobject<ULitSlowCamSensor>("LitSlowCamSensor");
-	FusionSensors.Add(LitSlowCamSensor);
 
 
 	FServerConfig& Config = FUnrealcvServer::Get().Config;

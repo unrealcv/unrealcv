@@ -2,22 +2,23 @@
 #pragma once
 
 #include "Runtime/Engine/Classes/GameFramework/Actor.h"
-#include "FusionCamSensor.h"
+#include "CamSensorActor.h"
 #include "FusionCameraActor.h"
 #include "StereoCameraActor.generated.h"
 
 UCLASS()
-class UNREALCV_API AStereoCameraActor : public AFusionCameraActor
+class UNREALCV_API AStereoCameraActor : public ACamSensorActor
 {
 	GENERATED_BODY()
 
 public:
-	AStereoCameraActor(const FObjectInitializer& ObjectInitializer);
+	// AStereoCameraActor(const FObjectInitializer& ObjectInitializer);
+	AStereoCameraActor();
 
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditInstanceOnly)
-	float BaseLineDistance;
+	float BaselineDistance;
 
 	virtual TArray<FString> GetSensorNames() override;
 
@@ -32,4 +33,8 @@ private:
 
 	UPROPERTY(Category = StereoCameraActor, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class USceneComponent* SceneComponent;
+
+	void SetBaselineDistance();
+	
+	void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent);
 };

@@ -80,7 +80,7 @@ public:
 	bool bListSensors;
 
 	UPROPERTY(EditInstanceOnly, Category = "DataCapture| Camera Setting")
-	TArray<class AFusionCameraActor*> Sensors;
+	TArray<class ACamSensorActor*> Sensors;
 
 
 	UPROPERTY(EditInstanceOnly, Category = "DataCapture| Camera Setting")

@@ -410,7 +410,7 @@ void ADataCaptureActor::CaptureImageFromSensor(FString SensorName, UFusionCamSen
 void ADataCaptureActor::CaptureImage()
 {
 	// Iterate all cameras in the scene and capture images
-	for (AFusionCameraActor* CameraActor : Sensors)
+	for (ACamSensorActor* CameraActor : Sensors)
 	{
 		if (!IsValid(CameraActor)) continue;
 		
@@ -519,9 +519,9 @@ void ADataCaptureActor::PostEditChangeProperty(FPropertyChangedEvent &PropertyCh
 		// {
 		// 	Sensors.Add(Cast<AFusionCameraActor>(Obj));
 		// }
-		for (TActorIterator<AFusionCameraActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+		for (TActorIterator<ACamSensorActor> ActorItr(GetWorld()); ActorItr; ++ActorItr)
 		{
-			AFusionCameraActor* Actor = *ActorItr;
+			ACamSensorActor* Actor = *ActorItr;
 			Sensors.Add(Actor);
 		}
 		bListSensors = false;

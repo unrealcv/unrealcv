@@ -2,8 +2,8 @@
 
 #include "FusionCameraActor.h"
 
-AFusionCameraActor::AFusionCameraActor(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
+AFusionCameraActor::AFusionCameraActor()
+	: Super()
 {
 	PrimaryActorTick.bCanEverTick = true;
 

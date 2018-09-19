@@ -3,8 +3,8 @@
 
 #include "StereoCameraActor.h"
 
-AStereoCameraActor::AStereoCameraActor(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer), BaseLineDistance(80)
+AStereoCameraActor::AStereoCameraActor()
+	: Super(), BaselineDistance(80)
 {
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 
@@ -17,8 +17,13 @@ AStereoCameraActor::AStereoCameraActor(const FObjectInitializer& ObjectInitializ
 	RightSensor = CreateDefaultSubobject<UFusionCamSensor>(TEXT("RightSensor"));
 	RightSensor->SetupAttachment(SceneComponent);
 
-	LeftSensor->SetRelativeLocation (FVector(0, - BaseLineDistance / 2, 0));
-	RightSensor->SetRelativeLocation(FVector(0, + BaseLineDistance / 2, 0));
+	SetBaselineDistance();
+}
+
+void AStereoCameraActor::SetBaselineDistance()
+{
+	LeftSensor->SetRelativeLocation(FVector(0, - BaselineDistance / 2, 0));
+	RightSensor->SetRelativeLocation(FVector(0, + BaselineDistance / 2, 0));
 }
 
 void AStereoCameraActor::BeginPlay()
@@ -41,3 +46,17 @@ TArray<UFusionCamSensor*> AStereoCameraActor::GetSensors()
 		this->RightSensor,
 	};
 }
+
+
+#if WITH_EDITOR
+void AStereoCameraActor::PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent)
+{
+	Super::PostEditChangeProperty(PropertyChangedEvent);
+
+	FName PropertyName = (PropertyChangedEvent.Property != NULL) ? PropertyChangedEvent.Property->GetFName() : NAME_None;
+	if (PropertyName == GET_MEMBER_NAME_CHECKED(AStereoCameraActor, BaselineDistance))
+	{
+		SetBaselineDistance();
+	}
+}
+#endif

@@ -2,19 +2,16 @@
 #pragma once
 
 #include "FusionCamSensor.h"
-#include "Runtime/Engine/Classes/GameFramework/Actor.h"
+#include "CamSensorActor.h"
 #include "FusionCameraActor.generated.h"
 
 UCLASS()
-class UNREALCV_API AFusionCameraActor : public AActor
+class UNREALCV_API AFusionCameraActor : public ACamSensorActor
 {
 	GENERATED_BODY()
 
 public:
-	AFusionCameraActor(const FObjectInitializer& ObjectInitializer);
-
-
-	virtual int GetSensorNum() { return GetSensors().Num(); }
+	AFusionCameraActor();
 
 	// This can be extended to support multiple cameras
 	virtual TArray<FString> GetSensorNames();
