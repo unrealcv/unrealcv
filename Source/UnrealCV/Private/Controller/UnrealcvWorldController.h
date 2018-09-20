@@ -22,6 +22,12 @@ public:
 
 	virtual void BeginPlay() override;
 
+	virtual void PostActorCreated() override;
+
 	/** Open new level */
 	void OpenLevel(FName LevelName);
+
+	void InitWorld();
+
+	void AttachPawnSensor();
 };

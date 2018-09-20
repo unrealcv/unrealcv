@@ -16,14 +16,21 @@ void FUnrealcvServer::Tick(float DeltaTime)
 {
 	// Spawn a AUnrealcvWorldController, which is responsible for modifying the world to add UnrealCV functions.
 	// TODO: Check whether stopping the game will reset this ptr?
+
+	InitWorldController();
+	ProcessPendingRequest();
+}
+
+void FUnrealcvServer::InitWorldController()
+{
 	UWorld* GameWorld = GetGameWorld();
 	if (IsValid(GameWorld) && !WorldController.IsValid())
 	{
+		UE_LOG(LogTemp, Display, TEXT("FUnrealcvServer::Tick Create WorldController"));
 		this->WorldController = Cast<AUnrealcvWorldController>(GameWorld->SpawnActor(AUnrealcvWorldController::StaticClass()));
+		this->WorldController->InitWorld();
 		// Its BeginPlay event will extend the GameWorld
 	}
-
-	ProcessPendingRequest();
 }
 
 /** Only available during game play */

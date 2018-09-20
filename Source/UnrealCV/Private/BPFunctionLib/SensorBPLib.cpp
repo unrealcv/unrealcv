@@ -40,6 +40,8 @@ TArray<UFusionCamSensor*> USensorBPLib::GetFusionSensorList()
 
 UFusionCamSensor* USensorBPLib::GetSensorById(int SensorId)
 {
+	FUnrealcvServer::Get().InitWorldController(); // TODO: Move this to SensorHandler
+
 	TArray<UFusionCamSensor*> SensorList = USensorBPLib::GetFusionSensorList();
 	if (SensorId < 0 || SensorId >= SensorList.Num()) return nullptr;
 	return SensorList[SensorId];

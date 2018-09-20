@@ -131,13 +131,14 @@ void FObjectAnnotator::CreateAnnotationComponent(AActor* Actor, const FColor& An
 	}
 
 	UE_LOG(LogTemp, Log, TEXT("Annotate actor %s with color %s"), *Actor->GetName(), *AnnotationColor.ToString());
+	// UE_LOG(LogTemp, Log, TEXT("Annotate actor %s with color %s"), *Actor->GetName(), *AnnotationColor.ToString());
 	TArray<UActorComponent*> MeshComponents = Actor->GetComponentsByClass(UMeshComponent::StaticClass());
 	for (UActorComponent* Component : MeshComponents)
 	{
 		UMeshComponent* MeshComponent = Cast<UMeshComponent>(Component);
 
 		UAnnotationComponent* AnnotationComponent = NewObject<UAnnotationComponent>(MeshComponent);
-		UE_LOG(LogTemp, Log, TEXT("Annotate %s with color %s"), *MeshComponent->GetName(), *AnnotationColor.ToString());
+		// UE_LOG(LogTemp, Log, TEXT("Annotate %s with color %s"), *MeshComponent->GetName(), *AnnotationColor.ToString());
 		AnnotationComponent->SetAnnotationColor(AnnotationColor);
 		// AnnotationComponent->AnnotationColor = FColor::MakeRandomColor(); // Debug
 		AnnotationComponent->SetupAttachment(MeshComponent);

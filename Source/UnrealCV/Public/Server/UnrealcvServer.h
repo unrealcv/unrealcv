@@ -94,6 +94,10 @@ public:
 
 	/** A controller to control the UE4 world */
 	TWeakObjectPtr<class AUnrealcvWorldController> WorldController;
+
+	/** InitWorldController */
+	void InitWorldController();
+
 private:
 	/** Handlers for UnrealCV commands */
 	TArray<FCommandHandler*> CommandHandlers;

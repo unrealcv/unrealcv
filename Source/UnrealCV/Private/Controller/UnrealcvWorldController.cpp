@@ -17,11 +17,15 @@ AUnrealcvWorldController::AUnrealcvWorldController(const FObjectInitializer& Obj
 	PlayerViewMode = CreateDefaultSubobject<UPlayerViewMode>(TEXT("PlayerViewMode"));
 }
 
-void AttachPawnSensor(APawn* Pawn)
+void AUnrealcvWorldController::AttachPawnSensor()
 {
+	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+	check(PlayerController);
+	APawn* Pawn = PlayerController->GetPawn();
+	FUnrealcvServer& Server = FUnrealcvServer::Get();
 	if (!IsValid(Pawn))
 	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("The pawn is invalid, can not attach a PawnSensor to it."));
+		UE_LOG(LogTemp, Warning, TEXT("No available pawn to mount a PawnSensor"));
 		return;
 	}
 
@@ -36,33 +40,18 @@ void AttachPawnSensor(APawn* Pawn)
 	PawnCamSensor->AttachToComponent(Pawn->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	// AActor* OwnerActor = FusionCamSensor->GetOwner();
 	PawnCamSensor->RegisterComponent(); // Is this neccessary?
+	UVisionBPLib::UpdateInput(Pawn, Server.Config.EnableInput);
 }
 
-
-
-void AUnrealcvWorldController::BeginPlay()
+void AUnrealcvWorldController::InitWorld()
 {
 	UE_LOG(LogUnrealCV, Display, TEXT("Overwrite the world setting with some UnrealCV extensions"));
-
 	FUnrealcvServer& UnrealcvServer = FUnrealcvServer::Get();
 	if (UnrealcvServer.TcpServer && !UnrealcvServer.TcpServer->IsListening())
 	{
 		UE_LOG(LogUnrealCV, Warning, TEXT("The tcp server is not running"));
 	}
 
-	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
-	check(PlayerController);
-	APawn* Pawn = PlayerController->GetPawn();
-	FUnrealcvServer& Server = FUnrealcvServer::Get();
-	if (IsValid(Pawn))
-	{
-		AttachPawnSensor(Pawn);
-		UVisionBPLib::UpdateInput(Pawn, Server.Config.EnableInput);
-	}
-	else
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("No available pawn to mount a PawnSensor"));
-	}
 
 	ObjectAnnotator.AnnotateWorld(GetWorld());
 	// ObjectAnnotator.AnnotateMeshComponents(GetWorld());
@@ -70,11 +59,26 @@ void AUnrealcvWorldController::BeginPlay()
 	FEngineShowFlags ShowFlags = GetWorld()->GetGameViewport()->EngineShowFlags;
 	this->PlayerViewMode->SaveGameDefault(ShowFlags);
 
+	this->AttachPawnSensor();
+
 	// TODO: remove legacy code
 	// Update camera FOV
 
 	//PlayerController->PlayerCameraManager->SetFOV(Server.Config.FOV);
 	//FCaptureManager::Get().AttachGTCaptureComponentToCamera(Pawn);
+}
+
+void AUnrealcvWorldController::PostActorCreated()
+{
+	UE_LOG(LogTemp, Display, TEXT("AUnrealcvWorldController::PostActorCreated"));
+	Super::PostActorCreated();
+}
+
+
+void AUnrealcvWorldController::BeginPlay()
+{
+	UE_LOG(LogTemp, Display, TEXT("AUnrealcvWorldController::BeginPlay"));
+	Super::BeginPlay();
 }
 
 
