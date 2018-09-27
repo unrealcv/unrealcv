@@ -21,6 +21,9 @@ enum class EImageId
 	RecordedFrameId,
 };
 
+/** An actor to capture data from the scene.
+\image html https://i.imgur.com/MdOxOZ3.png
+*/
 UCLASS()
 class UNREALCV_API ADataCaptureActor : public AActor
 {

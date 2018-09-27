@@ -33,9 +33,11 @@ public:
 	static bool ReceivePayload(FArrayReader& OutPayload, FSocket* Socket, bool* unknown_error);
 };
 
-DECLARE_EVENT_OneParam(UTcpServer, FReceivedEvent, const FString&)
-DECLARE_EVENT_OneParam(UTcpServer, FErrorEvent, const FString&)
-DECLARE_EVENT_OneParam(UTcpServer, FConnectedEvent, const FString&)
+
+// The ; in the end is needed for doxygen.
+DECLARE_EVENT_OneParam(UTcpServer, FReceivedEvent, const FString&);
+DECLARE_EVENT_OneParam(UTcpServer, FErrorEvent, const FString&);
+DECLARE_EVENT_OneParam(UTcpServer, FConnectedEvent, const FString&);
 
 /**
  * Server to send and receive message
