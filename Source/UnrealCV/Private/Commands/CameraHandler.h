@@ -60,4 +60,9 @@ private:
 	FExecStatus SetPlayerViewMode(const TArray<FString>& Args);
 
 	FExecStatus GetPlayerViewMode(const TArray<FString>& Args);
+
+	FExecStatus GetFOV(const TArray<FString>& Args);
+
+	FExecStatus SetFOV(const TArray<FString>& Args);
+
 };

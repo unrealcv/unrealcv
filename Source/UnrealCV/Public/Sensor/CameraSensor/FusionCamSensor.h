@@ -84,6 +84,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "unrealcv")
 	void SetSensorRotation(FRotator Rotator);
 
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	float GetSensorFOV();
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	void SetSensorFOV(float FOV);
+
 	// UFUNCTION(BlueprintPure, Category = "unrealcv")
 	// float GetFilmHeight();
 

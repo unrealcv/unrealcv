@@ -385,6 +385,33 @@ FExecStatus FCameraHandler::GetPlayerViewMode(const TArray<FString>& Args)
 	return WorldController->PlayerViewMode->GetMode(Args);
 }
 
+FExecStatus FCameraHandler::GetFOV(const TArray<FString>& Args)
+{
+	FExecStatus Status = FExecStatus::InvalidArgument;
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
+	if (!IsValid(FusionCamSensor)) return FExecStatus::InvalidArgument;
+
+	if (Args.Num() != 1) return FExecStatus::InvalidArgument; // ID
+
+	float FOV = FusionCamSensor->GetSensorFOV();
+	FString Res = FString::Printf(TEXT("%f"), FOV);
+	return FExecStatus::OK(Res);
+}
+
+FExecStatus FCameraHandler::SetFOV(const TArray<FString>& Args)
+{
+	FExecStatus Status = FExecStatus::InvalidArgument;
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
+	if (!IsValid(FusionCamSensor)) return FExecStatus::InvalidArgument;
+
+	if (Args.Num() != 2) return FExecStatus::InvalidArgument; // ID, FOV
+
+	float FOV = FCString::Atof(*Args[1]);
+	FusionCamSensor->SetSensorFOV(FOV);
+	return FExecStatus::OK();
+}
+
+
 void FCameraHandler::RegisterCommands()
 {
 	CommandDispatcher->BindCommand(
@@ -462,5 +489,17 @@ void FCameraHandler::RegisterCommands()
 		"vget /viewmode",
 		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetPlayerViewMode),
 		"Get current ViewMode"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vget /camera/[uint]/fov",
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetFOV),
+		"Get FOV"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vset /camera/[uint]/fov [float]",
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetFOV),
+		"Set FOV"
 	);
 }

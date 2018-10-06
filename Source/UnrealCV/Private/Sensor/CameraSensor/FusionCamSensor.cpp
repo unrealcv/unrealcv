@@ -137,6 +137,22 @@ void UFusionCamSensor::SetSensorRotation(FRotator Rotator)
 	this->SetWorldRotation(Rotator);
 }
 
+float UFusionCamSensor::GetSensorFOV()
+{
+	return this->LitCamSensor->GetFOV(); 
+}
+
+void UFusionCamSensor::SetSensorFOV(float FOV)
+{
+	for (UBaseCameraSensor* Sensor: FusionSensors)
+	{
+		if (IsValid(Sensor))
+		{
+			Sensor->SetFOV(FOV);
+		}
+	}
+}
+
 #if WITH_EDITOR
 void UFusionCamSensor::PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent)
 {
