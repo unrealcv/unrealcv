@@ -3,11 +3,15 @@
 #include "PawnCamSensor.h"
 #include "Runtime/Engine/Classes/GameFramework/Pawn.h"
 #include "Runtime/Engine/Classes/GameFramework/Controller.h"
+#include "LitSlowCamSensor.h"
 
 UPawnCamSensor::UPawnCamSensor(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
 	this->PrimaryComponentTick.bCanEverTick = true;
+
+	this->LitSlowCamSensor->bAbsoluteLocation = true;
+	this->LitSlowCamSensor->bAbsoluteRotation = true;
 }
 
 void UPawnCamSensor::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * T)
@@ -24,21 +28,39 @@ void UPawnCamSensor::TickComponent(float DeltaTime, enum ELevelTick TickType, FA
 		return;
 	}
 
+	// I want to get the Viewport, not really the pawn view.
+	// Note: https://answers.unrealengine.com/questions/5155/getting-editor-viewport-camera.html
+	// GEngine->GameViewport->Viewport
 	Pawn->GetActorEyesViewPoint(EyeLocation, EyeRotation);
-	FRotator CompRotation = this->GetComponentRotation();
-	FVector CompLocation = this->GetComponentLocation();
+	// GetPlayerViewpoint(EyeLocation, EyeRotation);
+	// FRotator CompRotation = this->GetComponentRotation();
+	// FVector CompLocation = this->GetComponentLocation();
 	// ScreenLog(FString::Printf(TEXT("Rotation, Actor Eye: %s, Component: %s"), *EyeRotation.ToString(), *CompRotation.ToString()));
 	// ScreenLog(FString::Printf(TEXT("Location, Actor Eye: %s, Component: %s"), *EyeLocation.ToString(), *CompLocation.ToString()));
 
 	// TODO: any alternative implementation
+	this->SetWorldLocation(EyeLocation);
 	this->SetWorldRotation(EyeRotation);
-	CompRotation = this->GetComponentRotation(); // Get updated value
+	this->UpdateChildTransforms();
+
+	USceneComponent* Parent = this->LitSlowCamSensor->GetAttachParent();
+	if (Parent != this)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Unexpected attach"));
+	}
+	FTransform RelativeTransform = this->LitSlowCamSensor->GetRelativeTransform();
+	FVector LitLocation = this->LitSlowCamSensor->GetSensorLocation();
+	FRotator LitRotation = this->LitSlowCamSensor->GetSensorRotation();
+	FVector ThisLocation = this->GetSensorLocation();
+	FRotator ThisRotation = this->GetSensorRotation();
+	this->LitSlowCamSensor->SetSensorLocation(EyeLocation);
+	this->LitSlowCamSensor->SetSensorRotation(EyeRotation);
 
 	// TODO: check this with a player pawn
-	if (CompLocation != EyeLocation || CompRotation != EyeRotation)
-	{
-		// ScreenLog(TEXT("Pawn Camera Sensor is not correctly mounted, location or rotation mismatch"));
-	}
+	// if (CompLocation != EyeLocation || CompRotation != EyeRotation)
+	// {
+	// ScreenLog(TEXT("Pawn Camera Sensor is not correctly mounted, location or rotation mismatch"));
+	// }
 
 }
 

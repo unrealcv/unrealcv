@@ -101,7 +101,7 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
 #endif
 
-private:
+protected:
 	UPROPERTY()
 	TArray<class UBaseCameraSensor*> FusionSensors;
 
