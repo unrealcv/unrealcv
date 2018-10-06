@@ -3,15 +3,15 @@
 #include "PawnCamSensor.h"
 #include "Runtime/Engine/Classes/GameFramework/Pawn.h"
 #include "Runtime/Engine/Classes/GameFramework/Controller.h"
-#include "LitSlowCamSensor.h"
+#include "LitCamSensor.h"
 
 UPawnCamSensor::UPawnCamSensor(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
 	this->PrimaryComponentTick.bCanEverTick = true;
 
-	this->LitSlowCamSensor->bAbsoluteLocation = true;
-	this->LitSlowCamSensor->bAbsoluteRotation = true;
+	this->LitCamSensor->bAbsoluteLocation = true;
+	this->LitCamSensor->bAbsoluteRotation = true;
 }
 
 void UPawnCamSensor::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * T)
@@ -43,18 +43,18 @@ void UPawnCamSensor::TickComponent(float DeltaTime, enum ELevelTick TickType, FA
 	this->SetWorldRotation(EyeRotation);
 	this->UpdateChildTransforms();
 
-	USceneComponent* Parent = this->LitSlowCamSensor->GetAttachParent();
+	USceneComponent* Parent = this->LitCamSensor->GetAttachParent();
 	if (Parent != this)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Unexpected attach"));
 	}
-	FTransform RelativeTransform = this->LitSlowCamSensor->GetRelativeTransform();
-	FVector LitLocation = this->LitSlowCamSensor->GetSensorLocation();
-	FRotator LitRotation = this->LitSlowCamSensor->GetSensorRotation();
+	FTransform RelativeTransform = this->LitCamSensor->GetRelativeTransform();
+	FVector LitLocation = this->LitCamSensor->GetSensorLocation();
+	FRotator LitRotation = this->LitCamSensor->GetSensorRotation();
 	FVector ThisLocation = this->GetSensorLocation();
 	FRotator ThisRotation = this->GetSensorRotation();
-	this->LitSlowCamSensor->SetSensorLocation(EyeLocation);
-	this->LitSlowCamSensor->SetSensorRotation(EyeRotation);
+	this->LitCamSensor->SetSensorLocation(EyeLocation);
+	this->LitCamSensor->SetSensorRotation(EyeRotation);
 
 	// TODO: check this with a player pawn
 	// if (CompLocation != EyeLocation || CompRotation != EyeRotation)
