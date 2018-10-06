@@ -6,88 +6,71 @@
 #include "Utils/UObjectUtils.h"
 #include "VisionBPLib.h"
 
-FExecStatus GetObjectMobility(const TArray<FString>& Args);
-
-AActor* GetActor(const TArray<FString>& Args);
-
-
-FExecStatus GetActorList(const TArray<FString>& Args);
-FExecStatus GetActorLocation(const TArray<FString>& Args);
-FExecStatus SetActorLocation(const TArray<FString>& Args);
-FExecStatus GetActorRotation(const TArray<FString>& Args);
-FExecStatus SetActorRotation(const TArray<FString>& Args);
-FExecStatus GetActorVertexLocation(const TArray<FString>& Args);
-FExecStatus GetActorAnnotationColor(const TArray<FString>& Args);
-FExecStatus SetActorAnnotationColor(const TArray<FString>& Args);
-FExecStatus GetActorMobility(const TArray<FString>& Args);
-FExecStatus SetShowActor(const TArray<FString>& Args);
-FExecStatus SetHideActor(const TArray<FString>& Args);
-
-void FObjectCommandHandler::RegisterCommands()
+void FObjectHandler::RegisterCommands()
 {
 	CommandDispatcher->BindCommand(
 		"vget /objects",
-		FDispatcherDelegate::CreateStatic(GetActorList),
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::GetObjectList),
 		"Get the name of all objects"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vget /object/[str]/location",
-		FDispatcherDelegate::CreateStatic(GetActorLocation),
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::GetObjectLocation),
 		"Get object location [x, y, z]"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vset /object/[str]/location [float] [float] [float]",
-		FDispatcherDelegate::CreateStatic(SetActorLocation),
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SetObjectLocation),
 		"Set object location [x, y, z]"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vget /object/[str]/rotation",
-		FDispatcherDelegate::CreateStatic(GetActorRotation),
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::GetObjectRotation),
 		"Get object rotation [pitch, yaw, roll]"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vset /object/[str]/rotation [float] [float] [float]",
-		FDispatcherDelegate::CreateStatic(SetActorRotation),
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SetObjectRotation),
 		"Set object rotation [pitch, yaw, roll]"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vget /object/[str]/vertex_location",
-		FDispatcherDelegate::CreateStatic(GetActorVertexLocation),
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::GetObjectVertexLocation),
 		"Get vertex location"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vget /object/[str]/color",
-		FDispatcherDelegate::CreateStatic(GetActorAnnotationColor),
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::GetObjectAnnotationColor),
 		"Get the labeling color of an object (used in object instance mask)"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vset /object/[str]/color [uint] [uint] [uint]",
-		FDispatcherDelegate::CreateStatic(SetActorAnnotationColor),
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SetObjectAnnotationColor),
 		"Set the labeling color of an object [r, g, b]"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vget /object/[str]/mobility",
-		FDispatcherDelegate::CreateStatic(GetActorMobility),
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::GetObjectMobility),
 		"Is the object static or movable?"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vset /object/[str]/show",
-		FDispatcherDelegate::CreateStatic(SetShowActor),
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SetShowObject),
 		"Show object"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vset /object/[str]/hide",
-		FDispatcherDelegate::CreateStatic(SetHideActor),
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SetHideObject),
 		"Hide object"
 	);
 }
@@ -99,7 +82,7 @@ AActor* GetActor(const TArray<FString>& Args)
 	return Actor;
 }
 
-FExecStatus GetActorList(const TArray<FString>& Args)
+FExecStatus FObjectHandler::GetObjectList(const TArray<FString>& Args)
 {
 	TArray<AActor*> ActorList;
 	UVisionBPLib::GetActorList(ActorList);
@@ -112,7 +95,7 @@ FExecStatus GetActorList(const TArray<FString>& Args)
 	return FExecStatus::OK(StrActorList);
 }
 
-FExecStatus GetActorLocation(const TArray<FString>& Args)
+FExecStatus FObjectHandler::GetObjectLocation(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
 	if (!Actor) return FExecStatus::Error("Can not find object");
@@ -127,7 +110,7 @@ FExecStatus GetActorLocation(const TArray<FString>& Args)
 }
 
 /** There is no guarantee this will always succeed, for example, hitting a wall */
-FExecStatus SetActorLocation(const TArray<FString>& Args)
+FExecStatus FObjectHandler::SetObjectLocation(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
 	if (!Actor) return FExecStatus::Error("Can not find object");
@@ -141,7 +124,7 @@ FExecStatus SetActorLocation(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
-FExecStatus GetActorRotation(const TArray<FString>& Args)
+FExecStatus FObjectHandler::GetObjectRotation(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
 	if (!Actor) return FExecStatus::Error("Can not find object");
@@ -155,7 +138,7 @@ FExecStatus GetActorRotation(const TArray<FString>& Args)
 	return FExecStatus::OK(Ar.ToString());
 }
 
-FExecStatus SetActorRotation(const TArray<FString>& Args)
+FExecStatus FObjectHandler::SetObjectRotation(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
 	if (!Actor) return FExecStatus::Error("Can not find object");
@@ -169,26 +152,8 @@ FExecStatus SetActorRotation(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
-FExecStatus GetActorVertexLocation(const TArray<FString>& Args)
-{
-	AActor* Actor = GetActor(Args);
-	FVertexSensor VertexSensor(Actor);
-	TArray<FVector> VertexArray = VertexSensor.GetVertexArray();
 
-	// Serialize it to json?
-	FString Str = "";
-	for (auto Vertex : VertexArray)
-	{
-		FString VertexLocation = FString::Printf(
-			TEXT("%.5f     %.5f     %.5f"),
-			Vertex.X, Vertex.Y, Vertex.Z);
-		Str += VertexLocation + "\n";
-	}
-
-	return FExecStatus::OK(Str);
-}
-
-FExecStatus GetActorAnnotationColor(const TArray<FString>& Args)
+FExecStatus FObjectHandler::GetObjectAnnotationColor(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
 	if (!Actor) return FExecStatus::Error("Can not find object");
@@ -199,7 +164,7 @@ FExecStatus GetActorAnnotationColor(const TArray<FString>& Args)
 	return FExecStatus::OK(AnnotationColor.ToString());
 }
 
-FExecStatus SetActorAnnotationColor(const TArray<FString>& Args)
+FExecStatus FObjectHandler::SetObjectAnnotationColor(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
 	if (!Actor) return FExecStatus::Error("Can not find object");
@@ -214,7 +179,7 @@ FExecStatus SetActorAnnotationColor(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
-FExecStatus GetActorMobility(const TArray<FString>& Args)
+FExecStatus FObjectHandler::GetObjectMobility(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
 	if (!Actor) return FExecStatus::Error("Can not find object");
@@ -232,7 +197,7 @@ FExecStatus GetActorMobility(const TArray<FString>& Args)
 	return FExecStatus::OK(MobilityName);
 }
 
-FExecStatus SetShowActor(const TArray<FString>& Args)
+FExecStatus FObjectHandler::SetShowObject(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
 	if (!Actor) return FExecStatus::Error("Can not find object");
@@ -242,7 +207,7 @@ FExecStatus SetShowActor(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
-FExecStatus SetHideActor(const TArray<FString>& Args)
+FExecStatus FObjectHandler::SetHideObject(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
 	if (!Actor) return FExecStatus::Error("Can not find object");
@@ -250,4 +215,23 @@ FExecStatus SetHideActor(const TArray<FString>& Args)
 	FActorController Controller(Actor);
 	Controller.Hide();
 	return FExecStatus::OK();
+}
+
+FExecStatus FObjectHandler::GetObjectVertexLocation(const TArray<FString>& Args)
+{
+	AActor* Actor = GetActor(Args);
+	FVertexSensor VertexSensor(Actor);
+	TArray<FVector> VertexArray = VertexSensor.GetVertexArray();
+
+	// Serialize it to json?
+	FString Str = "";
+	for (auto Vertex : VertexArray)
+	{
+		FString VertexLocation = FString::Printf(
+			TEXT("%.5f     %.5f     %.5f"),
+			Vertex.X, Vertex.Y, Vertex.Z);
+		Str += VertexLocation + "\n";
+	}
+
+	return FExecStatus::OK(Str);
 }

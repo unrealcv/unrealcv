@@ -10,8 +10,8 @@
 
 #include "SkeletalMeshRenderData.h"
 #include "UnrealcvLog.h"
-// For UE4 < 19
-// check https://github.com/unrealcv/unrealcv/blob/1369a72be8428547318d8a52ae2d63e1eb57a001/Source/UnrealCV/Private/Component/AnnotationComponent.cpp#L11
+// Note: For UE4 < 19
+// Note: check https://github.com/unrealcv/unrealcv/blob/1369a72be8428547318d8a52ae2d63e1eb57a001/Source/UnrealCV/Private/Component/AnnotationComponent.cpp#L11
 
 /** Store mesh data of a parent mesh component */
 class FParentMeshInfo
@@ -96,9 +96,12 @@ private:
 	EParentMeshType ParentMeshType;
 };
 
-// Inheritance is needed because I need to access protected data
-// Note: in the show Material command, some area might be not colored, this is caused by the issue that
-// both the original mesh and the annotation mesh are rendered, this is not an issue for the AnnotationSensor, which will exclude original meshes.
+/** A proxy class to get mesh data from StaticMesh, should be used together with AnnotationCamSensor.
+Inheritance is needed because I need to access protected data
+Use `show Material` command to see the effect of this component
+Note that some area might be not colored, this is caused by the issue that
+both the original mesh and the annotation mesh are rendered, this is not an issue for the AnnotationCamSensor, which will exclude original meshes.
+*/
 class FStaticAnnotationSceneProxy : public FStaticMeshSceneProxy
 {
 public:
@@ -107,41 +110,16 @@ public:
 	FStaticAnnotationSceneProxy(UStaticMeshComponent* Component, bool bForceLODsShareStaticLighting, UMaterialInterface* AnnotationMID) :
 		FStaticMeshSceneProxy(Component, bForceLODsShareStaticLighting)
 	{
-		// MaterialRenderProxy = new FColoredMaterialRenderProxy(GEngine->DebugMeshMaterial->GetRenderProxy(false), FLinearColor::Red);
 		MaterialRenderProxy = AnnotationMID->GetRenderProxy(false, false);
-		// FIXME: release this later.
-
 		this->MaterialRelevance = AnnotationMID->GetRelevance(GetScene().GetFeatureLevel());
 		// Note: This MaterailRelevance makes no difference?
 
 		this->bVerifyUsedMaterials = false;
-		// From StaticMeshRenderer
+		// This is required, otherwise the code will fail
 
-		/* Not needed anymore
-		int32 NumLODs = RenderData->LODResources.Num();
-		// for(int32 LODIndex = ClampedMinLOD; LODIndex < NumLODs; LODIndex++)
-		for(int32 LODIndex = 0; LODIndex < NumLODs; LODIndex++)
-		{
-			const FStaticMeshLODResources& LODModel = RenderData->LODResources[LODIndex];
-			FLODInfo& ProxyLODInfo = LODs[LODIndex];
-			for (int32 SectionIndex = 0; SectionIndex < LODModel.Sections.Num(); SectionIndex++)
-			{
-				ProxyLODInfo.Sections[SectionIndex].Material = AnnotationMID;
-				// const FMaterial* Material = ProxyLODInfo.Sections[SectionIndex].Material->GetRenderProxy(false)->GetMaterial(FeatureLevel);
-				// ProxyLODInfo.Sections[SectionIndex].Material = GEngine->VertexColorViewModeMaterial_ColorOnly;
-				// ProxyLODInfo.Sections[SectionIndex].Material = UMaterial::GetDefaultMaterial(MD_Surface);
-				// Note: why sometimes this AnnotationMID looks like fallback default material?
-			}
-		}
-		*/
 		bCastShadow = false;
 	}
 
-	//virtual void GetDynamicMeshElements(
-	//	const TArray < const FSceneView * > & Views,
-	//	const FSceneViewFamily & ViewFamily,
-	//	uint32 VisibilityMap,
-	//	FMeshElementCollector & Collector) override;
 	virtual void GetDynamicMeshElements(
 		const TArray < const FSceneView * > & Views,
 		const FSceneViewFamily & ViewFamily,
@@ -168,7 +146,9 @@ FPrimitiveViewRelevance FStaticAnnotationSceneProxy::GetViewRelevance(const FSce
 	if (View->Family->EngineShowFlags.Materials)
 	{
 		FPrimitiveViewRelevance ViewRelevance;
-		ViewRelevance.bDrawRelevance = 0; // This will make it get ignored
+		ViewRelevance.bDrawRelevance = 0; 
+		// This will make the AnnotationComponent gets ignored if the Materials flag is on
+		// Which means it won't affect regulary rendering.
 		return ViewRelevance;
 	}
 	else
@@ -185,11 +165,6 @@ void FStaticAnnotationSceneProxy::GetDynamicMeshElements(
 	FMeshElementCollector & Collector) const
 {
 	FStaticMeshSceneProxy::GetDynamicMeshElements(Views, ViewFamily, VisibilityMap, Collector);
-	//if (!ViewFamily.EngineShowFlags.Materials) // Only render this if material is disabled
-	//// Check the EngineFlags to see whether to show annotation
-	//{
-	//	FStaticMeshSceneProxy::GetDynamicMeshElements(Views, ViewFamily, VisibilityMap, Collector);
-	//}
 }
 
 bool FStaticAnnotationSceneProxy::GetMeshElement(
@@ -258,7 +233,6 @@ UAnnotationComponent::UAnnotationComponent(const FObjectInitializer& ObjectIniti
 	// FString MeterialPath = TEXT("MaterialInstanceConstant'/UnrealCV/AnnotationColor_Inst.AnnotationColor_Inst'");
 	// static ConstructorHelpers::FObjectFinder<UMaterialInstanceDynamic> AnnotationMaterialObject(*MaterialPath);
 	static ConstructorHelpers::FObjectFinder<UMaterial> AnnotationMaterialObject(*MaterialPath);
-	// UMaterialInstanceDynamic* AnnotationMaterial = AnnotationMaterialObject.Object;
 	AnnotationMaterial = AnnotationMaterialObject.Object;
 	ParentMeshInfo = MakeShareable(new FParentMeshInfo(nullptr)); // This will be invalid until attached to a MeshComponent
 
@@ -294,8 +268,6 @@ void UAnnotationComponent::SetAnnotationColor(FColor NewAnnotationColor)
 
 	if (IsValid(AnnotationMID))
 	{
-		// FLinearColor LinearAnnotationColor = FLinearColor::MakeRandomColor();
-		// FLinearColor LinearAnnotationColor = FLinearColor::White;
 		AnnotationMID->SetVectorParameterValue("AnnotationColor", LinearAnnotationColor);
 		// Note: The "exposure compensation" in "PostProcessVolume3" in the RR map will destroy the color
 		// Note: Saturate the color to 1. This is a mysterious behavior after tedious debug.
@@ -325,7 +297,6 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy()
 	}
 
 	UMaterialInterface* ProxyMaterial = AnnotationMID; // Material Instance Dynamic
-	// UMaterialInterface* ProxyMaterial = AnnotationMaterial;
 
 	UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(ParentComponent);
 	USkeletalMeshComponent* SkeletalMeshComponent = Cast<USkeletalMeshComponent>(ParentComponent);

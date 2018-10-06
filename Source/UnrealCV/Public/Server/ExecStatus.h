@@ -35,9 +35,6 @@ enum FExecStatusType
 {
 	OK,
 	Error,
-	// Support async task
-	Pending,
-	AsyncQuery,
 };
 
 /**
@@ -57,18 +54,8 @@ public:
 	static FExecStatus NotImplemented;
 	/** Error : Invalid Pointer */
 	static FExecStatus InvalidPointer;
-	/** Pending : Message */
-	static FExecStatus Pending(FString Message=""); // Useful for async task
 	/** Binary : A binary array */
 	static FExecStatus Binary(TArray<uint8>& InBinaryData);
-
-	/**
-	 * For an async task, return a special pending FExecStatus
-	 * Use the CheckStatus of FPromise to check whether the task is completed
-	 * If the CheckStatus function returns no longer pending, means the async task finished
-	 * see UnrealcvCommandsCamera.cpp : GetCameraViewAsyncQuery for an example
-	 */
-	static FExecStatus AsyncQuery(FPromise Promise);
 
 	/** The message body of this ExecStatus, the full message will also include the ExecStatusType */
 	FString MessageBody;

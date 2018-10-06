@@ -8,7 +8,7 @@
 #include "Commands/PluginHandler.h"
 #include "Commands/ActionHandler.h"
 #include "Commands/AliasHandler.h"
-#include "Commands/SensorHandler.h"
+#include "Commands/CameraHandler.h"
 #include "Controller/UnrealcvWorldController.h"
 #include "UnrealcvLog.h"
 
@@ -58,26 +58,14 @@ FUnrealcvServer& FUnrealcvServer::Get()
 	return Singleton;
 }
 
-/**
- For UnrealCV server, when a game start:
- 1. Start a TCPserver.
- 2. Create a command dispatcher
- 3. Add command handler to command dispatcher, CameraHandler should be able to access camera
- 4. Bind command dispatcher to TCPserver
- 5. Bind command dispatcher to UE4 console
-
- When a new pawn is created.
- 1. Update this pawn with GTCaptureComponent
- */
-
 void FUnrealcvServer::RegisterCommandHandlers()
 {
 	// Taken from ctor, because might cause loop-invoke.
-	CommandHandlers.Add(new FObjectCommandHandler());
-	CommandHandlers.Add(new FPluginCommandHandler());
-	CommandHandlers.Add(new FActionCommandHandler());
-	CommandHandlers.Add(new FAliasCommandHandler());
-	CommandHandlers.Add(new FSensorHandler());
+	CommandHandlers.Add(new FObjectHandler());
+	CommandHandlers.Add(new FPluginHandler());
+	CommandHandlers.Add(new FActionHandler());
+	CommandHandlers.Add(new FAliasHandler());
+	CommandHandlers.Add(new FCameraHandler());
 	for (FCommandHandler* Handler : CommandHandlers)
 	{
 		Handler->CommandDispatcher = CommandDispatcher;
@@ -213,19 +201,15 @@ void FUnrealcvServer::ProcessPendingRequest()
 		check(DequeueStatus);
 		int32 RequestId = Request.RequestId;
 
-		FCallbackDelegate CallbackDelegate;
-		CallbackDelegate.BindLambda([this, RequestId](FExecStatus ExecStatus)
-		{
-			UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
+		FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message);
+		UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
 
-			FString Header = FString::Printf(TEXT("%d:"), RequestId);
-			TArray<uint8> ReplyData;
-			FExecStatus::BinaryArrayFromString(Header, ReplyData);
+		FString Header = FString::Printf(TEXT("%d:"), RequestId);
+		TArray<uint8> ReplyData;
+		FExecStatus::BinaryArrayFromString(Header, ReplyData);
 
-			ReplyData += ExecStatus.GetData();
-			TcpServer->SendData(ReplyData);
-		});
-		CommandDispatcher->ExecAsync(Request.Message, CallbackDelegate);
+		ReplyData += ExecStatus.GetData();
+		TcpServer->SendData(ReplyData);
 	}
 }
 

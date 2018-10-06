@@ -9,14 +9,8 @@
 // Sensors included in FusionSensor
 #include "LitCamSensor.h"
 #include "DepthCamSensor.h"
-#include "VertexColorCamSensor.h"
 #include "NormalCamSensor.h"
-#include "StencilCamSensor.h"
 #include "AnnotationCamSensor.h"
-#include "PlaneDepthCamSensor.h"
-#include "VisDepthCamSensor.h"
-#include "NontransDepthCamSensor.h"
-#include "LitSlowCamSensor.h"
 
 UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -39,20 +33,8 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	FusionSensors.Add(AnnotationCamSensor);
 
 	ComponentName = FString::Printf(TEXT("%s_%s"), *this->GetName(), TEXT("LitCamSensor"));
-	LitSlowCamSensor = CreateDefaultSubobject<ULitSlowCamSensor>(*ComponentName);
-	FusionSensors.Add(LitSlowCamSensor);
-
-	// LitCamSensor = CreateDefaultSubobject<ULitCamSensor>("LitCamSensor");
-	// FusionSensors.Add(LitCamSensor);
-	// VisDepthCamSensor = CreateDefaultSubobject<UVisDepthCamSensor>("VisDepthCamSensor");
-	// FusionSensors.Add(VisDepthCamSensor);
-	// PlaneDepthCamSensor = CreateDefaultSubobject<UPlaneDepthCamSensor>("PlaneDepthCamSensor");
-	// FusionSensors.Add(PlaneDepthCamSensor);
-	// NontransDepthCamSensor = CreateDefaultSubobject<UNontransDepthCamSensor>("NontransDepthCamSensor");
-	// FusionSensors.Add(NontransDepthCamSensor);
-	// StencilCamSensor = CreateDefaultSubobject<UStencilCamSensor>("StencilCamSensor");
-	// FusionSensors.Add(StencilCamSensor);
-
+	LitCamSensor = CreateDefaultSubobject<ULitCamSensor>(*ComponentName);
+	FusionSensors.Add(LitCamSensor);
 
 	FServerConfig& Config = FUnrealcvServer::Get().Config;
 	FilmWidth = Config.Width == 0 ? 640 : Config.Width;
@@ -110,44 +92,20 @@ bool UFusionCamSensor::GetEditorPreviewInfo(float DeltaTime, FMinimalViewInfo& V
 	// From CameraComponent
 	if (bIsActive)
 	{
-		this->LitSlowCamSensor->GetCameraView(DeltaTime, ViewOut);
+		this->LitCamSensor->GetCameraView(DeltaTime, ViewOut);
 	}
 	return bIsActive;
 }
 
 void UFusionCamSensor::GetLit(TArray<FColor>& LitData, int& Width, int& Height, ELitMode LitMode)
 {
-	switch (LitMode)
-	{
-		case ELitMode::Lit:
-			// TODO: Fix this
-			this->LitSlowCamSensor->Capture(LitData, Width, Height);
-			break;
-		case ELitMode::Slow:
-			this->LitSlowCamSensor->Capture(LitData, Width, Height);
-			break;
-	}
+	this->LitCamSensor->Capture(LitData, Width, Height);
 }
-
-// void UFusionCamSensor::GetLitSlow(TArray<FColor>& LitData, int& Width, int& Height)
-// {
-// 	this->LitSlowCamSensor->Capture(LitData, Width, Height);
-// }
 
 void UFusionCamSensor::GetDepth(TArray<float>& DepthData, int& Width, int& Height, EDepthMode DepthMode)
 {
 	this->DepthCamSensor->CaptureDepth(DepthData, Width, Height);
 }
-
-// void UFusionCamSensor::GetPlaneDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height)
-// {
-// 	this->PlaneDepthCamSensor->CaptureDepth(DepthData, Width, Height);
-// }
-
-// void UFusionCamSensor::GetVisDepth(TArray<FFloat16Color>& DepthData, int& Width, int& Height)
-// {
-// 	this->VisDepthCamSensor->CaptureDepth(DepthData, Width, Height);
-// }
 
 void UFusionCamSensor::GetNormal(TArray<FColor>& NormalData, int& Width, int& Height)
 {
@@ -158,16 +116,6 @@ void UFusionCamSensor::GetSeg(TArray<FColor>& ObjMaskData, int& Width, int& Heig
 {
 	this->AnnotationCamSensor->Capture(ObjMaskData, Width, Height);
 }
-
-// void UFusionCamSensor::GetVertexColor(TArray<FColor>& VertexColorData, int& Width, int& Height)
-// {
-// 	this->VertexColorCamSensor->Capture(VertexColorData, Width, Height);
-// }
-
-// void UFusionCamSensor::GetStencil(TArray<FColor>& StencilData, int& Width, int& Height)
-// {
-// 	this->StencilCamSensor->Capture(StencilData, Width, Height);
-// }
 
 FVector UFusionCamSensor::GetSensorLocation()
 {

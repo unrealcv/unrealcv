@@ -7,40 +7,13 @@
 #include "SerializeBPLib.h"
 #include "UnrealcvLog.h"
 
-FExecStatus GetPersistentLevelId(const TArray<FString>& Args)
-{
-	UWorld* GameWorld = FUnrealcvServer::Get().GetGameWorld();
-	
-	if (IsValid(GameWorld) && IsValid(GameWorld->PersistentLevel))
-	{
-		return FExecStatus::OK(GameWorld->PersistentLevel->GetName());
-	}
-	else
-	{
-		return FExecStatus::Error("The UWorld is invalid");
-	}
-}
 
-FExecStatus GetLevelScriptActorId(const TArray<FString>& Args)
-{
-	UWorld* GameWorld = FUnrealcvServer::Get().GetGameWorld();
-
-	if (IsValid(GameWorld) && IsValid(GameWorld->PersistentLevel))
-	{
-		return FExecStatus::OK(GameWorld->PersistentLevel->LevelScriptActor->GetName());
-	}
-	else
-	{
-		return FExecStatus::Error("The UWorld is invalid");
-	}
-}
-
-void FAliasCommandHandler::RegisterCommands()
+void FAliasHandler::RegisterCommands()
 {
 	FDispatcherDelegate Cmd;
 	FString Help;
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasCommandHandler::VRun);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasHandler::VRun);
 	Help = "Run UE4 built-in commands";
 	CommandDispatcher->BindCommand("vrun [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vrun [str] [str]", Cmd, Help);
@@ -48,9 +21,10 @@ void FAliasCommandHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vrun [str] [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vrun [str] [str] [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vrun [str] [str] [str] [str] [str] [str]", Cmd, Help);
+
 	// vexec ActorId FuncName Params
 	Help = "Run UE4 blueprint function";
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasCommandHandler::VExec);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasHandler::VExec);
 	CommandDispatcher->BindCommand("vexec [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vexec [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str]", Cmd, Help);
@@ -58,7 +32,7 @@ void FAliasCommandHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasCommandHandler::VExecWithOutput);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasHandler::VExecWithOutput);
 	CommandDispatcher->BindCommand("vbp [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vbp [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str]", Cmd, Help);
@@ -67,17 +41,17 @@ void FAliasCommandHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
 
 	CommandDispatcher->BindCommand("vget /persistent_level/id",
-		FDispatcherDelegate::CreateStatic(GetPersistentLevelId),
+		FDispatcherDelegate::CreateRaw(this, &FAliasHandler::GetPersistentLevelId),
 		"Get persistent level id, so that we can call BP function defined in it"
 		);
 
 	CommandDispatcher->BindCommand("vget /persistent_level/level_script_actor/id",
-		FDispatcherDelegate::CreateStatic(GetLevelScriptActorId),
+		FDispatcherDelegate::CreateRaw(this, &FAliasHandler::GetLevelScriptActorId),
 		"Get persistent level id, so that we can call BP function defined in it"
 	);
 }
 
-FExecStatus FAliasCommandHandler::VRun(const TArray<FString>& Args)
+FExecStatus FAliasHandler::VRun(const TArray<FString>& Args)
 {
 	FString Cmd = "";
 
@@ -95,7 +69,7 @@ FExecStatus FAliasCommandHandler::VRun(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
-FExecStatus FAliasCommandHandler::VExecWithOutput(const TArray<FString>& Args)
+FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 {
 	FString ActorId, FuncName;
 	if (Args.Num() < 1) return FExecStatus::Error("The ActorId can not be empty.");
@@ -341,7 +315,7 @@ FExecStatus FAliasCommandHandler::VExecWithOutput(const TArray<FString>& Args)
 
 }
 
-FExecStatus FAliasCommandHandler::VExec(const TArray<FString>& Args)
+FExecStatus FAliasHandler::VExec(const TArray<FString>& Args)
 {
 	// Args[0] : ActorId
 	// Args[1] : BlueprintFunctionName
@@ -425,5 +399,33 @@ FExecStatus FAliasCommandHandler::VExec(const TArray<FString>& Args)
 	else
 	{
 		return FExecStatus::Error(FString::Printf(TEXT("Fail to execute the function '%s' of %s"), *Cmd, *ActorId));
+	}
+}
+
+FExecStatus FAliasHandler::GetPersistentLevelId(const TArray<FString>& Args)
+{
+	UWorld* GameWorld = FUnrealcvServer::Get().GetGameWorld();
+	
+	if (IsValid(GameWorld) && IsValid(GameWorld->PersistentLevel))
+	{
+		return FExecStatus::OK(GameWorld->PersistentLevel->GetName());
+	}
+	else
+	{
+		return FExecStatus::Error("The UWorld is invalid");
+	}
+}
+
+FExecStatus FAliasHandler::GetLevelScriptActorId(const TArray<FString>& Args)
+{
+	UWorld* GameWorld = FUnrealcvServer::Get().GetGameWorld();
+
+	if (IsValid(GameWorld) && IsValid(GameWorld->PersistentLevel))
+	{
+		return FExecStatus::OK(GameWorld->PersistentLevel->LevelScriptActor->GetName());
+	}
+	else
+	{
+		return FExecStatus::Error("The UWorld is invalid");
 	}
 }

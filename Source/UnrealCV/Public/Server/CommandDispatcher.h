@@ -19,9 +19,8 @@ public:
 	bool BindCommand(const FString& UriTemplate, const FDispatcherDelegate& Command, const FString& Description); // Parse URI
 	bool Alias(const FString& Alias, const FString& Command, const FString& Description);
 	bool Alias(const FString& Alias, const TArray<FString>& Commands, const FString& Description);
-	// bool BindCommand(const FString Uri, const FConsoleCommandDelegate& Command); // Parse URI
+
 	FExecStatus Exec(const FString Uri);
-	void ExecAsync(const FString Uri, const FCallbackDelegate Callback);
 
 	/** Command handler for vrun */
 	FExecStatus AliasHelper(const TArray<FString>& Args);

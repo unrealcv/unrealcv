@@ -4,22 +4,26 @@
 #include "CommandHandler.h"
 
 /** 
- * Handle vget/vset /object/... commands 
+ * Handle vget/vset /object/ commands.
  * The definition of object is any actor contains a MeshComponent in the runtime
  * This includes StaticMesh, SkeletalMesh, ProceduralMesh (tree), Landscape, Foliage
  * Object is different than actor, only actor contains mesh can be called as object
 */
-class FObjectCommandHandler : public FCommandHandler
+class FObjectHandler : public FCommandHandler
 {
 public:
 	void RegisterCommands();
 
+private:
 	/** Get a list of all objects in the scene */
-	FExecStatus GetObjects(const TArray<FString>& Args);
+	FExecStatus GetObjectList(const TArray<FString>& Args);
+
 	/** Get the annotation color of an object (Notice: not the appearance color) */
-	FExecStatus GetObjectColor(const TArray<FString>& Args);
+	FExecStatus GetObjectAnnotationColor(const TArray<FString>& Args);
+
 	/** Set the annotation color of an object */
-	FExecStatus SetObjectColor(const TArray<FString>& Args);
+	FExecStatus SetObjectAnnotationColor(const TArray<FString>& Args);
+
 	/** Get the name of an object */
 	FExecStatus GetObjectName(const TArray<FString>& Args);
 
@@ -38,8 +42,12 @@ public:
 	FExecStatus SetObjectRotation(const TArray<FString>& Args);
 
 	/** Show object */
-	FExecStatus ShowObject(const TArray<FString>& Args);
+	FExecStatus SetShowObject(const TArray<FString>& Args);
 
 	/** Hide object */
-	FExecStatus HideObject(const TArray<FString>& Args);
+	FExecStatus SetHideObject(const TArray<FString>& Args);
+
+	FExecStatus GetObjectMobility(const TArray<FString>& Args);
+
+	FExecStatus GetObjectVertexLocation(const TArray<FString>& Args);
 };

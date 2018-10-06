@@ -6,48 +6,48 @@
 #include "Controller/UnrealcvWorldController.h"
 #include "VisionBPLib.h"
 
-void FActionCommandHandler::RegisterCommands()
+void FActionHandler::RegisterCommands()
 {
 	FDispatcherDelegate Cmd;
 	FString Help;
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::PauseGame);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionHandler::PauseGame);
 	Help = "Pause the game";
 	CommandDispatcher->BindCommand("vset /action/game/pause", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::ResumeGame);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionHandler::ResumeGame);
 	Help = "Resume the game";
 	CommandDispatcher->BindCommand("vset /action/game/resume", Cmd, Help);
 
 	CommandDispatcher->BindCommand(
 		"vget /action/game/is_paused",
-		FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::GetIsPaused),
+		FDispatcherDelegate::CreateRaw(this, &FActionHandler::GetIsPaused),
 		"Get the pause status"
 	);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::OpenLevel);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionHandler::OpenLevel);
 	Help = "Open level";
 	CommandDispatcher->BindCommand("vset /action/game/level [str]", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::EnableInput);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionHandler::EnableInput);
 	Help = "Enable input";
 	CommandDispatcher->BindCommand("vset /action/input/enable", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::DisableInput);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionHandler::DisableInput);
 	Help = "Disable input";
 	CommandDispatcher->BindCommand("vset /action/input/disable", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::SetStereoDistance);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionHandler::SetStereoDistance);
 	Help = "Set the distance of binocular stereo camera";
 	CommandDispatcher->BindCommand("vset /action/eyes_distance [float]", Cmd, Help);
 
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::Keyboard);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionHandler::Keyboard);
 	Help = "Send a keyboard action to the game";
 	CommandDispatcher->BindCommand("vset /action/keyboard [str] [float]", Cmd, Help);
 }
 
-FExecStatus FActionCommandHandler::PauseGame(const TArray<FString>& Args)
+FExecStatus FActionHandler::PauseGame(const TArray<FString>& Args)
 {
 	APlayerController* PlayerController = this->GetWorld()->GetFirstPlayerController();
 	// PlayerController->Pause();
@@ -55,7 +55,7 @@ FExecStatus FActionCommandHandler::PauseGame(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
-FExecStatus FActionCommandHandler::ResumeGame(const TArray<FString>& Args)
+FExecStatus FActionHandler::ResumeGame(const TArray<FString>& Args)
 {
 	APlayerController* PlayerController = this->GetWorld()->GetFirstPlayerController();
 	// PlayerController->Pause();
@@ -63,7 +63,7 @@ FExecStatus FActionCommandHandler::ResumeGame(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
-FExecStatus FActionCommandHandler::GetIsPaused(const TArray<FString>& Args)
+FExecStatus FActionHandler::GetIsPaused(const TArray<FString>& Args)
 {
 	APlayerController* PlayerController = this->GetWorld()->GetFirstPlayerController();
 	// PlayerController->Pause();
@@ -73,7 +73,7 @@ FExecStatus FActionCommandHandler::GetIsPaused(const TArray<FString>& Args)
 }
 
 
-FExecStatus FActionCommandHandler::OpenLevel(const TArray<FString>& Args)
+FExecStatus FActionHandler::OpenLevel(const TArray<FString>& Args)
 {
 	if (Args.Num() == 1) // Level name
 	{
@@ -87,7 +87,7 @@ FExecStatus FActionCommandHandler::OpenLevel(const TArray<FString>& Args)
 	}
 }
 
-FExecStatus FActionCommandHandler::EnableInput(const TArray<FString>& Args)
+FExecStatus FActionHandler::EnableInput(const TArray<FString>& Args)
 {
 	APawn* Pawn = FUnrealcvServer::Get().GetPawn();
 	if (IsValid(Pawn))
@@ -101,7 +101,7 @@ FExecStatus FActionCommandHandler::EnableInput(const TArray<FString>& Args)
 	}
 }
 
-FExecStatus FActionCommandHandler::DisableInput(const TArray<FString>& Args)
+FExecStatus FActionHandler::DisableInput(const TArray<FString>& Args)
 {
 	APawn* Pawn = FUnrealcvServer::Get().GetPawn();
 	if (IsValid(Pawn))
@@ -116,7 +116,7 @@ FExecStatus FActionCommandHandler::DisableInput(const TArray<FString>& Args)
 }
 
 /** TODO: Update this with new API */
-FExecStatus FActionCommandHandler::SetStereoDistance(const TArray<FString>& Args)
+FExecStatus FActionHandler::SetStereoDistance(const TArray<FString>& Args)
 {
 	/*
 	if (Args.Num() == 1) // Distance
@@ -135,7 +135,7 @@ FExecStatus FActionCommandHandler::SetStereoDistance(const TArray<FString>& Args
 }
 
 /** Return a TFunction to Release the Keyboard */
-TFunction<void(void)> FActionCommandHandler::GetReleaseKey(FKey Key)
+TFunction<void(void)> FActionHandler::GetReleaseKey(FKey Key)
 {
 	UWorld* World = this->GetWorld();
 	return [=]() {
@@ -143,7 +143,7 @@ TFunction<void(void)> FActionCommandHandler::GetReleaseKey(FKey Key)
 	};
 }
 
-FExecStatus FActionCommandHandler::Keyboard(const TArray<FString>& Args)
+FExecStatus FActionHandler::Keyboard(const TArray<FString>& Args)
 {
 	if (Args.Num() != 2)
 	{

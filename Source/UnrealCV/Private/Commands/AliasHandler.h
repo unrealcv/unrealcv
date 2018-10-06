@@ -1,7 +1,7 @@
 #pragma once
 #include "CommandHandler.h"
 
-class FAliasCommandHandler : public FCommandHandler
+class FAliasHandler : public FCommandHandler
 {
 public:
 	void RegisterCommands();
@@ -15,4 +15,8 @@ public:
 	FExecStatus VExec(const TArray<FString>& Args);
 
 	FExecStatus VExecWithOutput(const TArray<FString>& Args);
+
+	FExecStatus GetPersistentLevelId(const TArray<FString>& Args);
+
+	FExecStatus GetLevelScriptActorId(const TArray<FString>& Args);
 };

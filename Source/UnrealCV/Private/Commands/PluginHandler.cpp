@@ -5,21 +5,21 @@
 #include "UnrealcvServer.h"
 #include "UnrealcvShim.h"
 
-FExecStatus FPluginCommandHandler::Echo(const TArray<FString>& Args)
+FExecStatus FPluginHandler::Echo(const TArray<FString>& Args)
 {
 	// Async version
 	FString Msg = Args[0];
-	FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([Msg]()
-	{
-		return FExecStatus::OK(Msg);
-	});
-	return FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
+	// FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([Msg]()
+	// {
+	// 	return FExecStatus::OK(Msg);
+	// });
+	// return FExecStatus::AsyncQuery(FPromise(PromiseDelegate));
 
 	// Sync version
-	// return FExecStatus::OK(Args[0]);
+	return FExecStatus::OK(Args[0]);
 }
 
-FExecStatus FPluginCommandHandler::GetUnrealCVStatus(const TArray<FString>& Args)
+FExecStatus FPluginHandler::GetUnrealCVStatus(const TArray<FString>& Args)
 {
 	FString Msg;
 	FUnrealcvServer& Server = FUnrealcvServer::Get(); // TODO: Can not use a copy constructor, need to disable copy constructor
@@ -47,7 +47,7 @@ FExecStatus FPluginCommandHandler::GetUnrealCVStatus(const TArray<FString>& Args
 }
 
 
-FExecStatus FPluginCommandHandler::GetCommands(const TArray<FString>& Args)
+FExecStatus FPluginHandler::GetCommands(const TArray<FString>& Args)
 {
 	FString Message;
 
@@ -64,7 +64,7 @@ FExecStatus FPluginCommandHandler::GetCommands(const TArray<FString>& Args)
 	return FExecStatus::OK(Message);
 }
 
-FExecStatus FPluginCommandHandler::GetVersion(const TArray<FString>& Args)
+FExecStatus FPluginHandler::GetVersion(const TArray<FString>& Args)
 {
 	TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin("UnrealCV");
 	if (!Plugin.IsValid())
@@ -81,13 +81,13 @@ FExecStatus FPluginCommandHandler::GetVersion(const TArray<FString>& Args)
 	}
 }
 
-FExecStatus FPluginCommandHandler::GetSceneName(const TArray<FString>& Args)
+FExecStatus FPluginHandler::GetSceneName(const TArray<FString>& Args)
 {
 	FString SceneName = GetProjectName();
 	return FExecStatus::OK(SceneName);
 }
 
-FExecStatus GetLevelName(const TArray<FString>& Args)
+FExecStatus FPluginHandler::GetLevelName(const TArray<FString>& Args)
 {
 	FUnrealcvServer& Server = FUnrealcvServer::Get();
 	FString PrefixedMapName = Server.GetGameWorld()->GetMapName();	
@@ -96,34 +96,34 @@ FExecStatus GetLevelName(const TArray<FString>& Args)
 	return FExecStatus::OK(MapName);
 }
 
-void FPluginCommandHandler::RegisterCommands()
+void FPluginHandler::RegisterCommands()
 {
 	FDispatcherDelegate Cmd;
 	FString Help;
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetUnrealCVStatus);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginHandler::GetUnrealCVStatus);
 	Help = "Get the status of UnrealCV plugin";
 	CommandDispatcher->BindCommand("vget /unrealcv/status", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetCommands);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginHandler::GetCommands);
 	Help = "List all available commands and their help message";
 	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/help"), Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::Echo);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginHandler::Echo);
 	Help = "[debug] Echo back all message, for debug";
 	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/echo [str]"), Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetVersion);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginHandler::GetVersion);
 	Help = "Get the version of UnrealCV, the format is v0.*.*";
 	CommandDispatcher->BindCommand(TEXT("vget /unrealcv/version"), Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginCommandHandler::GetSceneName);
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FPluginHandler::GetSceneName);
 	Help = "Get the name of this scene, to make sure the annotation data is for this scene.";
 	CommandDispatcher->BindCommand(TEXT("vget /scene/name"), Cmd, Help);
 
 	CommandDispatcher->BindCommand(
 		"vget /level/name",
-		FDispatcherDelegate::CreateStatic(GetLevelName),
+		FDispatcherDelegate::CreateRaw(this, &FPluginHandler::GetLevelName),
 		"Get current level name"
 	);
 }

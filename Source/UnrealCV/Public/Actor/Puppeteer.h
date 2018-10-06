@@ -7,7 +7,7 @@
 #include "Puppeteer.generated.h"
 
 /**
-A type of actor responsible for running and stopping the simulation in the scene
+A type of actor responsible for running and stopping the simulation in the scene.
 */
 UCLASS(Abstract)
 class UNREALCV_API APuppeteer : public AActor

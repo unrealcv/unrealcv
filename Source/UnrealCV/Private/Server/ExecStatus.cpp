@@ -34,29 +34,11 @@ FExecStatus& FExecStatus::operator+=(const FExecStatus& Src)
 }
 
 
-
-FPromise& FExecStatus::GetPromise()
-{
-	check(this->ExecStatusType == FExecStatusType::AsyncQuery);
-	// Check should be in a single line, make it easier to read and debug
-	// The promise is set only when the operation is async and ExecStatus is pending
-	return this->Promise;
-}
-
 FExecStatus FExecStatus::OK(FString InMessage)
 {
 	return FExecStatus(FExecStatusType::OK, InMessage);
 }
 
-FExecStatus FExecStatus::Pending(FString InMessage)
-{
-	return FExecStatus(FExecStatusType::Pending, InMessage);
-}
-
-FExecStatus FExecStatus::AsyncQuery(FPromise InPromise)
-{
-	return FExecStatus(FExecStatusType::AsyncQuery, InPromise);
-}
 
 FExecStatus FExecStatus::Error(FString ErrorMessage)
 {
@@ -75,10 +57,6 @@ FString FExecStatus::GetMessage() const // Define how to format the reply string
 			return MessageBody;
 	case FExecStatusType::Error:
 		TypeName = "error"; break;
-	case FExecStatusType::AsyncQuery:
-		TypeName = "async"; break;
-	case FExecStatusType::Pending:
-		TypeName = "pending"; break;
 	default:
 		TypeName = "unknown FExecStatus Type";
 	}
@@ -130,10 +108,6 @@ TArray<uint8> FExecStatus::GetData() const // Define how to format the reply str
 			Message = MessageBody;
 	case FExecStatusType::Error:
 		TypeName = "error"; break;
-	case FExecStatusType::AsyncQuery:
-		TypeName = "async"; break;
-	case FExecStatusType::Pending:
-		TypeName = "pending"; break;
 	default:
 		TypeName = "unknown FExecStatus Type";
 	}

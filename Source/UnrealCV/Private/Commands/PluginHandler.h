@@ -2,7 +2,7 @@
 #include "CommandDispatcher.h"
 #include "CommandHandler.h"
 
-class FPluginCommandHandler : public FCommandHandler
+class FPluginHandler : public FCommandHandler
 {
 public:
 	void RegisterCommands();
@@ -18,4 +18,6 @@ public:
 
 	/** vget /scene/name */
 	FExecStatus GetSceneName(const TArray<FString>& Args);
+
+	FExecStatus GetLevelName(const TArray<FString>& Args);
 };

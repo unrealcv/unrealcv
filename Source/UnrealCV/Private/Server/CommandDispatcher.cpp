@@ -12,87 +12,6 @@
 // The regular expression for float number is from here, http://stackoverflow.com/questions/12643009/regular-expression-for-floating-point-numbers
 // Use ICU regexp to define URI, See http://userguide.icu-project.org/strings/regexp
 
-DECLARE_CYCLE_STAT(TEXT("WaitAsync"), STAT_WaitAsync, STATGROUP_UnrealCV);
-class FAsyncWatcher : public FRunnable
-{
-public:
-	void Wait(FPromise InPromise, FCallbackDelegate InCompletedCallback) // Need to open a new thread. Can not wait on the original thread
-	{
-		check(InPromise.bIsValid);
-		this->PendingPromise.Enqueue(InPromise);
-		this->PendingCompletedCallback.Enqueue(InCompletedCallback);
-	}
-	static FAsyncWatcher& Get()
-	{
-		static FAsyncWatcher Singleton;
-		return Singleton;
-	}
-	bool IsActive() const
-	{
-		return !PendingPromise.IsEmpty();
-	}
-	~FAsyncWatcher()
-	{
-		this->Stopping = true;
-	}
-private:
-	FAsyncWatcher()
-	{
-		Thread = FRunnableThread::Create(this, TEXT("FAsyncWatcher"), 8 * 1024, TPri_Normal);
-		Stopping = false;
-	}
-
-	TQueue<FPromise, EQueueMode::Spsc> PendingPromise;
-	TQueue<FCallbackDelegate, EQueueMode::Spsc> PendingCompletedCallback;
-	bool Stopping; // Whether this thread should stop?
-
-	FRunnableThread* Thread;
-	virtual uint32 Run() override
-	{
-		/** FIXME: Find a more efficient implementation for this */
-		while (!Stopping)
-		{
-			if (!IsActive())
-			{
-				continue;
-			}
-			SCOPE_CYCLE_COUNTER(STAT_WaitAsync);
-			FPromise Promise;
-			PendingPromise.Peek(Promise);
-			FExecStatus ExecStatus = Promise.CheckStatus();
-			if (ExecStatus != FExecStatusType::Pending) // Job is finished
-			{
-				FPromise CompletedPromise;
-				FCallbackDelegate CompletedCallback;
-				PendingPromise.Dequeue(CompletedPromise); // Dequeue in the same thread
-				PendingCompletedCallback.Dequeue(CompletedCallback);
-
-				// This needs to be sent back to game thread
-				AsyncTask(ENamedThreads::GameThread, [CompletedCallback, ExecStatus]() {
-					CompletedCallback.ExecuteIfBound(ExecStatus);
-					// CompletedCallback.Unbind();
-				});
-				// Stop the timer
-			}
-			if (Promise.GetRunningTime() > 5) // Kill pending task that takes too long
-			{
-				UE_LOG(LogUnrealCV, Warning, TEXT("An async task failed to finish and timeout after 5 seconds"));
-				// This is a failed task
-				FPromise FailedPromise;
-				FCallbackDelegate CompletedCallback;
-				PendingPromise.Dequeue(FailedPromise); // Dequeue in the same thread
-				PendingCompletedCallback.Dequeue(CompletedCallback);
-
-				// This needs to be sent back to game thread
-				AsyncTask(ENamedThreads::GameThread, [CompletedCallback]() {
-					CompletedCallback.ExecuteIfBound(FExecStatus::Error("Task took too long, timeout"));
-					// CompletedCallback.Unbind();
-				});
-			}
-		}
-		return 0; // This thread will exit
-	}
-};
 
 
 FCommandDispatcher::FCommandDispatcher()
@@ -251,24 +170,6 @@ const TMap<FString, FString>& FCommandDispatcher::GetUriDescription()
 	return this->UriDescription;
 }
 
-void FCommandDispatcher::ExecAsync(const FString Uri, const FCallbackDelegate Callback)
-// FIXME: This is a stupid implementation to use a new thread to check whether the task is completed.
-// ExecAsync can not guarantee the execuation order, this needs to be enforced in the client.
-// Which means later tasks can finish earlier
-{
-	// If there are unfinished tasks, new async task will be pushed into a queue.
-	// so even FAsyncWatcher::Get().IsActive(), you can still keep executing more async tasks
-	FExecStatus ExecStatus = Exec(Uri);
-	if (ExecStatus == FExecStatusType::AsyncQuery) // This is an async task
-	{
-		FAsyncWatcher::Get().Wait(ExecStatus.GetPromise(), Callback);
-	}
-	else
-	{
-		Callback.ExecuteIfBound(ExecStatus);
-		// If this is a sync task, return the result immediately
-	}
-}
 
 
 FExecStatus FCommandDispatcher::Exec(const FString Uri)

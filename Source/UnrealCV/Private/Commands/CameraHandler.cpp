@@ -1,6 +1,6 @@
 // Weichao Qiu @ 2017
 // This is unrealcv command API for FusionSensor
-#include "SensorHandler.h"
+#include "CameraHandler.h"
 #include "Runtime/Engine/Classes/GameFramework/Pawn.h"
 #include "Runtime/Engine/Classes/Engine/World.h"
 #include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
@@ -9,39 +9,12 @@
 #include "FusionCamSensor.h"
 #include "Serialization.h"
 #include "Utils/StrFormatter.h"
-#include "SensorBPLib.h"
 #include "Controller/PlayerViewMode.h"
 #include "Controller/UnrealcvWorldController.h"
 #include "ImageUtil.h"
+#include "SensorBPLib.h"
 
-enum EFilenameType
-{
-	Png,
-	Npy,
-	Exr,
-	Bmp,
-	PngBinary,
-	NpyBinary,
-	BmpBinary,
-	Invalid, // Unrecognized filename type
-};
-
-// FString WorldTypeStr(EWorldType::Type WorldType)
-// {
-// 	switch (WorldType)
-// 	{
-// 		case EWorldType::Editor : return TEXT("Editor");
-// 		case EWorldType::EditorPreview: return TEXT("EditorPreview");
-// 		case EWorldType::Game: return TEXT("Game");
-// 		case EWorldType::GamePreview: return TEXT("GamePreview");
-// 		case EWorldType::Inactive: return TEXT("Inactive");
-// 		case EWorldType::None: return TEXT("None");
-// 		case EWorldType::PIE: return TEXT("PIE");
-// 	}
-// 	return TEXT("Invalid");
-// }
-
-UFusionCamSensor* GetSensor(const TArray<FString>& Args, FExecStatus& Status)
+UFusionCamSensor* FCameraHandler::GetCamera(const TArray<FString>& Args, FExecStatus& Status)
 {
 	if (Args.Num() < 1)
 	{
@@ -64,7 +37,7 @@ UFusionCamSensor* GetSensor(const TArray<FString>& Args, FExecStatus& Status)
 
 
 /** vget /sensors , List all sensors in the world */
-FExecStatus GetSensorList(const TArray<FString>& Args)
+FExecStatus FCameraHandler::GetCameraList(const TArray<FString>& Args)
 {
 	TArray<UFusionCamSensor*> GameWorldSensorList = USensorBPLib::GetFusionSensorList();
 
@@ -77,10 +50,10 @@ FExecStatus GetSensorList(const TArray<FString>& Args)
 }
 
 
-FExecStatus GetSensorLocation(const TArray<FString>& Args)
+FExecStatus FCameraHandler::GetCameraLocation(const TArray<FString>& Args)
 {
 	FExecStatus Status = FExecStatus::OK();
-	UFusionCamSensor* FusionCamSensor = GetSensor(Args, Status);
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
 	if (!IsValid(FusionCamSensor)) return Status; 
 
 	FStrFormatter Ar;
@@ -90,10 +63,10 @@ FExecStatus GetSensorLocation(const TArray<FString>& Args)
 	return FExecStatus::OK(Ar.ToString());
 }
 
-FExecStatus SetSensorLocation(const TArray<FString>& Args)
+FExecStatus FCameraHandler::SetCameraLocation(const TArray<FString>& Args)
 {
 	FExecStatus Status = FExecStatus::OK();
-	UFusionCamSensor* FusionCamSensor = GetSensor(Args, Status);
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
 	if (!IsValid(FusionCamSensor)) return Status; 
 
 	// Should I set the component loction or the actor location?
@@ -125,10 +98,10 @@ FExecStatus SetSensorLocation(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
-FExecStatus GetSensorRotation(const TArray<FString>& Args)
+FExecStatus FCameraHandler::GetCameraRotation(const TArray<FString>& Args)
 {
 	FExecStatus Status = FExecStatus::OK();
-	UFusionCamSensor* FusionCamSensor = GetSensor(Args, Status);
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
 	if (!IsValid(FusionCamSensor)) return Status; 
 
 	FRotator Rotation = FusionCamSensor->GetSensorRotation();
@@ -138,10 +111,10 @@ FExecStatus GetSensorRotation(const TArray<FString>& Args)
 	return FExecStatus::OK(Ar.ToString());
 }
 
-FExecStatus SetSensorRotation(const TArray<FString>& Args)
+FExecStatus FCameraHandler::SetCameraRotation(const TArray<FString>& Args)
 {
 	FExecStatus Status = FExecStatus::OK();
-	UFusionCamSensor* FusionCamSensor = GetSensor(Args, Status);
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
 	if (!IsValid(FusionCamSensor)) return Status; 
 
 	if (Args.Num() != 4) return FExecStatus::InvalidArgument; // ID, X, Y, Z
@@ -175,7 +148,7 @@ FExecStatus SetSensorRotation(const TArray<FString>& Args)
 
 
 // TODO: Move this to utility library
-EFilenameType ParseFilenameType(const FString& Filename)
+EFilenameType FCameraHandler::ParseFilenameType(const FString& Filename)
 {
 	bool bIncludeDot = false;
 	FString FileExtension = FPaths::GetExtension(Filename);
@@ -202,7 +175,7 @@ EFilenameType ParseFilenameType(const FString& Filename)
 }
 
 /** Serialize data according to filename format */
-FExecStatus SerializeData(const TArray<FColor>& Data, int Width, int Height, const FString& Filename)
+FExecStatus FCameraHandler::SerializeData(const TArray<FColor>& Data, int Width, int Height, const FString& Filename)
 {
 	static FImageUtil ImageUtil;
 	EFilenameType FilenameType = ParseFilenameType(Filename);
@@ -226,7 +199,7 @@ FExecStatus SerializeData(const TArray<FColor>& Data, int Width, int Height, con
 	return FExecStatus::Error(FString::Printf(TEXT("Invalid filename type, filename %s"), *Filename));
 }
 
-FExecStatus SerializeData(const TArray<FFloat16Color>& Data, int Width, int Height, const FString& Filename)
+FExecStatus FCameraHandler::SerializeData(const TArray<FFloat16Color>& Data, int Width, int Height, const FString& Filename)
 {
 	static FImageUtil ImageUtil;
 	EFilenameType FilenameType = ParseFilenameType(Filename);
@@ -246,7 +219,7 @@ FExecStatus SerializeData(const TArray<FFloat16Color>& Data, int Width, int Heig
 	return FExecStatus::Error(FString::Printf(TEXT("Invalid filename type, filename %s"), *Filename));
 }
 
-FExecStatus SerializeData(const TArray<float>& Data, int Width, int Height, const FString& Filename)
+FExecStatus FCameraHandler::SerializeData(const TArray<float>& Data, int Width, int Height, const FString& Filename)
 {
 	static FImageUtil ImageUtil;
 	EFilenameType FilenameType = ParseFilenameType(Filename);
@@ -267,7 +240,7 @@ FExecStatus SerializeData(const TArray<float>& Data, int Width, int Height, cons
 }
 
 template<class T>
-void SaveData(const TArray<T>& Data, int Width, int Height,
+void FCameraHandler::SaveData(const TArray<T>& Data, int Width, int Height,
 	const TArray<FString>& Args, FExecStatus& Status)
 {
 	if (Args.Num() != 2)
@@ -286,10 +259,10 @@ void SaveData(const TArray<T>& Data, int Width, int Height,
 }
 
 
-FExecStatus GetSensorLit(const TArray<FString>& Args)
+FExecStatus FCameraHandler::GetCameraLit(const TArray<FString>& Args)
 {
 	FExecStatus ExecStatus = FExecStatus::OK();
-	UFusionCamSensor* FusionCamSensor = GetSensor(Args, ExecStatus);
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, ExecStatus);
 	if (!IsValid(FusionCamSensor)) return ExecStatus; 
 
 	TArray<FColor> Data;
@@ -299,23 +272,10 @@ FExecStatus GetSensorLit(const TArray<FString>& Args)
 	return ExecStatus;
 }
 
-FExecStatus GetSensorLitFast(const TArray<FString>& Args)
+FExecStatus FCameraHandler::GetCameraDepth(const TArray<FString>& Args)
 {
 	FExecStatus ExecStatus = FExecStatus::OK();
-	UFusionCamSensor* FusionCamSensor = GetSensor(Args, ExecStatus);
-	if (!IsValid(FusionCamSensor)) return ExecStatus; 
-
-	TArray<FColor> Data;
-	int Width, Height;
-	FusionCamSensor->GetLit(Data, Width, Height);
-	SaveData(Data, Width, Height, Args, ExecStatus);
-	return ExecStatus;
-}
-
-FExecStatus GetSensorDepth(const TArray<FString>& Args)
-{
-	FExecStatus ExecStatus = FExecStatus::OK();
-	UFusionCamSensor* FusionCamSensor = GetSensor(Args, ExecStatus);
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, ExecStatus);
 	if (!IsValid(FusionCamSensor)) return ExecStatus; 
 
 	TArray<float> Data;
@@ -325,38 +285,11 @@ FExecStatus GetSensorDepth(const TArray<FString>& Args)
 	return ExecStatus;
 }
 
-/*
-FExecStatus GetSensorPlaneDepth(const TArray<FString>& Args)
+
+FExecStatus FCameraHandler::GetCameraNormal(const TArray<FString>& Args)
 {
 	FExecStatus ExecStatus = FExecStatus::OK();
-	UFusionCamSensor* FusionCamSensor = GetSensor(Args, ExecStatus);
-	if (!IsValid(FusionCamSensor)) return ExecStatus; 
-
-	TArray<FFloat16Color> Data;
-	int Width, Height;
-	FusionCamSensor->GetDepth(Data, Width, Height);
-	SaveData(Data, Width, Height, Args, ExecStatus);
-	return ExecStatus;
-}
-
-FExecStatus GetSensorVisDepth(const TArray<FString>& Args)
-{
-	FExecStatus ExecStatus = FExecStatus::OK();
-	UFusionCamSensor* FusionCamSensor = GetSensor(Args, ExecStatus);
-	if (!IsValid(FusionCamSensor)) return ExecStatus; 
-
-	TArray<FFloat16Color> Data;
-	int Width, Height;
-	FusionCamSensor->GetVisDepth(Data, Width, Height);
-	SaveData(Data, Width, Height, Args, ExecStatus);
-	return ExecStatus;
-}
-*/
-
-FExecStatus GetSensorNormal(const TArray<FString>& Args)
-{
-	FExecStatus ExecStatus = FExecStatus::OK();
-	UFusionCamSensor* FusionCamSensor = GetSensor(Args, ExecStatus);
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, ExecStatus);
 	if (!IsValid(FusionCamSensor)) return ExecStatus; 
 
 	TArray<FColor> Data;
@@ -366,10 +299,10 @@ FExecStatus GetSensorNormal(const TArray<FString>& Args)
 	return ExecStatus;
 }
 
-FExecStatus GetSensorObjMask(const TArray<FString>& Args)
+FExecStatus FCameraHandler::GetCameraObjMask(const TArray<FString>& Args)
 {
 	FExecStatus ExecStatus = FExecStatus::OK();
-	UFusionCamSensor* FusionCamSensor = GetSensor(Args, ExecStatus);
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, ExecStatus);
 	if (!IsValid(FusionCamSensor)) return ExecStatus; 
 
 	TArray<FColor> Data;
@@ -384,25 +317,10 @@ FExecStatus GetSensorObjMask(const TArray<FString>& Args)
 	return ExecStatus;
 }
 
-/*
-FExecStatus GetSensorDepthStencil(const TArray<FString>& Args)
-{
-	FExecStatus ExecStatus = FExecStatus::OK();
-	UFusionCamSensor* FusionCamSensor = GetSensor(Args, ExecStatus);
-	if (!IsValid(FusionCamSensor)) return ExecStatus; 
-
-	TArray<FColor> Data;
-	int Width, Height;
-	FusionCamSensor->GetStencil(Data, Width, Height);
-	SaveData(Data, Width, Height, Args, ExecStatus);
-	return ExecStatus;
-}
-*/
-
-FExecStatus MoveTo(const TArray<FString>& Args)
+FExecStatus FCameraHandler::MoveTo(const TArray<FString>& Args)
 {
 	// FExecStatus ExecStatus = FExecStatus::OK();
-	// UFusionCamSensor* FusionCamSensor = GetSensor(Args, ExecStatus);
+	// UFusionCamSensor* FusionCamSensor = GetCamera(Args, ExecStatus);
 	// if (!IsValid(FusionCamSensor)) return ExecStatus; 
 
 	/** The API for Character, Pawn and Actor are different */
@@ -428,7 +346,7 @@ FExecStatus MoveTo(const TArray<FString>& Args)
 
 
 /** vget /screenshot [filename] */
-FExecStatus GetScreenshot(const TArray<FString>& Args)
+FExecStatus FCameraHandler::GetScreenshot(const TArray<FString>& Args)
 {
 	FString Filename = Args[0];
 
@@ -455,129 +373,94 @@ FExecStatus GetScreenshot(const TArray<FString>& Args)
 	return ExecStatus;
 }
 
-FExecStatus SetViewMode(const TArray<FString>& Args)
+FExecStatus FCameraHandler::SetPlayerViewMode(const TArray<FString>& Args)
 {
 	TWeakObjectPtr<AUnrealcvWorldController> WorldController = FUnrealcvServer::Get().WorldController;
 	return WorldController->PlayerViewMode->SetMode(Args);
 }
 
-FExecStatus GetViewMode(const TArray<FString>& Args)
+FExecStatus FCameraHandler::GetPlayerViewMode(const TArray<FString>& Args)
 {
 	TWeakObjectPtr<AUnrealcvWorldController> WorldController = FUnrealcvServer::Get().WorldController;
 	return WorldController->PlayerViewMode->GetMode(Args);
 }
 
-
-void FSensorHandler::RegisterCommands()
+void FCameraHandler::RegisterCommands()
 {
 	CommandDispatcher->BindCommand(
 		"vget /screenshot [str]",
-		FDispatcherDelegate::CreateStatic(GetScreenshot),
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetScreenshot),
 		"Get screenshot");
 
 	 CommandDispatcher->BindCommand(
 		"vget /cameras",
-		FDispatcherDelegate::CreateStatic(GetSensorList),
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraList),
 		"List all sensors in the scene");
 
-	/*
-	CommandDispatcher->BindCommand(
-		"vget /camera/[uint]/info",
-		FDispatcherDelegate::CreateStatic(GetSensorInfo),
-		"Get sensor information");
-		*/
 
 	CommandDispatcher->BindCommand(
 		"vget /camera/[uint]/location",
-		FDispatcherDelegate::CreateStatic(GetSensorLocation),
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraLocation),
 		"Get sensor location in world space"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vset /camera/[uint]/location [float] [float] [float]",
-		FDispatcherDelegate::CreateStatic(SetSensorLocation),
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetCameraLocation),
 		"Set sensor to location [x, y, z]"
 	);
 
 	/** This is different from SetLocation (which is teleport) */
 	CommandDispatcher->BindCommand(
 		"vset /camera/[uint]/moveto [float] [float] [float]",
-		FDispatcherDelegate::CreateStatic(MoveTo),
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::MoveTo),
 		"Move camera to location [x, y, z], will be blocked by objects"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vget /camera/[uint]/rotation",
-		FDispatcherDelegate::CreateStatic(GetSensorRotation),
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraRotation),
 		"Get sensor rotation in world space"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vset /camera/[uint]/rotation [float] [float] [float]",
-		FDispatcherDelegate::CreateStatic(SetSensorRotation),
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetCameraRotation),
 		"Set rotation [pitch, yaw, roll] of camera [id]"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vget /camera/[uint]/lit [str]",
-		FDispatcherDelegate::CreateStatic(GetSensorLit),
-		"Get png binary data from lit sensor"
-	);
-
-	// TODO: Need to merge these two later
-	CommandDispatcher->BindCommand(
-		"vget /camera/[uint]/lit_fast [str]",
-		FDispatcherDelegate::CreateStatic(GetSensorLitFast),
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraLit),
 		"Get png binary data from lit sensor"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vget /camera/[uint]/depth [str]",
-		FDispatcherDelegate::CreateStatic(GetSensorDepth),
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraDepth),
 		"Get npy binary data from depth sensor");
 
-	// CommandDispatcher->BindCommand(
-	// 	"vget /camera/[uint]/vis_depth [str]",
-	// 	FDispatcherDelegate::CreateStatic(GetSensorVisDepth),
-	// 	"Get npy binary data from vis depth sensor");
-
-	// CommandDispatcher->BindCommand(
-	// 	"vget /camera/[uint]/plane_depth [str]",
-	// 	FDispatcherDelegate::CreateStatic(GetSensorPlaneDepth),
-	// 	"Get npy binary data from plane depth sensor");
 
 	CommandDispatcher->BindCommand(
 		"vget /camera/[uint]/normal [str]",
-		FDispatcherDelegate::CreateStatic(GetSensorNormal),
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraNormal),
 		"Get npy binary data from surface normal sensor");
 
 	CommandDispatcher->BindCommand(
 		"vget /camera/[uint]/object_mask [str]",
-		FDispatcherDelegate::CreateStatic(GetSensorObjMask),
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraObjMask),
 		"Get npy binary data from depth sensor");
 
-	// CommandDispatcher->BindCommand(
-	// 	"vget /camera/[uint]/depth_stencil [str]",
-	// 	FDispatcherDelegate::CreateStatic(GetSensorDepthStencil),
-	// 	"Get depth stencil data as an alternative way for object mask");
 
 	CommandDispatcher->BindCommand(
 		"vset /viewmode [str]",
-		FDispatcherDelegate::CreateStatic(SetViewMode),
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetPlayerViewMode),
 		"Set ViewMode to (lit, normal, depth, object_mask)"
 	);
 
 	CommandDispatcher->BindCommand(
 		"vget /viewmode",
-		FDispatcherDelegate::CreateStatic(GetViewMode),
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetPlayerViewMode),
 		"Get current ViewMode"
 	);
-
-	// Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetActorLocation);
-	// Help = "Get actor location [x, y, z]";
-	// CommandDispatcher->BindCommand("vget /actor/location", Cmd, Help);
-
-	// Cmd = FDispatcherDelegate::CreateRaw(this, &FCameraCommandHandler::GetActorRotation);
-	// Help = "Get actor rotation [pitch, yaw, roll]";
-	// CommandDispatcher->BindCommand("vget /actor/rotation", Cmd, Help);
 }

@@ -2,11 +2,12 @@
 #include "CommandHandler.h"
 #include "Runtime/InputCore/Classes/InputCoreTypes.h"
 
-class FActionCommandHandler : public FCommandHandler
+class FActionHandler : public FCommandHandler
 {
 public:
 	void RegisterCommands();
 
+private:
 	/** vset /action/game/pause */
 	FExecStatus PauseGame(const TArray<FString>& Args);
 
@@ -30,5 +31,6 @@ public:
 
 	/** vset /action/keyboard [key_name] [delta] */
 	FExecStatus Keyboard(const TArray<FString>& Args);
+
 	TFunction<void(void)> GetReleaseKey(FKey Key);
 };
