@@ -104,6 +104,12 @@ bool UVisionBPLib::SendMessageBP(const FString& Message)
 
 void UVisionBPLib::SavePng(const TArray<FColor>& InImageData, int Width, int Height, FString Filename, bool bKeepAlpha)
 {
+	if (InImageData.Num() == 0 || Width == 0 || Height == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("UVisionBPLib::SavePng - The input image is empty."));
+		UE_LOG(LogTemp, Warning, TEXT("Num of pixels: %d, width: %d, height: %d"), InImageData.Num(), Width, Height);
+		return;
+	}
 	FImageUtil ImageUtil;
 	if (!bKeepAlpha)
 	// Get rid of alpha which will accidentally make the image invisible

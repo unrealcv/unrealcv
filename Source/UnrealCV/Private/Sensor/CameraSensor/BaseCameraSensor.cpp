@@ -144,8 +144,7 @@ void UBaseCameraSensor::CaptureToFile(const FString& Filename)
 {
 	if (!CheckTextureTarget()) return;
 	this->CaptureScene();
-
-	check(this->TextureTarget);
+	
 	FTextureRenderTargetResource* RenderTargetResource = this->TextureTarget->GameThread_GetRenderTargetResource();
 	FTexture2DRHIRef Texture2D = RenderTargetResource->GetRenderTargetTexture();
 
