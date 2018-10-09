@@ -17,5 +17,7 @@ class ULitCamSensor : public UBaseCameraSensor
 public:
 	ULitCamSensor(const FObjectInitializer& ObjectInitializer);
 
-	// virtual void SetupRenderTarget() override;
+	virtual void InitTextureTarget(int FilmWidth, int FilmHeight) override;
+
+	void CaptureLit(TArray<FColor>& Image, int& Width, int& Height);
 };

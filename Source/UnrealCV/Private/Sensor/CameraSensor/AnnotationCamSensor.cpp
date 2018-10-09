@@ -11,37 +11,36 @@ UAnnotationCamSensor::UAnnotationCamSensor(const FObjectInitializer& ObjectIniti
 	Super(ObjectInitializer)
 {
 	this->PrimaryComponentTick.bCanEverTick = true;
+	this->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
+
 	this->ShowFlags.SetMaterials(false); // Check AnnotationComponent.cpp::GetViewRelevance
 	this->ShowFlags.SetLighting(false);
 	this->ShowFlags.SetPostProcessing(false);
 	this->ShowFlags.SetColorGrading(false);
 	this->ShowFlags.SetTonemapper(false); // Important to disable this
 
-	this->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
-
+	this->PostProcessSettings.bOverride_AutoExposureBias = true;
+	this->PostProcessSettings.AutoExposureBias = 0; // Overwrite anychange in the scene.
 	// Note: The "exposure compensation" in "PostProcessVolume3" in the RR map will destroy the color
 	// Note: Saturate the color to 1. This is a mysterious behavior after tedious debug.
 	// Note: and the PostProcessing false here seems obvious not enough.
-
-	// this->ShowFlags.SetBSPTriangles(true);
-	// this->ShowFlags.SetVertexColors(true);
-	// this->ShowFlags.SetHMDDistortion(false);
-	// this->ShowFlags.SetTonemapper(false); // This won't take effect here
-	// GVertexColorViewMode = EVertexColorViewMode::Color;
 
 	// Note: the default value of CaptureSource is FinalColorLDR, but the FinalColor might be impact by PostProcessing
 	// Note: even though PostProcessing flag is disabled
 	// Note: Another option is tuning the PostProcess option flag in the SceneCaptureComponent2D
 	// Note: CaptureSource = ESceneCaptureSource::SCS_BaseColor;
 
-	// TODO: The generated image is completely dark, which might be caused be the PixelFormat
+	// Note: The generated image is completely dark, which might be caused be the PixelFormat
 	// Note: After a lot of trial and error, this is a solution that can work.
-	this->PostProcessSettings.bOverride_AutoExposureBias = true;
-	this->PostProcessSettings.AutoExposureBias = 0; // Overwrite anychange in the scene.
-
-	PixelFormat = EPixelFormat::PF_B8G8R8A8;
-	bUseLinearGamma = true;
 }
+
+
+// this->ShowFlags.SetBSPTriangles(true);
+// this->ShowFlags.SetVertexColors(true);
+// this->ShowFlags.SetHMDDistortion(false);
+// this->ShowFlags.SetTonemapper(false); // This won't take effect here
+// GVertexColorViewMode = EVertexColorViewMode::Color;
+
 
 // Only available for 4.17+
 // this->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
@@ -52,7 +51,7 @@ void UAnnotationCamSensor::TickComponent(float DeltaTime, enum ELevelTick TickTy
 	Super::TickComponent(DeltaTime, TickType, T);
 }
 
-void GetAnnotationComponents(UWorld* World, TArray<TWeakObjectPtr<UPrimitiveComponent> >& ComponentList)
+void UAnnotationCamSensor::GetAnnotationComponents(UWorld* World, TArray<TWeakObjectPtr<UPrimitiveComponent> >& ComponentList)
 {
 	if (!IsValid(World))
 	{
@@ -84,12 +83,12 @@ void GetAnnotationComponents(UWorld* World, TArray<TWeakObjectPtr<UPrimitiveComp
 	}
 }
 
-void UAnnotationCamSensor::Capture(TArray<FColor>& ImageData, int& Width, int& Height)
+void UAnnotationCamSensor::CaptureSeg(TArray<FColor>& ImageData, int& Width, int& Height)
 {
 	TArray<TWeakObjectPtr<UPrimitiveComponent> > ComponentList;
 	GetAnnotationComponents(this->GetWorld(), ComponentList);
 
 	this->ShowOnlyComponents = ComponentList;
 
-	Super::Capture(ImageData, Width, Height);
+	Capture(ImageData, Width, Height);
 }

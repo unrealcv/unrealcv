@@ -36,9 +36,13 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	LitCamSensor = CreateDefaultSubobject<ULitCamSensor>(*ComponentName);
 	FusionSensors.Add(LitCamSensor);
 
+	// The config loading code should not be placed into the ctor, otherwise it will break the copy behavior
 	FServerConfig& Config = FUnrealcvServer::Get().Config;
 	FilmWidth = Config.Width == 0 ? 640 : Config.Width;
-	FilmHeight = Config.Height == 0 ? 480 : Config.Height; 
+	FilmHeight = Config.Height == 0 ? 480 : Config.Height;
+	FOV = Config.FOV == 0 ? 90 : Config.FOV; 
+	// Note: If FOV == 0, the render will give FMod assert error.
+	// Need to call update functions after copy operator (in BeginPlay), here just sets value
 
 	for (UBaseCameraSensor* Sensor : FusionSensors)
 	{
@@ -51,8 +55,6 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 			UE_LOG(LogUnrealCV, Warning, TEXT("Invalid sensor is found in the ctor of FusionCamSensor"));
 		}
 	}
-
-	// this->FOVAngle = Config.FOV;
 	// SetFilmSize(FilmWidth, FilmHeight); // This should not not be done in CTOR.
 }
 
@@ -60,14 +62,8 @@ void UFusionCamSensor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	for (UBaseCameraSensor* Sensor: FusionSensors)
-	{
-		if (IsValid(Sensor))
-		{
-			Sensor->FilmWidth = FilmWidth;
-			Sensor->FilmHeight = FilmHeight;
-		}
-	}
+	SetFilmSize(FilmWidth, FilmHeight);
+	SetSensorFOV(FOV);
 }
 
 // void UFusionCamSensor::OnRegister()
@@ -99,7 +95,7 @@ bool UFusionCamSensor::GetEditorPreviewInfo(float DeltaTime, FMinimalViewInfo& V
 
 void UFusionCamSensor::GetLit(TArray<FColor>& LitData, int& Width, int& Height, ELitMode LitMode)
 {
-	this->LitCamSensor->Capture(LitData, Width, Height);
+	this->LitCamSensor->CaptureLit(LitData, Width, Height);
 }
 
 void UFusionCamSensor::GetDepth(TArray<float>& DepthData, int& Width, int& Height, EDepthMode DepthMode)
@@ -114,7 +110,7 @@ void UFusionCamSensor::GetNormal(TArray<FColor>& NormalData, int& Width, int& He
 
 void UFusionCamSensor::GetSeg(TArray<FColor>& ObjMaskData, int& Width, int& Height, ESegMode SegMode)
 {
-	this->AnnotationCamSensor->Capture(ObjMaskData, Width, Height);
+	this->AnnotationCamSensor->CaptureSeg(ObjMaskData, Width, Height);
 }
 
 FVector UFusionCamSensor::GetSensorLocation()
@@ -137,6 +133,29 @@ void UFusionCamSensor::SetSensorRotation(FRotator Rotator)
 	this->SetWorldRotation(Rotator);
 }
 
+void UFusionCamSensor::SetFilmSize(int Width, int Height)
+{
+	this->FilmWidth = Width;
+	this->FilmHeight = Height;
+	if (Height == 0 || Width == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Invalid film size %d x %d"), Width, Height);
+		return;
+	}
+	for (int i = 0; i < FusionSensors.Num(); i++)
+	{
+		UBaseCameraSensor* Sensor = FusionSensors[i];
+		if (IsValid(Sensor))
+		{
+			Sensor->SetFilmSize(FilmWidth, FilmHeight);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Sensor %d within FusionCamSensor is invalid."), i);
+		}
+	}
+}
+
 float UFusionCamSensor::GetSensorFOV()
 {
 	return this->LitCamSensor->GetFOV(); 
@@ -144,6 +163,7 @@ float UFusionCamSensor::GetSensorFOV()
 
 void UFusionCamSensor::SetSensorFOV(float FOV)
 {
+	this->FOV = FOV;
 	for (UBaseCameraSensor* Sensor: FusionSensors)
 	{
 		if (IsValid(Sensor))
@@ -164,16 +184,13 @@ void UFusionCamSensor::PostEditChangeProperty(FPropertyChangedEvent &PropertyCha
 		switch(PresetFilmSize)
 		{
 		case EPresetFilmSize::F640x480:
-			FilmWidth = 640;
-			FilmHeight = 480;
+			SetFilmSize(640, 480);
 			break;
 		case EPresetFilmSize::F1080p:
-			FilmWidth = 1920;
-			FilmHeight = 1080;
+			SetFilmSize(1920, 1080);
 			break;
 		case EPresetFilmSize::F720p:
-			FilmWidth = 1280;
-			FilmHeight = 720;
+			SetFilmSize(1280, 720);
 			break;
 		}
 	}

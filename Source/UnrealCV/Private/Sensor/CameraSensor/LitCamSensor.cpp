@@ -19,3 +19,20 @@ ULitCamSensor::ULitCamSensor(const FObjectInitializer& ObjectInitializer) :
 // TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
 // TextureTarget->TargetGamma = 1;
 
+void ULitCamSensor::InitTextureTarget(int FilmWidth, int FilmHeight)
+{
+	TextureTarget->InitAutoFormat(FilmWidth, FilmHeight);
+	TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
+}
+
+void ULitCamSensor::CaptureLit(TArray<FColor>& Image, int& Width, int& Height)
+{
+	if (!CheckTextureTarget()) return;
+	this->CaptureScene();
+	FReadSurfaceDataFlags ReadSurfaceDataFlags;
+	ReadSurfaceDataFlags.SetLinearToGamma(false); 
+	// TextureTarget->GetRenderTargetResource()->ReadPixels(Image, ReadSurfaceDataFlags);
+	TextureTarget->GameThread_GetRenderTargetResource()->ReadPixels(Image, ReadSurfaceDataFlags);
+	Width = GetFilmWidth();
+	Height = GetFilmHeight();
+}

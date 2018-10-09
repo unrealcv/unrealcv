@@ -40,15 +40,6 @@ class UNREALCV_API UFusionCamSensor : public UPrimitiveComponent
 {
 	GENERATED_BODY()
 
-public:
-	UPROPERTY(EditInstanceOnly)
-	EPresetFilmSize PresetFilmSize;
-
-	UPROPERTY(EditInstanceOnly)
-	int FilmWidth;
-
-	UPROPERTY(EditInstanceOnly)
-	int FilmHeight;
 
 public:
 	UFusionCamSensor(const FObjectInitializer& ObjectInitializer);
@@ -85,6 +76,15 @@ public:
 	void SetSensorRotation(FRotator Rotator);
 
 	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	void SetFilmSize(int Width, int Height);
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	float GetFilmWidth() { return FilmWidth; }
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	float GetFilmHeight() { return FilmHeight; }
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
 	float GetSensorFOV();
 
 	UFUNCTION(BlueprintCallable, Category = "unrealcv")
@@ -106,6 +106,19 @@ public:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;
 #endif
+
+private:
+	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"))
+	EPresetFilmSize PresetFilmSize;
+
+	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"))
+	int FilmWidth;
+
+	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"))
+	int FilmHeight;
+
+	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"))
+	float FOV;
 
 protected:
 	UPROPERTY()

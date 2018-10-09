@@ -13,7 +13,9 @@ class UAnnotationCamSensor : public UBaseCameraSensor
 public:
 	UAnnotationCamSensor(const FObjectInitializer& ObjectInitializer);
 
+	static void GetAnnotationComponents(UWorld* World, TArray<TWeakObjectPtr<UPrimitiveComponent> >& ComponentList);
+
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * T);
 
-	virtual void Capture(TArray<FColor>& ImageData, int& Width, int& Height) override;
+	void CaptureSeg(TArray<FColor>& ImageData, int& Width, int& Height);
 };

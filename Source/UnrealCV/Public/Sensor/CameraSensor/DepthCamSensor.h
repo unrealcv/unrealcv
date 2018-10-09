@@ -4,8 +4,7 @@
 #include "BaseCameraSensor.h"
 #include "DepthCamSensor.generated.h"
 
-/** Depth sensor
-*/
+/** Depth sensor */
 UCLASS(meta = (BlueprintSpawnableComponent))
 class UDepthCamSensor : public UBaseCameraSensor
 {
@@ -16,5 +15,5 @@ public:
 
 	void CaptureDepth(TArray<float>& DepthData, int& Width, int& Height);
 
-	// virtual void SetupRenderTarget() override;
+	virtual void InitTextureTarget(int FilmWidth, int FilmHeight) override;
 };

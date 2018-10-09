@@ -1,6 +1,7 @@
 // Weichao Qiu @ 2018
 #include "JsonObjectBP.h"
 #include "Runtime/Json/Public/Serialization/JsonSerializer.h"
+#include "UnrealcvLog.h"
 
 FJsonObjectBP::FJsonObjectBP(float Value)
 {
@@ -77,7 +78,7 @@ FJsonObjectBP::FJsonObjectBP(const TArray<FString>& Keys, const TArray<FString>&
 	JsonObject = MakeShareable(new FJsonObject());
 	if (Keys.Num() != Values.Num())
 	{
-		// UE_LOG(LogUnrealCV, Warning, TEXT("Length of keys and values are mismatch"));
+		UE_LOG(LogUnrealCV, Warning, TEXT("Length of keys and values are mismatch"));
 		return;
 	}
 
@@ -92,7 +93,7 @@ FJsonObjectBP::FJsonObjectBP(const TArray<FString>& Keys, const TArray<FJsonObje
 	JsonObject = MakeShareable(new FJsonObject());
 	if (Keys.Num() != Values.Num())
 	{
-		// UE_LOG(LogUnrealCV, Warning, TEXT("Length of keys and values are mismatch"));
+		UE_LOG(LogUnrealCV, Warning, TEXT("Length of keys and values are mismatch"));
 		return;
 	}
 

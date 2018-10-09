@@ -17,63 +17,62 @@ DECLARE_CYCLE_STAT(TEXT("ReadBufferFast"), STAT_ReadBufferFast, STATGROUP_Unreal
 
 UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("/Engine/EditorMeshes/MatineeCam_SM"));
+	// static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("/Engine/EditorMeshes/MatineeCam_SM"));
 	// Another choice is "StaticMesh'/Engine/EditorMeshes/Camera/SM_CineCam.SM_CineCam'"
-
-	// Add a visualization camera mesh
-	// ProxyMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("Visualization Camera Mesh");
-	// ProxyMeshComponent->SetupAttachment(this);
-	// ProxyMeshComponent->bIsEditorOnly = true;
-	// ProxyMeshComponent->SetStaticMesh(EditorCameraMesh.Object);
-	// ProxyMeshComponent->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
-	// ProxyMeshComponent->bHiddenInGame = true;
-	// ProxyMeshComponent->CastShadow = false;
-
 	this->ShowFlags.SetPostProcessing(true);
-	
-	// Avoid calling virtual function in a constructor
-
-	// Explicitly make a request to render frames
 	bCaptureEveryFrame = false;
 	bCaptureOnMovement = false;
 	CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 	bAlwaysPersistRenderingState = true; 
-	// This is needed if we want to disable bCaptureEveryFrame
-	// https://answers.unrealengine.com/questions/723947/scene-capture-with-post-process-mat-works-only-wit.html?sort=oldest
-
-	// if (GetOwner()) // Check whether this is a template project
-	// if (!IsTemplate())
-
-	FilmWidth = 640;
-	FilmHeight = 480;
-	PixelFormat = EPixelFormat::PF_B8G8R8A8;
-	bUseLinearGamma = false;
-	// NOTE: Avoid creating TextureTarget in the CTOR, this will make CamSensor not savable in a BP actor
-	// TextureTarget = CreateDefaultSubobject<UTextureRenderTarget2D>(TEXT("CamSensorRenderTarget"));
-	// SetupRenderTarget();
+	// Avoid calling virtual function in a constructor
 }
 
-// void UBaseCameraSensor::OnRegister()
-// {
-// 	Super::OnRegister();
-// }
+// Explicitly make a request to render frames
+// This is needed if we want to disable bCaptureEveryFrame
+// https://answers.unrealengine.com/questions/723947/scene-capture-with-post-process-mat-works-only-wit.html?sort=oldest
 
-// Postpone this to a lazy initialization stage to avoid unnecessary memory usage.
-void UBaseCameraSensor::SetupRenderTarget()
+// if (GetOwner()) // Check whether this is a template project
+// if (!IsTemplate())
+
+// NOTE: Avoid creating TextureTarget in the CTOR, this will make CamSensor not savable in a BP actor
+// TextureTarget = CreateDefaultSubobject<UTextureRenderTarget2D>(TEXT("CamSensorRenderTarget"));
+
+void UBaseCameraSensor::InitTextureTarget(int FilmWidth, int FilmHeight)
+{
+	// bool bUseLinearGamma = false;
+	EPixelFormat PixelFormat = EPixelFormat::PF_B8G8R8A8;
+	bool bUseLinearGamma = false;
+	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, PixelFormat, bUseLinearGamma);
+}
+
+void UBaseCameraSensor::SetFilmSize(int Width, int Height)
 {
 	if (!IsValid(TextureTarget))
 	{
 		TextureTarget = NewObject<UTextureRenderTarget2D>(this); 
+		// TextureTarget = CreateDefaultSubobject<UTextureRenderTarget2D>(TEXT("CamSensorRenderTarget"));
 	}
-	// TextureTarget = CreateDefaultSubobject<UTextureRenderTarget2D>(TEXT("CamSensorRenderTarget"));
-	
-	if (TextureTarget->SizeX != FilmWidth || TextureTarget->SizeY != FilmHeight) 
+
+	if (TextureTarget->SizeX != Width || TextureTarget->SizeY != Height) 
 	{
-		// bool bUseLinearGamma = false;
-		TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, PixelFormat, bUseLinearGamma);
+		InitTextureTarget(Width, Height);
 	}
 }
 
+int UBaseCameraSensor::GetFilmWidth()
+{
+	if (!IsValid(TextureTarget)) return 0;
+	return TextureTarget->SizeX;
+}
+
+int UBaseCameraSensor::GetFilmHeight()
+{
+	if (!IsValid(TextureTarget)) return 0;
+	return TextureTarget->SizeY;
+}
+
+
+// TODO: Split the logic, move data serialization code outside
 // Serialize the data to png and npy, check the speed.
 
 // EPixelFormat::PF_B8G8R8A8
@@ -87,10 +86,24 @@ This is defined in FColor
 	uint8 B GCC_ALIGN(4);
 	uint8 G,R,A;
 */
+bool UBaseCameraSensor::CheckTextureTarget()
+{
+	if (!IsValid(TextureTarget))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("The TextureTarget was not initialized."));
+		return false;
+	}
+	if (TextureTarget->SizeX == 0 || TextureTarget->SizeY == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("The TextureTarget has invalid size."));
+		return false;
+	}
+	return true;
+}
 
 void UBaseCameraSensor::CaptureFast(TArray<FColor>& ImageData, int& Width, int& Height)
 {
-	this->SetupRenderTarget();
+	if (!CheckTextureTarget()) return;
 	this->CaptureScene();
 
 	if (TextureTarget == nullptr)
@@ -129,7 +142,7 @@ void UBaseCameraSensor::CaptureFast(TArray<FColor>& ImageData, int& Width, int& 
 
 void UBaseCameraSensor::CaptureToFile(const FString& Filename)
 {
-	this->SetupRenderTarget();
+	if (!CheckTextureTarget()) return;
 	this->CaptureScene();
 
 	check(this->TextureTarget);
@@ -164,10 +177,8 @@ void UBaseCameraSensor::Capture(TArray<FColor>& ImageData, int& Width, int& Heig
 {
 	SCOPE_CYCLE_COUNTER(STAT_ReadBuffer);
 
-	this->SetupRenderTarget();
+	if (!CheckTextureTarget()) return;
 	this->CaptureScene();
-
-	check(this->TextureTarget);
 
 	UTextureRenderTarget2D* RenderTarget = this->TextureTarget;
 	ReadTextureRenderTarget(RenderTarget, ImageData, Width, Height);

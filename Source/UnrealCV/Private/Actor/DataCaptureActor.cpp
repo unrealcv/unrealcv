@@ -395,8 +395,8 @@ void ADataCaptureActor::CaptureImageFromSensor(FString SensorName, UFusionCamSen
 		FJsonObjectBP(SensorName),
 		FJsonObjectBP(Sensor->GetSensorLocation()),
 		FJsonObjectBP(Sensor->GetSensorRotation()),
-		FJsonObjectBP(Sensor->FilmWidth),
-		FJsonObjectBP(Sensor->FilmHeight),
+		FJsonObjectBP(Sensor->GetFilmWidth()),
+		FJsonObjectBP(Sensor->GetFilmHeight()),
 		// FJsonObjectBP(Matrix)
 	};
 

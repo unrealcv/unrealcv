@@ -28,12 +28,6 @@ class UNREALCV_API UAnnotationComponent : public UPrimitiveComponent
 public:
 	UAnnotationComponent(const FObjectInitializer& ObjectInitializer);
 
-	// UPROPERTY()
-	// UStaticMeshComponent* StaticMeshComponent;
-
-	// UPROPERTY()
-	// USkeletalMeshComponent* SkeletalMeshComponent;
-
 	virtual FPrimitiveSceneProxy* CreateSceneProxy() override;
 
 	virtual FBoxSphereBounds CalcBounds(const FTransform & LocalToWorld) const override;

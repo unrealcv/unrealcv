@@ -13,8 +13,6 @@ class UNormalCamSensor : public UBaseCameraSensor
 public:
 	UNormalCamSensor(const FObjectInitializer& ObjectInitializer);
 
-	// virtual void SetupRenderTarget() override;
-
 private:
 	/** Post process material to extract surface normal data */
 	UPROPERTY()
