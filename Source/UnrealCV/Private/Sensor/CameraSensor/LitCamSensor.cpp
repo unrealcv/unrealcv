@@ -1,5 +1,6 @@
 // Weichao Qiu @ 2017
 #include "LitCamSensor.h"
+#include "Runtime/Engine/Classes/Engine/Engine.h"
 
 ULitCamSensor::ULitCamSensor(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer)
