@@ -34,12 +34,10 @@ enum class EPresetFilmSize : uint8
 	F1080p
 };
 
-// class UNREALCV_API UFusionCamSensor : public UBaseCameraSensor
 UCLASS(meta = (BlueprintSpawnableComponent))
 class UNREALCV_API UFusionCamSensor : public UPrimitiveComponent
 {
 	GENERATED_BODY()
-
 
 public:
 	UFusionCamSensor(const FObjectInitializer& ObjectInitializer);
@@ -102,6 +100,9 @@ public:
 	class UCameraComponent* PreviewCamera;
 
 	virtual void BeginPlay() override;
+
+
+	static TArray<UFusionCamSensor*> GetComponents(AActor* Actor);
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent) override;

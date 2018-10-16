@@ -46,6 +46,13 @@ UAnnotationCamSensor::UAnnotationCamSensor(const FObjectInitializer& ObjectIniti
 // this->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
 // TODO: Write an article about LinearGamma
 
+void UAnnotationCamSensor::InitTextureTarget(int FilmWidth, int FilmHeight)
+{
+	EPixelFormat PixelFormat = EPixelFormat::PF_B8G8R8A8;
+	bool bUseLinearGamma = true;
+	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, PixelFormat, bUseLinearGamma);
+}
+
 void UAnnotationCamSensor::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * T)
 {
 	Super::TickComponent(DeltaTime, TickType, T);

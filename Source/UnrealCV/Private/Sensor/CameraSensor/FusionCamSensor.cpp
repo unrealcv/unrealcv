@@ -173,6 +173,23 @@ void UFusionCamSensor::SetSensorFOV(float FOV)
 	}
 }
 
+TArray<UFusionCamSensor*> UFusionCamSensor::GetComponents(AActor* Actor)
+{
+	TArray<UFusionCamSensor*> Components;
+	if (!IsValid(Actor))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Actor is invalid"));
+		return Components;
+	}
+
+	TArray<UActorComponent*> ChildComponents = Actor->GetComponentsByClass(UFusionCamSensor::StaticClass());
+	for (UActorComponent* Component : ChildComponents)
+	{
+		Components.Add(Cast<UFusionCamSensor>(Component));
+	}
+	return Components;
+}
+
 #if WITH_EDITOR
 void UFusionCamSensor::PostEditChangeProperty(FPropertyChangedEvent &PropertyChangedEvent)
 {

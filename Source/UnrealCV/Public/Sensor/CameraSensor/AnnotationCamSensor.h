@@ -18,4 +18,6 @@ public:
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * T);
 
 	void CaptureSeg(TArray<FColor>& ImageData, int& Width, int& Height);
+
+	void InitTextureTarget(int FilmWidth, int FilmHeight);
 };
