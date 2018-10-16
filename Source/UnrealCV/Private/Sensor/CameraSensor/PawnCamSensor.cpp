@@ -3,15 +3,20 @@
 #include "PawnCamSensor.h"
 #include "Runtime/Engine/Classes/GameFramework/Pawn.h"
 #include "Runtime/Engine/Classes/GameFramework/Controller.h"
-#include "LitCamSensor.h"
+// #include "LitCamSensor.h"
+#include "BaseCameraSensor.h"
 
 UPawnCamSensor::UPawnCamSensor(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
 	this->PrimaryComponentTick.bCanEverTick = true;
 
-	this->LitCamSensor->bAbsoluteLocation = true;
-	this->LitCamSensor->bAbsoluteRotation = true;
+	for (UBaseCameraSensor* Sensor : FusionSensors)
+	{
+		if (!IsValid(Sensor)) continue;
+		Sensor->bAbsoluteLocation = true;
+		Sensor->bAbsoluteRotation = true;
+	}
 }
 
 void UPawnCamSensor::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction * T)
@@ -43,19 +48,25 @@ void UPawnCamSensor::TickComponent(float DeltaTime, enum ELevelTick TickType, FA
 	this->SetWorldRotation(EyeRotation);
 	this->UpdateChildTransforms();
 
-	USceneComponent* Parent = this->LitCamSensor->GetAttachParent();
-	if (Parent != this)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Unexpected attach"));
-	}
-	FTransform RelativeTransform = this->LitCamSensor->GetRelativeTransform();
-	FVector LitLocation = this->LitCamSensor->GetSensorLocation();
-	FRotator LitRotation = this->LitCamSensor->GetSensorRotation();
-	FVector ThisLocation = this->GetSensorLocation();
-	FRotator ThisRotation = this->GetSensorRotation();
-	this->LitCamSensor->SetSensorLocation(EyeLocation);
-	this->LitCamSensor->SetSensorRotation(EyeRotation);
+	// USceneComponent* Parent = this->LitCamSensor->GetAttachParent();
+	// if (Parent != this)
+	// {
+	// 	UE_LOG(LogTemp, Warning, TEXT("Unexpected attach"));
+	// }
+	// FTransform RelativeTransform = this->LitCamSensor->GetRelativeTransform();
+	// FVector LitLocation = this->LitCamSensor->GetSensorLocation();
+	// FRotator LitRotation = this->LitCamSensor->GetSensorRotation();
+	// FVector ThisLocation = this->GetSensorLocation();
+	// FRotator ThisRotation = this->GetSensorRotation();
+	// this->LitCamSensor->SetSensorLocation(EyeLocation);
+	// this->LitCamSensor->SetSensorRotation(EyeRotation);
 
+	for (UBaseCameraSensor* Sensor : FusionSensors)
+	{
+		if (!IsValid(Sensor)) continue;
+		Sensor->SetSensorLocation(EyeLocation);
+		Sensor->SetSensorRotation(EyeRotation);
+	}
 	// TODO: check this with a player pawn
 	// if (CompLocation != EyeLocation || CompRotation != EyeRotation)
 	// {
