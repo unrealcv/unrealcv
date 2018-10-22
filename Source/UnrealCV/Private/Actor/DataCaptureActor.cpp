@@ -386,6 +386,7 @@ void ADataCaptureActor::CaptureImageFromSensor(FString SensorName, UFusionCamSen
 		"Rotation", 
 		"FilmWidth", 
 		"FilmHeight",
+		"Fov",
 		// "IntrinsicMatrix"
 		};
 	// Save camera information
@@ -397,6 +398,7 @@ void ADataCaptureActor::CaptureImageFromSensor(FString SensorName, UFusionCamSen
 		FJsonObjectBP(Sensor->GetSensorRotation()),
 		FJsonObjectBP(Sensor->GetFilmWidth()),
 		FJsonObjectBP(Sensor->GetFilmHeight()),
+		FJsonObjectBP(Sensor->GetSensorFOV()),
 		// FJsonObjectBP(Matrix)
 	};
 
