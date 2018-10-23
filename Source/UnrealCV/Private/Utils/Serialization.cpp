@@ -131,3 +131,18 @@ TArray<uint8> FSerializationUtils::Image2Exr(const TArray<FFloat16Color>& FloatI
 	const TArray<uint8>& ExrData = ImageWrapper->GetCompressed();
 	return ExrData;
 }
+
+
+/** Convert a list of vertex to the obj format, useful for point cloud */
+FString FSerializationUtils::VertexList2Obj(const TArray<FVector>& VertexList)
+{
+	// No face, just a list of vertex
+	FString Content = "";
+
+	for (FVector Vertex : VertexList)
+	{
+		Content += FString::Printf(TEXT("v %.4f %.4f %.4f\n"), Vertex.X, Vertex.Y, Vertex.Z);
+	}
+
+	return Content;
+}

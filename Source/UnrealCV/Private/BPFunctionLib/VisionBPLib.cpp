@@ -16,6 +16,8 @@
 #include "UnrealcvLog.h"
 #include "Controller/UnrealcvWorldController.h"
 
+// TODO: Move features outside blueprint function library.
+
 // FString UVisionBPLib::SerializeBoneInfo(USkeletalMeshComponent* Component)
 // {
 // 	FString Data;
