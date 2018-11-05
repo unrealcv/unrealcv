@@ -42,7 +42,7 @@ ADataCaptureActor::ADataCaptureActor()
 	bCapturePuppeteer = true;
 
 	CaptureInterval = 1.0f;
-	SimDuration = 3600.0f; // One hour
+	SimDuration = -1.0f; // Disable simulation duration 
 	ImageIdType = EImageId::GameFrameId;
 	TimeDilation = 1.0f;
 	ImageIdType = EImageId::RecordedFrameId;
