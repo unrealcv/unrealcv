@@ -16,4 +16,7 @@ public:
 	void CaptureDepth(TArray<float>& DepthData, int& Width, int& Height);
 
 	virtual void InitTextureTarget(int FilmWidth, int FilmHeight) override;
+
+	UPROPERTY(EditInstanceOnly)
+	bool bIgnoreTransparentObjects;
 };

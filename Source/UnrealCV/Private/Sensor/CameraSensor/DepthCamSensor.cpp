@@ -1,12 +1,13 @@
 // Weichao Qiu @ 2017
 #include "DepthCamSensor.h"
+#include "AnnotationCamSensor.h"
 
 UDepthCamSensor::UDepthCamSensor(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer)
 {
 	// this->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 	this->CaptureSource = ESceneCaptureSource::SCS_SceneDepth;
-
+	bIgnoreTransparentObjects = false;
 }
 
 void UDepthCamSensor::InitTextureTarget(int FilmWidth, int FilmHeight)
@@ -18,6 +19,15 @@ void UDepthCamSensor::InitTextureTarget(int FilmWidth, int FilmHeight)
 
 void UDepthCamSensor::CaptureDepth(TArray<float>& DepthData, int& Width, int& Height)
 {
+	if (!bIgnoreTransparentObjects)
+	{
+		TArray<TWeakObjectPtr<UPrimitiveComponent> > ComponentList;
+		UAnnotationCamSensor::GetAnnotationComponents(this->GetWorld(), ComponentList);
+		this->ShowOnlyComponents = ComponentList;
+		this->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
+		this->ShowFlags.SetMaterials(false); // This will make annotation component visible
+	}
+
 	if (!CheckTextureTarget()) return;
 	this->CaptureScene();
 	Width = this->TextureTarget->SizeX, Height = TextureTarget->SizeY;
