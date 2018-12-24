@@ -16,6 +16,15 @@ IMPLEMENT_MODULE(FUnrealCVPlugin, UnrealCV)
 
 void FUnrealCVPlugin::StartupModule()
 {
+	FString Commandline = FCommandLine::Get();
+	if (IsRunningDedicatedServer() ||
+		Commandline.Contains(TEXT("cookcommandlet")) ||
+		Commandline.Contains(TEXT("run=cook")))
+	{
+		// Do no start unrealcv module if running in the commandlet mode.
+		return;
+	}
+
 	FUnrealcvServer &Server = FUnrealcvServer::Get();
 	Server.RegisterCommandHandlers();
 
