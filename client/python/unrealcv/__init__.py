@@ -40,7 +40,7 @@ class SocketMessage(object):
         Return only payload, not the raw message, None if failed.
         sock: a blocking socket for read data.
         '''
-        print(sock.gettimeout())
+        # print(sock.gettimeout())
         # rbufsize = -1 # From SocketServer.py
         # rbufsize = 0
         # rfile = sock.makefile('rb', rbufsize)
@@ -275,8 +275,6 @@ class Client(object):
         # Timeout is required
         # see: https://bugs.python.org/issue8844
         self.message_id += 1 # Increment it only after the request/response cycle finished
-
-        _L.error('Can not receive a response from server, timeout after %.2f seconds', timeout)
 
         return message
 
