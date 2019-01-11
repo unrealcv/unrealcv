@@ -82,8 +82,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	static void GetAnnotationColor(AActor* Actor, FColor& AnnotationColor);
 
+	/**
 	UFUNCTION(BlueprintCallable, Category = "unrealcv")
 	static void AnnotateWorld();
+	*/
 
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	static TArray<FVector> SkinnedMeshComponentGetVertexArray(USkinnedMeshComponent* Component);

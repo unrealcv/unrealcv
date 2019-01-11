@@ -6,12 +6,6 @@
 
 #include "AnnotationComponent.generated.h"
 
-enum class EParentMeshType
-{
-	None,
-	StaticMesh,
-	SkelMesh,
-};
 
 // TODO: Might need to annotate every frame if there are new actors got spawned
 /** A proxy component class to render annotation color
@@ -44,7 +38,7 @@ public:
 
 private:
 	// FParentMeshInfo ParentMeshInfo;
-	TSharedPtr<class FParentMeshInfo> ParentMeshInfo;
+	// TSharedPtr<class FParentMeshInfo> ParentMeshInfo;
 
 	UPROPERTY()
 	UMaterial* AnnotationMaterial;
@@ -53,4 +47,7 @@ private:
 	UMaterialInstanceDynamic* AnnotationMID;
 
 	FColor AnnotationColor;
+
+	FPrimitiveSceneProxy* CreateSceneProxy(UStaticMeshComponent* StaticMeshComponent);
+	FPrimitiveSceneProxy* CreateSceneProxy(USkeletalMeshComponent* SkeletalMeshComponent);
 };

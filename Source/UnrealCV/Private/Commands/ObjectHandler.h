@@ -50,4 +50,10 @@ private:
 	FExecStatus GetObjectMobility(const TArray<FString>& Args);
 
 	FExecStatus GetObjectVertexLocation(const TArray<FString>& Args);
+
+	FExecStatus SpawnBox(const TArray<FString>& Args);
+
+	FExecStatus DestroyObject(const TArray<FString>& Args);
+
+	FExecStatus GetUClassName(const TArray<FString>& Args);
 };

@@ -113,6 +113,10 @@ void FObjectAnnotator::GetAnnotableActors(UWorld* World, TArray<AActor*>& ActorA
 	}
 }
 
+/**
+ * Debug tips:
+ * AnnotationComponent->AnnotationColor = FColor::MakeRandomColor();
+ */
 void FObjectAnnotator::CreateAnnotationComponent(AActor* Actor, const FColor& AnnotationColor)
 {
 	// Two special type of actors
@@ -139,10 +143,10 @@ void FObjectAnnotator::CreateAnnotationComponent(AActor* Actor, const FColor& An
 
 		UAnnotationComponent* AnnotationComponent = NewObject<UAnnotationComponent>(MeshComponent);
 		// UE_LOG(LogTemp, Log, TEXT("Annotate %s with color %s"), *MeshComponent->GetName(), *AnnotationColor.ToString());
-		AnnotationComponent->SetAnnotationColor(AnnotationColor);
-		// AnnotationComponent->AnnotationColor = FColor::MakeRandomColor(); // Debug
 		AnnotationComponent->SetupAttachment(MeshComponent);
 		AnnotationComponent->RegisterComponent();
+		// Set annotation color after the component is registered
+		AnnotationComponent->SetAnnotationColor(AnnotationColor); 
 		AnnotationComponent->MarkRenderStateDirty();
 	}
 }
@@ -178,6 +182,8 @@ FColor FObjectAnnotator::GetDefaultColor(AActor* Actor)
 	return AnnotationColor;
 }
 
+
+/**
 void FObjectAnnotator::AnnotateMeshComponents(UWorld* World)
 {
 	if (!IsValid(World))
@@ -239,6 +245,7 @@ void FObjectAnnotator::AnnotateMeshComponents(UWorld* World)
 		// AnnotationComponent->AnnotationColor = FColor::MakeRandomColor(); // Debug
 	}
 }
+*/
 
 /** Utility function to generate color map */
 int32 FColorGenerator::GetChannelValue(uint32 Index)

@@ -54,7 +54,6 @@ void AUnrealcvWorldController::InitWorld()
 
 
 	ObjectAnnotator.AnnotateWorld(GetWorld());
-	// ObjectAnnotator.AnnotateMeshComponents(GetWorld());
 
 	FEngineShowFlags ShowFlags = GetWorld()->GetGameViewport()->EngineShowFlags;
 	this->PlayerViewMode->SaveGameDefault(ShowFlags);
@@ -91,4 +90,10 @@ void AUnrealcvWorldController::OpenLevel(FName LevelName)
 	UGameplayStatics::OpenLevel(World, LevelName);
 	UGameplayStatics::FlushLevelStreaming(World);
 	UE_LOG(LogUnrealCV, Warning, TEXT("Level loaded"));
+}
+
+
+void AUnrealcvWorldController::Tick(float DeltaTime)
+{
+
 }

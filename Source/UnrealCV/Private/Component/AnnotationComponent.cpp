@@ -14,6 +14,16 @@
 // Note: check https://github.com/unrealcv/unrealcv/blob/1369a72be8428547318d8a52ae2d63e1eb57a001/Source/UnrealCV/Private/Component/AnnotationComponent.cpp#L11
 
 /** Store mesh data of a parent mesh component */
+
+/*
+enum class EParentMeshType
+{
+	None,
+	StaticMesh,
+	SkelMesh,
+};
+*/
+/*
 class FParentMeshInfo
 {
 public:
@@ -95,6 +105,7 @@ private:
 	TWeakObjectPtr<USkeletalMeshComponent> SkelMeshComponent;
 	EParentMeshType ParentMeshType;
 };
+*/
 
 /** A proxy class to get mesh data from StaticMesh, should be used together with AnnotationCamSensor.
 Inheritance is needed because I need to access protected data
@@ -226,15 +237,17 @@ FPrimitiveViewRelevance FSkeletalAnnotationSceneProxy::GetViewRelevance(const FS
 	}
 }
 
+// FString MeterialPath = TEXT("MaterialInstanceConstant'/UnrealCV/AnnotationColor_Inst.AnnotationColor_Inst'");
+// static ConstructorHelpers::FObjectFinder<UMaterialInstanceDynamic> AnnotationMaterialObject(*MaterialPath);
 UAnnotationComponent::UAnnotationComponent(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer), ParentMeshInfo(nullptr)
+	: Super(ObjectInitializer)
+	  // , ParentMeshInfo(nullptr)
 {
 	FString MaterialPath = TEXT("Material'/UnrealCV/AnnotationColor.AnnotationColor'");
-	// FString MeterialPath = TEXT("MaterialInstanceConstant'/UnrealCV/AnnotationColor_Inst.AnnotationColor_Inst'");
-	// static ConstructorHelpers::FObjectFinder<UMaterialInstanceDynamic> AnnotationMaterialObject(*MaterialPath);
 	static ConstructorHelpers::FObjectFinder<UMaterial> AnnotationMaterialObject(*MaterialPath);
 	AnnotationMaterial = AnnotationMaterialObject.Object;
-	ParentMeshInfo = MakeShareable(new FParentMeshInfo(nullptr)); // This will be invalid until attached to a MeshComponent
+	// ParentMeshInfo = MakeShareable(new FParentMeshInfo(nullptr)); 
+	// This will be invalid until attached to a MeshComponent
 
 	this->PrimaryComponentTick.bCanEverTick = true;
 }
@@ -250,11 +263,23 @@ void UAnnotationComponent::OnRegister()
 		UE_LOG(LogUnrealCV, Warning, TEXT("AnnotationMaterial is not correctly initialized"));
 		return;
 	}
+	const float OneOver255 = 1.0f / 255.0f;
+	FLinearColor LinearAnnotationColor = FLinearColor(
+		this->AnnotationColor.R * OneOver255,
+		this->AnnotationColor.G * OneOver255,
+		this->AnnotationColor.B * OneOver255,
+		1.0
+	);
+	AnnotationMID->SetVectorParameterValue("AnnotationColor", LinearAnnotationColor);
 
-	SetAnnotationColor(this->AnnotationColor);
-	ParentMeshInfo = MakeShareable(new FParentMeshInfo(this->GetAttachParent()));
+	// SetAnnotationColor(this->AnnotationColor);
+	// ParentMeshInfo = MakeShareable(new FParentMeshInfo(this->GetAttachParent()));
 }
 
+/** 
+ * Note: The "exposure compensation" in "PostProcessVolume3" in the RR map will destroy the color
+ * Saturate the color to 1. This is a mysterious behavior after tedious debug.
+ */
 void UAnnotationComponent::SetAnnotationColor(FColor NewAnnotationColor)
 {
 	this->AnnotationColor = NewAnnotationColor;
@@ -269,8 +294,6 @@ void UAnnotationComponent::SetAnnotationColor(FColor NewAnnotationColor)
 	if (IsValid(AnnotationMID))
 	{
 		AnnotationMID->SetVectorParameterValue("AnnotationColor", LinearAnnotationColor);
-		// Note: The "exposure compensation" in "PostProcessVolume3" in the RR map will destroy the color
-		// Note: Saturate the color to 1. This is a mysterious behavior after tedious debug.
 	}
 }
 
@@ -279,6 +302,58 @@ FColor UAnnotationComponent::GetAnnotationColor()
 	return AnnotationColor;
 }
 
+FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy(UStaticMeshComponent* StaticMeshComponent)
+{
+	// FPrimitiveSceneProxy* PrimitiveSceneProxy = StaticMeshComponent->CreateSceneProxy();
+	// FStaticMeshSceneProxy* StaticMeshSceneProxy = (FStaticMeshSceneProxy*)PrimitiveSceneProxy;
+
+	UMaterialInterface* ProxyMaterial = AnnotationMID; // Material Instance Dynamic
+	UStaticMesh* ParentStaticMesh = StaticMeshComponent->GetStaticMesh();
+	if(ParentStaticMesh == NULL
+		|| ParentStaticMesh->RenderData == NULL
+		|| ParentStaticMesh->RenderData->LODResources.Num() == 0)
+		// || StaticMesh->RenderData->LODResources[0].VertexBuffer.GetNumVertices() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ParentStaticMesh is invalid."));
+		return NULL;
+	}
+
+	// FPrimitiveSceneProxy* Proxy = ::new FStaticMeshSceneProxy(OwnerComponent, false);
+	FPrimitiveSceneProxy* Proxy = ::new FStaticAnnotationSceneProxy(StaticMeshComponent, false, ProxyMaterial);
+	return Proxy;
+	// This is not recommended, but I know what I am doing.
+}
+
+FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy(USkeletalMeshComponent* SkeletalMeshComponent)
+{
+	UMaterialInterface* ProxyMaterial = AnnotationMID; // Material Instance Dynamic
+	ERHIFeatureLevel::Type SceneFeatureLevel = GetWorld()->FeatureLevel;
+
+	// Ref: https://github.com/EpicGames/UnrealEngine/blob/4.19/Engine/Source/Runtime/Engine/Private/Components/SkinnedMeshComponent.cpp#L415
+	FSkeletalMeshRenderData* SkelMeshRenderData = SkeletalMeshComponent->GetSkeletalMeshRenderData();
+
+	// Only create a scene proxy for rendering if properly initialized
+	if (SkelMeshRenderData &&
+		SkelMeshRenderData->LODRenderData.IsValidIndex(SkeletalMeshComponent->PredictedLODLevel) &&
+		SkeletalMeshComponent->MeshObject) // The risk of using MeshObject
+	{
+		// Only create a scene proxy if the bone count being used is supported, or if we don't have a skeleton (this is the case with destructibles)
+		// int32 MaxBonesPerChunk = SkelMeshResource->GetMaxBonesPerSection();
+		// if (MaxBonesPerChunk <= GetFeatureLevelMaxNumberOfBones(SceneFeatureLevel))
+		// {
+		//	Result = ::new FSkeletalAnnotationSceneProxy(SkeletalMeshComponent, SkelMeshResource, AnnotationMID);
+		// }
+		// TODO: The SkeletalMeshComponent might need to be recreated
+		return new FSkeletalAnnotationSceneProxy(SkeletalMeshComponent, SkelMeshRenderData, ProxyMaterial);
+	}
+	else
+	{
+		LOG1(FString::Printf(TEXT("The data of SkeletalMeshComponent %s is invalid."), *SkeletalMeshComponent->GetName()));
+		return nullptr;
+	}
+}
+
+
 // TODO: This needs to be involked when the ParentComponent refresh its render state, otherwise it will crash the engine
 FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy()
 {
@@ -286,9 +361,8 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy()
 	// FColor AnnotationColor = FColor::MakeRandomColor();
 	// AnnotationMID->SetVectorParameterByIndex(0, AnnotationColor);
 
-
-	// USceneComponent* Parent = this->GetAttachParent();
-	USceneComponent* ParentComponent = this->ParentMeshInfo->GetParentMeshComponent();
+	USceneComponent* ParentComponent = this->GetAttachParent();
+	// USceneComponent* ParentComponent = this->ParentMeshInfo->GetParentMeshComponent();
 
 	if (!IsValid(ParentComponent))
 	{
@@ -296,60 +370,20 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy()
 		return nullptr;
 	}
 
-	UMaterialInterface* ProxyMaterial = AnnotationMID; // Material Instance Dynamic
 
 	UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(ParentComponent);
 	USkeletalMeshComponent* SkeletalMeshComponent = Cast<USkeletalMeshComponent>(ParentComponent);
 	if (IsValid(StaticMeshComponent))
 	{
-		// FPrimitiveSceneProxy* PrimitiveSceneProxy = StaticMeshComponent->CreateSceneProxy();
-		// FStaticMeshSceneProxy* StaticMeshSceneProxy = (FStaticMeshSceneProxy*)PrimitiveSceneProxy;
-
-		UStaticMesh* ParentStaticMesh = StaticMeshComponent->GetStaticMesh();
-		if(ParentStaticMesh == NULL
-			|| ParentStaticMesh->RenderData == NULL
-			|| ParentStaticMesh->RenderData->LODResources.Num() == 0)
-			// || StaticMesh->RenderData->LODResources[0].VertexBuffer.GetNumVertices() == 0)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("ParentStaticMesh is invalid."));
-			return NULL;
-		}
-
-		// FPrimitiveSceneProxy* Proxy = ::new FStaticMeshSceneProxy(OwnerComponent, false);
-		FPrimitiveSceneProxy* Proxy = ::new FStaticAnnotationSceneProxy(StaticMeshComponent, false, ProxyMaterial);
-		return Proxy;
-		// This is not recommended, but I know what I am doing.
+		return CreateSceneProxy(StaticMeshComponent);
 	}
 	else if (IsValid(SkeletalMeshComponent))
 	{
-		ERHIFeatureLevel::Type SceneFeatureLevel = GetWorld()->FeatureLevel;
-
-		// Ref: https://github.com/EpicGames/UnrealEngine/blob/4.19/Engine/Source/Runtime/Engine/Private/Components/SkinnedMeshComponent.cpp#L415
-		FSkeletalMeshRenderData* SkelMeshRenderData = SkeletalMeshComponent->GetSkeletalMeshRenderData();
-
-		// Only create a scene proxy for rendering if properly initialized
-		if (SkelMeshRenderData &&
-			SkelMeshRenderData->LODRenderData.IsValidIndex(SkeletalMeshComponent->PredictedLODLevel) &&
-			SkeletalMeshComponent->MeshObject) // The risk of using MeshObject
-		{
-			// Only create a scene proxy if the bone count being used is supported, or if we don't have a skeleton (this is the case with destructibles)
-			// int32 MaxBonesPerChunk = SkelMeshResource->GetMaxBonesPerSection();
-			// if (MaxBonesPerChunk <= GetFeatureLevelMaxNumberOfBones(SceneFeatureLevel))
-			// {
-			//	Result = ::new FSkeletalAnnotationSceneProxy(SkeletalMeshComponent, SkelMeshResource, AnnotationMID);
-			// }
-			// TODO: The SkeletalMeshComponent might need to be recreated
-			return new FSkeletalAnnotationSceneProxy(SkeletalMeshComponent, SkelMeshRenderData, ProxyMaterial);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("The data of SkeletalMeshComponent is invalid."), *ParentComponent->GetClass()->GetName());
-			return nullptr;
-		}
+		return CreateSceneProxy(SkeletalMeshComponent);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("The type of ParentMeshComponent : %s can not be supported."), *ParentComponent->GetClass()->GetName());
+		LOG1(FString::Printf(TEXT("The type of ParentMeshComponent : %s can not be supported."), *ParentComponent->GetClass()->GetName()));
 		return nullptr;
 	}
 	return nullptr;
@@ -393,12 +427,14 @@ void UAnnotationComponent::TickComponent(
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction); 
 
+	// MarkRenderStateDirty(); Without it will break the SkeletalMeshComponent
+	/*
 	// if (ParentMeshInfo->RequiresUpdate()) 
 	// TODO: This sometimes miss a required update, see OWIMap. Not sure why.
 	// TODO: Per-frame update is certainly wasted.
 	{
 		// FIXME: Update the render proxy per frame will cause jittering on the material.
 		ParentMeshInfo = MakeShareable(new FParentMeshInfo(this->GetAttachParent()));
-		MarkRenderStateDirty();
 	}
+	*/
 }

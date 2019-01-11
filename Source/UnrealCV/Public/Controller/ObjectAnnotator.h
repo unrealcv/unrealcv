@@ -30,7 +30,7 @@ public:
 	void AnnotateWorld(UWorld* World);
 
 	/** Annotate all MeshComponents in the world */
-	void AnnotateMeshComponents(UWorld* World);
+	// void AnnotateMeshComponents(UWorld* World);
 
 	// Annotate actor
 	void SetAnnotationColor(AActor* Actor, const FColor& AnnotationColor);

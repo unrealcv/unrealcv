@@ -22,6 +22,7 @@ public class UnrealcvBuildConfig
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				"UnrealCV/Private",
+				"UnrealCV/Private/Actor",
 			}
 		);
 

@@ -241,6 +241,7 @@ void UVisionBPLib::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor)
 	}
 }
 
+/*
 void UVisionBPLib::AnnotateWorld()
 {
 	AUnrealcvWorldController* WorldController = FUnrealcvServer::Get().WorldController.Get();
@@ -249,6 +250,7 @@ void UVisionBPLib::AnnotateWorld()
 		WorldController->ObjectAnnotator.AnnotateWorld(FUnrealcvServer::Get().GetGameWorld());
 	}
 }
+*/
 
 TArray<FVector> UVisionBPLib::SkinnedMeshComponentGetVertexArray(USkinnedMeshComponent* Component)
 {

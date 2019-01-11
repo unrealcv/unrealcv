@@ -1,10 +1,14 @@
 // Weichao Qiu @ 2017
 #include "ObjectHandler.h"
+
+#include "Runtime/Engine/Classes/Engine/World.h"
+
 #include "Controller/ActorController.h"
 #include "VertexSensor.h"
 #include "Utils/StrFormatter.h"
 #include "Utils/UObjectUtils.h"
 #include "VisionBPLib.h"
+#include "CubeActor.h"
 
 void FObjectHandler::RegisterCommands()
 {
@@ -12,6 +16,18 @@ void FObjectHandler::RegisterCommands()
 		"vget /objects",
 		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::GetObjectList),
 		"Get the name of all objects"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vset /objects/spawn_cube",
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SpawnBox),
+		"Spawn a box in the scene for debugging purpose."
+	);
+
+	CommandDispatcher->BindCommand(
+		"vset /objects/spawn_cube [str]",
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SpawnBox),
+		"Spawn a box in the scene for debugging purpose, with optional argument name."
 	);
 
 	CommandDispatcher->BindCommand(
@@ -72,6 +88,18 @@ void FObjectHandler::RegisterCommands()
 		"vset /object/[str]/hide",
 		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SetHideObject),
 		"Hide object"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vset /object/[str]/destroy",
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::DestroyObject),
+		"Destroy object"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vget /object/[str]/uclass_name",
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::GetUClassName),
+		"Get the UClass name for filtering objects"
 	);
 }
 
@@ -234,4 +262,33 @@ FExecStatus FObjectHandler::GetObjectVertexLocation(const TArray<FString>& Args)
 	}
 
 	return FExecStatus::OK(Str);
+}
+
+/** A debug utility function to create StaticBox through python API */
+FExecStatus FObjectHandler::SpawnBox(const TArray<FString>& Args)
+{
+	FString ObjectName;
+	if (Args.Num() == 1) { ObjectName = Args[0]; }
+
+	AActor* Actor = GWorld->SpawnActor(ACubeActor::StaticClass());
+
+	return FExecStatus::OK();
+}
+
+FExecStatus FObjectHandler::DestroyObject(const TArray<FString>& Args)
+{
+	AActor* Actor = GetActor(Args);
+	if (!Actor) return FExecStatus::Error("Can not find object");
+
+	Actor->Destroy();
+	return FExecStatus::OK();
+}
+
+FExecStatus FObjectHandler::GetUClassName(const TArray<FString>& Args)
+{
+	AActor* Actor = GetActor(Args);
+	if (!Actor) return FExecStatus::Error("Can not find object");
+
+	FString UClassName = Actor->StaticClass()->GetName();
+	return FExecStatus::OK(UClassName);
 }

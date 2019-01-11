@@ -30,4 +30,6 @@ public:
 	void InitWorld();
 
 	void AttachPawnSensor();
+
+	void Tick(float DeltaTime);
 };

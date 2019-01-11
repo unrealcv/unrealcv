@@ -13,6 +13,7 @@
 #include "Controller/UnrealcvWorldController.h"
 #include "ImageUtil.h"
 #include "SensorBPLib.h"
+#include "FusionCameraActor.h"
 
 UFusionCamSensor* FCameraHandler::GetCamera(const TArray<FString>& Args, FExecStatus& Status)
 {
@@ -411,6 +412,12 @@ FExecStatus FCameraHandler::SetFOV(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
+FExecStatus FCameraHandler::SpawnCamera(const TArray<FString>& Args)
+{
+	AActor* Actor = GWorld->SpawnActor(AFusionCameraActor::StaticClass());
+	return FExecStatus::OK();
+}
+
 
 void FCameraHandler::RegisterCommands()
 {
@@ -419,11 +426,15 @@ void FCameraHandler::RegisterCommands()
 		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetScreenshot),
 		"Get screenshot");
 
-	 CommandDispatcher->BindCommand(
+	CommandDispatcher->BindCommand(
 		"vget /cameras",
 		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraList),
 		"List all sensors in the scene");
 
+	CommandDispatcher->BindCommand(
+		"vset /cameras/spawn",
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SpawnCamera),
+		"Spawn a new camera actor in the scene");
 
 	CommandDispatcher->BindCommand(
 		"vget /camera/[uint]/location",
@@ -478,6 +489,10 @@ void FCameraHandler::RegisterCommands()
 		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraObjMask),
 		"Get npy binary data from depth sensor");
 
+	CommandDispatcher->BindCommand(
+		"vget /camera/[uint]/seg [str]",
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraObjMask),
+		"Get npy binary data from depth sensor");
 
 	CommandDispatcher->BindCommand(
 		"vset /viewmode [str]",
