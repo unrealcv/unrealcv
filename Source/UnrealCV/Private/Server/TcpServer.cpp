@@ -98,9 +98,10 @@ bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize, bool* 
 
 		const TCHAR* LastErrorMsg = ISocketSubsystem::Get()->GetSocketError(LastError);
 		UE_LOG(LogUnrealCV, Error, TEXT("Unexpected error of socket happend, error %s"), LastErrorMsg);
-	if (unknown_error != nullptr) {
-	  *unknown_error = true;
-	}
+
+		if (unknown_error != nullptr) {
+			*unknown_error = true;
+		}
 		return false;
 	}
 	return true;
