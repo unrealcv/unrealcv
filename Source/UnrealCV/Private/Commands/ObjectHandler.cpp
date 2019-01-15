@@ -292,7 +292,8 @@ FExecStatus FObjectHandler::SpawnBox(const TArray<FString>& Args)
 	FString ObjectName;
 	if (Args.Num() == 1) { ObjectName = Args[0]; }
 
-	AActor* Actor = GWorld->SpawnActor(ACubeActor::StaticClass());
+	UWorld* GameWorld = FUnrealcvServer::Get().GetGameWorld();
+	AActor* Actor = GameWorld->SpawnActor(ACubeActor::StaticClass());
 
 	return FExecStatus::OK();
 }
@@ -308,7 +309,9 @@ FExecStatus FObjectHandler::Spawn(const TArray<FString>& Args)
 	{
 		return FExecStatus::Error(FString::Printf(TEXT("Can not find a class with name '%s'"), *UClassName));
 	}
-	AActor* Actor = GWorld->SpawnActor(Class);
+
+	UWorld* GameWorld = FUnrealcvServer::Get().GetGameWorld();
+	AActor* Actor = GameWorld->SpawnActor(Class);
 	if (IsValid(Actor))
 	{
 		return FExecStatus::OK(Actor->GetName());
