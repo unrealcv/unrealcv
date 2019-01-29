@@ -1,6 +1,9 @@
 #include "Runtime/Core/Public/Misc/CommandLine.h"
 #include "Runtime/Core/Public/Misc/Parse.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
+#include "Runtime/Core/Public/Modules/ModuleInterface.h"
+#include "Modules/ModuleManager.h"
+
 #include "UnrealcvServer.h"
 #include "UnrealcvLog.h"
 

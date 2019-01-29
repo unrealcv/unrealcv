@@ -3,6 +3,7 @@
 #include "Runtime/ShaderCore/Public/StaticBoundShaderState.h"
 #include "Runtime/ShaderCore/Public/GlobalShader.h"
 #include "Runtime/Engine/Public/ScreenRendering.h"
+#include "Runtime/Core/Public/Modules/ModuleManager.h"
 
 #include "UnrealcvStats.h"
 #include "UnrealcvLog.h"

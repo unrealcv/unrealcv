@@ -2,6 +2,7 @@
 #include "Runtime/Engine/Public/EngineUtils.h"
 #include "Runtime/Engine/Classes/Engine/LevelScriptActor.h"
 #include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
+#include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
 #include "Runtime/Core/Public/UObject/PropertyPortFlags.h"
 #include "Utils/UObjectUtils.h"
 #include "SerializeBPLib.h"
