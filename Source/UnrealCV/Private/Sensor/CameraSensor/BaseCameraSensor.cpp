@@ -24,6 +24,11 @@ UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer
 	bCaptureOnMovement = false;
 	CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 	bAlwaysPersistRenderingState = true; 
+
+	FServerConfig& Config = FUnrealcvServer::Get().Config;
+	FilmWidth = Config.Width == 0 ? 640 : Config.Width;
+	FilmHeight = Config.Height == 0 ? 480 : Config.Height;
+	FOVAngle = Config.FOV == 0 ? 90 : Config.FOV; 
 	// Avoid calling virtual function in a constructor
 }
 
@@ -42,11 +47,14 @@ void UBaseCameraSensor::InitTextureTarget(int FilmWidth, int FilmHeight)
 	// bool bUseLinearGamma = false;
 	EPixelFormat PixelFormat = EPixelFormat::PF_B8G8R8A8;
 	bool bUseLinearGamma = false;
+	TextureTarget = NewObject<UTextureRenderTarget2D>(this); 
 	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, PixelFormat, bUseLinearGamma);
 }
 
 void UBaseCameraSensor::SetFilmSize(int Width, int Height)
 {
+	this->FilmWidth = Width;
+	this->FilmHeight = Height;
 	if (!IsValid(TextureTarget))
 	{
 		TextureTarget = NewObject<UTextureRenderTarget2D>(this); 

@@ -40,6 +40,10 @@ void FAliasHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
 
 	CommandDispatcher->BindCommand("vget /persistent_level/id",
 		FDispatcherDelegate::CreateRaw(this, &FAliasHandler::GetPersistentLevelId),

@@ -71,4 +71,8 @@ public:
 protected:
 	/** Check whether the TextureTarget is correctly initialized */
 	bool CheckTextureTarget();
+
+	int FilmWidth;
+
+	int FilmHeight;
 };
