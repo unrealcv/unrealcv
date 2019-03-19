@@ -52,6 +52,8 @@ private:
 
 	FExecStatus GetComponents(const TArray<FString>& Args);
 
+	FExecStatus SetName(const TArray<FString>& Args);
+
 #if WITH_EDITOR
 	FExecStatus SetActorLabel(const TArray<FString>& Args);
 

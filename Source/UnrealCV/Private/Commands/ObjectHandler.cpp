@@ -110,6 +110,12 @@ void FObjectHandler::RegisterCommands()
 		"Get the UClass name for filtering objects"
 	);
 
+	CommandDispatcher->BindCommand(
+		"vset /object/[str]/name [str]",
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SetName),
+		"Set the name of the object"
+	);
+
 #if WITH_EDITOR
 	CommandDispatcher->BindCommand(
 		"vget /object/[str]/label",
@@ -128,7 +134,7 @@ void FObjectHandler::RegisterCommands()
 AActor* GetActor(const TArray<FString>& Args)
 {
 	FString ActorId = Args[0];
-	AActor* Actor = GetActorById(FUnrealcvServer::Get().GetGameWorld(), ActorId);
+	AActor* Actor = GetActorById(FUnrealcvServer::Get().GetWorld(), ActorId);
 	return Actor;
 }
 
@@ -292,7 +298,7 @@ FExecStatus FObjectHandler::SpawnBox(const TArray<FString>& Args)
 	FString ObjectName;
 	if (Args.Num() == 1) { ObjectName = Args[0]; }
 
-	UWorld* GameWorld = FUnrealcvServer::Get().GetGameWorld();
+	UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
 	AActor* Actor = GameWorld->SpawnActor(ACubeActor::StaticClass());
 
 	return FExecStatus::OK();
@@ -310,7 +316,7 @@ FExecStatus FObjectHandler::Spawn(const TArray<FString>& Args)
 		return FExecStatus::Error(FString::Printf(TEXT("Can not find a class with name '%s'"), *UClassName));
 	}
 
-	UWorld* GameWorld = FUnrealcvServer::Get().GetGameWorld();
+	UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
 	AActor* Actor = GameWorld->SpawnActor(Class);
 	if (IsValid(Actor))
 	{
@@ -344,6 +350,21 @@ FExecStatus FObjectHandler::GetUClassName(const TArray<FString>& Args)
 FExecStatus FObjectHandler::GetComponents(const TArray<FString>& Args)
 {
 	return FExecStatus::OK();
+}
+
+FExecStatus FObjectHandler::SetName(const TArray<FString>& Args)
+{
+	if (Args.Num() != 2)
+	{
+		return FExecStatus::InvalidArgument;
+	}
+	AActor* Actor = GetActor(Args);
+	if (!Actor) return FExecStatus::Error("Can not find object");
+
+	FString NewName = Args[1];
+	Actor->Rename(*NewName);
+	return FExecStatus::OK();
+
 }
 
 #if WITH_EDITOR

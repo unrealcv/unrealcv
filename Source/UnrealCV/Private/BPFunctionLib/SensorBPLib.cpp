@@ -9,14 +9,19 @@ TArray<UFusionCamSensor*> USensorBPLib::GetFusionSensorList()
 {
 	TArray<UFusionCamSensor*> SensorList;
 
-	UWorld* World = FUnrealcvServer::Get().GetGameWorld();
+	UWorld* World = FUnrealcvServer::Get().GetWorld();
 	if (!World) return SensorList;
 
-	TArray<UActorComponent*> PawnComponents =  FUnrealcvServer::Get().GetPawn()->GetComponentsByClass(UFusionCamSensor::StaticClass());
-	// Make sure the one attached to the pawn is the first one.
-	for (UActorComponent* FusionCamSensor : PawnComponents)
+	APawn* Pawn = FUnrealcvServer::Get().GetPawn();
+
+	if (IsValid(Pawn))
 	{
-		SensorList.Add(Cast<UFusionCamSensor>(FusionCamSensor));
+		TArray<UActorComponent*> PawnComponents = FUnrealcvServer::Get().GetPawn()->GetComponentsByClass(UFusionCamSensor::StaticClass());
+		// Make sure the one attached to the pawn is the first one.
+		for (UActorComponent* FusionCamSensor : PawnComponents)
+		{
+			SensorList.Add(Cast<UFusionCamSensor>(FusionCamSensor));
+		}
 	}
 
 	TArray<UObject*> UObjectList;

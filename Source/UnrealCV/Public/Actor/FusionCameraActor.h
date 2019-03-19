@@ -2,7 +2,7 @@
 #pragma once
 
 #include "FusionCamSensor.h"
-#include "CamSensorActor.h"
+#include "Actor/CamSensorActor.h"
 #include "FusionCameraActor.generated.h"
 
 UCLASS()

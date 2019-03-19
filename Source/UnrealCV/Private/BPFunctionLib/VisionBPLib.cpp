@@ -227,7 +227,7 @@ void UVisionBPLib::GetActorList(TArray<AActor*>& ActorList)
 	for (UObject* ActorObject : UObjectList)
 	{
 		AActor* Actor = Cast<AActor>(ActorObject);
-		if (Actor->GetWorld() != FUnrealcvServer::Get().GetGameWorld()) continue;
+		if (Actor->GetWorld() != FUnrealcvServer::Get().GetWorld()) continue;
 		ActorList.AddUnique(Actor);
 	}
 }

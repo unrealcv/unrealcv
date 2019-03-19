@@ -91,6 +91,11 @@ FUnrealcvServer::~FUnrealcvServer()
 	// this->TcpServer->FinishDestroy(); // TODO: Check is this usage correct?
 }
 
+UWorld* FUnrealcvServer::GetWorld()
+{
+	return GWorld;
+}
+
 UWorld* FUnrealcvServer::GetGameWorld()
 {
 	UWorld* World = nullptr;

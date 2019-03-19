@@ -415,7 +415,7 @@ FExecStatus FCameraHandler::SetFOV(const TArray<FString>& Args)
 
 FExecStatus FCameraHandler::SpawnCamera(const TArray<FString>& Args)
 {
-	UWorld* GameWorld = FUnrealcvServer::Get().GetGameWorld();
+	UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
 	AActor* Actor = GameWorld->SpawnActor(AFusionCameraActor::StaticClass());
 	if (IsValid(Actor))
 	{

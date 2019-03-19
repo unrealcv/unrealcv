@@ -51,7 +51,12 @@ public:
 
 	virtual bool IsTickableWhenPaused() const
 	{
-		return bIsTicking; // Need to keep processing commands when game is paused
+		return true;
+	}
+
+	virtual bool IsTickableInEditor() const
+	{
+		return true;
 	}
 
 	virtual TStatId GetStatId() const
@@ -66,6 +71,8 @@ public:
 
 	/** Return the GameWorld of the editor or of the game */
 	UWorld* GetGameWorld();
+
+	UWorld* GetWorld();
 
 	/** Update input mode */
 	// void UpdateInput(bool Enable);
