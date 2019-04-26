@@ -90,8 +90,8 @@ FExecStatus FPluginHandler::GetSceneName(const TArray<FString>& Args)
 FExecStatus FPluginHandler::GetLevelName(const TArray<FString>& Args)
 {
 	FUnrealcvServer& Server = FUnrealcvServer::Get();
-	FString PrefixedMapName = Server.GetGameWorld()->GetMapName();	
-	FString Prefix = Server.GetGameWorld()->StreamingLevelsPrefix;
+	FString PrefixedMapName = Server.GetWorld()->GetMapName();	
+	FString Prefix = Server.GetWorld()->StreamingLevelsPrefix;
 	FString MapName = PrefixedMapName.Mid(Prefix.Len());
 	return FExecStatus::OK(MapName);
 }

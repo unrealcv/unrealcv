@@ -34,8 +34,8 @@ void AUnrealcvWorldController::AttachPawnSensor()
 	UPawnCamSensor* PawnCamSensor = NewObject<UPawnCamSensor>(Pawn, TEXT("PawnSensor")); // Make Pawn as the owner of the component
 	// UFusionCamSensor* FusionCamSensor = ConstructObject<UFusionCamSensor>(UFusionCamSensor::StaticClass(), Pawn);
 
-	UWorld *PawnWorld = Pawn->GetWorld(), *GameWorld = FUnrealcvServer::Get().GetGameWorld();
-	// check(Pawn->GetWorld() == FUnrealcvServer::GetGameWorld());
+	UWorld *PawnWorld = Pawn->GetWorld(), *GameWorld = FUnrealcvServer::Get().GetWorld();
+	// check(Pawn->GetWorld() == FUnrealcvServer::GetWorld());
 	check(PawnWorld == GameWorld);
 	PawnCamSensor->AttachToComponent(Pawn->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	// AActor* OwnerActor = FusionCamSensor->GetOwner();

@@ -76,7 +76,7 @@ void FConsoleHelper::SetCommandDispatcher(TSharedPtr<FCommandDispatcher> InComma
 
 TSharedPtr<FConsoleOutputDevice> FConsoleHelper::GetConsole() // The ConsoleOutputDevice will depend on the external world, so we need to use a get function
 {
-	TSharedPtr<FConsoleOutputDevice> ConsoleOutputDevice(new FConsoleOutputDevice(FUnrealcvServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole));
+	TSharedPtr<FConsoleOutputDevice> ConsoleOutputDevice(new FConsoleOutputDevice(FUnrealcvServer::Get().GetWorld()->GetGameViewport()->ViewportConsole));
 	return ConsoleOutputDevice;
 }
 

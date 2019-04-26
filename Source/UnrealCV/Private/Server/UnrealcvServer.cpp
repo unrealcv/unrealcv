@@ -29,7 +29,15 @@ void FUnrealcvServer::InitWorldController()
 	{
 		UE_LOG(LogTemp, Display, TEXT("FUnrealcvServer::Tick Create WorldController"));
 		this->WorldController = Cast<AUnrealcvWorldController>(GameWorld->SpawnActor(AUnrealcvWorldController::StaticClass()));
-		this->WorldController->InitWorld();
+		// if (IsValid(this->WorldController))
+		if (this->WorldController != nullptr)
+		{
+			this->WorldController->InitWorld();
+		}
+		else
+		{
+			UE_LOG(LogUnrealCV, Error, TEXT("Failed to spawn WorldController"));
+		}
 		// Its BeginPlay event will extend the GameWorld
 	}
 }
@@ -37,7 +45,7 @@ void FUnrealcvServer::InitWorldController()
 /** Only available during game play */
 APawn* FUnrealcvServer::GetPawn()
 {
-	UWorld* World = GetGameWorld();
+	UWorld* World = GetWorld();
 	if (!IsValid(World))
 	{
 		return nullptr;
@@ -91,11 +99,50 @@ FUnrealcvServer::~FUnrealcvServer()
 	// this->TcpServer->FinishDestroy(); // TODO: Check is this usage correct?
 }
 
+// TODO: Write an article to explain this.
+/** Select and return and most suitable world for current condition
+ * GWorld returns the EditorWorld in the Editor, which is usually not what we need. 
+ */
 UWorld* FUnrealcvServer::GetWorld()
 {
-	return GWorld;
+	UWorld* WorldPtr = nullptr;
+#if WITH_EDITOR
+	UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+	if (IsValid(EditorEngine))
+	{
+		if (EditorEngine->GetPIEWorldContext() != nullptr)
+		{
+			WorldPtr = EditorEngine->GetPIEWorldContext()->World();
+		}
+		else
+		{
+			WorldPtr = EditorEngine->GetEditorWorldContext().World();
+		}
+	} // else game mode in editor
+#else
+	UGameEngine* GameEngine = Cast<UGameEngine>(GEngine);
+	if (IsValid(GameEngine))
+	{
+		WorldPtr = GameEngine->GetGameWorld(); // Not GetWorld !
+	}
+	else
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("GameEngine is invalid"));
+	}
+#endif
+
+	if (IsValid(WorldPtr))
+	{
+		return WorldPtr;
+	}
+	else
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("UWorld pointer is invalid: %p."), WorldPtr);
+		return nullptr;
+	}
 }
 
+/** Should be avoided */
 UWorld* FUnrealcvServer::GetGameWorld()
 {
 	UWorld* World = nullptr;
@@ -142,7 +189,7 @@ UWorld* FUnrealcvServer::GetGameWorld()
 /* TODO: Make sure the BeginPlay or UnrealcvWorldController did exactlly the same thing
 bool FUnrealcvServer::InitWorld()
 {
-	UWorld *World = GetGameWorld();
+	UWorld *World = GetWorld();
 	if (World == nullptr)
 	{
 		return false;
@@ -174,7 +221,7 @@ bool FUnrealcvServer::InitWorld()
 
 // void FUnrealcvServer::UpdateInput(bool Enable)
 // {
-// 	APlayerController* PlayerController = GetGameWorld()->GetFirstPlayerController();
+// 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 // 	check(PlayerController);
 // 	if (Enable)
 // 	{
@@ -190,8 +237,8 @@ bool FUnrealcvServer::InitWorld()
 
 // void FUnrealcvServer::OpenLevel(FName LevelName)
 // {
-// 	UGameplayStatics::OpenLevel(GetGameWorld(), LevelName);
-// 	UGameplayStatics::FlushLevelStreaming(GetGameWorld());
+// 	UGameplayStatics::OpenLevel(GetWorld(), LevelName);
+// 	UGameplayStatics::FlushLevelStreaming(GetWorld());
 // 	UE_LOG(LogUnrealCV, Warning, TEXT("Level loaded"));
 // }
 

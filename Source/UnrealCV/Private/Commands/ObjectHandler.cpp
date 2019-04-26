@@ -5,6 +5,7 @@
 #include "Runtime/CoreUObject/Public/UObject/UObjectGlobals.h"
 #include "Runtime/CoreUObject/Public/UObject/Package.h"
 
+#include "UnrealcvServer.h"
 #include "Controller/ActorController.h"
 #include "VertexSensor.h"
 #include "Utils/StrFormatter.h"
@@ -362,9 +363,28 @@ FExecStatus FObjectHandler::SetName(const TArray<FString>& Args)
 	if (!Actor) return FExecStatus::Error("Can not find object");
 
 	FString NewName = Args[1];
-	Actor->Rename(*NewName);
-	return FExecStatus::OK();
+	// Check whether the object name already exists, otherwise it will crash in 
+	// File:/home/qiuwch/UnrealEngine/Engine/Source/Runtime/CoreUObject/Private/UObject/Obj.cpp] [Line: 198]
 
+	UObject* NameScopeOuter = ANY_PACKAGE;
+	UObject* ExistingObject = StaticFindObject(/*Class=*/ NULL, NameScopeOuter, *NewName, true);
+	if (IsValid(ExistingObject))
+	{
+		if (ExistingObject == Actor)
+		{    
+			return FExecStatus::OK("The name has already been set");
+		}    
+		else if (ExistingObject)
+		{    
+			return FExecStatus::Error("Renaming an object on top of an existing object is not allowed");
+		}
+	}
+	else
+	{
+		Actor->Rename(*NewName);
+		return FExecStatus::OK();
+	}
+	return FExecStatus::OK();
 }
 
 #if WITH_EDITOR

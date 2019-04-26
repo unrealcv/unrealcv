@@ -5,6 +5,7 @@
 #include "Runtime/Core/Public/Containers/Queue.h"
 #include "TcpServer.h"
 #include "ServerConfig.h"
+#include "CommandDispatcher.h"
 
 class FRequest
 {

@@ -66,7 +66,7 @@ FExecStatus FAliasHandler::VRun(const TArray<FString>& Args)
 		Cmd += Args[ArgIndex] + " ";
 	}
 	Cmd += Args[NumArgs-1];
-	UWorld* World = FUnrealcvServer::Get().GetGameWorld();
+	UWorld* World = FUnrealcvServer::Get().GetWorld();
 	check(World->IsGameWorld());
 
 	APlayerController* PlayerController = World->GetFirstPlayerController();
@@ -102,7 +102,7 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 	// Cmd = Cmd.TrimTrailing(); // TODO: Simplify this function.
 	Cmd = Cmd.TrimEnd(); // New API
 
-	FConsoleOutputDevice OutputDevice(FUnrealcvServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
+	FConsoleOutputDevice OutputDevice(FUnrealcvServer::Get().GetWorld()->GetGameViewport()->ViewportConsole);
 
 
 	// if (Obj->CallFunctionByNameWithArguments(*Cmd, OutputDevice, nullptr, true))
@@ -361,7 +361,7 @@ FExecStatus FAliasHandler::VExec(const TArray<FString>& Args)
 	}
 
 	// FOutputDeviceNull OutputDevice;
-	FConsoleOutputDevice OutputDevice(FUnrealcvServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
+	FConsoleOutputDevice OutputDevice(FUnrealcvServer::Get().GetWorld()->GetGameViewport()->ViewportConsole);
 	// APlayerController* TestPlayerController = this->GetWorld()->GetFirstPlayerController();
 	// FString ControllerName = TestPlayerController->GetName();
 	// TestPlayerController->CallFunctionByNameWithArguments(TEXT("SetRotation 30 30 30"), ar, NULL, true);
@@ -409,7 +409,7 @@ FExecStatus FAliasHandler::VExec(const TArray<FString>& Args)
 
 FExecStatus FAliasHandler::GetPersistentLevelId(const TArray<FString>& Args)
 {
-	UWorld* GameWorld = FUnrealcvServer::Get().GetGameWorld();
+	UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
 	
 	if (IsValid(GameWorld) && IsValid(GameWorld->PersistentLevel))
 	{
@@ -423,7 +423,7 @@ FExecStatus FAliasHandler::GetPersistentLevelId(const TArray<FString>& Args)
 
 FExecStatus FAliasHandler::GetLevelScriptActorId(const TArray<FString>& Args)
 {
-	UWorld* GameWorld = FUnrealcvServer::Get().GetGameWorld();
+	UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
 
 	if (IsValid(GameWorld) && IsValid(GameWorld->PersistentLevel))
 	{

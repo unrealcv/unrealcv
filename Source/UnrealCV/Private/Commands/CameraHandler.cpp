@@ -352,7 +352,7 @@ FExecStatus FCameraHandler::GetScreenshot(const TArray<FString>& Args)
 {
 	FString Filename = Args[0];
 
-	UWorld* World = FUnrealcvServer::Get().GetGameWorld();
+	UWorld* World = FUnrealcvServer::Get().GetWorld();
 	UGameViewportClient* ViewportClient = World->GetGameViewport();
 
 	bool bScreenshotSuccessful = false;

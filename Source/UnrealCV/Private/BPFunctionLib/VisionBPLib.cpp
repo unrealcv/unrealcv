@@ -199,7 +199,7 @@ void UVisionBPLib::UpdateInput(APawn* Pawn, bool Enable)
 		UE_LOG(LogUnrealCV, Warning, TEXT("Can not update Pawn input, invalid input"));
 		return;
 	}
-	UWorld* World = FUnrealcvServer::Get().GetGameWorld();
+	UWorld* World = FUnrealcvServer::Get().GetWorld();
 	if (!World) return;
 
 	APlayerController* PlayerController = World->GetFirstPlayerController();
@@ -247,7 +247,7 @@ void UVisionBPLib::AnnotateWorld()
 	AUnrealcvWorldController* WorldController = FUnrealcvServer::Get().WorldController.Get();
 	if (IsValid(WorldController))
 	{
-		WorldController->ObjectAnnotator.AnnotateWorld(FUnrealcvServer::Get().GetGameWorld());
+		WorldController->ObjectAnnotator.AnnotateWorld(FUnrealcvServer::Get().GetWorld());
 	}
 }
 */

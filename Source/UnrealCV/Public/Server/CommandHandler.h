@@ -12,7 +12,7 @@ public:
 	virtual ~FCommandHandler() {};
 	UWorld* GetWorld()
 	{
-		return FUnrealcvServer::Get().GetGameWorld();
+		return FUnrealcvServer::Get().GetWorld();
 	}
 	TSharedPtr<FCommandDispatcher> CommandDispatcher;
 };
