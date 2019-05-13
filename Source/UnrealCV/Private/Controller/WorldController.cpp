@@ -1,5 +1,5 @@
 // Weichao Qiu @ 2017
-#include "UnrealcvWorldController.h"
+#include "WorldController.h"
 
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/GameFramework/Pawn.h"

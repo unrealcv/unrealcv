@@ -14,7 +14,7 @@
 #include "BoneSensor.h"
 #include "FusionCamSensor.h"
 #include "UnrealcvLog.h"
-#include "Controller/UnrealcvWorldController.h"
+#include "WorldController.h"
 
 // TODO: Move features outside blueprint function library.
 

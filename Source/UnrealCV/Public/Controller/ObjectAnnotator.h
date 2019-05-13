@@ -38,6 +38,8 @@ public:
 	// Get annotation color for an actor
 	void GetAnnotationColor(AActor* Actor, FColor& AnnotationColor);
 
+	TMap<FString, FColor> GetAnnotationColors() { return AnnotationColors; }
+
 private:
 	FColorGenerator ColorGenerator;
 

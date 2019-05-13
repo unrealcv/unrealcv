@@ -2,10 +2,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "ObjectAnnotator.h"
 #include "Runtime/Engine/Classes/GameFramework/Actor.h"
-#include "Controller/PlayerViewMode.h"
-#include "UnrealcvWorldController.generated.h"
+
+#include "ObjectAnnotator.h"
+#include "PlayerViewMode.h"
+#include "WorldController.generated.h"
 
 UCLASS()
 class AUnrealcvWorldController : public AActor

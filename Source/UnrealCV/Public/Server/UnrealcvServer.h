@@ -6,6 +6,7 @@
 #include "TcpServer.h"
 #include "ServerConfig.h"
 #include "CommandDispatcher.h"
+#include "WorldController.h"
 
 class FRequest
 {
