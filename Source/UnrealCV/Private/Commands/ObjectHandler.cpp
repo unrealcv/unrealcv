@@ -12,6 +12,7 @@
 #include "Utils/UObjectUtils.h"
 #include "VisionBPLib.h"
 #include "CubeActor.h"
+#include "CommandInterface.h"
 
 void FObjectHandler::RegisterCommands()
 {
@@ -381,7 +382,10 @@ FExecStatus FObjectHandler::SetName(const TArray<FString>& Args)
 	}
 	else
 	{
+		ICommandInterface* CmdActor = Cast<ICommandInterface>(Actor);
+		if (CmdActor) CmdActor->UnbindCommands();
 		Actor->Rename(*NewName);
+		if (CmdActor) CmdActor->BindCommands();
 		return FExecStatus::OK();
 	}
 	return FExecStatus::OK();
