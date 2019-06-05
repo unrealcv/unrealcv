@@ -168,10 +168,11 @@ class Client(object):
             if message_id == self.message_id:
                 return message_body
             else:
-                assert(False)
+                return None
+            #     assert(False)
         else:
             # Instead of just dropping this message, give a verbose notice
-            _L.error('No message handler to handle message with length %d', len(raw_message))
+            _L.debug('No message handler to handle message with length %d', len(raw_message))
 
     def connect(self, timeout = 1):
         '''
@@ -267,14 +268,16 @@ class Client(object):
         if not self.send(raw_message):
             return None
 
-        raw_message = self.receive()
-        message = self.raw_message_handler(raw_message)
 
+        message = None
+        while message is None:
+            raw_message = self.receive()
+            message = self.raw_message_handler(raw_message)
         # Receive the message or timeout
 
         # Timeout is required
         # see: https://bugs.python.org/issue8844
-        self.message_id += 1 # Increment it only after the request/response cycle finished
+        self.message_id += 1  # Increment it only after the request/response cycle finished
 
         return message
 
