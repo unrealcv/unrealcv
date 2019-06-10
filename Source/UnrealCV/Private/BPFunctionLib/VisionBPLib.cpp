@@ -354,3 +354,8 @@ UFusionCamSensor* UVisionBPLib::GetPlayerSensor()
 	UFusionCamSensor* CamSensor = Cast<UFusionCamSensor>(ActorComponent);
 	return CamSensor;
 }
+
+void UVisionBPLib::AnnotateWorld()
+{
+	FUnrealcvServer::Get().WorldController->ObjectAnnotator.AnnotateWorld(GWorld);
+}

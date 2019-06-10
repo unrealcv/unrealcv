@@ -98,4 +98,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	static UFusionCamSensor* GetPlayerSensor();
+
+	/** If there is manually crated objects, 
+	 * need to manually call this function to annotate the world */
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	static void AnnotateWorld();
 };
