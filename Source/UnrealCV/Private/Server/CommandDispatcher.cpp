@@ -115,6 +115,12 @@ bool FCommandDispatcher::BindCommand(const FString& ReadableUriTemplate, const F
 	{
 		UE_LOG(LogUnrealCV, Warning, TEXT("The UriTemplate %s already exist, overwrited."), *UriTemplate);
 	}
+
+	if (UriMapping.Contains(UriTemplate))
+	{
+		// Remove existing uri and add, in order to overwrite existing commands
+		UriMapping.Remove(UriTemplate);
+	}
 	UriMapping.Emplace(UriTemplate, Command);
 	UriDescription.Emplace(ReadableUriTemplate, Description);
 	UriList.AddUnique(UriTemplate);
