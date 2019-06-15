@@ -50,7 +50,7 @@ bool FCommandDispatcher::FormatUri(const FString& RawUri, FString& UriRexexp)
 			if (Ch == ']')
 			{
 				UE_LOG(LogUnrealCV, Error, TEXT("Unexpected ] in %d"), Index);
-				check(false);
+				// check(false);
 				return false;
 			}
 			// else
@@ -62,7 +62,7 @@ bool FCommandDispatcher::FormatUri(const FString& RawUri, FString& UriRexexp)
 			if (Ch == '[')
 			{
 				UE_LOG(LogUnrealCV, Error, TEXT("Unexpected [ in %d"), Index);
-				check(false);
+				// check(false);
 				return false;
 			}
 			if (Ch == ']')
@@ -77,7 +77,7 @@ bool FCommandDispatcher::FormatUri(const FString& RawUri, FString& UriRexexp)
 				else
 				{
 					UE_LOG(LogUnrealCV, Error, TEXT("Unknown type specifier "));
-					check(false);
+					// check(false);
 					return false;
 				}
 			}
@@ -90,7 +90,7 @@ bool FCommandDispatcher::FormatUri(const FString& RawUri, FString& UriRexexp)
 	if (TypeSpecifier != "")
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("Not all [ are closed by ]"));
-		check(false);
+		// check(false);
 		return false;
 	}
 	UriRexexp = Uri + "[ ]*$"; // Make sure no more parameters
@@ -107,7 +107,7 @@ bool FCommandDispatcher::BindCommand(const FString& ReadableUriTemplate, const F
 	if (!FormatUri(ReadableUriTemplate, UriTemplate))
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("The UriTemplate %s is malformat"), *ReadableUriTemplate);
-		check(false);
+		// check(false);
 		return false;
 	}
 
@@ -180,7 +180,11 @@ const TMap<FString, FString>& FCommandDispatcher::GetUriDescription()
 
 FExecStatus FCommandDispatcher::Exec(const FString Uri)
 {
-	check(IsInGameThread());
+	if (!IsInGameThread())
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("Command execution is not in the game thread."));
+		return FExecStatus::Error("Command execution is not in the game thread.");
+	}
 	TArray<FString> Args; // Get args from URI
 
 	// The newly added command should overwrite previous one.
