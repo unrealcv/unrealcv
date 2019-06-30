@@ -1,7 +1,7 @@
 #include "TextureReader.h"
 #include "Runtime/Engine/Classes/Engine/TextureRenderTarget2D.h"
-#include "Runtime/ShaderCore/Public/StaticBoundShaderState.h"
-#include "Runtime/ShaderCore/Public/GlobalShader.h"
+// #include "Runtime/ShaderCore/Public/StaticBoundShaderState.h"
+// #include "Runtime/ShaderCore/Public/GlobalShader.h"
 #include "Runtime/Engine/Public/ScreenRendering.h"
 #include "Runtime/Core/Public/Modules/ModuleManager.h"
 
@@ -77,7 +77,6 @@ bool FastReadTexture2DAsync(FTexture2DRHIRef Texture2D, TFunction<void(FColor*, 
 		RHICmdList.CopyToResolveTarget(
 			SrcTexture,
 			ReadbackTexture,
-			true,
 			FResolveParams());
 
 		RHICmdList.MapStagingSurface(ReadbackTexture, ColorDataBuffer, Width, Height);
@@ -190,7 +189,6 @@ bool ResizeFastReadTexture2DAsync(FTexture2DRHIRef Texture2D, int TargetWidth, i
 		RHICmdList.CopyToResolveTarget(
 			DestRenderTarget.TargetableTexture,
 			ReadbackTexture,
-			false, // bKeepOriginalSurface,
 			FResolveParams());
 
 		void* ColorDataBuffer = nullptr;

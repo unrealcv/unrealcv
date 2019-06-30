@@ -122,7 +122,7 @@ public:
 	FStaticAnnotationSceneProxy(UStaticMeshComponent* Component, bool bForceLODsShareStaticLighting, UMaterialInterface* AnnotationMID) :
 		FStaticMeshSceneProxy(Component, bForceLODsShareStaticLighting)
 	{
-		MaterialRenderProxy = AnnotationMID->GetRenderProxy(false, false);
+		MaterialRenderProxy = AnnotationMID->GetRenderProxy();
 		this->MaterialRelevance = AnnotationMID->GetRelevance(GetScene().GetFeatureLevel());
 		// Note: This MaterailRelevance makes no difference?
 
@@ -138,6 +138,7 @@ public:
 		uint32 VisibilityMap,
 		FMeshElementCollector & Collector) const override;
 
+	/*
 	virtual bool GetMeshElement
 	(
 		int32 LODIndex,
@@ -149,6 +150,7 @@ public:
 		bool bAllowPreCulledIndices,
 		FMeshBatch & OutMeshBatch
 	) const override;
+	*/
 
 	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView * View) const override;
 };
@@ -179,6 +181,7 @@ void FStaticAnnotationSceneProxy::GetDynamicMeshElements(
 	FStaticMeshSceneProxy::GetDynamicMeshElements(Views, ViewFamily, VisibilityMap, Collector);
 }
 
+/*
 bool FStaticAnnotationSceneProxy::GetMeshElement(
 	int32 LODIndex,
 	int32 BatchIndex,
@@ -194,6 +197,7 @@ bool FStaticAnnotationSceneProxy::GetMeshElement(
 	OutMeshBatch.MaterialRenderProxy = this->MaterialRenderProxy;
 	return Ret;
 }
+*/
 
 class FSkeletalAnnotationSceneProxy : public FSkeletalMeshSceneProxy
 {

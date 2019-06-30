@@ -47,7 +47,6 @@ public class UnrealcvBuildConfig
 			"CinematicCamera",
 			"Projects", // Support IPluginManager
 			"RHI", // Support low-level RHI operation
-			"ShaderCore", // Shader support to resize image
 			"Json",
 		});
 
