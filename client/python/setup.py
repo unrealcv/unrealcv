@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name = 'UnrealCV',
     packages = ['unrealcv'],
-    version = '0.3.10',
+    version = '0.4.0',
     description = 'UnrealCV client for python. see http://unrealcv.github.io for more detail.',
     author = 'Weichao Qiu',
     author_email = 'qiuwch@gmail.com',
