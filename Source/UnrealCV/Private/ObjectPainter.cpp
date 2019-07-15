@@ -2,7 +2,7 @@
 #include "ObjectPainter.h"
 #include "StaticMeshResources.h"
 #include "UE4CVServer.h"
-#include "SceneViewport.h"
+#include "Slate/SceneViewport.h"
 #include "Version.h"
 #include "ColorMap.h"
 

@@ -1,6 +1,6 @@
 #include "UnrealCVPrivate.h"
 #include "PluginHandler.h"
-#include "IPluginManager.h"
+#include "Interfaces/IPluginManager.h"
 #include "UE4CVServer.h"
 
 void FPluginCommandHandler::RegisterCommands()
