@@ -242,27 +242,71 @@ bool FUnrealcvServer::InitWorld()
 // 	UE_LOG(LogUnrealCV, Warning, TEXT("Level loaded"));
 // }
 
+void FUnrealcvServer::ProcessRequest(FRequest& Request)
+{
+	FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message);
+	UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
+
+	FString Header = FString::Printf(TEXT("%d:"), Request.RequestId);
+	TArray<uint8> ReplyData;
+	FExecStatus::BinaryArrayFromString(Header, ReplyData);
+
+	ReplyData += ExecStatus.GetData();
+	TcpServer->SendData(ReplyData);
+}
+
 // Each tick of GameThread.
 void FUnrealcvServer::ProcessPendingRequest()
 {
-	while (!PendingRequest.IsEmpty())
+	// Process all requests collected in this frame
+	while (!PendingRequest.IsEmpty()) 
 	{
 		// if (!InitWorld()) break;
 
 		FRequest Request;
 		bool DequeueStatus = PendingRequest.Dequeue(Request);
-		check(DequeueStatus);
 		int32 RequestId = Request.RequestId;
 
-		FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message);
-		UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
+		// vbatch should not stall the execution of the game thread.
+		if (Request.Message.StartsWith(TEXT("vbatch"))) // vbatch should not be nested.
+		{
+			// Check whether it is a batch request. 
+			// Run all requests until all commands are received, 
+			// so that all commands can be run in the same frame
+			BatchNum = FCString::Atoi(*Request.Message.Replace(TEXT("vbatch"), TEXT("")));
+			if (BatchNum < 1)
+			{
+				UE_LOG(LogUnrealCV, Warning, TEXT("Can not handle batch smaller than 1"));
+			}
+			FString Header = FString::Printf(TEXT("%d:"), Request.RequestId);
+			TArray<uint8> ReplyData;
+			FExecStatus::BinaryArrayFromString(Header, ReplyData);
+			ReplyData += FExecStatus::OK().GetData();
+			TcpServer->SendData(ReplyData); // return a fake ok.
+			continue;
+		}
+		else
+		{
+			BatchNum = 1;
+		}
 
-		FString Header = FString::Printf(TEXT("%d:"), RequestId);
-		TArray<uint8> ReplyData;
-		FExecStatus::BinaryArrayFromString(Header, ReplyData);
-
-		ReplyData += ExecStatus.GetData();
-		TcpServer->SendData(ReplyData);
+		if (BatchNum > 0) // The batch is ready
+		// Keep collecting commands until the batch is ready
+		// inside batch mode
+		{
+			Batch.Add(Request);
+			BatchNum -= 1;
+		}
+		
+		if (BatchNum == 0)
+		{
+			// Hold the batch request until all commands are received.
+			for (FRequest RequestToRun : Batch)
+			{
+				ProcessRequest(RequestToRun);
+			}
+			Batch.Empty();
+		}
 	}
 }
 
@@ -272,6 +316,7 @@ void FUnrealcvServer::HandleRawMessage(const FString& InRawMessage)
 	UE_LOG(LogUnrealCV, Warning, TEXT("Request: %s"), *InRawMessage);
 	// Parse Raw Message
 	FString MessageFormat = "(\\d{1,8}):(.*)";
+	// TODO: 8 digits might not be enough if running for a very long time.
 	FRegexPattern RegexPattern(MessageFormat);
 	FRegexMatcher Matcher(RegexPattern, InRawMessage);
 
