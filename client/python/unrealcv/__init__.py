@@ -168,11 +168,10 @@ class Client(object):
             if message_id == self.message_id:
                 return message_body
             else:
-                return None
-            #     assert(False)
+                assert(False)
         else:
             # Instead of just dropping this message, give a verbose notice
-            _L.debug('No message handler to handle message with length %d', len(raw_message))
+            _L.error('No message handler to handle message with length %d', len(raw_message))
 
     def connect(self, timeout = 1):
         '''
@@ -239,6 +238,41 @@ class Client(object):
 
             return message
 
+    def request_async(self, message):
+        '''
+        Send request without waiting for any reply
+        '''
+        if sys.version_info[0] == 3:
+            if not isinstance(message, bytes):
+                message = message.encode("utf-8")
+
+        raw_message = b'%d:%s' % (self.message_id, message)
+        if not self.send(raw_message):
+            return None
+        # self.message_id += 1 # Increment it only after the request/response cycle finished
+        # Do not increase message_id, since no receive.
+        return None
+
+    def request_batch(self, batch):
+        for i, message in enumerate(batch):
+            if sys.version_info[0] == 3:
+                if not isinstance(message, bytes):
+                    message = message.encode("utf-8")
+
+            raw_message = b'%d:%s' % (self.message_id + i, message)
+            self.send(raw_message)
+        # self.message_id += 1  # For the vbatch command
+
+        batch_res = []
+        for i in range(len(batch)):
+            raw_message = self.receive() # block the receiving thread
+            message = self.raw_message_handler(raw_message)
+            self.message_id += 1 # Increment it only after the request/response cycle finished
+            batch_res.append(message)
+        
+        return batch_res
+
+
     def request(self, message, timeout=5):
         """
         Send a request to server and wait util get a response from server or timeout.
@@ -259,6 +293,9 @@ class Client(object):
         >>> client.connect()
         >>> response = client.request('vget /camera/0/view')
         """
+        if type(message) is list:
+            return self.request_batch(message)
+
         if sys.version_info[0] == 3:
             if not isinstance(message, bytes):
                 message = message.encode("utf-8")
@@ -268,16 +305,14 @@ class Client(object):
         if not self.send(raw_message):
             return None
 
+        raw_message = self.receive() # block the receiving thread
+        message = self.raw_message_handler(raw_message)
 
-        message = None
-        while message is None:
-            raw_message = self.receive()
-            message = self.raw_message_handler(raw_message)
         # Receive the message or timeout
 
         # Timeout is required
         # see: https://bugs.python.org/issue8844
-        self.message_id += 1  # Increment it only after the request/response cycle finished
+        self.message_id += 1 # Increment it only after the request/response cycle finished
 
         return message
 

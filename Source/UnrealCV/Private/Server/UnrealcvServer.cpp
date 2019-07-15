@@ -10,7 +10,7 @@
 #include "Commands/ActionHandler.h"
 #include "Commands/AliasHandler.h"
 #include "Commands/CameraHandler.h"
-#include "Controller/UnrealcvWorldController.h"
+#include "WorldController.h"
 #include "UnrealcvLog.h"
 
 void FUnrealcvServer::Tick(float DeltaTime)
@@ -29,7 +29,15 @@ void FUnrealcvServer::InitWorldController()
 	{
 		UE_LOG(LogTemp, Display, TEXT("FUnrealcvServer::Tick Create WorldController"));
 		this->WorldController = Cast<AUnrealcvWorldController>(GameWorld->SpawnActor(AUnrealcvWorldController::StaticClass()));
-		this->WorldController->InitWorld();
+		// if (IsValid(this->WorldController))
+		if (this->WorldController != nullptr)
+		{
+			this->WorldController->InitWorld();
+		}
+		else
+		{
+			UE_LOG(LogUnrealCV, Error, TEXT("Failed to spawn WorldController"));
+		}
 		// Its BeginPlay event will extend the GameWorld
 	}
 }
@@ -37,7 +45,7 @@ void FUnrealcvServer::InitWorldController()
 /** Only available during game play */
 APawn* FUnrealcvServer::GetPawn()
 {
-	UWorld* World = GetGameWorld();
+	UWorld* World = GetWorld();
 	if (!IsValid(World))
 	{
 		return nullptr;
@@ -91,11 +99,50 @@ FUnrealcvServer::~FUnrealcvServer()
 	// this->TcpServer->FinishDestroy(); // TODO: Check is this usage correct?
 }
 
+// TODO: Write an article to explain this.
+/** Select and return and most suitable world for current condition
+ * GWorld returns the EditorWorld in the Editor, which is usually not what we need. 
+ */
 UWorld* FUnrealcvServer::GetWorld()
 {
-	return GWorld;
+	UWorld* WorldPtr = nullptr;
+#if WITH_EDITOR
+	UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+	if (IsValid(EditorEngine))
+	{
+		if (EditorEngine->GetPIEWorldContext() != nullptr)
+		{
+			WorldPtr = EditorEngine->GetPIEWorldContext()->World();
+		}
+		else
+		{
+			WorldPtr = EditorEngine->GetEditorWorldContext().World();
+		}
+	} // else game mode in editor
+#else
+	UGameEngine* GameEngine = Cast<UGameEngine>(GEngine);
+	if (IsValid(GameEngine))
+	{
+		WorldPtr = GameEngine->GetGameWorld(); // Not GetWorld !
+	}
+	else
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("GameEngine is invalid"));
+	}
+#endif
+
+	if (IsValid(WorldPtr))
+	{
+		return WorldPtr;
+	}
+	else
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("UWorld pointer is invalid: %p."), WorldPtr);
+		return nullptr;
+	}
 }
 
+/** Should be avoided */
 UWorld* FUnrealcvServer::GetGameWorld()
 {
 	UWorld* World = nullptr;
@@ -142,7 +189,7 @@ UWorld* FUnrealcvServer::GetGameWorld()
 /* TODO: Make sure the BeginPlay or UnrealcvWorldController did exactlly the same thing
 bool FUnrealcvServer::InitWorld()
 {
-	UWorld *World = GetGameWorld();
+	UWorld *World = GetWorld();
 	if (World == nullptr)
 	{
 		return false;
@@ -174,7 +221,7 @@ bool FUnrealcvServer::InitWorld()
 
 // void FUnrealcvServer::UpdateInput(bool Enable)
 // {
-// 	APlayerController* PlayerController = GetGameWorld()->GetFirstPlayerController();
+// 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
 // 	check(PlayerController);
 // 	if (Enable)
 // 	{
@@ -190,32 +237,76 @@ bool FUnrealcvServer::InitWorld()
 
 // void FUnrealcvServer::OpenLevel(FName LevelName)
 // {
-// 	UGameplayStatics::OpenLevel(GetGameWorld(), LevelName);
-// 	UGameplayStatics::FlushLevelStreaming(GetGameWorld());
+// 	UGameplayStatics::OpenLevel(GetWorld(), LevelName);
+// 	UGameplayStatics::FlushLevelStreaming(GetWorld());
 // 	UE_LOG(LogUnrealCV, Warning, TEXT("Level loaded"));
 // }
+
+void FUnrealcvServer::ProcessRequest(FRequest& Request)
+{
+	FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message);
+	UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
+
+	FString Header = FString::Printf(TEXT("%d:"), Request.RequestId);
+	TArray<uint8> ReplyData;
+	FExecStatus::BinaryArrayFromString(Header, ReplyData);
+
+	ReplyData += ExecStatus.GetData();
+	TcpServer->SendData(ReplyData);
+}
 
 // Each tick of GameThread.
 void FUnrealcvServer::ProcessPendingRequest()
 {
-	while (!PendingRequest.IsEmpty())
+	// Process all requests collected in this frame
+	while (!PendingRequest.IsEmpty()) 
 	{
 		// if (!InitWorld()) break;
 
 		FRequest Request;
 		bool DequeueStatus = PendingRequest.Dequeue(Request);
-		check(DequeueStatus);
 		int32 RequestId = Request.RequestId;
 
-		FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message);
-		UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
+		// vbatch should not stall the execution of the game thread.
+		if (Request.Message.StartsWith(TEXT("vbatch"))) // vbatch should not be nested.
+		{
+			// Check whether it is a batch request. 
+			// Run all requests until all commands are received, 
+			// so that all commands can be run in the same frame
+			BatchNum = FCString::Atoi(*Request.Message.Replace(TEXT("vbatch"), TEXT("")));
+			if (BatchNum < 1)
+			{
+				UE_LOG(LogUnrealCV, Warning, TEXT("Can not handle batch smaller than 1"));
+			}
+			FString Header = FString::Printf(TEXT("%d:"), Request.RequestId);
+			TArray<uint8> ReplyData;
+			FExecStatus::BinaryArrayFromString(Header, ReplyData);
+			ReplyData += FExecStatus::OK().GetData();
+			TcpServer->SendData(ReplyData); // return a fake ok.
+			continue;
+		}
+		else
+		{
+			BatchNum = 1;
+		}
 
-		FString Header = FString::Printf(TEXT("%d:"), RequestId);
-		TArray<uint8> ReplyData;
-		FExecStatus::BinaryArrayFromString(Header, ReplyData);
-
-		ReplyData += ExecStatus.GetData();
-		TcpServer->SendData(ReplyData);
+		if (BatchNum > 0) // The batch is ready
+		// Keep collecting commands until the batch is ready
+		// inside batch mode
+		{
+			Batch.Add(Request);
+			BatchNum -= 1;
+		}
+		
+		if (BatchNum == 0)
+		{
+			// Hold the batch request until all commands are received.
+			for (FRequest RequestToRun : Batch)
+			{
+				ProcessRequest(RequestToRun);
+			}
+			Batch.Empty();
+		}
 	}
 }
 
@@ -225,6 +316,7 @@ void FUnrealcvServer::HandleRawMessage(const FString& InRawMessage)
 	UE_LOG(LogUnrealCV, Warning, TEXT("Request: %s"), *InRawMessage);
 	// Parse Raw Message
 	FString MessageFormat = "(\\d{1,8}):(.*)";
+	// TODO: 8 digits might not be enough if running for a very long time.
 	FRegexPattern RegexPattern(MessageFormat);
 	FRegexMatcher Matcher(RegexPattern, InRawMessage);
 

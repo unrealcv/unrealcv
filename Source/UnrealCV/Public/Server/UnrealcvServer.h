@@ -5,6 +5,8 @@
 #include "Runtime/Core/Public/Containers/Queue.h"
 #include "TcpServer.h"
 #include "ServerConfig.h"
+#include "CommandDispatcher.h"
+#include "WorldController.h"
 
 class FRequest
 {
@@ -98,6 +100,14 @@ private:
 
 	/** Process pending requests in a tick */
 	void ProcessPendingRequest();
+
+	void ProcessRequest(FRequest& Request);
+
+	/** The number of incoming commands for the batch mode */
+	int BatchNum;
+
+	/** Array for batch commands */
+	TArray<FRequest> Batch;
 
 	/** The Pawn of the Game */
 	APawn* Pawn;
