@@ -43,7 +43,22 @@ void FConsoleHelper::SetCommandDispatcher(FCommandDispatcher* InCommandDispatche
 
 FConsoleOutputDevice* FConsoleHelper::GetConsole() // The ConsoleOutputDevice will depend on the external world, so we need to use a get function
 {
-	return new FConsoleOutputDevice(FUE4CVServer::Get().GetGameWorld()->GetGameViewport()->ViewportConsole);
+	UWorld* gameWorld = FUE4CVServer::Get().GetGameWorld();
+	if(gameWorld == nullptr) //Check if the game world is available to prevent editor crash if game is not started.
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("GameWorld not set. Game is probably not started."));
+		return nullptr;
+	}
+	return new FConsoleOutputDevice(gameWorld->GetGameViewport()->ViewportConsole);
+}
+
+void FConsoleHelper::LogToConsole(const FString& text)
+{
+	FConsoleOutputDevice* console = GetConsole();
+	if(console != nullptr)
+	{
+		console->Log(text);
+	}
 }
 
 void FConsoleHelper::VRun(const TArray<FString>& Args)
@@ -66,7 +81,7 @@ void FConsoleHelper::VRun(const TArray<FString>& Args)
 	UE_LOG(LogUnrealCV, Warning, TEXT("vrun helper function, the real command is %s"), *Cmd);
 	// In the console mode, output should be writen to the output log.
 	UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *ExecStatus.GetMessage());
-	GetConsole()->Log(ExecStatus.GetMessage());
+	LogToConsole(ExecStatus.GetMessage());
 }
 
 void FConsoleHelper::VGet(const TArray<FString>& Args)
@@ -91,7 +106,7 @@ void FConsoleHelper::VGet(const TArray<FString>& Args)
 	UE_LOG(LogUnrealCV, Warning, TEXT("vget helper function, the real command is %s"), *Cmd);
 	// In the console mode, output should be writen to the output log.
 	UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *ExecStatus.GetMessage());
-	GetConsole()->Log(ExecStatus.GetMessage());
+	LogToConsole(ExecStatus.GetMessage());
 }
 
 void FConsoleHelper::VSet(const TArray<FString>& Args)
@@ -114,7 +129,7 @@ void FConsoleHelper::VSet(const TArray<FString>& Args)
 	// Output result to the console
 	UE_LOG(LogUnrealCV, Warning, TEXT("vset helper function, the real command is %s"), *Cmd);
 	UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *ExecStatus.GetMessage());
-	GetConsole()->Log(ExecStatus.GetMessage());
+	LogToConsole(ExecStatus.GetMessage());
 }
 
 void FConsoleHelper::VExec(const TArray<FString>& Args)
@@ -130,5 +145,5 @@ void FConsoleHelper::VExec(const TArray<FString>& Args)
 	Cmd += Args[NumArgs - 1];
 
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
-	GetConsole()->Log(ExecStatus.GetMessage());
+	LogToConsole(ExecStatus.GetMessage());
 }
