@@ -27,12 +27,9 @@ void FActionCommandHandler::RegisterCommands()
 	Help = "Set the distance of binocular stereo camera";
 	CommandDispatcher->BindCommand("vset /action/eyes_distance [float]", Cmd, Help);
 
-	
-	/*
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::ResumeGame);
 	Help = "Resume the game";
 	CommandDispatcher->BindCommand("vset /action/game/resume", Cmd, Help);
-	*/
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionCommandHandler::Keyboard);
 	Help = "Send a keyboard action to the game";
@@ -43,6 +40,13 @@ FExecStatus FActionCommandHandler::PauseGame(const TArray<FString>& Args)
 {
 	APlayerController* PlayerController = this->GetWorld()->GetFirstPlayerController();
 	PlayerController->Pause();
+	return FExecStatus::OK();
+}
+
+FExecStatus FActionCommandHandler::ResumeGame(const TArray<FString>& Args)
+{
+	APlayerController* PlayerController = this->GetWorld()->GetFirstPlayerController();
+	PlayerController->SetPause(false);
 	return FExecStatus::OK();
 }
 

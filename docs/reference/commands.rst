@@ -130,6 +130,9 @@ vset /action/keyboard [key_name] [delta]
 vset /action/game/pause
     (v0.3.10) Pause the game
 
+vset /action/game/resume
+    (v0.3.10) Resume the game
+
 vset /action/game/level [level_name]
     (v0.3.10) Open a new level
 
