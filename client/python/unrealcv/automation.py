@@ -149,6 +149,7 @@ class UE4Automation:
         if len(found_UE4) == 1: return found_UE4[0]
         if len(found_UE4) == 0:
             print('Can not automatically found a UE4 path, please specify it with --UE4')
+            exit()
 
         print('Found UE4 in the following path, please make a selection:')
         print('\n'.join('%d : %s' % (i+1, found_UE4[i]) for i in range(len(found_UE4))))
