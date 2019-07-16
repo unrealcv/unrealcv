@@ -1,7 +1,8 @@
 #include "UnrealCVPrivate.h"
 #include "ObjectHandler.h"
 #include "ObjectPainter.h"
-
+#include "UE4CVServer.h"
+#include "CaptureManager.h"
 
 FExecStatus GetObjectMobility(const TArray<FString>& Args);
 
@@ -57,6 +58,15 @@ void FObjectCommandHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::HideObject);
 	Help = "Hide object";
 	CommandDispatcher->BindCommand(TEXT("vset /object/[str]/hide"), Cmd, Help);
+
+	//Custom
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectFromCameraLocation);
+	Help = "Get object location from Camera [x, y, z]";
+	CommandDispatcher->BindCommand(TEXT("vget /objectfromCamera/[str]/location"), Cmd, Help);
+
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FObjectCommandHandler::GetObjectlocationOnScreen);
+	Help = "Get object location on Screen [x, y]";
+	CommandDispatcher->BindCommand(TEXT("vget /objectonscreen/[str]/location"), Cmd, Help);
 }
 
 FExecStatus FObjectCommandHandler::GetObjects(const TArray<FString>& Args)
@@ -303,5 +313,55 @@ FExecStatus FObjectCommandHandler::HideObject(const TArray<FString>& Args)
 		Object->SetActorHiddenInGame(true);
 		return FExecStatus::OK();
 	}
+	return FExecStatus::InvalidArgument;
+}
+
+FExecStatus FObjectCommandHandler::GetObjectFromCameraLocation(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		FString ObjectName = Args[0];
+		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
+		if (Object == NULL)
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Can not find object %s"), *ObjectName));
+		}
+
+		APawn* Pawn = FUE4CVServer::Get().GetPawn();
+		FVector CameraLocation = Pawn->GetActorLocation();
+
+
+		FVector Location = Object->GetActorLocation();
+		return FExecStatus::OK(FString::Printf(TEXT("%.2f %.2f %.2f"), Location.X - CameraLocation.X, Location.Y - CameraLocation.Y, Location.Z - CameraLocation.Z));
+	}
+
+	return FExecStatus::InvalidArgument;
+}
+
+FExecStatus FObjectCommandHandler::GetObjectlocationOnScreen(const TArray<FString>& Args)
+{
+	if (Args.Num() == 1)
+	{
+		FString ObjectName = Args[0];
+		AActor* Object = FObjectPainter::Get().GetObject(ObjectName);
+		if (Object == NULL)
+		{
+			return FExecStatus::Error(FString::Printf(TEXT("Can not find object %s"), *ObjectName));
+		}
+
+		APawn* Pawn = FUE4CVServer::Get().GetPawn();
+		APlayerController* PlayerController = Cast<APlayerController>(Pawn->GetController());
+
+		int X, Y;
+		PlayerController->GetViewportSize(X, Y);
+
+		FVector Location = Object->GetActorLocation();
+
+		FVector2D ScreenLocation;
+		PlayerController->ProjectWorldLocationToScreen(Location, ScreenLocation);
+
+		return FExecStatus::OK(FString::Printf(TEXT("%.2f %.2f"), ScreenLocation.X, ScreenLocation.Y));
+	}
+
 	return FExecStatus::InvalidArgument;
 }

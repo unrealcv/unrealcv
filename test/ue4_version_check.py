@@ -15,9 +15,10 @@ def format_cmd(UE4, output_folder):
 UE414 = [r'C:\Program Files\Epic Games\UE_4.14', r'C:/temp/unrealcv_built/414', 'log/UE414.log']
 UE416 = [r'C:\Program Files\Epic Games\UE_4.16', r'C:/temp/unrealcv_built/416', 'log/UE416.log']
 UE418 = [r'C:\Program Files\Epic Games\UE_4.18', r'C:/temp/unrealcv_built/418', 'log/UE418.log']
+UE419 = [r'C:\Program Files\Epic Games\UE_4.19', r'C:/temp/unrealcv_built/419', 'log/UE419.log']
 # Send the output to C:/temp to avoid cluttering current directory, which might cause failure to the build.
 
-ue_versions = [UE414, UE416, UE418]
+ue_versions = [UE414, UE416, UE418, UE419]
 
 if not os.path.isdir('log'):
     os.mkdir('log')
