@@ -311,9 +311,12 @@ FExecStatus FCameraHandler::GetCameraObjMask(const TArray<FString>& Args)
 	int Width, Height;
 	FusionCamSensor->GetSeg(Data, Width, Height);
 	// TODO: Remove this later for better performance
-	for (int i = 0; i < Width * Height; i++)
+	if (Data.Num() != 0)
 	{
-		Data[i].A = 255;
+		for (int i = 0; i < Width * Height; i++)
+		{
+			Data[i].A = 255;
+		}
 	}
 	SaveData(Data, Width, Height, Args, ExecStatus);
 	return ExecStatus;
