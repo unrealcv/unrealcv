@@ -98,4 +98,13 @@ void UAnnotationCamSensor::CaptureSeg(TArray<FColor>& ImageData, int& Width, int
 	this->ShowOnlyComponents = ComponentList;
 
 	Capture(ImageData, Width, Height);
+
+	// TODO: Find a faster implementation.
+	if (ImageData.Num() != 0)
+	{
+		for (int i = 0; i < Width * Height; i++)
+		{
+			ImageData[i].A = 255;
+		}
+	}
 }
