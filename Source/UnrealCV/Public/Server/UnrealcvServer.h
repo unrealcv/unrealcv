@@ -31,10 +31,6 @@ class UNREALCV_API FUnrealcvServer : public FTickableGameObject
 public:
 	~FUnrealcvServer();
 
-	/** Send a string message to connected clients */
-	void SendClientMessage(FString Message);
-
-
 	/** Get the singleton */
 	static FUnrealcvServer& Get();
 

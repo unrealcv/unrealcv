@@ -12,12 +12,17 @@
 #include "Commands/CameraHandler.h"
 #include "WorldController.h"
 #include "UnrealcvLog.h"
+#include "UnrealcvStats.h"
+
+DECLARE_CYCLE_STAT(TEXT("FUnrealcvServer::Tick"), STAT_Tick, STATGROUP_UnrealCV);
+DECLARE_CYCLE_STAT(TEXT("FUnrealcvServer::ProcessRequest"), STAT_ProcessRequest, STATGROUP_UnrealCV);
+
 
 void FUnrealcvServer::Tick(float DeltaTime)
 {
 	// Spawn a AUnrealcvWorldController, which is responsible for modifying the world to add UnrealCV functions.
 	// TODO: Check whether stopping the game will reset this ptr?
-
+	SCOPE_CYCLE_COUNTER(STAT_Tick);
 	InitWorldController();
 	ProcessPendingRequest();
 }
@@ -244,6 +249,7 @@ bool FUnrealcvServer::InitWorld()
 
 void FUnrealcvServer::ProcessRequest(FRequest& Request)
 {
+	SCOPE_CYCLE_COUNTER(STAT_ProcessRequest);
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message);
 	UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
 
@@ -332,7 +338,7 @@ void FUnrealcvServer::HandleRawMessage(const FString& InRawMessage)
 	}
 	else
 	{
-		SendClientMessage(FString::Printf(TEXT("error: Malformat raw message '%s'"), *InRawMessage));
+		UE_LOG(LogUnrealCV, Warning, TEXT("error: Malformat raw message '%s'"), *InRawMessage);
 	}
 }
 
@@ -346,8 +352,3 @@ void FUnrealcvServer::HandleError(const FString& InErrorMessage)
 	}
 }
 
-void FUnrealcvServer::SendClientMessage(FString Message)
-{
-	// TODO: Do not use game thread to send message.
-	TcpServer->SendMessage(Message);
-}

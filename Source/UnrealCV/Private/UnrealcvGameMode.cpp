@@ -64,7 +64,6 @@ void AUnrealcvCharacter::MoveRight(float Value)
 void AUnrealcvCharacter::OnFire()
 {
 	// Send a message to notify client an event just happened
-	FUnrealcvServer::Get().SendClientMessage("clicked");
 	UE_LOG(LogUnrealCV, Warning, TEXT("Mouse Clicked"));
 }
 
@@ -104,6 +103,5 @@ void AUnrealcvPawn::SetupPlayerInputComponent(class UInputComponent* InInputComp
 void AUnrealcvPawn::OnFire()
 {
 	// Send a message to notify client an event just happened
-	FUnrealcvServer::Get().SendClientMessage("clicked");
 	UE_LOG(LogUnrealCV, Warning, TEXT("Mouse Clicked"));
 }
