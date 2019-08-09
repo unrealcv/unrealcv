@@ -3,6 +3,7 @@
 
 #include "CoreMinimal.h"
 #include "ExecStatus.h"
+#include "Runtime/Core/Public/Internationalization/Regex.h"
 
 // DECLARE_DELEGATE(FCallbackDelegate);
 DECLARE_DELEGATE_OneParam(FCallbackDelegate, FExecStatus); // Callback needs to be set before Exec, accept ExecStatus
@@ -33,6 +34,9 @@ private:
 
 	/** The complete list of binded URI, the order of adding is preserved */
 	TArray<FString> UriList;
+
+	/** RegexPattern to match command with registered commands  */
+	TMap<FString, FRegexPattern> UriRegexPattern;
 
 	/** Store help message */
 	TMap<FString, FString> UriDescription; // Contains help message

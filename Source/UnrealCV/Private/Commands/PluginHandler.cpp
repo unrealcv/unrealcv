@@ -4,6 +4,10 @@
 
 #include "UnrealcvServer.h"
 #include "UnrealcvShim.h"
+#include "UnrealcvStats.h"
+
+DECLARE_CYCLE_STAT(TEXT("FPluginHandler::GetUnrealCVStatus"), 
+	STAT_GetUnrealCVStatus, STATGROUP_UnrealCV);
 
 FExecStatus FPluginHandler::Echo(const TArray<FString>& Args)
 {
@@ -21,6 +25,7 @@ FExecStatus FPluginHandler::Echo(const TArray<FString>& Args)
 
 FExecStatus FPluginHandler::GetUnrealCVStatus(const TArray<FString>& Args)
 {
+	SCOPE_CYCLE_COUNTER(STAT_GetUnrealCVStatus);
 	FString Msg;
 	FUnrealcvServer& Server = FUnrealcvServer::Get(); // TODO: Can not use a copy constructor, need to disable copy constructor
 

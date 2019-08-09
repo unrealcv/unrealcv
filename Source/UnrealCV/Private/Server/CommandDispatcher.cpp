@@ -12,7 +12,7 @@
 // The regular expression for float number is from here, http://stackoverflow.com/questions/12643009/regular-expression-for-floating-point-numbers
 // Use ICU regexp to define URI, See http://userguide.icu-project.org/strings/regexp
 
-
+DECLARE_CYCLE_STAT(TEXT("FCommandDispatcher::Exec"), STAT_Exec, STATGROUP_UnrealCV);
 
 FCommandDispatcher::FCommandDispatcher()
 {
@@ -123,6 +123,8 @@ bool FCommandDispatcher::BindCommand(const FString& ReadableUriTemplate, const F
 	}
 	UriMapping.Emplace(UriTemplate, Command);
 	UriDescription.Emplace(ReadableUriTemplate, Description);
+	FRegexPattern Pattern = FRegexPattern(UriTemplate);
+	UriRegexPattern.Emplace(UriTemplate, Pattern);
 	UriList.AddUnique(UriTemplate);
 	return true;
 }
@@ -180,6 +182,7 @@ const TMap<FString, FString>& FCommandDispatcher::GetUriDescription()
 
 FExecStatus FCommandDispatcher::Exec(const FString Uri)
 {
+	SCOPE_CYCLE_COUNTER(STAT_Exec);
 	if (!IsInGameThread())
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("Command execution is not in the game thread."));
@@ -195,10 +198,7 @@ FExecStatus FCommandDispatcher::Exec(const FString Uri)
 	{
 		// FRegexPattern Pattern = FRegexPattern(Elem.Key);
 		FString Key = UriList[UriIndex];
-		FRegexPattern Pattern = FRegexPattern(Key);
-
-		// FDispatcherDelegate& Cmd = Elem.Value;
-		FDispatcherDelegate& Cmd = UriMapping[Key];
+		FRegexPattern Pattern = UriRegexPattern[Key];
 
 		FRegexMatcher Matcher(Pattern, Uri);
 		if (Matcher.FindNext())
@@ -210,6 +210,7 @@ FExecStatus FCommandDispatcher::Exec(const FString Uri)
 				FString Match = Matcher.GetCaptureGroup(GroupIndex); // TODO: Strip empty space
 				Args.Add(Match);
 			}
+			FDispatcherDelegate& Cmd = UriMapping[Key];
 			return Cmd.Execute(Args); // The exec status can be successful, fail or give a message back
 		}
 

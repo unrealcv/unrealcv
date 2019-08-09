@@ -16,6 +16,11 @@
 #include "SensorBPLib.h"
 #include "FusionCameraActor.h"
 
+#include "UnrealcvStats.h"
+
+DECLARE_CYCLE_STAT(TEXT("FCameraHandler::GetCameraLit"), STAT_GetCameraLit, STATGROUP_UnrealCV);
+DECLARE_CYCLE_STAT(TEXT("FCameraHandler::SaveData"), STAT_SaveData, STATGROUP_UnrealCV);
+
 UFusionCamSensor* FCameraHandler::GetCamera(const TArray<FString>& Args, FExecStatus& Status)
 {
 	if (Args.Num() < 1)
@@ -245,6 +250,8 @@ template<class T>
 void FCameraHandler::SaveData(const TArray<T>& Data, int Width, int Height,
 	const TArray<FString>& Args, FExecStatus& Status)
 {
+	SCOPE_CYCLE_COUNTER(STAT_SaveData);
+
 	if (Args.Num() != 2)
 	{
 		Status = FExecStatus::Error("Filename can not be empty");
@@ -263,6 +270,8 @@ void FCameraHandler::SaveData(const TArray<T>& Data, int Width, int Height,
 
 FExecStatus FCameraHandler::GetCameraLit(const TArray<FString>& Args)
 {
+	SCOPE_CYCLE_COUNTER(STAT_GetCameraLit);
+
 	FExecStatus ExecStatus = FExecStatus::OK();
 	UFusionCamSensor* FusionCamSensor = GetCamera(Args, ExecStatus);
 	if (!IsValid(FusionCamSensor)) return ExecStatus; 

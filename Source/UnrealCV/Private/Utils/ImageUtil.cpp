@@ -6,7 +6,7 @@
 #include "UnrealcvStats.h"
 #include "UnrealcvLog.h"
 
-DECLARE_CYCLE_STAT(TEXT("FColorToPng"), STAT_FColorToPng, STATGROUP_UnrealCV);
+DECLARE_CYCLE_STAT(TEXT("FImageUtil::ConvertToPng"), STAT_ConvertToPng, STATGROUP_UnrealCV);
 DECLARE_CYCLE_STAT(TEXT("FColorToJpg"), STAT_FColorToJpg, STATGROUP_UnrealCV);
 DECLARE_CYCLE_STAT(TEXT("FColorToBmp"), STAT_FColorToBmp, STATGROUP_UnrealCV);
 DECLARE_CYCLE_STAT(TEXT("SerializeBmpData"), STAT_SerializeBmp, STATGROUP_UnrealCV);
@@ -14,7 +14,7 @@ DECLARE_CYCLE_STAT(TEXT("SerializeBmpData"), STAT_SerializeBmp, STATGROUP_Unreal
 
 bool FImageUtil::ConvertToPng(const TArray<FColor>& ImageData, int Width, int Height, TArray<uint8>& PngData)
 {
-	SCOPE_CYCLE_COUNTER(STAT_FColorToPng);
+	SCOPE_CYCLE_COUNTER(STAT_ConvertToPng);
 
 	if (ImageData.Num() == 0 || ImageData.Num() != Width * Height)
 	{

@@ -1,7 +1,12 @@
 // Weichao Qiu @ 2017
 #include "LitCamSensor.h"
 #include "UnrealcvLog.h"
+#include "UnrealcvStats.h"
+
 #include "Runtime/Engine/Classes/Engine/Engine.h"
+
+
+DECLARE_CYCLE_STAT(TEXT("ULitCamSensor::CaptureLit"), STAT_CaptureLit, STATGROUP_UnrealCV);
 
 ULitCamSensor::ULitCamSensor(const FObjectInitializer& ObjectInitializer) :
 	Super(ObjectInitializer)
@@ -30,6 +35,7 @@ void ULitCamSensor::InitTextureTarget(int FilmWidth, int FilmHeight)
 
 void ULitCamSensor::CaptureLit(TArray<FColor>& Image, int& Width, int& Height)
 {
+	SCOPE_CYCLE_COUNTER(STAT_CaptureLit);
 	if (!CheckTextureTarget())
 	{
 		InitTextureTarget(this->FilmWidth, this->FilmHeight);
