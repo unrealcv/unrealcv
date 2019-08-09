@@ -138,7 +138,6 @@ public:
 		uint32 VisibilityMap,
 		FMeshElementCollector & Collector) const override;
 
-	/*
 	virtual bool GetMeshElement
 	(
 		int32 LODIndex,
@@ -146,11 +145,9 @@ public:
 		int32 ElementIndex,
 		uint8 InDepthPriorityGroup,
 		bool bUseSelectedMaterial,
-		bool bUseHoveredMaterial,
 		bool bAllowPreCulledIndices,
 		FMeshBatch & OutMeshBatch
 	) const override;
-	*/
 
 	virtual FPrimitiveViewRelevance GetViewRelevance(const FSceneView * View) const override;
 };
@@ -181,23 +178,20 @@ void FStaticAnnotationSceneProxy::GetDynamicMeshElements(
 	FStaticMeshSceneProxy::GetDynamicMeshElements(Views, ViewFamily, VisibilityMap, Collector);
 }
 
-/*
 bool FStaticAnnotationSceneProxy::GetMeshElement(
 	int32 LODIndex,
 	int32 BatchIndex,
 	int32 ElementIndex,
 	uint8 InDepthPriorityGroup,
 	bool bUseSelectedMaterial,
-	bool bUseHoveredMaterial,
 	bool bAllowPreCulledIndices,
 	FMeshBatch & OutMeshBatch) const
 {
 	bool Ret = FStaticMeshSceneProxy::GetMeshElement(LODIndex, BatchIndex, ElementIndex, InDepthPriorityGroup,
-		bUseSelectedMaterial, bUseHoveredMaterial, bAllowPreCulledIndices, OutMeshBatch);
+		bUseSelectedMaterial, bAllowPreCulledIndices, OutMeshBatch);
 	OutMeshBatch.MaterialRenderProxy = this->MaterialRenderProxy;
 	return Ret;
 }
-*/
 
 class FSkeletalAnnotationSceneProxy : public FSkeletalMeshSceneProxy
 {

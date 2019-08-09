@@ -67,7 +67,6 @@ public class UnrealcvBuildConfig
 	}
 }
 
-#if WITH_FORWARDED_MODULE_RULES_CTOR
 namespace UnrealBuildTool.Rules
 {
 	public class UnrealCV: ModuleRules
@@ -101,26 +100,3 @@ namespace UnrealBuildTool.Rules
 	}
 }
 
-#else //4.15 or lower, for backward compatibility
-namespace UnrealBuildTool.Rules
-{
-	public class UnrealCV: ModuleRules
-	{
-		public UnrealCV(TargetInfo Target)
-		{
-			string EnginePath = Path.GetFullPath(BuildConfiguration.RelativeEnginePath);
-			UnrealcvBuildConfig BuildConfig = new UnrealcvBuildConfig(EnginePath);
-
-			PublicIncludePaths = BuildConfig.PublicIncludePaths;
-			PrivateIncludePaths = BuildConfig.PrivateIncludePaths;
-			PublicDependencyModuleNames = BuildConfig.PublicDependencyModuleNames;
-			DynamicallyLoadedModuleNames = BuildConfig.DynamicallyLoadedModuleNames;
-
-			if (UEBuildConfiguration.bBuildEditor == true)
-			{
-				PrivateDependencyModuleNames = BuildConfig.EditorPrivateDependencyModuleNames;
-			}
-		}
-	}
-}
-#endif
