@@ -14,6 +14,33 @@
 #include "CubeActor.h"
 #include "CommandInterface.h"
 
+FExecStatus SetActorName(AActor* Actor, FString NewName)
+{
+	UObject* NameScopeOuter = ANY_PACKAGE;
+	UObject* ExistingObject = StaticFindObject(/*Class=*/ NULL, NameScopeOuter, *NewName, true);
+	if (IsValid(ExistingObject))
+	{
+		if (ExistingObject == Actor)
+		{
+			FString ErrorMsg = TEXT("The name has already been set");
+			return FExecStatus::OK(ErrorMsg);
+		}
+		else if (ExistingObject)
+		{
+			FString ErrorMsg = FString::Printf(TEXT("Renaming an object to overwrite an existing object is not allowed, %s"),  *NewName);
+			return FExecStatus::Error(ErrorMsg);
+		}
+	}
+	else
+	{
+		ICommandInterface* CmdActor = Cast<ICommandInterface>(Actor);
+		if (CmdActor) CmdActor->UnbindCommands();
+		Actor->Rename(*NewName);
+		if (CmdActor) CmdActor->BindCommands();
+	}
+	return FExecStatus::OK();
+}
+
 void FObjectHandler::RegisterCommands()
 {
 	CommandDispatcher->BindCommand(
@@ -36,6 +63,12 @@ void FObjectHandler::RegisterCommands()
 
 	CommandDispatcher->BindCommand(
 		"vset /objects/spawn [str]",
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::Spawn),
+		"Spawn an object with UClassName as the argument."
+	);
+
+	CommandDispatcher->BindCommand(
+		"vset /objects/spawn [str] [str]",
 		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::Spawn),
 		"Spawn an object with UClassName as the argument."
 	);
@@ -308,26 +341,46 @@ FExecStatus FObjectHandler::SpawnBox(const TArray<FString>& Args)
 
 FExecStatus FObjectHandler::Spawn(const TArray<FString>& Args)
 {
+	if (Args.Num() == 2)
+	{
+		FString ActorId = Args[1];
+		AActor* Actor = GetActorById(FUnrealcvServer::Get().GetWorld(), ActorId);
+		if (IsValid(Actor))
+		{
+			FString ErrorMsg = FString::Printf(TEXT("Failed to spawn %s, object exsit."), *ActorId);
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *ErrorMsg);
+			return FExecStatus::Error(ErrorMsg);
+		}
+	}
+
 	FString UClassName;
-	if (Args.Num() == 1) { UClassName = Args[0]; }
+	if (Args.Num() == 1 || Args.Num() == 2)
+	{ 
+		UClassName = Args[0]; 
+	}
 	// Lookup UClass with a string
 	UClass*	Class = FindObject<UClass>(ANY_PACKAGE, *UClassName);
 
 	if (!IsValid(Class))
 	{
-		return FExecStatus::Error(FString::Printf(TEXT("Can not find a class with name '%s'"), *UClassName));
+		FString ErrorMsg = FString::Printf(TEXT("Can not find a class with name '%s'"), *UClassName);
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *ErrorMsg);
+		return FExecStatus::Error(ErrorMsg);
 	}
 
 	UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
 	AActor* Actor = GameWorld->SpawnActor(Class);
-	if (IsValid(Actor))
-	{
-		return FExecStatus::OK(Actor->GetName());
-	}
-	else
+	if (!IsValid(Actor))
 	{
 		return FExecStatus::Error("Failed to spawn actor");
 	}
+
+	if (Args.Num() == 2)
+	{
+		FString ActorName = Args[1];
+		SetActorName(Actor, ActorName);
+	}
+	return FExecStatus::OK(Actor->GetName());
 }
 
 FExecStatus FObjectHandler::Destroy(const TArray<FString>& Args)
@@ -354,6 +407,7 @@ FExecStatus FObjectHandler::GetComponents(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
+
 FExecStatus FObjectHandler::SetName(const TArray<FString>& Args)
 {
 	if (Args.Num() != 2)
@@ -366,29 +420,9 @@ FExecStatus FObjectHandler::SetName(const TArray<FString>& Args)
 	FString NewName = Args[1];
 	// Check whether the object name already exists, otherwise it will crash in 
 	// File:/home/qiuwch/UnrealEngine/Engine/Source/Runtime/CoreUObject/Private/UObject/Obj.cpp] [Line: 198]
+	FExecStatus Status = SetActorName(Actor, NewName);
 
-	UObject* NameScopeOuter = ANY_PACKAGE;
-	UObject* ExistingObject = StaticFindObject(/*Class=*/ NULL, NameScopeOuter, *NewName, true);
-	if (IsValid(ExistingObject))
-	{
-		if (ExistingObject == Actor)
-		{    
-			return FExecStatus::OK("The name has already been set");
-		}    
-		else if (ExistingObject)
-		{    
-			return FExecStatus::Error("Renaming an object on top of an existing object is not allowed");
-		}
-	}
-	else
-	{
-		ICommandInterface* CmdActor = Cast<ICommandInterface>(Actor);
-		if (CmdActor) CmdActor->UnbindCommands();
-		Actor->Rename(*NewName);
-		if (CmdActor) CmdActor->BindCommands();
-		return FExecStatus::OK();
-	}
-	return FExecStatus::OK();
+	return Status; 
 }
 
 #if WITH_EDITOR
