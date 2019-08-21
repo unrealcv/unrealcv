@@ -211,7 +211,16 @@ FExecStatus FCommandDispatcher::Exec(const FString Uri)
 				Args.Add(Match);
 			}
 			FDispatcherDelegate& Cmd = UriMapping[Key];
-			return Cmd.Execute(Args); // The exec status can be successful, fail or give a message back
+			if (Cmd.IsBound())
+			{
+				return Cmd.Execute(Args); // The exec status can be successful, fail or give a message back
+			}
+			else
+			{
+				FString ErrorMsg = TEXT("Command delegate is not bound.");
+				UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *ErrorMsg);
+				return FExecStatus::Error(ErrorMsg);
+			}
 		}
 
 		// TODO: Regular expression mapping is slow, need to implement in a more efficient way.
