@@ -31,4 +31,7 @@ public:
 
 	/** Load FServerConfig from configuration file */
 	bool Load();
+
+	// Load config from command line argument
+	void ParseCmdArgs();
 };

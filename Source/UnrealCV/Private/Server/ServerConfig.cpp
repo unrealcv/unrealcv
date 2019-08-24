@@ -2,6 +2,8 @@
 #include "ServerConfig.h"
 #include "Runtime/Core/Public/HAL/FileManager.h"
 #include "Runtime/Core/Public/Misc/ConfigCacheIni.h"
+#include "Runtime/Core/Public/Misc/CommandLine.h"
+
 #include "UnrealcvLog.h"
 
 // TODO: Try to simplify the implementation of this class
@@ -33,6 +35,25 @@ FServerConfig::FServerConfig()
 
 	this->Load(); 
 	this->Save(); // Flush the default config to the disk if file not exist.
+	this->ParseCmdArgs();
+
+	UE_LOG(LogUnrealCV, Warning, TEXT("Port: %d"), this->Port);
+	UE_LOG(LogUnrealCV, Warning, TEXT("Width: %d"), this->Width);
+	UE_LOG(LogUnrealCV, Warning, TEXT("Height: %d"), this->Height);
+	UE_LOG(LogUnrealCV, Warning, TEXT("FOV: %f"), this->FOV);
+	UE_LOG(LogUnrealCV, Warning, TEXT("EnableInput: %s"), *BoolToString(this->EnableInput));
+	UE_LOG(LogUnrealCV, Warning, TEXT("EnableRightEye: %s"), *BoolToString(this->EnableRightEye));
+}
+
+void FServerConfig::ParseCmdArgs()
+{
+	// https://answers.unrealengine.com/questions/123559/can-we-make-command-line-arguments.html
+	// Use command line argument to overwrite config file.
+	int ArgPort;
+	// Use cvport to avoid conflict with UE4 default
+	if (FParse::Value(FCommandLine::Get(), TEXT("cvport"), ArgPort)) {
+		Port = ArgPort;
+	}
 }
 
 FString FServerConfig::BoolToString(bool Value) const
@@ -73,12 +94,6 @@ bool FServerConfig::Load() {
 	GConfig->GetBool(*CoreSection, TEXT("EnableInput"), this->EnableInput, this->ConfigFile);
 	GConfig->GetBool(*CoreSection, TEXT("EnableRightEye"), this->EnableRightEye, this->ConfigFile);
 
-	UE_LOG(LogUnrealCV, Warning, TEXT("Port: %d"), this->Port);
-	UE_LOG(LogUnrealCV, Warning, TEXT("Width: %d"), this->Width);
-	UE_LOG(LogUnrealCV, Warning, TEXT("Height: %d"), this->Height);
-	UE_LOG(LogUnrealCV, Warning, TEXT("FOV: %f"), this->FOV);
-	UE_LOG(LogUnrealCV, Warning, TEXT("EnableInput: %s"), *BoolToString(this->EnableInput));
-	UE_LOG(LogUnrealCV, Warning, TEXT("EnableRightEye: %s"), *BoolToString(this->EnableRightEye));
 
 	return true;
 }
