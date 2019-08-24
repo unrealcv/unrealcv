@@ -123,7 +123,7 @@ public:
 		FStaticMeshSceneProxy(Component, bForceLODsShareStaticLighting)
 	{
 		MaterialRenderProxy = AnnotationMID->GetRenderProxy();
-		this->MaterialRelevance = AnnotationMID->GetRelevance(GetScene().GetFeatureLevel());
+		// this->MaterialRelevance = AnnotationMID->GetRelevance(GetScene().GetFeatureLevel());
 		// Note: This MaterailRelevance makes no difference?
 
 		this->bVerifyUsedMaterials = false;
