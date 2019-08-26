@@ -11,10 +11,13 @@
 class FRequest
 {
 public:
-	FRequest() {}
-	FRequest(FString InMessage, uint32 InRequestId) : Message(InMessage), RequestId(InRequestId) {}
+	FString Endpoint;
 	FString Message;
 	uint32 RequestId;
+
+	FRequest() {}
+	FRequest(FString InEndpoint, FString InMessage, uint32 InRequestId) 
+		: Endpoint(InEndpoint), Message(InMessage), RequestId(InRequestId) {}
 };
 
 /**
@@ -117,7 +120,7 @@ private:
 	TQueue<FRequest, EQueueMode::Spsc> PendingRequest; // TQueue is a thread safe implementation
 
 	/** Handle the raw message from TcpServer and parse raw message to a FRequest */
-	void HandleRawMessage(const FString& RawMessage);
+	void HandleRawMessage(const FString& Endpoint, const FString& RawMessage);
 
 	/** Handle errors from TcpServer */
 	void HandleError(const FString& ErrorMessage);

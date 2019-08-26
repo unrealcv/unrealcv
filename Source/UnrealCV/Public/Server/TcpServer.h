@@ -35,7 +35,7 @@ public:
 
 
 // The ; in the end is needed for doxygen.
-DECLARE_EVENT_OneParam(UTcpServer, FReceivedEvent, const FString&);
+DECLARE_EVENT_TwoParams(UTcpServer, FReceivedEvent, const FString&, const FString&);
 DECLARE_EVENT_OneParam(UTcpServer, FErrorEvent, const FString&);
 DECLARE_EVENT_OneParam(UTcpServer, FConnectedEvent, const FString&);
 
@@ -109,9 +109,9 @@ private:
 	FConnectedEvent ConnectedEvent;
 
 	/** Broadcast event `Received` */
-	void BroadcastReceived(const FString& Message)
+	void BroadcastReceived(const FString& Endpoint, const FString& Message)
 	{
-		ReceivedEvent.Broadcast(Message);
+		ReceivedEvent.Broadcast(Endpoint, Message);
 	}
 
 	/** Broadcast event `Error` */

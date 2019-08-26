@@ -270,6 +270,8 @@ void FUnrealcvServer::ProcessPendingRequest()
 		// if (!InitWorld()) break;
 
 		FRequest Request;
+
+		// Dequeue one request each time
 		bool DequeueStatus = PendingRequest.Dequeue(Request);
 		int32 RequestId = Request.RequestId;
 
@@ -288,7 +290,7 @@ void FUnrealcvServer::ProcessPendingRequest()
 			TArray<uint8> ReplyData;
 			FExecStatus::BinaryArrayFromString(Header, ReplyData);
 			ReplyData += FExecStatus::OK().GetData();
-			TcpServer->SendData(ReplyData); // return a fake ok.
+			TcpServer->SendData(ReplyData); // return a fake ok for vbatch
 			continue;
 		}
 		else
@@ -296,7 +298,7 @@ void FUnrealcvServer::ProcessPendingRequest()
 			BatchNum = 1;
 		}
 
-		if (BatchNum > 0) // The batch is ready
+		if (BatchNum > 0) 
 		// Keep collecting commands until the batch is ready
 		// inside batch mode
 		{
@@ -304,9 +306,9 @@ void FUnrealcvServer::ProcessPendingRequest()
 			BatchNum -= 1;
 		}
 		
-		if (BatchNum == 0)
+		if (BatchNum == 0) // The batch is ready
 		{
-			// Hold the batch request until all commands are received.
+			// Otherwise hold the batch request until all commands are received.
 			for (FRequest RequestToRun : Batch)
 			{
 				ProcessRequest(RequestToRun);
@@ -317,7 +319,7 @@ void FUnrealcvServer::ProcessPendingRequest()
 }
 
 /** Message handler for server */
-void FUnrealcvServer::HandleRawMessage(const FString& InRawMessage)
+void FUnrealcvServer::HandleRawMessage(const FString& Endpoint, const FString& InRawMessage)
 {
 	UE_LOG(LogUnrealCV, Warning, TEXT("Request: %s"), *InRawMessage);
 	// Parse Raw Message
@@ -333,7 +335,7 @@ void FUnrealcvServer::HandleRawMessage(const FString& InRawMessage)
 		FString Message = Matcher.GetCaptureGroup(2);
 
 		uint32 RequestId = FCString::Atoi(*StrRequestId);
-		FRequest Request(Message, RequestId);
+		FRequest Request(Endpoint, Message, RequestId);
 		this->PendingRequest.Enqueue(Request);
 	}
 	else

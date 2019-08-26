@@ -193,7 +193,7 @@ bool UTcpServer::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoint& Cl
 		int32 Read = 0;
 		TArray<uint8> ReceivedData;
 		ReceivedData.SetNumZeroed(BufferSize);
-		while (1)
+		while (true)
 		{
 			// Easier to use raw FSocket here, need to detect remote socket disconnection
 			bool RecvStatus = ClientSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), Read);
@@ -221,49 +221,55 @@ bool UTcpServer::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoint& Cl
   */
 bool UTcpServer::StartMessageService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
-	if (!this->ConnectionSocket)
-	{
-		ConnectionSocket = ClientSocket;
-
-		UE_LOG(LogUnrealCV, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
-		// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
-		FString Confirm = FString::Printf(TEXT("connected to %s"), *GetProjectName());
-		bool IsSent = this->SendMessage(Confirm); // Send a hello message
-		if (!IsSent)
-		{
-			UE_LOG(LogUnrealCV, Error, TEXT("Failed to send welcome message to client."));
-		}
-
-		// TODO: Start a new thread
-		while (ConnectionSocket) // Listening thread, while the client is still connected
-		{
-			FArrayReader ArrayReader;
-			bool unknown_error = false;
-			if (!FSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket, &unknown_error))
-				// Wait forever until got a message, or return false when error happened
-			{
-				if (unknown_error) 
-				{
-					BroadcastError(FString("ReceivePayload failed with unknown error"));
-				}
-				this->ConnectionSocket = NULL;
-				return false; // false will release the ClientSocket
-				break; // Remote socket disconnected
-			}
-
-			FString Message = StringFromBinaryArray(ArrayReader);
-			BroadcastReceived(Message);
-			// Fire raw message received event, use message id to connect request and response
-			UE_LOG(LogUnrealCV, Warning, TEXT("Receive message %s"), *Message);
-		}
-		return false; // TODO: What is the meaning of return value?
-	}
-	else
+	if (this->ConnectionSocket)
 	{
 		// No response and let the client silently timeout
 		UE_LOG(LogUnrealCV, Warning, TEXT("Only one client is allowed, can not allow new connection from %s"), *ClientEndpoint.ToString());
 		return false; // Already have a connection
 	}
+
+	ConnectionSocket = ClientSocket;
+
+	UE_LOG(LogUnrealCV, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
+	// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
+	FString Confirm = FString::Printf(TEXT("connected to %s"), *GetProjectName());
+	bool IsSent = this->SendMessage(Confirm); // Send a hello message
+	if (!IsSent)
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("Failed to send welcome message to client."));
+	}
+
+	// TODO: Start a new thread
+	while (ConnectionSocket) // Listening thread, while the client is still connected
+	{
+		FArrayReader ArrayReader;
+		bool unknown_error = false;
+		if (!FSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket, &unknown_error))
+			// Wait forever until got a message, or return false when error happened
+		{
+			if (unknown_error) 
+			{
+				BroadcastError(FString("ReceivePayload failed with unknown error"));
+			}
+
+			// FIX: important to close the connection, otherwise listening socket may refuse new connection
+			// https://stackoverflow.com/questions/4160347/close-vs-shutdown-socket
+			this->ConnectionSocket->Shutdown(ESocketShutdownMode::ReadWrite);
+			this->ConnectionSocket->Close();
+			this->ConnectionSocket = NULL;
+			return false; // false will release the ClientSocket
+		}
+
+		FString Message = StringFromBinaryArray(ArrayReader);
+
+		TSharedRef<FInternetAddr> EndpointAddr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr();
+		ConnectionSocket->GetPeerAddress(EndpointAddr.Get());
+		FString Endpoint = EndpointAddr->ToString(true);
+		BroadcastReceived(Endpoint, Message);
+		// Fire raw message received event, use message id to connect request and response
+		UE_LOG(LogUnrealCV, Warning, TEXT("Receive message %s"), *Message);
+	}
+	return false; // TODO: What is the meaning of return value?
 }
 
 /** Connected Handler */
@@ -299,10 +305,11 @@ bool UTcpServer::Start(int32 InPortNum) // Restart the server if configuration c
 	// int32 PortNum = this->PortNum; // Make this configuable
 	FIPv4Endpoint Endpoint(IPAddress, PortNum);
 
+	int MaxConnection = 1;
 	FSocket* ServerSocket = FTcpSocketBuilder(TEXT("FTcpListener server")) // TODO: Need to realease this socket
 		// .AsReusable()
 		.BoundToEndpoint(Endpoint)
-		.Listening(8);
+		.Listening(MaxConnection);
 
 	if (ServerSocket)
 	{
