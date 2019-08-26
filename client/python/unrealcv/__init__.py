@@ -184,12 +184,12 @@ class Client(object):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             # Make the socket working in the blocking mode
             s.connect(self.endpoint)
-            self.sock = s
             _L.debug('BaseClient: wait for connection confirm')
 
-            message = SocketMessage.ReceivePayload(self.sock)
+            message = SocketMessage.ReceivePayload(s)
             if message.startswith(b'connected'):
                 _L.info('Got connection confirm: %s', repr(message))
+                self.sock = s
                 return True
             else:
                 self.sock = None
