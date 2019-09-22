@@ -339,6 +339,7 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy(UStaticMeshComponen
 	// This is not recommended, but I know what I am doing.
 }
 
+// See https://github.com/EpicGames/UnrealEngine/blob/release/Engine/Source/Runtime/Engine/Private/Components/SkinnedMeshComponent.cpp:417
 FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy(USkeletalMeshComponent* SkeletalMeshComponent)
 {
 	UMaterialInterface* ProxyMaterial = AnnotationMID; // Material Instance Dynamic

@@ -30,7 +30,7 @@ public:
 	/** Add header to payload and send it out */
 	static bool WrapAndSendPayload(const TArray<uint8>& Payload, FSocket* Socket);
 	/** Receive packages and strip header */
-	static bool ReceivePayload(FArrayReader& OutPayload, FSocket* Socket, bool* unknown_error);
+	static bool ReceivePayload(FArrayReader& OutPayload, FSocket* Socket);
 };
 
 
@@ -112,12 +112,6 @@ private:
 	void BroadcastReceived(const FString& Endpoint, const FString& Message)
 	{
 		ReceivedEvent.Broadcast(Endpoint, Message);
-	}
-
-	/** Broadcast event `Error` */
-	void BroadcastError(const FString& Message)
-	{
-		ErrorEvent.Broadcast(Message);
 	}
 
 	/** Broadcast event `Connected` */

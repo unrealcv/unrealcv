@@ -48,8 +48,13 @@ bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, FSoc
 }
 
 /* Waiting for data, return false only when disconnected */
-bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize, bool* unknown_error)
+bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
 {
+	// Make sure no error before using this socket
+	// ESocketErrors LastError = ISocketSubsystem::Get()->GetLastErrorCode();
+	// const TCHAR* LastErrorMsg = ISocketSubsystem::Get()->GetSocketError(LastError);
+	// UE_LOG(LogUnrealCV, Display, TEXT("Error msg before receiving data %s"), LastErrorMsg);
+
 	int32 Offset = 0;
 	while (ExpectedSize > 0)
 	{
@@ -68,53 +73,63 @@ bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize, bool* 
 		check(NumRead <= ExpectedSize);
 
 		ESocketErrors LastError = ISocketSubsystem::Get()->GetLastErrorCode();
-		// Use this check instead of use return status of recv to ensure backward compatibility
-		// Because there is a bug with 4.12 FSocketBSD implementation
-		// https://www.unrealengine.com/blog/unreal-engine-4-13-released, Search FSocketBSD::Recv
-		if (NumRead == 0 && LastError == ESocketErrors::SE_NO_ERROR) // 0 means gracefully closed
-		{
-			UE_LOG(LogUnrealCV, Log, TEXT("The connection is gracefully closed by the client."));
-			return false; // Socket is disconnected. if -1, keep waiting for data
-		}
-
-		if (NumRead == 0 && LastError == ESocketErrors::SE_EWOULDBLOCK)
-		{
-			continue; // No data and keep waiting
-		}
-
-		if (LastError == ESocketErrors::SE_NO_ERROR || LastError == ESocketErrors::SE_EWOULDBLOCK)
+		
+		if (NumRead != 0) // successfully read something
 		{
 			// Got some data and in an expected condition
 			Offset += NumRead;
 			ExpectedSize -= NumRead;
 			continue;
 		}
-		// LastError == ESocketErrors::SE_EWOULDBLOCK means running a non-block socket."));
-		if (LastError == ESocketErrors::SE_ECONNABORTED) // SE_ECONNABORTED
+		else
 		{
-			UE_LOG(LogUnrealCV, Error, TEXT("Connection aborted unexpectly."));
+			if (LastError == ESocketErrors::SE_EWOULDBLOCK)
+			{
+				continue; // No data and keep waiting
+			}
+			// Use this check instead of use return status of recv to ensure backward compatibility
+			// Because there is a bug with 4.12 FSocketBSD implementation
+			// https://www.unrealengine.com/blog/unreal-engine-4-13-released, Search FSocketBSD::Recv
+			if (LastError == ESocketErrors::SE_NO_ERROR) // 0 means gracefully closed
+			{
+				UE_LOG(LogUnrealCV, Log, TEXT("The connection is gracefully closed by the client."));
+				return false; // Socket is disconnected. if -1, keep waiting for data
+			}
+
+			// LastError == ESocketErrors::SE_EWOULDBLOCK means running a non-block socket."));
+			if (LastError == ESocketErrors::SE_ECONNABORTED) // SE_ECONNABORTED
+			{
+				UE_LOG(LogUnrealCV, Error, TEXT("Connection aborted unexpectly."));
+				return false;
+			}
+
+			if (LastError == ESocketErrors::SE_ENOTCONN)
+			{
+				UE_LOG(LogUnrealCV, Error, TEXT("Socket is not connected."));
+				return false;
+			}
+
+			const TCHAR* LastErrorMsg = ISocketSubsystem::Get()->GetSocketError(LastError);
+			UE_LOG(LogUnrealCV, Error, TEXT("Unexpected error of socket happend, error %s"), LastErrorMsg);
+
 			return false;
 		}
-
-		const TCHAR* LastErrorMsg = ISocketSubsystem::Get()->GetSocketError(LastError);
-		UE_LOG(LogUnrealCV, Error, TEXT("Unexpected error of socket happend, error %s"), LastErrorMsg);
-
-		if (unknown_error != nullptr) {
-			*unknown_error = true;
-		}
-		return false;
 	}
 	return true;
 }
 
 
-bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Socket, bool* unknown_error)
+bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Socket)
 {
+	if (Socket->GetConnectionState() != ESocketConnectionState::SCS_Connected)
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("Trying to read message from an unconnected socket."));
+	}
 	TArray<uint8> HeaderBytes;
 	int32 Size = sizeof(FSocketMessageHeader);
 	HeaderBytes.AddZeroed(Size);
 
-	if (!SocketReceiveAll(Socket, HeaderBytes.GetData(), Size, unknown_error))
+	if (!SocketReceiveAll(Socket, HeaderBytes.GetData(), Size))
 	{
 		// false here means socket disconnected.
 		// UE_LOG(LogUnrealCV, Error, TEXT("Unable to read header, Socket disconnected."));
@@ -134,7 +149,7 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 
 	uint32 PayloadSize;
 	Reader << PayloadSize;
-	if (!PayloadSize)
+	if (0 == PayloadSize)
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("Empty payload"));
 		return false;
@@ -142,7 +157,7 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 
 	int32 PayloadOffset = OutPayload.AddUninitialized(PayloadSize);
 	OutPayload.Seek(PayloadOffset);
-	if (!SocketReceiveAll(Socket, OutPayload.GetData() + PayloadOffset, PayloadSize, unknown_error))
+	if (!SocketReceiveAll(Socket, OutPayload.GetData() + PayloadOffset, PayloadSize))
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("Unable to read full payload, Socket disconnected."));
 		return false;
@@ -242,16 +257,15 @@ bool UTcpServer::StartMessageService(FSocket* ClientSocket, const FIPv4Endpoint&
 	// TODO: Start a new thread
 	while (ConnectionSocket) // Listening thread, while the client is still connected
 	{
+		if (ConnectionSocket->GetConnectionState() != ESocketConnectionState::SCS_Connected)
+		{
+			UE_LOG(LogUnrealCV, Warning, TEXT("Trying to read message from an unconnected socket."));
+		}
+
 		FArrayReader ArrayReader;
-		bool unknown_error = false;
-		if (!FSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket, &unknown_error))
+		if (!FSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket))
 			// Wait forever until got a message, or return false when error happened
 		{
-			if (unknown_error) 
-			{
-				BroadcastError(FString("ReceivePayload failed with unknown error"));
-			}
-
 			// FIX: important to close the connection, otherwise listening socket may refuse new connection
 			// https://stackoverflow.com/questions/4160347/close-vs-shutdown-socket
 			this->ConnectionSocket->Shutdown(ESocketShutdownMode::ReadWrite);
@@ -266,8 +280,9 @@ bool UTcpServer::StartMessageService(FSocket* ClientSocket, const FIPv4Endpoint&
 		ConnectionSocket->GetPeerAddress(EndpointAddr.Get());
 		FString Endpoint = EndpointAddr->ToString(true);
 		BroadcastReceived(Endpoint, Message);
+
 		// Fire raw message received event, use message id to connect request and response
-		UE_LOG(LogUnrealCV, Warning, TEXT("Receive message %s"), *Message);
+		// UE_LOG(LogUnrealCV, Warning, TEXT("Receive message %s"), *Message);
 	}
 	return false; // TODO: What is the meaning of return value?
 }
@@ -320,6 +335,7 @@ bool UTcpServer::Start(int32 InPortNum) // Restart the server if configuration c
 	{
 		this->bIsListening = false;
 		UE_LOG(LogUnrealCV, Warning, TEXT("Cannot start listening on port %d, Port might be in use"), PortNum);
+		// This message can not be error. Error will prevent cook server from launching.
 		return false;
 	}
 
