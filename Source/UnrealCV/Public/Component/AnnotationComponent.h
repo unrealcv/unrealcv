@@ -36,6 +36,9 @@ public:
 
 	virtual void OnRegister() override;
 
+	/** Force the component to update to capture changes from the parent */
+	void ForceUpdate();
+
 private:
 	// FParentMeshInfo ParentMeshInfo;
 	// TSharedPtr<class FParentMeshInfo> ParentMeshInfo;
@@ -47,6 +50,8 @@ private:
 	UMaterialInstanceDynamic* AnnotationMID;
 
 	FColor AnnotationColor;
+
+	bool bSkeletalMesh; // indicate whether this is for a SkeletalMesh
 
 	FPrimitiveSceneProxy* CreateSceneProxy(UStaticMeshComponent* StaticMeshComponent);
 	FPrimitiveSceneProxy* CreateSceneProxy(USkeletalMeshComponent* SkeletalMeshComponent);

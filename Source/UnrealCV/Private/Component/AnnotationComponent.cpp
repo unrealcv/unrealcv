@@ -258,6 +258,7 @@ UAnnotationComponent::UAnnotationComponent(const FObjectInitializer& ObjectIniti
 	: Super(ObjectInitializer)
 	  // , ParentMeshInfo(nullptr)
 {
+	bSkeletalMesh = false;
 	FString MaterialPath = TEXT("Material'/UnrealCV/AnnotationColor.AnnotationColor'");
 	static ConstructorHelpers::FObjectFinder<UMaterial> AnnotationMaterialObject(*MaterialPath);
 	AnnotationMaterial = AnnotationMaterialObject.Object;
@@ -329,7 +330,7 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy(UStaticMeshComponen
 		|| ParentStaticMesh->RenderData->LODResources.Num() == 0)
 		// || StaticMesh->RenderData->LODResources[0].VertexBuffer.GetNumVertices() == 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ParentStaticMesh is invalid."));
+		// UE_LOG(LogTemp, Warning, TEXT("%s, ParentStaticMesh is invalid."), *StaticMeshComponent->GetName());
 		return NULL;
 	}
 
@@ -395,6 +396,7 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy()
 	}
 	else if (IsValid(SkeletalMeshComponent))
 	{
+		bSkeletalMesh = true;
 		return CreateSceneProxy(SkeletalMeshComponent);
 	}
 	else
@@ -443,7 +445,10 @@ void UAnnotationComponent::TickComponent(
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction); 
 
-	// MarkRenderStateDirty(); Without it will break the SkeletalMeshComponent
+	if (bSkeletalMesh)
+	{
+		MarkRenderStateDirty(); // Without it will break the SkeletalMeshComponent
+	}
 	/*
 	// if (ParentMeshInfo->RequiresUpdate()) 
 	// TODO: This sometimes miss a required update, see OWIMap. Not sure why.
@@ -453,4 +458,11 @@ void UAnnotationComponent::TickComponent(
 		ParentMeshInfo = MakeShareable(new FParentMeshInfo(this->GetAttachParent()));
 	}
 	*/
+}
+
+
+void UAnnotationComponent::ForceUpdate()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Force update the annotation component."));
+	this->MarkRenderStateDirty();
 }
