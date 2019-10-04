@@ -59,4 +59,8 @@ private:
 
 	FExecStatus GetActorLabel(const TArray<FString>& Args);
 #endif
+
+	FExecStatus GetScale(const TArray<FString>& Args);
+
+	FExecStatus SetScale(const TArray<FString>& Args);
 };

@@ -164,6 +164,18 @@ void FObjectHandler::RegisterCommands()
 		"Set actor label"
 	);
 #endif
+
+	CommandDispatcher->BindCommand(
+		"vget /object/[str]/scale",
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::GetScale),
+		"Get object rotation [x, y, z]"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vset /object/[str]/scale [float] [float] [float]",
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SetScale),
+		"Set object scale [x, y, z]"
+	);
 }
 
 AActor* GetActor(const TArray<FString>& Args)
@@ -447,3 +459,29 @@ FExecStatus FObjectHandler::GetActorLabel(const TArray<FString>& Args)
 	return FExecStatus::OK(ActorLabel);
 }
 #endif 
+
+
+FExecStatus FObjectHandler::GetScale(const TArray<FString>& Args)
+{
+	AActor* Actor = GetActor(Args);
+	if (!IsValid(Actor)) return FExecStatus::Error("Can not find object");
+
+	FVector Scale = Actor->GetActorScale3D();
+
+	FStrFormatter Ar;
+	Ar << Scale;
+
+	return FExecStatus::OK(Ar.ToString());
+}
+
+FExecStatus FObjectHandler::SetScale(const TArray<FString>& Args)
+{
+	AActor* Actor = GetActor(Args);
+	if (!IsValid(Actor)) return FExecStatus::Error("Can not find object");
+
+	float X = FCString::Atof(*Args[1]), Y = FCString::Atof(*Args[2]), Z = FCString::Atof(*Args[3]);
+	FVector Scale = FVector(X, Y, Z);
+	Actor->SetActorScale3D(Scale);
+
+	return FExecStatus::OK();
+}
