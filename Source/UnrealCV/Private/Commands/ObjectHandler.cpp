@@ -176,6 +176,12 @@ void FObjectHandler::RegisterCommands()
 		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SetScale),
 		"Set object scale [x, y, z]"
 	);
+
+	CommandDispatcher->BindCommand(
+		"vget /object/[str]/bounds",
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::GetBounds),
+		"Return the bounds in the world coordinate, formate is [minx, y, z, maxx, y, z]"
+	);
 }
 
 AActor* GetActor(const TArray<FString>& Args)
@@ -484,4 +490,20 @@ FExecStatus FObjectHandler::SetScale(const TArray<FString>& Args)
 	Actor->SetActorScale3D(Scale);
 
 	return FExecStatus::OK();
+}
+
+FExecStatus FObjectHandler::GetBounds(const TArray<FString>& Args)
+{
+	AActor* Actor = GetActor(Args);
+	if (!IsValid(Actor)) return FExecStatus::Error("Can not find object");
+
+	bool bOnlyCollidingComponents = false;
+	FVector Origin, BoundsExtent;
+	Actor->GetActorBounds(bOnlyCollidingComponents, Origin, BoundsExtent);  
+	FVector Min = Origin - BoundsExtent, Max = Origin + BoundsExtent;
+
+	FString Res = FString::Printf(TEXT("%.2f %.2f %.2f %.2f %.2f %.2f"), 
+		Min.X, Min.Y, Min.Z, Max.X, Max.Y, Max.Z);
+
+	return FExecStatus::OK(Res);
 }

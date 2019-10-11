@@ -3,6 +3,9 @@
 #include "Runtime/Core/Public/HAL/FileManager.h"
 #include "Runtime/Core/Public/Misc/ConfigCacheIni.h"
 #include "Runtime/Core/Public/Misc/CommandLine.h"
+#include "Modules/ModuleManager.h"
+#include "AssetRegistryModule.h"
+
 
 #include "UnrealcvLog.h"
 
@@ -51,8 +54,37 @@ void FServerConfig::ParseCmdArgs()
 	// Use command line argument to overwrite config file.
 	int ArgPort;
 	// Use cvport to avoid conflict with UE4 default
-	if (FParse::Value(FCommandLine::Get(), TEXT("cvport"), ArgPort)) {
+	if (FParse::Value(FCommandLine::Get(), TEXT("cvport"), ArgPort)) 
+	{
 		Port = ArgPort;
+	}
+
+	FString LsFolder;
+	if (FParse::Value(FCommandLine::Get(), TEXT("cvls"), LsFolder)) 
+	{
+		ListAsset(LsFolder);
+		FGenericPlatformMisc::RequestExit(false);
+	}
+}
+
+void FServerConfig::ListAsset(FString LsFolder)
+{
+	// https://answers.unrealengine.com/questions/145345/how-to-get-a-list-of-assets-from-code.html
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
+	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
+
+	// Need to do this if running in the editor with -game to make sure that the assets in the following path are available
+	TArray<FString> PathsToScan;
+	PathsToScan.Add(TEXT("/Game/"));
+	AssetRegistry.ScanPathsSynchronous(PathsToScan);
+
+	TArray<FAssetData> MeshAssetList;
+	bool bRecursive = true;
+	AssetRegistry.GetAssetsByPath(FName(*LsFolder), MeshAssetList, bRecursive);
+
+	for (FAssetData& AssetData : MeshAssetList)
+	{
+		UE_LOG(LogUnrealCV, Display, TEXT("%s"), *AssetData.GetFullName());
 	}
 }
 

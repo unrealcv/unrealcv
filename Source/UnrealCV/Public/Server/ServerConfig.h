@@ -34,4 +34,6 @@ public:
 
 	// Load config from command line argument
 	void ParseCmdArgs();
+
+	void ListAsset(FString LsFolder);
 };
