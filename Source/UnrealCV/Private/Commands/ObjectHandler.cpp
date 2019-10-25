@@ -387,7 +387,10 @@ FExecStatus FObjectHandler::Spawn(const TArray<FString>& Args)
 	}
 
 	UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
-	AActor* Actor = GameWorld->SpawnActor(Class);
+	FActorSpawnParameters SpawnParameters;
+	// SpawnParameters.bNoFail = true; // Allow collision during spawn.
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AActor* Actor = GameWorld->SpawnActor(Class, NULL, NULL, SpawnParameters);
 	if (!IsValid(Actor))
 	{
 		return FExecStatus::Error("Failed to spawn actor");
