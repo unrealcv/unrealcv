@@ -432,6 +432,34 @@ FExecStatus FCameraHandler::SpawnCamera(const TArray<FString>& Args)
 	}
 }
 
+FExecStatus FCameraHandler::GetSize(const TArray<FString>& Args)
+{
+	FExecStatus Status = FExecStatus::InvalidArgument;
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
+	if (!IsValid(FusionCamSensor)) return FExecStatus::InvalidArgument;
+
+	if (Args.Num() != 1) return FExecStatus::InvalidArgument; // ID
+
+	int Width = FusionCamSensor->GetFilmWidth();
+	int Height = FusionCamSensor->GetFilmHeight();
+	FString Res = FString::Printf(TEXT("%d %d"), Width, Height);
+	return FExecStatus::OK(Res);
+}
+
+FExecStatus FCameraHandler::SetSize(const TArray<FString>& Args)
+{
+	FExecStatus Status = FExecStatus::InvalidArgument;
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
+	if (!IsValid(FusionCamSensor)) return FExecStatus::InvalidArgument;
+
+	if (Args.Num() != 3) return FExecStatus::InvalidArgument; // ID, Width, Height
+
+	int Width = FCString::Atof(*Args[1]);
+	int Height = FCString::Atof(*Args[2]);
+	FusionCamSensor->SetFilmSize(Width, Height);
+	return FExecStatus::OK();
+}
+
 
 void FCameraHandler::RegisterCommands()
 {
@@ -530,5 +558,17 @@ void FCameraHandler::RegisterCommands()
 		"vset /camera/[uint]/fov [float]",
 		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetFOV),
 		"Set FOV"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vset /camera/[uint]/size [uint] [uint]",
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetSize),
+		"Set Camera Film Size"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vget /camera/[uint]/size",
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetSize),
+		"Get Camera Film Size"
 	);
 }

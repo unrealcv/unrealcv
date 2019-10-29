@@ -67,4 +67,7 @@ private:
 
 	FExecStatus SetFOV(const TArray<FString>& Args);
 
+	FExecStatus GetSize(const TArray<FString>& Args);
+
+	FExecStatus SetSize(const TArray<FString>& Args);
 };
