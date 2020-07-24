@@ -88,6 +88,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "unrealcv")
 	void SetSensorFOV(float FOV);
 
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	void SetProjectionType(ECameraProjectionMode::Type ProjectionType);
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	void SetOrthoWidth(float OrthoWidth);
+
 	// UFUNCTION(BlueprintPure, Category = "unrealcv")
 	// float GetFilmHeight();
 
@@ -143,4 +149,6 @@ protected:
 	and
 	https://github.com/EpicGames/UnrealEngine/blob/4.16/Engine/Source/Editor/LevelEditor/Private/SLevelViewport.cpp#L3908
 	*/
+
+
 };

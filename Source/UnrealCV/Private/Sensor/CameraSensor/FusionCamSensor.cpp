@@ -86,11 +86,15 @@ void UFusionCamSensor::BeginPlay()
 bool UFusionCamSensor::GetEditorPreviewInfo(float DeltaTime, FMinimalViewInfo& ViewOut)
 {
 	// From CameraComponent
-	if (bIsActive)
+	if (this->IsActive())
 	{
 		this->LitCamSensor->GetCameraView(DeltaTime, ViewOut);
+		return true;
 	}
-	return bIsActive;
+	else
+	{
+		return false;
+	}
 }
 
 void UFusionCamSensor::GetLit(TArray<FColor>& LitData, int& Width, int& Height, ELitMode LitMode)
@@ -213,3 +217,34 @@ void UFusionCamSensor::PostEditChangeProperty(FPropertyChangedEvent &PropertyCha
 	}
 }
 #endif
+
+
+void UFusionCamSensor::SetProjectionType(ECameraProjectionMode::Type ProjectionType)
+{
+	for (int i = 0; i < FusionSensors.Num(); i++)
+	{
+		UBaseCameraSensor* Sensor = FusionSensors[i];
+		if (IsValid(Sensor))
+		{
+			Sensor->ProjectionType = ProjectionType;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Sensor %d within FusionCamSensor is invalid."), i);
+		}
+	}
+}
+
+void UFusionCamSensor::SetOrthoWidth(float OrthoWidth)
+{
+	for (int i = 0; i < FusionSensors.Num(); i++)
+	{
+		UBaseCameraSensor* Sensor = FusionSensors[i];
+		if (!IsValid(Sensor))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Sensor %d within FusionCamSensor is invalid."), i);
+			continue;
+		}
+		Sensor->OrthoWidth = OrthoWidth;
+	}
+}

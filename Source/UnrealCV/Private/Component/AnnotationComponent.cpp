@@ -1,4 +1,5 @@
 #include "AnnotationComponent.h"
+// Overwrite the material
 
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "Runtime/Engine/Classes/Materials/MaterialInstanceDynamic.h"
@@ -390,6 +391,7 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy()
 
 	UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(ParentComponent);
 	USkeletalMeshComponent* SkeletalMeshComponent = Cast<USkeletalMeshComponent>(ParentComponent);
+	// UCableComponent* CableComponent = Cast<UCableComponent>(ParentComponent);
 	if (IsValid(StaticMeshComponent))
 	{
 		return CreateSceneProxy(StaticMeshComponent);
@@ -399,6 +401,10 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy()
 		bSkeletalMesh = true;
 		return CreateSceneProxy(SkeletalMeshComponent);
 	}
+	// else if (IsValid(CableComponent))
+	// {
+	// 	return CreateSceneProxy(CableComponent);
+	// }
 	else
 	{
 		LOG1(FString::Printf(TEXT("The type of ParentMeshComponent : %s can not be supported."), *ParentComponent->GetClass()->GetName()));
