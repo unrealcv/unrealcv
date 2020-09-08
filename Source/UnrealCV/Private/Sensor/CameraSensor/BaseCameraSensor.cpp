@@ -42,13 +42,13 @@ UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer
 // NOTE: Avoid creating TextureTarget in the CTOR, this will make CamSensor not savable in a BP actor
 // TextureTarget = CreateDefaultSubobject<UTextureRenderTarget2D>(TEXT("CamSensorRenderTarget"));
 
-void UBaseCameraSensor::InitTextureTarget(int FilmWidth, int FilmHeight)
+void UBaseCameraSensor::InitTextureTarget(int filmWidth, int filmHeight)
 {
 	// bool bUseLinearGamma = false;
 	EPixelFormat PixelFormat = EPixelFormat::PF_B8G8R8A8;
 	bool bUseLinearGamma = false;
 	TextureTarget = NewObject<UTextureRenderTarget2D>(this); 
-	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, PixelFormat, bUseLinearGamma);
+	TextureTarget->InitCustomFormat(filmWidth, filmHeight, PixelFormat, bUseLinearGamma);
 }
 
 void UBaseCameraSensor::SetFilmSize(int Width, int Height)
