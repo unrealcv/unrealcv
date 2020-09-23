@@ -17,6 +17,6 @@ public:
 
 	virtual void InitTextureTarget(int FilmWidth, int FilmHeight) override;
 
-	UPROPERTY(EditInstanceOnly)
+	UPROPERTY(EditInstanceOnly, Category = "unrealcv")
 	bool bIgnoreTransparentObjects;
 };
