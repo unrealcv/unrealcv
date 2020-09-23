@@ -3,6 +3,7 @@
 
 #include "SerializeBPLib.h"
 #include "Runtime/Engine/Classes/Kismet/BlueprintFunctionLibrary.h"
+#include "DDSLoader.h"
 #include "VisionBPLib.generated.h"
 
 UENUM(BlueprintType)
@@ -10,6 +11,17 @@ enum class EFileFormat : uint8
 {
 	Png	UMETA(DisplayName="Png"),
 	Npy	UMETA(DisplayName="Npy"),
+};
+
+UENUM(BlueprintType)
+enum class EJoyImageFormats : uint8
+{
+	JPG		UMETA(DisplayName = "JPG        "),
+	PNG		UMETA(DisplayName = "PNG        "),
+	BMP		UMETA(DisplayName = "BMP        "),
+	ICO		UMETA(DisplayName = "ICO        "),
+	EXR		UMETA(DisplayName = "EXR        "),
+	ICNS		UMETA(DisplayName = "ICNS        ")
 };
 
 /** A static bp library for computer vision */
@@ -98,6 +110,10 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	static UFusionCamSensor* GetPlayerSensor();
+
+	/** Load a Texture2D from a JPG,PNG,BMP,ICO,EXR,ICNS file! IsValid tells you if file path was valid or not. Enjoy! -Rama */
+	UFUNCTION(BlueprintPure, Category = "Victory BP Library|Load Texture From File", meta = (Keywords = "image png jpg jpeg bmp bitmap ico icon exr icns"))
+	static UTexture2D* LoadTexture2D_FromFile(const FString& FullFilePath, EJoyImageFormats ImageFormat, bool& IsValid, int32& Width, int32& Height);
 
 	/** If there is manually crated objects, 
 	 * need to manually call this function to annotate the world */
