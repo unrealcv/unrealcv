@@ -64,28 +64,28 @@ TArray<uint8> SerializationUtils::Array2Npy(const TArray<FFloat16Color>& ImageDa
 	return BinaryData;
 }
 
-TArray<uint8> SerializationUtils::Image2Png(const TArray<FColor>& Image, int Width, int Height)
+TArray64<uint8> SerializationUtils::Image2Png(const TArray<FColor>& Image, int Width, int Height)
 {
 	if (Image.Num() == 0 || Image.Num() != Width * Height)
 	{
-		return TArray<uint8>();
+		return TArray64<uint8>();
 	}
 	static IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
 	static TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG);
 	ImageWrapper->SetRaw(Image.GetData(), Image.GetAllocatedSize(), Width, Height, ERGBFormat::BGRA, 8);
-	const TArray<uint8>& ImgData = ImageWrapper->GetCompressed();
+	const TArray64<uint8>& ImgData = ImageWrapper->GetCompressed();
 	return ImgData;
 }
 
-TArray<uint8> SerializationUtils::Image2Exr(const TArray<FFloat16Color>& FloatImage, int Width, int Height)
+TArray64<uint8> SerializationUtils::Image2Exr(const TArray<FFloat16Color>& FloatImage, int Width, int Height)
 {
 	if (FloatImage.Num() == 0 || FloatImage.Num() != Width * Height)
 	{
-		return TArray<uint8>();
+		return TArray64<uint8>();
 	}
 	static IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
 	static TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::EXR);
 	ImageWrapper->SetRaw(FloatImage.GetData(), FloatImage.GetAllocatedSize(), Width, Height, ERGBFormat::RGBA, 16);
-	const TArray<uint8>& ExrData = ImageWrapper->GetCompressed();
+	const TArray64<uint8>& ExrData = ImageWrapper->GetCompressed();
 	return ExrData;
 }
