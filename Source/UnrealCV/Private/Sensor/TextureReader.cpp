@@ -41,60 +41,6 @@ bool ReadTextureRenderTarget(UTextureRenderTarget2D* RenderTarget, TArray<FColor
 	return true;
 }
 
-bool FastReadTexture2DAsync(FTexture2DRHIRef Texture2D, TFunction<void(FColor*, int32, int32)> Callback)
-{
-	auto RenderCommand = [=](FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef SrcTexture)
-	{
-		if (SrcTexture == nullptr)
-		{
-			UE_LOG(LogUnrealCV, Warning, TEXT("Input texture2D is nullptr"));
-			return;
-		}
-		FRHIResourceCreateInfo CreateInfo;
-		FTexture2DRHIRef ReadbackTexture = RHICreateTexture2D(
-			SrcTexture->GetSizeX(), SrcTexture->GetSizeY(),
-			EPixelFormat::PF_B8G8R8A8,
-			// SrcTexture->GetFormat(),
-			// EPixelFormat::PF_A32B32G32R32F,
-			1, 1,
-			TexCreate_CPUReadback,
-			CreateInfo
-		);
-
-		if (ReadbackTexture->GetFormat() != SrcTexture->GetFormat())
-		{
-			UE_LOG(LogUnrealCV, Warning, TEXT("ReadbackTexture and SrcTexture are different"));
-			return;
-		}
-		void* ColorDataBuffer = nullptr;
-		int32 Width = 0, Height = 0;
-
-		// Debug, check the data before and after the copy operation
-		// RHICmdList.MapStagingSurface(ReadbackTexture, ColorDataBuffer, Width, Height);
-		// RHICmdList.UnmapStagingSurface(ReadbackTexture);
-
-		FResolveParams ResolveParams;
-		RHICmdList.CopyToResolveTarget(
-			SrcTexture,
-			ReadbackTexture,
-			FResolveParams());
-
-		RHICmdList.MapStagingSurface(ReadbackTexture, ColorDataBuffer, Width, Height);
-
-		FColor* ColorBuffer = reinterpret_cast<FColor*>(ColorDataBuffer);
-		Callback(ColorBuffer, Width, Height);
-		RHICmdList.UnmapStagingSurface(ReadbackTexture);
-	};
-
-	ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
-		FastReadBuffer,
-		TFunction<void(FRHICommandListImmediate&, FTexture2DRHIRef)>, InRenderCommand, RenderCommand,
-		FTexture2DRHIRef, InTexture2D, Texture2D,
-		{
-			InRenderCommand(RHICmdList, InTexture2D);
-		});
-	return true;
-}
 
 // bool ResizeFastReadTexture2DAsync(FTexture2DRHIRef Texture2D, int TargetWidth, int TargetHeight, TFunction<void(FColor*, int32, int32)> Callback)
 // {
