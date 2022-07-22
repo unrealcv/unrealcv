@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-#include "Regex.h"
+#include "Internationalization/Regex.h"
 #include "ExecStatus.h"
 
 // DECLARE_DELEGATE(FCallbackDelegate);
