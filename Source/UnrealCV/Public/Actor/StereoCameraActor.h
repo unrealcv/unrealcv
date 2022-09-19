@@ -17,7 +17,7 @@ public:
 
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditInstanceOnly)
+	UPROPERTY(EditInstanceOnly, Category = "unrealcv")
 	float BaselineDistance;
 
 	virtual TArray<FString> GetSensorNames() override;

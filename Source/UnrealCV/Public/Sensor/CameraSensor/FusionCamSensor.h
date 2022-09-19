@@ -1,6 +1,7 @@
 // Weichao Qiu @ 2017
 #pragma once
 
+#include "Runtime/Engine/Classes/Camera/CameraTypes.h"
 #include "Runtime/Engine/Classes/Components/PrimitiveComponent.h"
 #include "FusionCamSensor.generated.h"
 
@@ -115,32 +116,32 @@ public:
 #endif
 
 private:
-	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"))
+	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"), Category = "unrealcv")
 	EPresetFilmSize PresetFilmSize;
 
-	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"))
+	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"), Category = "unrealcv")
 	int FilmWidth;
 
-	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"))
+	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"), Category = "unrealcv")
 	int FilmHeight;
 
-	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"))
+	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"), Category = "unrealcv")
 	float FOV;
 
 protected:
 	UPROPERTY()
 	TArray<class UBaseCameraSensor*> FusionSensors;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "unrealcv")
 	class UDepthCamSensor* DepthCamSensor;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "unrealcv")
 	class UNormalCamSensor* NormalCamSensor;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "unrealcv")
 	class UAnnotationCamSensor* AnnotationCamSensor;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "unrealcv")
 	class ULitCamSensor* LitCamSensor;
 
 	/** This preview camera is used for UE version < 4.17 which only support UCameraComponent PIP preview
