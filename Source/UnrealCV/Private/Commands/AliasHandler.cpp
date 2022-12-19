@@ -290,14 +290,20 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 			// {
 			// 	Value = StrProperty->GetPropertyValue_InContainer(Parms);
 			// }
-			Value = StrProperty->GetPropertyValue_InContainer(Parms);
+			if (StrProperty != nullptr)
+			{
+				Value = StrProperty->GetPropertyValue_InContainer(Parms);
+			}
 
 			UNumericProperty* NumericProperty = Cast<UNumericProperty>(*It);
 			// if (IsValid(NumericProperty))
 			// {
-			// 	Value = NumericProperty->GetNumericPropertyValueToString(Parms);
+			// Value = NumericProperty->GetNumericPropertyValueToString(Parms);
 			// }
-			Value = NumericProperty->GetNumericPropertyValueToString(Parms);
+			if (NumericProperty != nullptr)
+			{
+				Value = NumericProperty->GetNumericPropertyValueToString(Parms);
+			}
 
 			if (StrProperty == nullptr && NumericProperty == nullptr)
 			{
