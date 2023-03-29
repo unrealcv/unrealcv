@@ -471,8 +471,9 @@ class Client:
 
         return message
 
-
-unix_socket_path = '~/9000.socket'
+# To use IPC on Unix, set this path to: path-to-your-binary-dir/portnum.socket
+# Your executable will create this file on startup.
+unix_socket_path = '~/env/9000.socket'
 if 'linux' in sys.platform and unix_socket_path is not None and os.path.exists(unix_socket_path):
     print('=> Info: Use UDS client...')
     client = Client(unix_socket_path, 'unix')
