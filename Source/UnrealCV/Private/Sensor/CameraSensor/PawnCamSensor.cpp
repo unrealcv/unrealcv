@@ -14,8 +14,8 @@ UPawnCamSensor::UPawnCamSensor(const FObjectInitializer& ObjectInitializer)
 	for (UBaseCameraSensor* Sensor : FusionSensors)
 	{
 		if (!IsValid(Sensor)) continue;
-		Sensor->bAbsoluteLocation = true;
-		Sensor->bAbsoluteRotation = true;
+		// Sensor->bAbsoluteLocation = true;
+		// Sensor->bAbsoluteRotation = true;
 	}
 }
 

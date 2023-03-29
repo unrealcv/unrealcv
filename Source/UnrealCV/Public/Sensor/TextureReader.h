@@ -11,4 +11,4 @@ UNREALCV_API bool ReadTextureRenderTarget(UTextureRenderTarget2D* RenderTarget, 
 UNREALCV_API bool FastReadTexture2DAsync(FTexture2DRHIRef Texture2D, TFunction<void(FColor*, int32, int32)> Callback);
 
 /** Read texture from UE4 and resize to expected size */
-UNREALCV_API bool ResizeFastReadTexture2DAsync(FTexture2DRHIRef Texture2D, int TargetWidth, int TargetHeight, TFunction<void(FColor*, int32, int32)> Callback);
+// UNREALCV_API bool ResizeFastReadTexture2DAsync(FTexture2DRHIRef Texture2D, int TargetWidth, int TargetHeight, TFunction<void(FColor*, int32, int32)> Callback);

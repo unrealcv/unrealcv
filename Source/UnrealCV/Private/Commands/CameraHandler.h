@@ -70,4 +70,8 @@ private:
 	FExecStatus GetSize(const TArray<FString>& Args);
 
 	FExecStatus SetSize(const TArray<FString>& Args);
+
+	FExecStatus SetProjectionType(const TArray<FString>& Args);
+
+	FExecStatus SetOrthoWidth(const TArray<FString>& Args);
 };

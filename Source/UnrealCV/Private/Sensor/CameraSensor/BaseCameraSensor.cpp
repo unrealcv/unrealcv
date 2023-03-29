@@ -42,13 +42,13 @@ UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer
 // NOTE: Avoid creating TextureTarget in the CTOR, this will make CamSensor not savable in a BP actor
 // TextureTarget = CreateDefaultSubobject<UTextureRenderTarget2D>(TEXT("CamSensorRenderTarget"));
 
-void UBaseCameraSensor::InitTextureTarget(int FilmWidth, int FilmHeight)
+void UBaseCameraSensor::InitTextureTarget(int filmWidth, int filmHeight)
 {
 	// bool bUseLinearGamma = false;
 	EPixelFormat PixelFormat = EPixelFormat::PF_B8G8R8A8;
 	bool bUseLinearGamma = false;
 	TextureTarget = NewObject<UTextureRenderTarget2D>(this); 
-	TextureTarget->InitCustomFormat(FilmWidth, FilmHeight, PixelFormat, bUseLinearGamma);
+	TextureTarget->InitCustomFormat(filmWidth, filmHeight, PixelFormat, bUseLinearGamma);
 }
 
 void UBaseCameraSensor::SetFilmSize(int Width, int Height)
@@ -107,77 +107,6 @@ bool UBaseCameraSensor::CheckTextureTarget()
 		return false;
 	}
 	return true;
-}
-
-void UBaseCameraSensor::CaptureFast(TArray<FColor>& ImageData, int& Width, int& Height)
-{
-	if (!CheckTextureTarget()) return;
-	this->CaptureScene();
-
-	if (TextureTarget == nullptr)
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("TextureTarget has not been initialized"));
-		return;
-	}
-	FTextureRenderTargetResource* RenderTargetResource = this->TextureTarget->GameThread_GetRenderTargetResource();
-	if (RenderTargetResource == nullptr)
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("RenderTargetResource is nullptr"));
-		return;
-	}
-	FTexture2DRHIRef Texture2D = RenderTargetResource->GetRenderTargetTexture();
-
-	static TFunction<void(FColor*, int32, int32)> Callback = [&](FColor* ColorPtr, int InWidth, int InHeight)
-	{
-		// Copy data to ImageData
-		Width = InWidth;
-		Height = InHeight;
-
-		ImageData.AddZeroed(Width * Height);
-		FColor* DestPtr = ImageData.GetData();
-		for (int32 Row = 0; Row < Height; ++Row)
-		{
-			FMemory::Memcpy(DestPtr, ColorPtr, sizeof(FColor)*Width);
-			ColorPtr += Width;
-			DestPtr += Width;
-		}
-	};
-
-	FastReadTexture2DAsync(Texture2D, Callback);
-	FlushRenderingCommands(); // Ensure the callback is done
-}
-
-
-void UBaseCameraSensor::CaptureToFile(const FString& Filename)
-{
-	if (!CheckTextureTarget()) return;
-	this->CaptureScene();
-	
-	FTextureRenderTargetResource* RenderTargetResource = this->TextureTarget->GameThread_GetRenderTargetResource();
-	FTexture2DRHIRef Texture2D = RenderTargetResource->GetRenderTargetTexture();
-
-	/** Provide funtions to convert image format and save file */
-	static auto Callback = [=](FColor* ColorBuffer, int Width, int Height)
-	{
-		// Initialize the image data array
-		TArray<FColor> Dest; // Write this.
-		Dest.AddZeroed(Width * Height); // TODO: will break!
-		FColor* DestPtr = Dest.GetData();
-
-		for (int32 Row = 0; Row < Height; ++Row)
-		{
-			FMemory::Memcpy(DestPtr, ColorBuffer, sizeof(FColor)*Width);
-			ColorBuffer += Width;
-			DestPtr += Width;
-		}
-
-		// ImageWorker.SaveFile(Dest, Width, Height, Filename);
-		// ImageUtil.SaveBmpFile(Dest, Width, Height, FString::Printf(TEXT("%s_%d.bmp"), *Filename, GFrameNumber));
-		FImageUtil ImageUtil;
-		ImageUtil.SaveBmpFile(Dest, Width, Height, Filename);
-	};
-
-	FastReadTexture2DAsync(Texture2D, Callback);
 }
 
 void UBaseCameraSensor::Capture(TArray<FColor>& ImageData, int& Width, int& Height)

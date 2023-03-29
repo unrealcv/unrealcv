@@ -121,7 +121,7 @@ void FViewMode::Unlit(FEngineShowFlags& ShowFlags)
 	ShowFlags.SetVertexColors(false);
 	ShowFlags.SetLightFunctions(false);
 	ShowFlags.SetLighting(false);
-	ShowFlags.SetAtmosphericFog(false);
+	ShowFlags.SetAtmosphere(false);
 }
 
 void FViewMode::SetVisibility(FEngineShowFlags& Target, FEngineShowFlags& Source)

@@ -3,10 +3,12 @@
 
 #include "Runtime/Engine/Public/Tickable.h"
 #include "Runtime/Core/Public/Containers/Queue.h"
-#include "TcpServer.h"
+// #include "TcpServer.h"
+#include "Runtime/Core/Public/Internationalization/Regex.h"
 #include "ServerConfig.h"
 #include "CommandDispatcher.h"
 #include "WorldController.h"
+#include "UnixTcpServer.h"
 
 class FRequest
 {
@@ -85,7 +87,8 @@ public:
 	FServerConfig Config;
 
 	/** The underlying class to handle network connection, ip and port are configured here */
-	UTcpServer* TcpServer;
+	//UTcpServer* TcpServer;
+	UUnixTcpServer* TcpServer;
 
 	/** A controller to control the UE4 world */
 	TWeakObjectPtr<class AUnrealcvWorldController> WorldController;
@@ -124,5 +127,8 @@ private:
 
 	/** Handle errors from TcpServer */
 	void HandleError(const FString& ErrorMessage);
+
+	FString MessageFormat = "(\\d{1,}):(.*)";  // for inf message id
+	FRegexPattern myRegexPattern;
 
 };

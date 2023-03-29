@@ -88,6 +88,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "unrealcv")
 	void SetSensorFOV(float FOV);
 
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	void SetProjectionType(ECameraProjectionMode::Type ProjectionType);
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv")
+	void SetOrthoWidth(float OrthoWidth);
+
 	// UFUNCTION(BlueprintPure, Category = "unrealcv")
 	// float GetFilmHeight();
 
@@ -109,32 +115,32 @@ public:
 #endif
 
 private:
-	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"), Category = "unrealcv")
+	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"))
 	EPresetFilmSize PresetFilmSize;
 
-	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"), Category = "unrealcv")
+	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"))
 	int FilmWidth;
 
-	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"), Category = "unrealcv")
+	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"))
 	int FilmHeight;
 
-	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"), Category = "unrealcv")
+	UPROPERTY(EditInstanceOnly, meta=(AllowPrivateAccess = "true"))
 	float FOV;
 
 protected:
 	UPROPERTY()
 	TArray<class UBaseCameraSensor*> FusionSensors;
 
-	UPROPERTY(EditDefaultsOnly, Category = "unrealcv")
+	UPROPERTY(EditDefaultsOnly)
 	class UDepthCamSensor* DepthCamSensor;
 
-	UPROPERTY(EditDefaultsOnly, Category = "unrealcv")
+	UPROPERTY(EditDefaultsOnly)
 	class UNormalCamSensor* NormalCamSensor;
 
-	UPROPERTY(EditDefaultsOnly, Category = "unrealcv")
+	UPROPERTY(EditDefaultsOnly)
 	class UAnnotationCamSensor* AnnotationCamSensor;
 
-	UPROPERTY(EditDefaultsOnly, Category = "unrealcv")
+	UPROPERTY(EditDefaultsOnly)
 	class ULitCamSensor* LitCamSensor;
 
 	/** This preview camera is used for UE version < 4.17 which only support UCameraComponent PIP preview
@@ -143,4 +149,6 @@ protected:
 	and
 	https://github.com/EpicGames/UnrealEngine/blob/4.16/Engine/Source/Editor/LevelEditor/Private/SLevelViewport.cpp#L3908
 	*/
+
+
 };

@@ -460,6 +460,41 @@ FExecStatus FCameraHandler::SetSize(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
+FExecStatus FCameraHandler::SetProjectionType(const TArray<FString>& Args)
+{
+	if (Args.Num() != 2) return FExecStatus::InvalidArgument;
+
+	FExecStatus Status = FExecStatus::InvalidArgument;
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
+	FString ProjectionType = Args[1];
+	if (ProjectionType.ToLower() == "perspective")
+	{
+		FusionCamSensor->SetProjectionType(ECameraProjectionMode::Type::Perspective);
+		return FExecStatus::OK();
+	}
+	else if (ProjectionType.ToLower() == "orthographic")
+	{
+		FusionCamSensor->SetProjectionType(ECameraProjectionMode::Type::Orthographic);
+		return FExecStatus::OK();
+	}
+	else
+	{
+		FString ErrorMsg = FString::Printf(TEXT("Can not support camera mode %s, available options are perspective and orthographic"), *ProjectionType);
+		return FExecStatus::Error(ErrorMsg);
+	}
+}
+
+FExecStatus FCameraHandler::SetOrthoWidth(const TArray<FString>& Args)
+{
+	if (Args.Num() != 2) return FExecStatus::InvalidArgument;
+
+	FExecStatus Status = FExecStatus::InvalidArgument;
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
+
+	int OrthoWidth = FCString::Atof(*Args[1]);
+	FusionCamSensor->SetOrthoWidth(OrthoWidth);
+	return FExecStatus::OK();
+}
 
 void FCameraHandler::RegisterCommands()
 {
@@ -570,5 +605,17 @@ void FCameraHandler::RegisterCommands()
 		"vget /camera/[uint]/size",
 		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetSize),
 		"Get Camera Film Size"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vset /camera/[uint]/ortho_width [float]",
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetOrthoWidth),
+		"Set ortho width of the camera"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vset /camera/[uint]/projection_type [str]",
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetProjectionType),
+		"Set camera projection type"
 	);
 }

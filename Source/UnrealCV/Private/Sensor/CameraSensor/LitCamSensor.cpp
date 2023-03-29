@@ -26,10 +26,10 @@ ULitCamSensor::ULitCamSensor(const FObjectInitializer& ObjectInitializer) :
 // TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
 // TextureTarget->TargetGamma = 1;
 
-void ULitCamSensor::InitTextureTarget(int FilmWidth, int FilmHeight)
+void ULitCamSensor::InitTextureTarget(int filmWidth, int filmHeight)
 {
 	TextureTarget = NewObject<UTextureRenderTarget2D>(this); 
-	TextureTarget->InitAutoFormat(FilmWidth, FilmHeight);
+	TextureTarget->InitAutoFormat(filmWidth, filmHeight);
 	TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
 }
 

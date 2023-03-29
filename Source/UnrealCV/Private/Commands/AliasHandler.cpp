@@ -177,7 +177,7 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 		checkSlow(PropertyParam); // Fix static analysis warning
 		if (NumParamsEvaluated == 0 && Executor)
 		{
-			UObjectPropertyBase* Op = dynamic_cast<UObjectPropertyBase*>(*It);
+			UObjectPropertyBase* Op = Cast<UObjectPropertyBase>(*It);
 			if( Op && Executor->IsA(Op->PropertyClass) )
 			{
 				// First parameter is implicit reference to object executing the command.
@@ -286,13 +286,21 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 			FString Key = It->GetName();
 			FString Value;
 			UStrProperty* StrProperty = Cast<UStrProperty>(*It);
-			if (IsValid(StrProperty))
+			// if (IsValid(StrProperty))
+			// {
+			// 	Value = StrProperty->GetPropertyValue_InContainer(Parms);
+			// }
+			if (StrProperty != nullptr)
 			{
 				Value = StrProperty->GetPropertyValue_InContainer(Parms);
 			}
 
 			UNumericProperty* NumericProperty = Cast<UNumericProperty>(*It);
-			if (IsValid(NumericProperty))
+			/*if (IsValid(NumericProperty))
+			{
+			Value = NumericProperty->GetNumericPropertyValueToString(Parms);
+			}*/
+			if (NumericProperty != nullptr)
 			{
 				Value = NumericProperty->GetNumericPropertyValueToString(Parms);
 			}

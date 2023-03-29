@@ -54,7 +54,7 @@
 
 bool UVisionBPLib::CreateFile(const FString& Filename)
 {
-	if (FFileHelper::SaveStringToFile("", *Filename))
+	if (FFileHelper::SaveStringToFile(TEXT(""), *Filename))
 	{
 		return true;
 	}

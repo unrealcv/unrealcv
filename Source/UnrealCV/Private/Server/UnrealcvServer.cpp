@@ -1,7 +1,7 @@
 // Weichao Qiu @ 2016
 #include "UnrealcvServer.h"
 #include "Runtime/Engine/Classes/Engine/GameEngine.h"
-#include "Runtime/Core/Public/Internationalization/Regex.h"
+//#include "Runtime/Core/Public/Internationalization/Regex.h"
 #include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
 
 #include "ConsoleHelper.h"
@@ -87,10 +87,11 @@ void FUnrealcvServer::RegisterCommandHandlers()
 	}
 }
 
-FUnrealcvServer::FUnrealcvServer()
+FUnrealcvServer::FUnrealcvServer() : myRegexPattern(MessageFormat)
 {
 	// Code defined here should not use FUnrealcvServer::Get();
-	TcpServer = NewObject<UTcpServer>();
+	//TcpServer = NewObject<UTcpServer>();
+	TcpServer = NewObject<UUnixTcpServer>();
 	CommandDispatcher = TSharedPtr<FCommandDispatcher>(new FCommandDispatcher());
 	FConsoleHelper::Get().SetCommandDispatcher(CommandDispatcher);
 
@@ -251,7 +252,10 @@ void FUnrealcvServer::ProcessRequest(FRequest& Request)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ProcessRequest);
 	FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message);
-	UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
+
+	// This can be removed for better performance
+	//UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
+	UE_LOG(LogUnrealCV, Warning, TEXT("Response id: %d"), Request.RequestId);
 
 	FString Header = FString::Printf(TEXT("%d:"), Request.RequestId);
 	TArray<uint8> ReplyData;
@@ -323,10 +327,12 @@ void FUnrealcvServer::HandleRawMessage(const FString& Endpoint, const FString& I
 {
 	UE_LOG(LogUnrealCV, Warning, TEXT("Request: %s"), *InRawMessage);
 	// Parse Raw Message
-	FString MessageFormat = "(\\d{1,8}):(.*)";
+	// FString MessageFormat = "(\\d{1,}):(.*)";
 	// TODO: 8 digits might not be enough if running for a very long time.
-	FRegexPattern RegexPattern(MessageFormat);
-	FRegexMatcher Matcher(RegexPattern, InRawMessage);
+	// FRegexPattern RegexPattern(MessageFormat);
+	// FRegexMatcher Matcher(RegexPattern, InRawMessage);
+
+	FRegexMatcher Matcher(myRegexPattern, InRawMessage);
 
 	if (Matcher.FindNext())
 	{

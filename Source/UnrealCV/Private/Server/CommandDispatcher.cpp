@@ -192,12 +192,15 @@ FExecStatus FCommandDispatcher::Exec(const FString Uri)
 
 	// The newly added command should overwrite previous one.
 	// for (auto& Elem : UriMapping)
+	/*UE_LOG(LogUnrealCV, Warning, TEXT("Number of mach list: %d"), UriList.Num());
+	UE_LOG(LogUnrealCV, Warning, TEXT("Uri need to be matched : %s"), *Uri);*/
 
 	// Iterate the UriList in the reverse order
 	for (int UriIndex = UriList.Num() - 1; UriIndex >= 0; UriIndex--)
 	{
 		// FRegexPattern Pattern = FRegexPattern(Elem.Key);
 		FString Key = UriList[UriIndex];
+		//UE_LOG(LogUnrealCV, Warning, TEXT("match list item : %s"), *Key);
 		FRegexPattern Pattern = UriRegexPattern[Key];
 
 		FRegexMatcher Matcher(Pattern, Uri);

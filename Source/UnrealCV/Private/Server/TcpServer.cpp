@@ -246,7 +246,7 @@ bool UTcpServer::StartMessageService(FSocket* ClientSocket, const FIPv4Endpoint&
 	ConnectionSocket = ClientSocket;
 
 	UE_LOG(LogUnrealCV, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
-	// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
+	//ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
 	FString Confirm = FString::Printf(TEXT("connected to %s"), *GetProjectName());
 	bool IsSent = this->SendMessage(Confirm); // Send a hello message
 	if (!IsSent)
