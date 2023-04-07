@@ -523,7 +523,8 @@ bool UUnixTcpServer::StartMessageServiceUDS()
 		return false; // Already have a connection
 	}
 
-	std::string s = std::to_string(PortNum);
+	std::string s = "/tmp/unrealcv_";
+	s += std::to_string(PortNum);
 	s += ".socket";
 	char const* socket_path = s.c_str();
 	UE_LOG(LogUnrealCV, Log, TEXT("uds server socket created at: %s"), *FString(s.c_str()));
