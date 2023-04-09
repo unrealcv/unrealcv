@@ -428,9 +428,10 @@ class Client:
 
         Parameters
         ----------
-        cmd : str
+        message : str
             command to control the game. More info can be seen from http://docs.unrealcv.org/en/master/reference/commands.html
-
+        timeout : int
+            when timeout is -1, the request will be sent asynchronously, and no response will be returned
         Returns
         -------
         str
@@ -442,6 +443,14 @@ class Client:
         >>> client.connect()
         >>> response = client.request('vget /camera/0/view')
         """
+
+        if timeout == -1: # async
+            if type(message) is list:
+                print('request_batch_async')
+                return self.request_batch_async(message)
+            else:
+                return self.request_async(message)
+
         if type(message) is list:
             return self.request_batch(message)
 
