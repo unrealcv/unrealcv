@@ -24,7 +24,7 @@ _L.addHandler(h)
 _L.propagate = False
 _L.setLevel(logging.INFO)
 
-__version__ = '0.4.1'  # add async request, IPC on linux
+__version__ = '1.0.0'  # add async request, IPC on linux
 
 
 class SocketMessage:
@@ -172,10 +172,6 @@ class Client:
         self.recv_num_q = SimpleQueue()  # inf
         self.recv_data_q = SimpleQueue()  # inf
         self.type = type
-        # self.t = threading.Thread(target=self.receive_loop_queue)
-        # self.t.start()
-        # self.e = threading.Event()
-        # self.e.set()
 
     # TODO: async send
     def send(self, message):
@@ -343,13 +339,6 @@ class Client:
                     raw_message = self.receive()
                     self.recv_message_id += 1
 
-            # # lock when reveive
-            # self.e.clear()
-            # for _ in range(num):
-            #     raw_message = self.receive()
-            #     self.recv_message_id += 1
-            # self.e.set()
-
     def request_async(self, message):
         """
         Send request without waiting for any reply
@@ -399,26 +388,12 @@ class Client:
                 # return None
             self.send_message_id += 1
 
-        # while self.recv_num_q.qsize() > 0:
-        #     time.sleep(0.001)
-        # else:
-        #     self.e.wait()
-
         self.recv_num_q.put(-len(batch))  # negative number indicates need results
 
         batch_res = []
         for i in range(len(batch)):
             message = self.recv_data_q.get()
-            # message = self.raw_message_handler(raw_message)
-            # self.recv_message_id += 1 # Increment it only after the request/response cycle finished
             batch_res.append(message)
-
-        # batch_res = []
-        # for i in range(len(batch)):
-        #     raw_message = self.receive() # block the receiving thread
-        #     message = self.raw_message_handler(raw_message)
-        #     self.recv_message_id += 1 # Increment it only after the request/response cycle finished
-        #     batch_res.append(message)
 
         return batch_res
 
@@ -469,20 +444,11 @@ class Client:
         self.recv_num_q.put(-1)  # negative number indicates need results
         message = self.recv_data_q.get()
 
-        # while self.recv_num_q.qsize() > 0:
-        #     time.sleep(0.001)
-        # else:
-        #     self.e.wait()
-        # raw_message = self.receive() # block the receiving thread
-
-        # message = self.raw_message_handler(raw_message)
-        # self.recv_message_id += 1 # Increment it only after the request/response cycle finished
-
         return message
 
-# To use IPC on Unix, set this path to: path-to-your-binary-dir/portnum.socket
+# To use IPC on Unix, set this path to: /tmp/unrealcv_{portnum}.socket
 # Your executable will create this file on startup.
-unix_socket_path = '~/env/9000.socket'
+unix_socket_path = '/tmp/unrealcv_9000.socket' # for example
 if 'linux' in sys.platform and unix_socket_path is not None and os.path.exists(unix_socket_path):
     print('=> Info: Use UDS client...')
     client = Client(unix_socket_path, 'unix')
