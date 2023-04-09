@@ -444,12 +444,12 @@ class Client:
         >>> response = client.request('vget /camera/0/view')
         """
 
-        if timeout == -1: # async
+        if timeout < 0 : # async
             if type(message) is list:
-                print('request_batch_async')
-                return self.request_batch_async(message)
+                self.request_batch_async(message)
             else:
-                return self.request_async(message)
+                self.request_async(message)
+            return True
 
         if type(message) is list:
             return self.request_batch(message)
