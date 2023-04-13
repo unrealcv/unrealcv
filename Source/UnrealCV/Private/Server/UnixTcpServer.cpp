@@ -703,7 +703,7 @@ bool UUnixTcpServer::Connected(FSocket* ClientSocket, const FIPv4Endpoint& Clien
 	BroadcastConnected(*ClientEndpoint.ToString());
 	// ServiceStatus = StartEchoService(ClientSocket, ClientEndpoint);
 	ServiceStatus = StartMessageServiceINet(ClientSocket, ClientEndpoint);
-	//ServiceStatus = StartUDSMessageService_test();
+	bIsUDS = true;
 	ServiceStatus = StartMessageServiceUDS();
 	return ServiceStatus;
 	// This is a blocking service, if need to support multiple connections, consider start a new thread here.
@@ -773,7 +773,14 @@ bool UUnixTcpServer::SendMessage(const FString& Message)
 {
 	// send confirm message; and send blueprint message
 	#if PLATFORM_LINUX
-	return SendMessageUDS(Message);
+	if (bIsUDS)
+	{
+		return SendMessageUDS(Message);
+	}
+	else
+	{
+		return SendMessageINet(Message);
+	}
 	#else
 	return SendMessageINet(Message);
 	#endif
@@ -782,8 +789,14 @@ bool UUnixTcpServer::SendMessage(const FString& Message)
 bool UUnixTcpServer::SendData(const TArray<uint8>& Payload)
 {
 #if PLATFORM_LINUX
-	// TODO: if inet connected, then use inet; else use UDS
-	return SendDataUDS(Payload);
+	if (bIsUDS)
+	{
+		return SendDataUDS(Payload);
+	}
+	else
+	{
+		return SendDataINet(Payload);
+	}
 #else
 	return SendDataINet(Payload);
 #endif

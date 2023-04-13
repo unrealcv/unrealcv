@@ -122,6 +122,9 @@ private:
 	int UDS_connfd = -1;
 	int UDS_listenfd = -1;  // used to shutdown blocking accept()
 
+	// Switch flag bewteen TCP and UDS
+	bool bIsUDS = false;
+
 	/** TcpListener used to listen new incoming connection */
 	TSharedPtr<FTcpListener> TcpListener;
 
