@@ -65,10 +65,10 @@ vset /camera/[id]/pose [x] [y] [z] [pitch] [yaw] [roll]
     (v0.3.10) Teleport camera to location [x, y, z] and rotation [pitch, yaw, roll]
 
 vget /camera/[uint]/horizontal_fieldofview
-    (v0.3.10) Get camera horizontal field of view
+    (v0.3.10) Get camera horizontal field of view. This cmd is deprecated, use vget /camera/[uint]/fov instead (v0.4.0).
 
 vset /camera/[uint]/horizontal_fieldofview [FOV]
-    (v0.3.10) Set camera horizontal field of view
+    (v0.3.10) Set camera horizontal field of view. This cmd is deprecated, use vset /camera/[uint]/fov [FOV] instead (v0.4.0).
 
 vget /camera/[uint]/vis_depth npy
     (v0.3.10)
@@ -95,6 +95,24 @@ vset /object/[str]/show
 
 vset /object/[str]/hide
     (v0.3.10) Hide object
+
+vset /objects/spawn [class_name] [obj_name]
+    (v0.4.0) Spawn an object with class name and object name
+
+vset /object/[str]/destroy
+    (v0.4.0) Destroy object
+
+vset /object/[str]/name [new_name]
+    (v0.4.0) Rename object
+
+vget /object/[str]/scale
+    (v0.4.0) Get object scale
+
+vset /object/[str]/scale [x] [y] [z]
+    (v0.4.0) Set object scale
+
+vget /object/[str]/bounds
+    (v0.4.0) Get object bounds in the world coordinate, formate is [minx, y, z, maxx, y, z]
 
 3. Plugin commands
 ------------------
@@ -130,7 +148,7 @@ vset /action/input/disable
 vset /action/eyes_distance [eye_distance]
     (v0.3.10) Set the eye distance between left eye and right eye (camera 1). This command might be marked as deprecated when we finish multiple camera support.
 
-Run UE4 built-in commands
+5. Run UE4 built-in commands
 -------------------------
 
 vrun [cmd]
@@ -144,8 +162,12 @@ A few examples are:
 
 These commands can be executed in the UE4 console. If you want to use them in UnrealCV, you can prefix these commands with `vrun stat FPS`.
 
-Run Blueprint commands
+6. Run Blueprint commands
 ----------------------
 
-vexec [cmd]
-    TODO
+vbp [obj_name] [func_name] [arg1] [arg2] ...
+    (v0.4.0) This is a special command used to execute Blueprint commands. Blueprint is a visual programming language in UE4. It is widely used in UE4 game development. UnrealCV provides a way to call Blueprint functions from the command line.
+A few examples are:
+ - :code:`vbp BP_Player_C GetActorLocation` - Get the location of the player
+ - :code:`vbp BP_Player_C SetActorLocation 100 200 300` - Set the location of the player
+Note that the Blueprint function name is case sensitive, depending on how it is defined in the Blueprint editor.
