@@ -8,10 +8,10 @@ sys.path.insert(0, doc_dir)
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
     # If runs on ReadTheDocs environment
-    print('Fetching files with git_lfs for %s' % project_dir)
+    # print('Fetching files with git_lfs for %s' % project_dir)
     # Hack for lacking git-lfs support ReadTheDocs
-    import git_lfs
-    git_lfs.fetch(project_dir)
+    # import git_lfs
+    # git_lfs.fetch(project_dir)
 
     # Generate xml from doxygen
     subprocess.call(['doxygen', 'Doxyfile'])
