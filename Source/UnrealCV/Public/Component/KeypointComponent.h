@@ -40,19 +40,19 @@ class UKeypointComponent : public USceneComponent
 public:
 	UKeypointComponent(const FObjectInitializer& ObjectInitializer);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "unrealcv")
 	FString JsonFilename;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "unrealcv")
 	bool bVisualize;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "unrealcv")
 	float VisualizePointSize;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "unrealcv")
 	bool bMatchNearestVertex;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "unrealcv")
 	bool bDrawKeypointName;
 
 	UFUNCTION(BlueprintPure, Category = "unrealcv")

@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\Source",
+    "\\Source\\UnrealCV",
+    "\\Source\\UnrealCV\\Public",
+    "\\Source\\UnrealCV\\Public\\Actor",
+    "\\Source\\UnrealCV\\Public\\Component",
+    "\\Source\\UnrealCV\\Public\\Sensor",
+    "\\Source\\UnrealCV\\Public\\Sensor\\CameraSensor"
+  ],
+  "SelectedNode": "\\Source\\UnrealCV\\Public\\Actor\\StereoCameraActor.h",
+  "PreviewInSolutionExplorer": false
+}
