@@ -12,3 +12,4 @@ pillow
 nbsphinx
 # numpydoc
 recommonmark
+unrealcv
