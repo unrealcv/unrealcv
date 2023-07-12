@@ -17,8 +17,8 @@ UnrealCV is developed and maintained by a group of students working on computer 
 Here is a brief introduction of team members. If you want to be added to here, click the Edit on Github button on the top-right of this page.
 
 - `Weichao Qiu <http://weichaoqiu.com>`_: Constructing virtual worlds to train and diagnose computer vision algorithms
-- Fangwei Zhong: Reinforce learning in virtual environments
+- `Fangwei Zhong <https://fangweizhong.xyz>`_: Reinforcement learning in virtual environments
 - `Siyuan Qiao <http://www.cs.jhu.edu/~syqiao/>`_: Stochastic virtual scene generation
-- Tae Soo Kim: Deep learning for transferable concepts between the real and the virtual environment
-- Yi Zhang: Algorithm diagnosis with synthetic data
-- Zihao Xiao
+- `Tae Soo Kim <https://taesoo-kim.github.io/>`_: Deep learning for transferable concepts between the real and the virtual environment
+- `Yi Zhang <https://edz-o.github.io/>`_: Algorithm diagnosis with synthetic data
+- `Hai Ci <https://haici.cc/>`_: Optimizing the communication pipeline and human pose estimation
