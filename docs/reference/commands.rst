@@ -20,7 +20,7 @@ See this `ipython notebook <https://github.com/unrealcv/unrealcv/blob/master/exa
 1. Camera operation
 -------------------
 
-See :code:`Source/UnrealCV/Private/Commands/CameraHandler.h(.cpp)` for more details.
+See :file:`Source/UnrealCV/Private/Commands/CameraHandler.h(.cpp)` for more details.
 
 vget /camera/[id]/location
     (v0.2) Get camera location [x, y, z]
@@ -76,10 +76,13 @@ vget /camera/[uint]/vis_depth npy
 vget /camera/[uint]/plane_depth npy
     (v0.3.10)
 
+vget /cameras
+    (v0.4.0) List all cameras in the scene
+
 2. Object interaction
 ---------------------
 
-See `Source/UnrealCV/Private/Commands/ObjectHandler.h(.cpp)` for more details
+See :file:`Source/UnrealCV/Private/Commands/ObjectHandler.h(.cpp)` for more details
 
 vget /objects
     (v0.2) Get the name of all objects
@@ -97,27 +100,29 @@ vset /object/[str]/hide
     (v0.3.10) Hide object
 
 vset /objects/spawn [class_name] [obj_name]
-    (v0.4.0) Spawn an object with class name and object name
+    (v0.4.0) Spawn an object with class name and object name. It can also be used to create a new camera, for example:
+- :code:`vset /objects/spawn FusionCameraActor Cam_1` - create a new camera named Cam_1
+- :code:`vset /objects/spawn StereoCameraActor StereoCam_1` - create a new stereo camera named StereoCam_1
 
-vset /object/[str]/destroy
+vset /object/[obj_name]/destroy
     (v0.4.0) Destroy object
 
-vset /object/[str]/name [new_name]
+vset /object/[obj_name]/name [new_obj_name]
     (v0.4.0) Rename object
 
-vget /object/[str]/scale
+vget /object/[obj_name]/scale
     (v0.4.0) Get object scale
 
 vset /object/[str]/scale [x] [y] [z]
     (v0.4.0) Set object scale
 
 vget /object/[str]/bounds
-    (v0.4.0) Get object bounds in the world coordinate, formate is [minx, y, z, maxx, y, z]
+    (v0.4.0) Get object bounds in the world coordinate, format is [minx, y, z, maxx, y, z]
 
 3. Plugin commands
 ------------------
 
-See `Source/UnrealCV/Private/Commands/PluginHandler.h(.cpp)` for more details.
+See :file:`Source/UnrealCV/Private/Commands/PluginHandler.h(.cpp)` for more details.
 
 vget /unrealcv/status
     (v0.2) Get the status of UnrealCV plugin
