@@ -21,6 +21,20 @@ Please read [Tutorial: Getting Started](http://unrealcv.github.io/tutorial/getti
 Images generated from the technical demo <a href="http://docs.unrealcv.org/en/master/reference/model_zoo.html#realisticrendering">RealisticRendering</a><br>
 </center>
 
+## New Features
+ - Call any Blueprint function from Python by `vbp [obj_name] [func_name] [arg1] [arg2] ...` command.
+ - Support RPC communication between Server and Client in Linux, higher FPS and more reliable.
+ - A set of new commands for camera control and object manipulation, please refer to [command system](https://docs.unrealcv.org/en/latest/reference/commands.html) for more details.
+
+## How to install UnrealCV
+To install the UnrealCV Server, you need:
+1. Download the source code and place it on the ``Plugin`` folder of a C++ UE4 project.
+2. launch the C++ project with Visual Studio 2019, UnrealCV will be compiled at the same time.
+3. To check the success installation of UnrealCV, you can run ``vget /unrealcv/status`` in the console (Press **`** to display the console).
+
+To install the UnrealCV Client, just run:
+``pip install unrealcv``
+
 ## Citation
 
 If you found this project useful, please consider citing our paper
