@@ -27,11 +27,13 @@ extensions = [
     # support doc string with section titles
     'sphinx.ext.autosummary',
     'sphinx.ext.extlinks',
+    # support markdown
+    'recommonmark',
 ]
 
 extlinks = {
     'bin': ('http://cs.jhu.edu/~qiuwch/release/unrealcv/%s', None),
-    'gitcode': ('https://github.com/unrealcv/unrealcv/blob/master/', '')
+    'gitcode': ('https://github.com/unrealcv/unrealcv/blob/master/%s', "%s")
 }
 
 # Github repo
