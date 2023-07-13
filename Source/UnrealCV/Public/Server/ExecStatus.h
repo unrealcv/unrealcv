@@ -34,7 +34,7 @@ public:
 enum FExecStatusType
 {
 	OK,
-	Error,
+	ErrorMsg,
 };
 
 /**

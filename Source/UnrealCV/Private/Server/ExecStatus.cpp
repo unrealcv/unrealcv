@@ -2,9 +2,9 @@
 #include "ExecStatus.h"
 
 // DECLARE_DELEGATE_OneParam(FDispatcherDelegate, const TArray< FString >&);
-FExecStatus FExecStatus::InvalidArgument = FExecStatus(FExecStatusType::Error, "Argument Invalid");
-FExecStatus FExecStatus::NotImplemented = FExecStatus(FExecStatusType::Error, "Not Implemented");
-FExecStatus FExecStatus::InvalidPointer = FExecStatus(FExecStatusType::Error, "Pointer to object invalid, check log for details");
+FExecStatus FExecStatus::InvalidArgument = FExecStatus(FExecStatusType::ErrorMsg, "Argument Invalid");
+FExecStatus FExecStatus::NotImplemented = FExecStatus(FExecStatusType::ErrorMsg, "Not Implemented");
+FExecStatus FExecStatus::InvalidPointer = FExecStatus(FExecStatusType::ErrorMsg, "Pointer to object invalid, check log for details");
 
 /** Begin of FPromise functions */
 
@@ -42,7 +42,7 @@ FExecStatus FExecStatus::OK(FString InMessage)
 
 FExecStatus FExecStatus::Error(FString ErrorMessage)
 {
-	return FExecStatus(FExecStatusType::Error, ErrorMessage);
+	return FExecStatus(FExecStatusType::ErrorMsg, ErrorMessage);
 }
 
 FString FExecStatus::GetMessage() const // Define how to format the reply string
@@ -55,7 +55,7 @@ FString FExecStatus::GetMessage() const // Define how to format the reply string
 			return "ok";
 		else
 			return MessageBody;
-	case FExecStatusType::Error:
+	case FExecStatusType::ErrorMsg:
 		TypeName = "error"; break;
 	default:
 		TypeName = "unknown FExecStatus Type";
@@ -106,7 +106,7 @@ TArray<uint8> FExecStatus::GetData() const // Define how to format the reply str
 			Message = "ok";
 		else
 			Message = MessageBody;
-	case FExecStatusType::Error:
+	case FExecStatusType::ErrorMsg:
 		TypeName = "error"; break;
 	default:
 		TypeName = "unknown FExecStatus Type";
