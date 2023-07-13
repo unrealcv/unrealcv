@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Runtime/Engine/Classes/Components/PrimitiveComponent.h"
+#include "Runtime/Engine/Classes/Camera/CameraTypes.h"
 #include "FusionCamSensor.generated.h"
 
 UENUM(BlueprintType)
