@@ -53,10 +53,10 @@ def main():
 
     client.connect()
     if not client.isconnected():
-        print 'UnrealCV server is not running. Run the game from http://unrealcv.github.io first.'
+        print ('UnrealCV server is not running. Run the game from http://unrealcv.github.io first.')
         return
     else:
-        print help_message
+        print (help_message)
 
     init_loc = [float(v) for v in client.request('vget /camera/0/location').split(' ')]
     init_rot = [float(v) for v in client.request('vget /camera/0/rotation').split(' ')]
