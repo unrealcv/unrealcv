@@ -448,12 +448,13 @@ class Client:
 
 # To use IPC on Unix, set this path to: /tmp/unrealcv_{portnum}.socket
 # Your executable will create this file on startup.
-unix_socket_path = '/tmp/unrealcv_9000.socket' # for example
-if 'linux' in sys.platform and unix_socket_path is not None and os.path.exists(unix_socket_path):
-    print('=> Info: Use UDS client...')
-    client = Client(unix_socket_path, 'unix')
-else:
-    print('=> Info: Use inet client...')
-    (HOST, PORT) = ('localhost', 9000)
-    client = Client((HOST, PORT), 'inet')
+
+print('=> Info: Use inet client...')
+(HOST, PORT) = ('localhost', 9000)
+client = Client((HOST, PORT), 'inet')
+
+# unix_socket_path = '/tmp/unrealcv_9000.socket' # for example
+# if 'linux' in sys.platform and unix_socket_path is not None and os.path.exists(unix_socket_path):
+#     print('=> Info: Use UDS client...')
+#     client = Client(unix_socket_path, 'unix')
 
