@@ -16,6 +16,8 @@ public:
 
 	/** The exec result of CommandDispatcher will be written to FConsoleOutputDevice */
 	FConsoleOutputDevice* GetConsole();
+	/** Log text to console */
+	void LogToConsole(const FString& text);
 
 private:
 	FConsoleHelper();
