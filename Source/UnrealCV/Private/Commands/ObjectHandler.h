@@ -36,4 +36,13 @@ public:
 
 	/** Hide object */
 	FExecStatus HideObject(const TArray<FString>& Args);
+
+
+	//Custom
+	/** Get object location from Camera */
+	FExecStatus GetObjectFromCameraLocation(const TArray<FString>& Args);
+
+	/** Get object location on Screan */
+	FExecStatus GetObjectlocationOnScreen(const TArray<FString>& Args);
+
 };
