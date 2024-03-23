@@ -1,4 +1,8 @@
 // Weichao Qiu @ 2016
+#if ENGINE_MAJOR_VERSION >= 5
+#include "Runtime/Core/Public/Containers/StringConv.h"
+#endif
+
 #include "ExecStatus.h"
 
 // DECLARE_DELEGATE_OneParam(FDispatcherDelegate, const TArray< FString >&);
@@ -124,7 +128,18 @@ TArray<uint8> FExecStatus::GetData() const // Define how to format the reply str
 
 void FExecStatus::BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray)
 {
+
+	//From: https://github.com/EpicGames/UnrealEngine/blob/5.3/Engine/Source/Runtime/Core/Public/Containers/StringConv.h#L339
+	/*UE_DEPRECATED(5.1, "FTCHARToUTF8_Convert has been deprecated in favor of FPlatformString::Convert and StringCast")*/
+#if ENGINE_MAJOR_VERSION <= 4
 	FTCHARToUTF8 Convert(*Message);
 	OutBinaryArray.Empty();
 	OutBinaryArray.Append((UTF8CHAR*)Convert.Get(), Convert.Length());
+#else 
+	//https://github.com/EpicGames/UnrealEngine/blob/5.3/Engine/Source/Runtime/Core/Public/Containers/StringConv.hL#L1070
+	auto converter = StringCast<UTF8CHAR>(*Message);
+	OutBinaryArray.Empty();
+	OutBinaryArray.Append((uint8*)converter.Get(), converter.Length());
+#endif
 }
+

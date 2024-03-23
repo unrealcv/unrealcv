@@ -5,6 +5,7 @@
 #include "Runtime/Networking/Public/Common/TcpListener.h"
 #include "Runtime/Networking/Public/Interfaces/IPv4/IPv4Endpoint.h"
 #include "Runtime/Core/Public/Serialization/ArrayReader.h"
+#include "UnixTcpServer.h"
 
 #include "TcpServer.generated.h"
 
@@ -35,9 +36,9 @@ public:
 
 
 // The ; in the end is needed for doxygen.
-DECLARE_EVENT_TwoParams(UTcpServer, FReceivedEvent, const FString&, const FString&);
-DECLARE_EVENT_OneParam(UTcpServer, FErrorEvent, const FString&);
-DECLARE_EVENT_OneParam(UTcpServer, FConnectedEvent, const FString&);
+//DECLARE_EVENT_TwoParams(UTcpServer, FReceivedEvent, const FString&, const FString&);
+//DECLARE_EVENT_OneParam(UTcpServer, FErrorEvent, const FString&);
+//DECLARE_EVENT_OneParam(UTcpServer, FConnectedEvent, const FString&);
 
 /**
  * Server to send and receive message

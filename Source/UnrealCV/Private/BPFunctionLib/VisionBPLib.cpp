@@ -254,26 +254,26 @@ void UVisionBPLib::AnnotateWorld()
 
 TArray<FVector> UVisionBPLib::SkinnedMeshComponentGetVertexArray(USkinnedMeshComponent* Component)
 {
-	TArray<FVector> VertexArray;
-	if (!IsValid(Component)) return VertexArray;
+	TArray<FVector3f> VertexArray;
+	if (!IsValid(Component)) return UE::LWC::ConvertArrayType<FVector>(VertexArray);
 
-#if ENGINE_MINOR_VERSION < 19
+#if ENGINE_MAJOR_VERSION <= 4 && ENGINE_MINOR_VERSION < 19
 	Component->ComputeSkinnedPositions(VertexArray);
 #else
-	// Ref: https://github.com/EpicGames/UnrealEngine/blob/4.19/Engine/Source/Runtime/Engine/Private/PhysicsEngine/PhysAnim.cpp#L671
+	// Ref: https://github.com/EpicGames/UnrealEngine/blob/5.3/Engine/Source/Runtime/Engine/Private/PhysicsEngine/PhysAnim.cpp#L731
 	if (Component->MeshObject == nullptr)
 	{
-		return VertexArray;
+		return UE::LWC::ConvertArrayType<FVector>(VertexArray);
 	}
 
-	TArray<FMatrix> RefToLocals;
+	TArray<FMatrix44f> RefToLocals;
 	FSkinWeightVertexBuffer& SkinWeightBuffer = *Component->GetSkinWeightBuffer(0);
 	const FSkeletalMeshLODRenderData& LODData = Component->MeshObject->GetSkeletalMeshRenderData().LODRenderData[0];
 	Component->CacheRefToLocalMatrices(RefToLocals);
 	USkinnedMeshComponent::ComputeSkinnedPositions(Component, VertexArray, RefToLocals, LODData, SkinWeightBuffer);
 #endif
 
-	return VertexArray;
+	return UE::LWC::ConvertArrayType<FVector>(VertexArray);
 	// SkinnedMeshComponent.cpp::ComputeSkinnedPositions
 	// for (int VertexIndex = 0; VertexIndex < ; VertexIndex++)
 	// {
@@ -295,19 +295,19 @@ TArray<FVector> UVisionBPLib::SkinnedMeshComponentGetVertexArray(USkinnedMeshCom
 TArray<FVector> UVisionBPLib::StaticMeshComponentGetVertexArray(UStaticMeshComponent* StaticMeshComponent)
 {
 	UStaticMesh* StaticMesh = StaticMeshComponent->GetStaticMesh();
-	TArray<FVector> VertexArray;
+	TArray<FVector3f> VertexArray;
 
 	if (StaticMesh)
 	{
-		uint32 NumLODLevel = StaticMesh->RenderData->LODResources.Num();
+		uint32 NumLODLevel = StaticMesh->GetRenderData()->LODResources.Num();
 		for (uint32 LODIndex = 0; LODIndex < NumLODLevel; LODIndex++)
 		{
-			FStaticMeshLODResources& LODModel = StaticMesh->RenderData->LODResources[LODIndex];
+			FStaticMeshLODResources& LODModel = StaticMesh->GetRenderData()->LODResources[LODIndex];
 			FStaticMeshComponentLODInfo* InstanceMeshLODInfo = NULL;
 
 			uint32 NumVertices = LODModel.GetNumVertices();
 
-#if ENGINE_MINOR_VERSION < 19
+#if ENGINE_MAJOR_VERSION <= 4 && ENGINE_MINOR_VERSION < 19
 			FPositionVertexBuffer& PositionVertexBuffer = LODModel.PositionVertexBuffer;
 #else
 			FStaticMeshVertexBuffers& StaticMeshVertexBuffers = LODModel.VertexBuffers;
@@ -316,7 +316,7 @@ TArray<FVector> UVisionBPLib::StaticMeshComponentGetVertexArray(UStaticMeshCompo
 
 			for (uint32 VertexIndex = 0; VertexIndex < PositionVertexBuffer.GetNumVertices(); VertexIndex++)
 			{
-				FVector Position = PositionVertexBuffer.VertexPosition(VertexIndex);
+				FVector3f Position = PositionVertexBuffer.VertexPosition(VertexIndex);
 				VertexArray.Add(Position);
 			}
 
@@ -328,7 +328,7 @@ TArray<FVector> UVisionBPLib::StaticMeshComponentGetVertexArray(UStaticMeshCompo
 		}
 	}
 
-	return VertexArray;
+	return UE::LWC::ConvertArrayType<FVector>(VertexArray);
 }
 
 TArray<FVector> UVisionBPLib::GetVertexArrayFromMeshComponent(UMeshComponent* MeshComponent)
@@ -405,9 +405,9 @@ UTexture2D* UVisionBPLib::LoadTexture2D_FromFile(const FString& FullFilePath, EJ
 			Height = ImageWrapper->GetHeight();
 
 			//Copy!
-			void* TextureData = LoadedT2D->PlatformData->Mips[0].BulkData.Lock(LOCK_READ_WRITE);
+			void* TextureData = LoadedT2D->GetPlatformData()->Mips[0].BulkData.Lock(LOCK_READ_WRITE);
 			FMemory::Memcpy(TextureData, UncompressedBGRA.GetData(), UncompressedBGRA.Num());
-			LoadedT2D->PlatformData->Mips[0].BulkData.Unlock();
+			LoadedT2D->GetPlatformData()->Mips[0].BulkData.Unlock();
 
 			//Update!
 			LoadedT2D->UpdateResource();

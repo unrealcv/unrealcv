@@ -9,6 +9,12 @@
 #include "Runtime/Engine/Public/MaterialShared.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
 
+#if ENGINE_MAJOR_VERSION >= 5
+//different header files in UE
+#include "Runtime/Engine/Public/StaticMeshSceneProxy.h"
+#include "Runtime/Engine/Public/SkeletalMeshSceneProxy.h"
+
+#endif
 #include "Runtime/Engine/Public/Rendering/SkeletalMeshRenderData.h"
 // #include "SkeletalMeshRenderData.h"
 #include "UnrealcvLog.h"
@@ -327,8 +333,8 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy(UStaticMeshComponen
 	UMaterialInterface* ProxyMaterial = AnnotationMID; // Material Instance Dynamic
 	UStaticMesh* ParentStaticMesh = StaticMeshComponent->GetStaticMesh();
 	if(ParentStaticMesh == NULL
-		|| ParentStaticMesh->RenderData == NULL
-		|| ParentStaticMesh->RenderData->LODResources.Num() == 0)
+		|| ParentStaticMesh->GetRenderData() == NULL
+		|| ParentStaticMesh->GetRenderData()->LODResources.Num() == 0)
 		// || StaticMesh->RenderData->LODResources[0].VertexBuffer.GetNumVertices() == 0)
 	{
 		// UE_LOG(LogTemp, Warning, TEXT("%s, ParentStaticMesh is invalid."), *StaticMeshComponent->GetName());

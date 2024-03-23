@@ -8,7 +8,9 @@
 
 inline FString GetProjectName()
 {
-#if ENGINE_MINOR_VERSION >= 18  // Assume major version is 4
+#if ENGINE_MAJOR_VERSION == 4 && ENGINE_MINOR_VERSION >= 18  // Assume major version is 4
+	FString SceneName = FApp::GetProjectName();
+#elif ENGINE_MAJOR_VERSION >= 5 
 	FString SceneName = FApp::GetProjectName();
 #else
 	FString SceneName = FApp::GetGameName();
