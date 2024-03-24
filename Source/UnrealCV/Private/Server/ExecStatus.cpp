@@ -1,10 +1,8 @@
 // Weichao Qiu @ 2016
+#include "ExecStatus.h"
 #if ENGINE_MAJOR_VERSION >= 5
 #include "Runtime/Core/Public/Containers/StringConv.h"
 #endif
-
-#include "ExecStatus.h"
-
 // DECLARE_DELEGATE_OneParam(FDispatcherDelegate, const TArray< FString >&);
 FExecStatus FExecStatus::InvalidArgument = FExecStatus(FExecStatusType::ErrorMsg, "Argument Invalid");
 FExecStatus FExecStatus::NotImplemented = FExecStatus(FExecStatusType::ErrorMsg, "Not Implemented");
