@@ -144,10 +144,10 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 		return FExecStatus::InvalidArgument;
 	}
 
-	UProperty* LastParameter = nullptr;
+	FProperty* LastParameter = nullptr;
 
 	// find the last parameter
-	for ( TFieldIterator<UProperty> It(Function); It && (It->PropertyFlags&(CPF_Parm|CPF_ReturnParm)) == CPF_Parm; ++It )
+	for ( TFieldIterator<FProperty> It(Function); It && (It->PropertyFlags&(CPF_Parm|CPF_ReturnParm)) == CPF_Parm; ++It )
 	{
 		LastParameter = *It;
 	}
@@ -156,9 +156,9 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 	uint8* Parms = (uint8*)FMemory_Alloca(Function->ParmsSize);
 	FMemory::Memzero( Parms, Function->ParmsSize );
 
-	for (TFieldIterator<UProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+	for (TFieldIterator<FProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
 	{
-		UProperty* LocalProp = *It;
+		FProperty* LocalProp = *It;
 		checkSlow(LocalProp);
 		if (!LocalProp->HasAnyPropertyFlags(CPF_ZeroConstructor))
 		{
@@ -169,15 +169,15 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 	const uint32 ExportFlags = PPF_None;
 	bool bFailed = 0;
 	int32 NumParamsEvaluated = 0;
-	for( TFieldIterator<UProperty> It(Function); It && (It->PropertyFlags & (CPF_Parm|CPF_ReturnParm))==CPF_Parm; ++It, NumParamsEvaluated++ )
+	for( TFieldIterator<FProperty> It(Function); It && (It->PropertyFlags & (CPF_Parm|CPF_ReturnParm))==CPF_Parm; ++It, NumParamsEvaluated++ )
 	{
 		if (It->HasAnyPropertyFlags(CPF_OutParm) || It->HasAnyPropertyFlags(CPF_ReferenceParm)) continue; // Skip return parameters.
 
-		UProperty* PropertyParam = *It;
+		FProperty* PropertyParam = *It;
 		checkSlow(PropertyParam); // Fix static analysis warning
 		if (NumParamsEvaluated == 0 && Executor)
 		{
-			UObjectPropertyBase* Op = Cast<UObjectPropertyBase>(*It);
+			FObjectPropertyBase* Op = Cast<FObjectPropertyBase>(*It);
 			if( Op && Executor->IsA(Op->PropertyClass) )
 			{
 				// First parameter is implicit reference to object executing the command.
@@ -213,7 +213,7 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 
 		if (!bFoundDefault)
 		{
-			if (PropertyParam == LastParameter && PropertyParam->IsA<UStrProperty>() && FCString::Strcmp(Str, TEXT("")) != 0)
+			if (PropertyParam == LastParameter && PropertyParam->IsA<FStrProperty>() && FCString::Strcmp(Str, TEXT("")) != 0)
 			{
 				// if this is the last string property and we have remaining arguments to process, we have to assume that this
 				// is a sub-command that will be passed to another exec (like "cheat giveall weapons", for example). Therefore
@@ -249,7 +249,7 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 	// https://answers.unrealengine.com/questions/139582/get-property-value.html
 	// https://answers.unrealengine.com/questions/301428/set-string-for-fstring-via-uproperty.html
 	// for (TFieldIterator<UIntProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_ReturnParm); ++It)
-	for (TFieldIterator<UIntProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+	for (TFieldIterator<FIntProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
 	{
 		FString CPPType = It->GetCPPType();
 		// float Target;
@@ -258,7 +258,7 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 	}
 
 	// for (TFieldIterator<UNumericProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_ReturnParm); ++It)
-	for (TFieldIterator<UNumericProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+	for (TFieldIterator<FNumericProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
 	{
 		FString CPPType = It->GetCPPType();
 		// float Target;
@@ -268,7 +268,7 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 
 	TMap<FString, FString> Dict;
 	// CPF_OutParm, use this flag check!
-	for (TFieldIterator<UStrProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+	for (TFieldIterator<FStrProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
 	{
 		FString CPPType = It->GetCPPType();
 		// float Target;
@@ -279,13 +279,13 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 	}
 
 	// Check SGraphNodeK2CreateDelegate.cpp
-	for (TFieldIterator<UProperty> It(Function); It; ++It)
+	for (TFieldIterator<FProperty> It(Function); It; ++It)
 	{
 		if (It->HasAnyPropertyFlags(CPF_OutParm) || It->HasAnyPropertyFlags(CPF_ReferenceParm))
 		{
 			FString Key = It->GetName();
 			FString Value;
-			UStrProperty* StrProperty = Cast<UStrProperty>(*It);
+			FStrProperty* StrProperty = Cast<FStrProperty>(*It);
 			// if (IsValid(StrProperty))
 			// {
 			// 	Value = StrProperty->GetPropertyValue_InContainer(Parms);
@@ -295,7 +295,7 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 				Value = StrProperty->GetPropertyValue_InContainer(Parms);
 			}
 
-			UNumericProperty* NumericProperty = Cast<UNumericProperty>(*It);
+			FNumericProperty* NumericProperty = Cast<FNumericProperty>(*It);
 			/*if (IsValid(NumericProperty))
 			{
 			Value = NumericProperty->GetNumericPropertyValueToString(Parms);
@@ -316,7 +316,7 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 
 
 	//!!destructframe see also UObject::ProcessEvent
-	for( TFieldIterator<UProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It )
+	for( TFieldIterator<FProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It )
 	{
 		It->DestroyValue_InContainer(Parms);
 	}

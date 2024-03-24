@@ -176,6 +176,9 @@ FString StringFromBinaryArray(const TArray<uint8>& BinaryArray)
 
 void BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray)
 {
+//From: https://github.com/EpicGames/UnrealEngine/blob/5.3/Engine/Source/Runtime/Core/Public/Containers/StringConv.h#L339
+/*UE_DEPRECATED(5.1, "FTCHARToUTF8_Convert has been deprecated in favor of FPlatformString::Convert and StringCast")*/
+#if ENGINE_MAJOR_VERSION <= 4
 	FTCHARToUTF8 Convert(*Message);
 
 	OutBinaryArray.Empty();
@@ -185,6 +188,12 @@ void BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray
 	// This can work, but will add tailing \0 also behavior is not well defined.
 
 	OutBinaryArray.Append((UTF8CHAR*)Convert.Get(), Convert.Length());
+#else 
+	//https://github.com/EpicGames/UnrealEngine/blob/5.3/Engine/Source/Runtime/Core/Public/Containers/StringConv.hL#L1070
+	auto converter = StringCast<UTF8CHAR>(*Message);
+	OutBinaryArray.Empty();
+	OutBinaryArray.Append((uint8*)converter.Get(), converter.Length());
+#endif
 }
 
 

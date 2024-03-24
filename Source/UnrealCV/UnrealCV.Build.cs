@@ -75,8 +75,8 @@ namespace UnrealBuildTool.Rules
 		public UnrealCV(ReadOnlyTargetRules Target) : base(Target)
 		// 4.16 or better
 		{
-			bEnforceIWYU = true;
-	  		bFasterWithoutUnity = true;
+			//bEnforceIWYU = true;
+	  		//bFasterWithoutUnity = true;
 			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 			// This trick is from https://answers.unrealengine.com/questions/258689/how-to-include-private-header-files-of-other-modul.html
