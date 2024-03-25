@@ -5,7 +5,6 @@
 #include "Runtime/Networking/Public/Common/TcpListener.h"
 #include "Runtime/Networking/Public/Interfaces/IPv4/IPv4Endpoint.h"
 #include "Runtime/Core/Public/Serialization/ArrayReader.h"
-#include "UnixTcpServer.h"
 
 #include "TcpServer.generated.h"
 
@@ -36,9 +35,9 @@ public:
 
 
 // The ; in the end is needed for doxygen.
-//DECLARE_EVENT_TwoParams(UTcpServer, FReceivedEvent, const FString&, const FString&);
-//DECLARE_EVENT_OneParam(UTcpServer, FErrorEvent, const FString&);
-//DECLARE_EVENT_OneParam(UTcpServer, FConnectedEvent, const FString&);
+DECLARE_EVENT_TwoParams(UTcpServer, FTcpReceivedEvent, const FString&, const FString&);
+DECLARE_EVENT_OneParam(UTcpServer, FTcpErrorEvent, const FString&);
+DECLARE_EVENT_OneParam(UTcpServer, FTcpConnectedEvent, const FString&);
 
 /**
  * Server to send and receive message
@@ -75,9 +74,9 @@ public:
 	/** Send a byte array to connected client, return false if failed to send. */
 	bool SendData(const TArray<uint8>& Payload);
 
-	FReceivedEvent& OnReceived() { return ReceivedEvent;  } // The reference can not be changed
+	FTcpReceivedEvent& OnReceived() { return ReceivedEvent;  } // The reference can not be changed
 
-	FErrorEvent& OnError() { return ErrorEvent;  } // The reference can not be changed
+	FTcpErrorEvent& OnError() { return ErrorEvent;  } // The reference can not be changed
 
 private:
 	/** Is the listening socket running */
@@ -101,13 +100,13 @@ private:
 	bool StartMessageService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
 
 	/** Event handler for event `Received` */
-	FReceivedEvent ReceivedEvent;
+	FTcpReceivedEvent ReceivedEvent;
 
 	/** Event handler for event `Error` */
-	FErrorEvent ErrorEvent;
+	FTcpErrorEvent ErrorEvent;
 
 	/** Event handler for event `Connected` */
-	FConnectedEvent ConnectedEvent;
+	FTcpConnectedEvent ConnectedEvent;
 
 	/** Broadcast event `Received` */
 	void BroadcastReceived(const FString& Endpoint, const FString& Message)
