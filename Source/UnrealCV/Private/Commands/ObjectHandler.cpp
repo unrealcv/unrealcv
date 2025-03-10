@@ -57,6 +57,19 @@ void FObjectHandler::RegisterCommands()
 	);
 
 	CommandDispatcher->BindCommand(
+		"vset /objects/spawn_bp_asset [str]",
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SpawnBpAsset),
+		"Spawn a blueprint asset in content"
+	);
+
+
+	CommandDispatcher->BindCommand(
+		"vset /objects/spawn_bp_asset [str] [str]",
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SpawnBpAsset),
+		"Spawn a blueprint asset in content"
+	);
+
+	CommandDispatcher->BindCommand(
 		"vset /objects/spawn_cube [str]",
 		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SpawnBox),
 		"Spawn a box in the scene for debugging purpose, with optional argument name."
@@ -138,6 +151,24 @@ void FObjectHandler::RegisterCommands()
 		"vset /object/[str]/destroy",
 		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::Destroy),
 		"Destroy object"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vset /object/[str]/physics [str]",
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SetPhysics),
+		"Set the physics of the object"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vset /object/[str]/collision [str]",
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SetCollision),
+		"Set the collision of the object"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vset /object/[str]/object_mobility [str]",
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SetObjectMobility),
+		"Set the mobility of the object"
 	);
 
 	CommandDispatcher->BindCommand(
@@ -317,6 +348,55 @@ FExecStatus FObjectHandler::SetShow(const TArray<FString>& Args)
 	return FExecStatus::OK();
 }
 
+FExecStatus FObjectHandler::SpawnBpAsset(const TArray<FString>& Args)
+{
+	if (Args.Num() == 2)
+	{
+		FString ActorId = Args[1];
+		AActor* Actor = GetActorById(FUnrealcvServer::Get().GetWorld(), ActorId);
+		if (IsValid(Actor))
+		{
+			FString ErrorMsg = FString::Printf(TEXT("Failed to spawn %s, object exsit."), *ActorId);
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *ErrorMsg);
+			return FExecStatus::Error(ErrorMsg);
+		}
+	}
+	
+	FString BlueprintPath;
+	if (Args.Num() == 1 || Args.Num() == 2)
+	{
+		BlueprintPath = Args[0];
+	}
+	//TEXT("Blueprint'/Game/CityDatabase/blueprints/BP_Building_01.BP_Building_01_C'")
+
+	UClass* BlueprintClass = LoadClass<AActor>(nullptr, *BlueprintPath);
+	if (BlueprintClass == nullptr)
+	{
+		FString ErrorMsg = FString::Printf(TEXT("Can not find the blueprint '%s'"), *BlueprintPath);
+		//FString ErrorMsg = FString::Printf(TEXT("Can not find the blueprint"));
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *ErrorMsg);
+		return FExecStatus::Error(ErrorMsg);
+	}
+
+	UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
+	FActorSpawnParameters SpawnParameters;
+	// SpawnParameters.bNoFail = true; // Allow collision during spawn.
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AActor* Actor = GameWorld->SpawnActor(BlueprintClass, NULL, NULL, SpawnParameters);
+	if (!IsValid(Actor))
+	{
+		return FExecStatus::Error("Failed to spawn actor");
+	}
+
+	if (Args.Num() == 2)
+	{
+		FString ActorName = Args[1];
+		SetActorName(Actor, ActorName);
+	}
+	return FExecStatus::OK(Actor->GetName());
+}
+
+
 FExecStatus FObjectHandler::SetHide(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
@@ -409,8 +489,76 @@ FExecStatus FObjectHandler::Destroy(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
 	if (!Actor) return FExecStatus::Error("Can not find object");
-
 	Actor->Destroy();
+	return FExecStatus::OK();
+}
+
+FExecStatus FObjectHandler::SetPhysics(const TArray<FString>& Args)
+{
+	FString EnablePhysics;
+	if (Args.Num() < 1) return FExecStatus::Error("The ActorId can not be empty.");
+	AActor* Actor = GetActor(Args);
+
+	if (Args.Num() < 2) return FExecStatus::Error("Need second parameter to define if this object has physics.");
+	EnablePhysics = Args[1].ToLower();
+
+	UPrimitiveComponent* component = Cast<UPrimitiveComponent>(Actor->GetComponentByClass(UPrimitiveComponent::StaticClass()));
+
+	if (EnablePhysics == "true") {
+		component->SetSimulatePhysics(true);
+	}
+	else if (EnablePhysics == "false") {
+		component->SetSimulatePhysics(false);
+	}
+	else {
+		return FExecStatus::Error("Please input true or false in the second parameter.");
+	}
+	return FExecStatus::OK();
+}
+
+FExecStatus FObjectHandler::SetCollision(const TArray<FString>& Args)
+{
+	FString EnablePhysics;
+	if (Args.Num() < 1) return FExecStatus::Error("The ActorId can not be empty.");
+	AActor* Actor = GetActor(Args);
+
+	if (Args.Num() < 2) return FExecStatus::Error("Need second parameter to define if this object has collision.");
+	EnablePhysics = Args[1].ToLower();
+
+	UPrimitiveComponent* component = Cast<UPrimitiveComponent>(Actor->GetComponentByClass(UPrimitiveComponent::StaticClass()));
+
+	if (EnablePhysics == "true") {
+		component->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+	else if (EnablePhysics == "false") {
+		component->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+	else {
+		return FExecStatus::Error("Please input true or false in the second parameter.");
+	}
+	return FExecStatus::OK();
+}
+
+FExecStatus FObjectHandler::SetObjectMobility(const TArray<FString>& Args)
+{
+	FString EnableMobility;
+	if (Args.Num() < 1) return FExecStatus::Error("The ActorId can not be empty.");
+	AActor* Actor = GetActor(Args);
+
+	if (Args.Num() < 2) return FExecStatus::Error("Need second parameter to define if this object has mobility.");
+	EnableMobility = Args[1].ToLower();
+
+	UPrimitiveComponent* component = Cast<UPrimitiveComponent>(Actor->GetComponentByClass(UPrimitiveComponent::StaticClass()));
+
+	if (EnableMobility == "true") {
+		component->SetMobility(EComponentMobility::Movable);
+	}
+	else if (EnableMobility == "false") {
+		component->SetMobility(EComponentMobility::Stationary);
+	}
+	else {
+		return FExecStatus::Error("Please input true or false in the second parameter.");
+	}
 	return FExecStatus::OK();
 }
 
@@ -511,3 +659,5 @@ FExecStatus FObjectHandler::GetBounds(const TArray<FString>& Args)
 
 	return FExecStatus::OK(Res);
 }
+
+

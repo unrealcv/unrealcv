@@ -3,6 +3,7 @@
 
 #include "Runtime/Engine/Public/Tickable.h"
 #include "Runtime/Core/Public/Containers/Queue.h"
+
 // #include "TcpServer.h"
 #include "Runtime/Core/Public/Internationalization/Regex.h"
 #include "ServerConfig.h"
@@ -96,6 +97,9 @@ public:
 	/** InitWorldController */
 	void InitWorldController();
 
+	/** Handle the raw message from TcpServer and parse raw message to a FRequest */
+	void HandleRawMessage(const FString& Endpoint, const FString& RawMessage);
+
 private:
 	/** Handlers for UnrealCV commands */
 	TArray<class FCommandHandler*> CommandHandlers;
@@ -121,9 +125,6 @@ private:
 
 	/** Store pending requests, A new request will be stored here and be processed in the next tick of GameThread */
 	TQueue<FRequest, EQueueMode::Spsc> PendingRequest; // TQueue is a thread safe implementation
-
-	/** Handle the raw message from TcpServer and parse raw message to a FRequest */
-	void HandleRawMessage(const FString& Endpoint, const FString& RawMessage);
 
 	/** Handle errors from TcpServer */
 	void HandleError(const FString& ErrorMessage);

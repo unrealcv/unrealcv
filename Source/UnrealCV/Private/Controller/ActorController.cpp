@@ -25,7 +25,7 @@ FRotator FActorController::GetRotation()
 
 void FActorController::SetRotation(FRotator Rotator)
 {
-	Actor->SetActorRotation(Rotator);
+	Actor->SetActorRotation(Rotator, ETeleportType::TeleportPhysics);
 }
 
 EComponentMobility::Type FActorController::GetMobility()

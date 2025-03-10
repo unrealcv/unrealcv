@@ -3,8 +3,18 @@
 #include "Runtime/Core/Public/Serialization/BufferArchive.h"
 #include "Runtime/Core/Public/Serialization/MemoryReader.h"
 #include <string>
-#include "UnrealcvLog.h"
 #include "UnrealcvShim.h"
+
+#include "ConsoleHelper.h"
+#include "Commands/ObjectHandler.h"
+#include "Commands/PluginHandler.h"
+#include "Commands/ActionHandler.h"
+#include "Commands/AliasHandler.h"
+#include "Commands/CameraHandler.h"
+#include "WorldController.h"
+#include "UnrealcvLog.h"
+
+#include "UnrealcvServer.h"
 
 uint32 FUnixSocketMessageHeader::DefaultMagic = 0x9E2B83C1;
 
@@ -705,10 +715,16 @@ bool UUnixTcpServer::StartMessageServiceINet(FSocket* ClientSocket, const FIPv4E
 	return false; // TODO: What is the meaning of return value?
 }
 
+bool UUnixTcpServer::StartMessageServiceINet_Multi(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
+{
+	return false;
+}
+
 /** Connected Handler */
 bool UUnixTcpServer::Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
-	bool ServiceStatus = false;
+	// When a new connecton conneted to the server, there's a while loop in the StartMessageServiceINet will be executed permenantely which will prevent the server from doing anything else.
+	bool ServiceStatus = true;
 	BroadcastConnected(*ClientEndpoint.ToString());
 	// ServiceStatus = StartEchoService(ClientSocket, ClientEndpoint);
 	ServiceStatus = StartMessageServiceINet(ClientSocket, ClientEndpoint);
@@ -719,12 +735,57 @@ bool UUnixTcpServer::Connected(FSocket* ClientSocket, const FIPv4Endpoint& Clien
 }
 
 
+bool UUnixTcpServer::Multi_Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
+{
+	bool ServiceStatus = true;
+
+	//{
+	//	// Lock thread and add a new client to the server
+	//	FScopeLock Lock(&SocketLock);
+	//	ClientSockets.Add(ClientSocket);
+	//}
+	UE_LOG(LogUnrealCV, Warning, TEXT("BroadCast the connection (multi_connect)"));
+
+	BroadcastConnected(*ClientEndpoint.ToString());
+	ConnectionSocket = ClientSocket;
+	FString Confirm = FString::Printf(TEXT("connected to %s"), *GetProjectName());
+	bool IsSent = this->SendMessageINet(Confirm); // Send a hello message through IP-port 
+	if (!IsSent)
+	{ 
+		UE_LOG(LogUnrealCV, Error, TEXT("Failed to send welcome message to client."));
+	}
+
+	
+	FClientHandler* RunnerClient = new FClientHandler(ClientSocket, ClientEndpoint);
+
+	RunnerClients.Add(RunnerClient);
+
+	FRunnableThread *thread = RunnerClient->Thread;
+
+	// Log the status of the threads
+	UE_LOG(LogUnrealCV, Warning, TEXT("Current number of threads: %d"), RunnerClients.Num());
+	for (FClientHandler* client : RunnerClients)
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Thread ID: %d"), client->Thread->GetThreadID());
+	}
+
+	// bind OnReceived of FClientHandler to BroadcastReceived of UUnixTcpServer 
+	RunnerClient->OnReceived().AddLambda([this](const FString& Endpoint, const FString& Message) {
+		this->BroadcastReceived(Endpoint, Message);
+		this->UnrealcvServer->HandleRawMessage(Endpoint, Message); // entry function that exec the commands
+	});
+	return ServiceStatus;
+}
+
+
 bool UUnixTcpServer::Start(int32 InPortNum) // Restart the server if configuration changed
 {
+	UE_LOG(LogUnrealCV, Warning, TEXT("(UnixTcpServer) Start listening on port %d"), InPortNum);
 	if (InPortNum == this->PortNum && this->bIsListening) return true; // Already started
 
-	if (ConnectionSocket) // Release previous connection
+	if (ConnectionSocket) // Release previous connection, one game only check once because multi-connection is handled by client handler
 	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Release previous connection"));
 		ConnectionSocket->Close();
 		ConnectionSocket = NULL;
 	}
@@ -762,7 +823,7 @@ bool UUnixTcpServer::Start(int32 InPortNum) // Restart the server if configurati
 	TcpListener = TSharedPtr<FTcpListener>(new FTcpListener(*ServerSocket));
 	// TcpListener = new FTcpListener(Endpoint); // This will be released after start
 	// In FSocket, when a FSocket is set as reusable, it means SO_REUSEADDR, not SO_REUSEPORT.  see SocketsBSD.cpp
-	TcpListener->OnConnectionAccepted().BindUObject(this, &UUnixTcpServer::Connected);
+	TcpListener->OnConnectionAccepted().BindUObject(this, &UUnixTcpServer::Multi_Connected); // bind connected event
 	if (TcpListener->Init())
 	{
 		this->bIsListening = true;

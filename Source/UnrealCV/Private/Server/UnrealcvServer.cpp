@@ -92,14 +92,16 @@ void FUnrealcvServer::RegisterCommandHandlers()
 
 FUnrealcvServer::FUnrealcvServer() : myRegexPattern(MessageFormat)
 {
+	// Init Server
 	// Code defined here should not use FUnrealcvServer::Get();
 	//TcpServer = NewObject<UTcpServer>();
 	TcpServer = NewObject<UUnixTcpServer>();
 	CommandDispatcher = TSharedPtr<FCommandDispatcher>(new FCommandDispatcher());
 	FConsoleHelper::Get().SetCommandDispatcher(CommandDispatcher);
-
 	TcpServer->AddToRoot(); // Avoid GC
-	TcpServer->OnReceived().AddRaw(this, &FUnrealcvServer::HandleRawMessage);
+	TcpServer->UnrealcvServer = this;
+	//TcpServer->OnReceived().AddRaw(this, &FUnrealcvServer::HandleRawMessage); // not bind at this stage, move the binding to the UUnixTcpServer
+	//TcpServer->CommandDispatcher = CommandDispatcher;
 	TcpServer->OnError().AddRaw(this, &FUnrealcvServer::HandleError);
 }
 
@@ -258,7 +260,7 @@ bool FUnrealcvServer::InitWorld()
 void FUnrealcvServer::ProcessRequest(FRequest& Request)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ProcessRequest);
-	FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message);
+	FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message); //send meesage to the command dispatcher
 
 	// This can be removed for better performance
 	//UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
@@ -285,7 +287,6 @@ void FUnrealcvServer::ProcessPendingRequest()
 		// Dequeue one request each time
 		bool DequeueStatus = PendingRequest.Dequeue(Request);
 		int32 RequestId = Request.RequestId;
-
 		// vbatch should not stall the execution of the game thread.
 		if (Request.Message.StartsWith(TEXT("vbatch"))) // vbatch should not be nested.
 		{
@@ -322,6 +323,7 @@ void FUnrealcvServer::ProcessPendingRequest()
 			// Otherwise hold the batch request until all commands are received.
 			for (FRequest RequestToRun : Batch)
 			{
+				//UE_LOG(LogUnrealCV, Warning, TEXT("Run batched command %s"), *RequestToRun.Message);
 				ProcessRequest(RequestToRun);
 			}
 			Batch.Empty();
@@ -348,7 +350,8 @@ void FUnrealcvServer::HandleRawMessage(const FString& Endpoint, const FString& I
 		FString Message = Matcher.GetCaptureGroup(2);
 
 		uint32 RequestId = FCString::Atoi(*StrRequestId);
-		FRequest Request(Endpoint, Message, RequestId);
+		FRequest Request(Endpoint, Message, RequestId); // Create a request
+		UE_LOG(LogUnrealCV, Warning, TEXT("Request: %s"), *Request.Message);
 		this->PendingRequest.Enqueue(Request);
 	}
 	else

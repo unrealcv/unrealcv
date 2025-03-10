@@ -20,4 +20,5 @@ public:
 	virtual void InitTextureTarget(int FilmWidth, int FilmHeight) override;
 
 	void CaptureLit(TArray<FColor>& Image, int& Width, int& Height);
+	void CaptureLit_Updated(TArray<FColor>& Image, int& Width, int& Height);
 };

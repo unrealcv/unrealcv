@@ -14,7 +14,19 @@ import warnings
 "APIs for UnrealCV, a toolkit for using Unreal Engine (UE) in Python."
 
 class UnrealCv_API(object):
+    """
+    A class to interact with UnrealCV, a toolkit for using Unreal Engine (UE) in Python.
+    """
     def __init__(self, port, ip, resolution, mode='tcp'):
+        """
+        Initialize the UnrealCV API.
+
+        Args:
+            port (int): The port of the UnrealCV Server to connect to.
+            ip (str): The IP address of the UnrealCV Server to connect to.
+            resolution (tuple): The resolution of the images.
+            mode (str): The connection mode, either 'tcp' or 'unix'. Default is 'tcp'. 'unix' is only for local machine in Linux.
+        """
         # if ip == '127.0.0.1':
         #     self.docker = False
         # else:
@@ -32,6 +44,17 @@ class UnrealCv_API(object):
         self.init_map()
 
     def connect(self, ip, port, mode='tcp'):
+        """
+        Connect to the UnrealCV server.
+
+        Args:
+            ip (str): The IP address to connect to.
+            port (int): The port to connect to.
+            mode (str): The connection mode, either 'tcp' or 'unix'. Default is 'tcp'.
+
+        Returns:
+            unrealcv.Client: The connected client.
+        """
         client = unrealcv.Client((ip, port))
         client.connect()
         if mode == 'unix':
@@ -50,13 +73,30 @@ class UnrealCv_API(object):
         return client
 
     def init_map(self):
+        """
+        Initialize the map by getting camera configurations and building a color dictionary for objects.
+        """
         self.cam = self.get_camera_config()
         self.obj_dict = self.build_color_dict(self.get_objects())
 
     def camera_info(self):
+        """
+        Get the camera information.
+
+        Returns:
+            dict: The camera information.
+        """
         return self.cam
 
     def config_ue(self, resolution=(320, 240), low_quality=False, disable_all_screen_messages=True):
+        """
+        Configure Unreal Engine settings.
+
+        Args:
+            resolution (tuple): The resolution of the display window.
+            low_quality (bool): Whether to set the rendering quality to low. Default is False.
+            disable_all_screen_messages (bool): Whether to disable all screen messages. Default is True.
+        """
         self.check_connection()
         [w, h] = resolution
         self.client.request(f'vrun setres {w}x{h}w', -1)  # set resolution of the display window
@@ -69,16 +109,31 @@ class UnrealCv_API(object):
         time.sleep(0.1)
 
     def message_handler(self, message):
+        """
+        Handle messages from the UnrealCV server.
+
+        Args:
+            message (str): The message from the server.
+        """
         msg = message
         print(msg)
 
     def check_connection(self):
+        """
+        Check the connection to the UnrealCV server and reconnect if necessary.
+        """
         while self.client.isconnected() is False:
             warnings.warn('UnrealCV server is not running. Please try again')
             time.sleep(1)
             self.client.connect()
 
     def get_camera_config(self):
+        """
+        Get the camera configuration(the location, rotation, and fov of each camera).
+
+        Returns:
+            dict: The camera configuration.
+        """
         num_cameras = self.get_camera_num()
         cam = dict()
         for i in range(num_cameras):
@@ -90,16 +145,37 @@ class UnrealCv_API(object):
         return cam
 
     def get_camera_num(self):
+        """
+        Get the number of cameras.
+
+        Returns:
+            int: The number of cameras.
+        """
         return len(self.client.request('vget /cameras').split())
 
-    def get_objects(self):  # get all objects name in the map
+    def get_objects(self):
+        """
+        Get all object names in the map.
+
+        Returns:
+            list: The list of object names.
+        """
         objects = self.client.request('vget /objects').split()
         return objects
 
     # batch_functions for multiple commands
     def batch_cmd(self, cmds, decoders, **kwargs):
-        # cmds = [cmd1, cmd2, ...]
-        # decoder is a list of decoder functions
+        """
+        Execute a batch of commands.
+
+        Args:
+            cmds (list): The list of commands.
+            decoders (list): The list of decoder functions.
+            **kwargs: Additional arguments for the decoder functions.
+
+        Returns:
+            list: The list of results.
+        """
         res_list = self.client.request(cmds)
         if decoders is None: # vset commands do not decode return
             return res_list
@@ -108,7 +184,18 @@ class UnrealCv_API(object):
         return res_list
 
     def save_image(self, cam_id, viewmode, path, return_cmd=False):
-        # Note: depth is in npy format
+        """
+        Save an image from a camera.
+
+        Args:
+            cam_id (int): The camera ID.
+            viewmode (str): The view mode (e.g., 'lit', 'depth').
+            path (str): The path to save the image.
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+
+        Returns:
+            str: The command if return_cmd is True, otherwise the image directories.
+        """
         cmd = f'vget /camera/{cam_id}/{viewmode} {path}'
         if return_cmd:
             return cmd
@@ -132,10 +219,19 @@ class UnrealCv_API(object):
         return img_dirs
 
     def get_image(self, cam_id, viewmode, mode='bmp', return_cmd=False, show=False):
-        # cam_id:0 1 2 ...
-        # viewmode:lit, normal, object_mask, depth
-        # mode: bmp, png, npy
-        # Note: depth is in npy format
+        """
+        Get an image from a camera.
+
+        Args:
+            cam_id (int): The camera ID.
+            viewmode (str): The view mode (e.g., 'lit', 'normal', 'object_mask', 'depth').
+            mode (str): The image format (e.g., 'bmp', 'png', 'npy'). Default is 'bmp'.
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+            show (bool): Whether to display the image. Default is False.
+
+        Returns:
+            np.ndarray: The image.
+        """
         if viewmode == 'depth':
             return self.get_depth(cam_id, return_cmd=return_cmd, show=show)
         cmd = f'vget /camera/{cam_id}/{viewmode} {mode}'
@@ -143,11 +239,23 @@ class UnrealCv_API(object):
             return cmd
         image = self.decoder.decode_img(self.client.request(cmd), mode)
         if show:
-            cv2.imshow('image', image)
+            cv2.imshow('image_'+viewmode, image)
             cv2.waitKey(1)
         return image
 
     def get_depth(self, cam_id, inverse=False, return_cmd=False, show=False):  # get depth from unrealcv in npy format
+        """
+        Get the depth image from a camera.
+
+        Args:
+            cam_id (int): The camera ID.
+            inverse (bool): Whether to inverse the depth. Default is False.
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+            show (bool): Whether to display the image. Default is False.
+
+        Returns:
+            np.ndarray: The depth image.
+        """
         cmd = f'vget /camera/{cam_id}/depth npy'
         if return_cmd:
             return cmd
@@ -159,17 +267,35 @@ class UnrealCv_API(object):
         return depth
 
     def get_image_multicam(self, cam_ids, viewmode='lit', mode='bmp', inverse=True):
-        # get image from multiple cameras with the same viewmode
-        # viewmode : {'lit', 'depth', 'normal', 'object_mask'}
-        # mode : {'bmp', 'npy', 'png'}
-        # inverse : whether to inverse the depth
+        """
+        Get images from multiple cameras with the same view mode.
+
+        Args:
+            cam_ids (list): The list of camera IDs.
+            viewmode (str): The view mode (e.g., 'lit', 'depth', 'normal', 'object_mask'). Default is 'lit'.
+            mode (str): The image format (e.g., 'bmp', 'npy', 'png'). Default is 'bmp'.
+            inverse (bool): Whether to inverse the depth. Default is True.
+
+        Returns:
+            list: The list of images.
+        """
         cmds = [self.get_image(cam_id, viewmode, mode, return_cmd=True) for cam_id in cam_ids]
         decoders = [self.decoder.decode_img for i in cam_ids]
         img_list = self.batch_cmd(cmds, decoders, mode=mode, inverse=inverse)
         return img_list
 
     def get_image_multimodal(self, cam_id, viewmodes=['lit', 'depth'], modes=['bmp', 'npy']): # get rgb and depth image
-        # default is to get RGB-D image
+        """
+        Get multimodal images from a camera, such as RGB-D images (default).
+
+        Args:
+            cam_id (int): The camera ID.
+            viewmodes (list): The list of view modes. Default is ['lit', 'depth'].
+            modes (list): The list of image formats. Default is ['bmp', 'npy'].
+
+        Returns:
+            np.ndarray: The concatenated image.
+        """
         cmds = [self.get_image(cam_id, viewmode, mode, return_cmd=True) for viewmode, mode in zip(viewmodes, modes)]
         decoders = [self.decoder.decode_map[mode] for mode in modes]
         res = self.batch_cmd(cmds, decoders)
@@ -177,12 +303,15 @@ class UnrealCv_API(object):
         return concat_img
 
     def get_img_batch(self, cam_info):
-        # get image from multiple cameras with the same viewmode
-        # viewmode : {'lit', 'depth', 'normal', 'object_mask'}
-        # mode : {'bmp', 'npy', 'png'}
-        # inverse : whether to inverse the depth
-        # one camera id can be of multiple viewmodes, but one viewmode can only have one encoding mode
-        # cam_info : {cam_id: {viewmode: {'mode': 'bmp', 'inverse': True, 'img': None}}}
+        """
+        Get multiple images from multiple cameras or viewmodes, the most flexible function to get images.
+
+        Args:
+            cam_info (dict): The camera information, such as {cam_id: {viewmode: {'mode': 'bmp', 'inverse': True, 'img': None}}}
+
+        Returns:
+            dict: The updated camera information with images.
+        """
         cmd_list = []
         # prepare command list
         for cam_id in cam_info.keys():
@@ -200,7 +329,14 @@ class UnrealCv_API(object):
         return cam_info
 
 
-    def set_cam_pose(self, cam_id, pose):  # set camera pose, pose = [x, y, z, pitch, yaw, roll]
+    def set_cam_pose(self, cam_id, pose):
+        """
+        Set the camera pose.
+
+        Args:
+            cam_id (int): The camera ID.
+            pose (list): The camera pose [x, y, z, pitch, yaw, roll].
+        """
         [x, y, z, roll, yaw, pitch] = pose
         self.set_cam_rotation(cam_id, [roll, yaw, pitch])
         self.set_cam_location(cam_id, [x, y, z])
@@ -210,6 +346,16 @@ class UnrealCv_API(object):
         self.cam[cam_id]['rotation'] = [roll, yaw, pitch]
 
     def get_cam_pose(self, cam_id, mode='hard'):  # get camera pose, pose = [x, y, z, roll, yaw, pitch]
+        """
+        Get the camera pose. The mode can be 'hard' or 'soft'. The 'hard' mode will get the pose from UnrealCV, while the 'soft' mode will get the pose from self.cam.
+
+        Args:
+            cam_id (int): The camera ID.
+            mode (str): The mode to get the pose, either 'hard' or 'soft'. Default is 'hard'.
+
+        Returns:
+            list: The camera pose [x, y, z, roll, yaw, pitch].
+        """
         if mode == 'soft':
             pose = self.cam[cam_id]['location']
             pose.extend(self.cam[cam_id]['rotation'])
@@ -222,7 +368,14 @@ class UnrealCv_API(object):
             self.cam[cam_id]['rotation'] = res[1]
             return res[0] + res[1]
 
-    def set_cam_fov(self, cam_id, fov):  # set camera field of view (fov)
+    def set_cam_fov(self, cam_id, fov):
+        """
+        Set the camera field of view (fov).
+
+        Args:
+            cam_id (int): The camera ID.
+            fov (float): The field of view.
+        """
         if fov == self.cam[cam_id]['fov']:
             return fov
         cmd = f'vset /camera/{cam_id}/fov {fov}'
@@ -230,20 +383,46 @@ class UnrealCv_API(object):
         self.cam[cam_id]['fov'] = fov
         return fov
 
-    def get_cam_fov(self, cam_id):  # set camera field of view (fov)
+    def get_cam_fov(self, cam_id):
+        """
+        Get the camera field of view (fov).
+
+        Args:
+            cam_id (int): The camera ID.
+
+        Returns:
+            float: The field of view.
+        """
         cmd = f'vget /camera/{cam_id}/fov'
         fov = self.client.request(cmd)
         return fov
 
-    def set_cam_location(self, cam_id, loc):  # set camera location, loc=[x,y,z]
+    def set_cam_location(self, cam_id, loc):
+        """
+        Set the camera location.
+
+        Args:
+            cam_id (int): The camera ID.
+            loc (list): The camera location [x, y, z].
+        """
         [x, y, z] = loc
         cmd = f'vset /camera/{cam_id}/location {x} {y} {z}'
         self.client.request(cmd, -1)
         self.cam[cam_id]['location'] = loc
 
     def get_cam_location(self, cam_id, newest=True, return_cmd=False, syns=True):
-        # get camera location, loc=[x,y,z]
-        # hard mode will get location from unrealcv, soft mode will get location from self.cam
+        """
+        Get the camera location.
+
+        Args:
+            cam_id (int): The camera ID.
+            newest (bool): Whether to get the newest location from UnrealCV. Default is True.
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+            syns (bool): Whether to synchronize the location with the internal state. Default is True.
+
+        Returns:
+            list: The camera location [x, y, z].
+        """
         if newest:
             cmd = f'vget /camera/{cam_id}/location'
             if return_cmd:
@@ -258,7 +437,15 @@ class UnrealCv_API(object):
             return self.cam[cam_id]['location']
         return res
 
-    def set_cam_rotation(self, cam_id, rot, rpy=False):  # set camera rotation, rot = [roll, yaw, pitch]
+    def set_cam_rotation(self, cam_id, rot, rpy=False):
+        """
+        Set the camera rotation.
+
+        Args:
+            cam_id (int): The camera ID.
+            rot (list): The camera rotation [roll, yaw, pitch].
+            rpy (bool): Whether the rotation is in roll-pitch-yaw format. Default is False.
+        """
         if rpy:
             [roll, yaw, pitch] = rot
         else:
@@ -268,8 +455,18 @@ class UnrealCv_API(object):
         self.cam[cam_id]['rotation'] = [pitch, yaw, roll]
 
     def get_cam_rotation(self, cam_id, newest=True, return_cmd=False, syns=True):
-        # get camera rotation, rot = [pitch, yaw, roll]
-        # newest mode will get rotation from unrealcv, if not will get rotation from self.cam
+        """
+        Get the camera rotation.
+
+        Args:
+            cam_id (int): The camera ID.
+            newest (bool): Whether to get the newest rotation from UnrealCV. Default is True.
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+            syns (bool): Whether to synchronize the rotation with the internal state. Default is True.
+
+        Returns:
+            list: The camera rotation [pitch, yaw, roll].
+        """
         if newest:
             cmd = f'vget /camera/{cam_id}/rotation'
             if return_cmd:
@@ -284,16 +481,32 @@ class UnrealCv_API(object):
         else:
             return self.cam[cam_id]['rotation']
 
-    def move_cam(self, cam_id, loc):  # move camera to location with physics simulation
+    def move_cam(self, cam_id, loc):
+        """
+        Move the camera to a location with physics simulation.
+
+        Args:
+            cam_id (int): The camera ID.
+            loc (list): The target location [x, y, z].
+        """
         [x, y, z] = loc
         cmd = f'vset /camera/{cam_id}/moveto {x} {y} {z}'
         self.client.request(cmd)
 
     def move_cam_forward(self, cam_id, yaw, distance, height=0, pitch=0):
-        # move camera as a mobile robot
-        # yaw is the delta angle between camera and x axis
-        # distance is the absolute distance from the initial location to the target location
-        # return the collision information
+        """
+        Move the camera forward as a mobile robot at specific height.
+
+        Args:
+            cam_id (int): The camera ID.
+            yaw (float): The delta angle between the camera and the x-axis.
+            distance (float): The absolute distance from the last location to the next location.
+            height (float): The height of the camera. Default is 0.
+            pitch (float): The pitch angle. Default is 0.
+
+        Returns:
+            bool: Whether the movement was successful.
+        """
         yaw_exp = (self.cam[cam_id]['rotation'][1] + yaw) % 360
         pitch_exp = (self.cam[cam_id]['rotation'][0] + pitch) % 360
         assert abs(height) < distance, 'height should be smaller than distance'
@@ -320,15 +533,46 @@ class UnrealCv_API(object):
             return True
 
     def get_distance(self, pos_now, pos_exp, n=2):  # get distance between two points, n is the dimension
+        """
+        Get the distance between two points.
+
+        Args:
+            pos_now (list): The current position.
+            pos_exp (list): The expected position.
+            n (int): The dimension. Default is 2.
+
+        Returns:
+            float: The distance between the two points.
+        """
         error = np.array(pos_now[:n]) - np.array(pos_exp[:n])
         distance = np.linalg.norm(error)
         return distance
 
-    def set_keyboard(self, key, duration=0.01):  # Up Down Left Right
+    def set_keyboard(self, key, duration=0.01):
+        """
+        Simulate a keyboard action.
+
+        Args:
+            key (str): The key to press, such as 'Up', 'Down', 'Left', 'Right'
+            duration (float): The duration to press the key. Default is 0.01.
+
+        Returns:
+            str: The response from the UnrealCV server.
+        """
         cmd = 'vset /action/keyboard {key} {duration}'
         return self.client.request(cmd.format(key=key, duration=duration), -1)
 
-    def get_obj_color(self, obj, return_cmd=False):  # get object color in object mask, color = [r,g,b]
+    def get_obj_color(self, obj, return_cmd=False):
+        """
+        Get the color of an object in the object mask.
+
+        Args:
+            obj (str): The object name.
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+
+        Returns:
+            list: The color of the object [r, g, b].
+        """
         cmd = f'vget /object/{obj}/color'
         if return_cmd:
             return cmd
@@ -336,6 +580,14 @@ class UnrealCv_API(object):
         return self.decoder.string2color(res)[:-1]
 
     def set_obj_color(self, obj, color, return_cmd=False):  # set object color in object mask, color = [r,g,b]
+        """
+        Set the color of an object to render in the object mask.
+
+        Args:
+            obj (str): The object name.
+            color (list): The color to set [r, g, b].
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+        """
         [r, g, b] = color
         cmd = f'vset /object/{obj}/color {r} {g} {b}'
         self.obj_dict[obj] = color
@@ -343,25 +595,60 @@ class UnrealCv_API(object):
             return cmd
         self.client.request(cmd, -1)  # -1 means async mode
 
-    def set_obj_location(self, obj, loc):  # set object location, loc=[x,y,z]
+    def set_obj_location(self, obj, loc):
+        """
+        Set the location of an object.
+
+        Args:
+            obj (str): The object name.
+            loc (list): The location to set [x, y, z].
+        """
         [x, y, z] = loc
         cmd = f'vset /object/{obj}/location {x} {y} {z}'
         self.client.request(cmd, -1)  # -1 means async mode
 
-    def set_obj_rotation(self, obj, rot):  # set object rotation, rot = [roll, yaw, pitch]
+    def set_obj_rotation(self, obj, rot):
+        """
+        Set the rotation of an object.
+
+        Args:
+            obj (str): The object name.
+            rot (list): The rotation to set [roll, yaw, pitch].
+        """
         [roll, yaw, pitch] = rot
         cmd = f'vset /object/{obj}/rotation {pitch} {yaw} {roll}'
         self.client.request(cmd, -1)
 
-    def get_mask(self, object_mask, obj, threshold=3):  # get an object's mask
+    def get_mask(self, object_mask, obj, threshold=3):
+        """
+        Get the mask of an object.
+
+        Args:
+            object_mask (np.ndarray): The object mask image.
+            obj (str): The object name.
+            threshold (int): The color threshold. Default is 3.
+
+        Returns:
+            np.ndarray: The mask of the object.
+        """
         [r, g, b] = self.obj_dict[obj]
         lower_range = np.array([b-threshold, g-threshold, r-threshold])
         upper_range = np.array([b+threshold, g+threshold, r+threshold])
         mask = cv2.inRange(object_mask, lower_range, upper_range)
         return mask
 
-    def get_bbox(self, object_mask, obj, normalize=True):  # get an object's bounding box
-        # get an object's bounding box
+    def get_bbox(self, object_mask, obj, normalize=True):
+        """
+        Get the bounding box of an object.
+
+        Args:
+            object_mask (np.ndarray): The object mask image.
+            obj (str): The object name.
+            normalize (bool): Whether to normalize the bounding box coordinates. Default is True.
+
+        Returns:
+            tuple: The mask and bounding box of the object.
+        """
         width = object_mask.shape[1]
         height = object_mask.shape[0]
         mask = self.get_mask(object_mask, obj)
@@ -387,7 +674,17 @@ class UnrealCv_API(object):
         return mask, box
 
     def get_obj_bboxes(self, object_mask, objects, return_dict=False):
-        #  get objects' bounding boxes in a image given object list, return a list
+        """
+        Get the bounding boxes of multiple objects.
+
+        Args:
+            object_mask (np.ndarray): The object mask image.
+            objects (list): The list of object names.
+            return_dict (bool): Whether to return the bounding boxes as a dictionary. Default is False.
+
+        Returns:
+            list or dict: The list or dictionary of bounding boxes.
+        """
         boxes = []
         for obj in objects:
             mask, box = self.get_bbox(object_mask, obj)
@@ -398,6 +695,16 @@ class UnrealCv_API(object):
             return boxes
 
     def build_color_dict(self, objects, batch=True):  # build a color dictionary for objects
+        """
+        Build a color dictionary for objects.
+
+        Args:
+            objects (list): The list of object names.
+            batch (bool): Whether to use batch commands. Default is True.
+
+        Returns:
+            dict: The color dictionary.
+        """
         color_dict = dict()
         if batch:
             cmds = [self.get_obj_color(obj, return_cmd=True) for obj in objects]
@@ -411,6 +718,16 @@ class UnrealCv_API(object):
         return color_dict
 
     def get_obj_location(self, obj, return_cmd=False):  # get object location
+        """
+        Get the location of an object.
+
+        Args:
+            obj (str): The object name.
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+
+        Returns:
+            list: The location of the object [x, y, z].
+        """
         cmd = f'vget /object/{obj}/location'
         if return_cmd:
             return cmd
@@ -420,6 +737,16 @@ class UnrealCv_API(object):
         return self.decoder.string2floats(res)
 
     def get_obj_rotation(self, obj, return_cmd=False):  # get object rotation
+        """
+        Get the rotation of an object.
+
+        Args:
+            obj (str): The object name.
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+
+        Returns:
+            list: The rotation of the object [roll, yaw, pitch].
+        """
         cmd = f'vget /object/{obj}/rotation'
         if return_cmd:
             return cmd
@@ -428,13 +755,31 @@ class UnrealCv_API(object):
             res = self.client.request(cmd)
         return self.decoder.string2floats(res)
 
-    def get_obj_pose(self, obj):  # get object pose
+    def get_obj_pose(self, obj):
+        """
+        Get the pose of an object.
+
+        Args:
+            obj (str): The object name.
+
+        Returns:
+            list: The pose of the object [x, y, z, roll, yaw, pitch].
+        """
         cmds = [self.get_obj_location(obj, return_cmd=True), self.get_obj_rotation(obj, return_cmd=True)]
         decoders = [self.decoder.decode_map[self.decoder.cmd2key(cmd)] for cmd in cmds]
         res = self.batch_cmd(cmds, decoders)
         return res[0] + res[1]
 
     def build_pose_dic(self, objects):  # build a pose dictionary for objects
+        """
+        Build a pose dictionary for objects.
+
+        Args:
+            objects (list): The list of object names.
+
+        Returns:
+            dict: The pose dictionary.
+        """
         pose_dic = dict()
         for obj in objects:
             pose = self.get_obj_location(obj)
@@ -443,6 +788,16 @@ class UnrealCv_API(object):
         return pose_dic
 
     def get_obj_bounds(self, obj, return_cmd=False): # get object location
+        """
+        Get the bounds of an object.
+
+        Args:
+            obj (str): The object name.
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+
+        Returns:
+            list: The bounds of the object [min_x, min_y, min_z, max_x, max_y, max_z].
+        """
         cmd = f'vget /object/{obj}/bounds'
         if return_cmd:
             return cmd
@@ -452,7 +807,16 @@ class UnrealCv_API(object):
         return self.decoder.string2floats(res)  # min x,y,z  max x,y,z
 
     def get_obj_size(self, obj, box=True):
-        # return the size of the bounding box
+        """
+        Get the size of an object.
+
+        Args:
+            obj (str): The object name.
+            box (bool): Whether to return the bounding box size. Default is True.
+
+        Returns:
+            list or float: The [size_x, size_y, size_z] or volume (float) of the 3D bounding box.
+        """
         self.set_obj_rotation(obj, [0, 0, 0])  # init
         bounds = self.get_obj_bounds(obj)
         x = bounds[3] - bounds[0]
@@ -464,7 +828,16 @@ class UnrealCv_API(object):
             return x*y*z
 
     def get_obj_scale(self, obj, return_cmd=False):
-        # set object scale
+        """
+        Get the scale of an object.
+
+        Args:
+            obj (str): The object name.
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+
+        Returns:
+            list: The scale of the object [scale_x, scale_y, scale_z].
+        """
         cmd = f'vget /object/{obj}/scale'
         if return_cmd:
             return cmd
@@ -475,53 +848,117 @@ class UnrealCv_API(object):
         return self.decoder.string2floats(res)  # [scale_x, scale_y, scale_z]
 
     def set_obj_scale(self, obj, scale=[1, 1, 1], return_cmd=False):
-        # set object scale
+        """
+        Set the scale of an object.
+
+        Args:
+            obj (str): The object name.
+            scale (list): The scale to set [scale_x, scale_y, scale_z].
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+        """
         [x, y, z] = scale
         cmd = f'vset /object/{obj}/scale {x} {y} {z}'
         if return_cmd:
             return cmd
         self.client.request(cmd, -1)
 
-    def set_hide_obj(self, obj, return_cmd=False):  # hide an object, make it invisible, but still there in physics engine
+    def set_hide_obj(self, obj, return_cmd=False):
+        """
+        Hide an object, making it invisible but still present in the physics engine.
+
+        Args:
+            obj (str): The object name.
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+        """
         cmd = f'vset /object/{obj}/hide'
         if return_cmd:
             return cmd
         self.client.request(cmd, -1)
 
-    def set_show_obj(self, obj, return_cmd=False):  # show an object, make it visible
+    def set_show_obj(self, obj, return_cmd=False):
+        """
+        Show an object, making it visible.
+
+        Args:
+            obj (str): The object name.
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+        """
         cmd = f'vset /object/{obj}/show'
         if return_cmd:
             return cmd
         self.client.request(cmd, -1)
 
     def set_hide_objects(self, objects):
+        """
+        Hide multiple objects, making them invisible but still present in the physics engine.
+
+        Args:
+            objects (list): The list of object names.
+        """
         cmds = [self.set_hide_obj(obj, return_cmd=True) for obj in objects]
         self.client.request(cmds, -1)
 
     def set_show_objects(self, objects):
+        """
+        Show multiple objects, making them visible.
+
+        Args:
+            objects (list): The list of object names.
+        """
         cmds = [self.set_show_obj(obj, return_cmd=True) for obj in objects]
         self.client.request(cmds, -1)
 
-    def destroy_obj(self, obj): # destroy an object, remove it from the scene
+    def destroy_obj(self, obj):
+        """
+        Destroy an object, removing it from the scene.
+
+        Args:
+            obj (str): The object name.
+        """
         self.client.request(f'vset /object/{obj}/destroy', -1)
         self.obj_dict.pop(obj)
         # TODO: remove the cameras mounted at the object
 
     def get_camera_num(self):
+        """
+        Get the number of cameras.
+
+        Returns:
+            int: The number of cameras.
+        """
         res = self.client.request('vget /cameras')
         return len(res.split())
 
     def get_camera_list(self):
+        """
+        Get the list of cameras.
+
+        Returns:
+            list: The list of camera names.
+        """
         res = self.client.request('vget /cameras')
         return res.split()
 
     def set_new_camera(self):
+        """
+        Spawn a new camera.
+
+        Returns:
+            str: The object name of the new camera.
+        """
         res = self.client.request('vset /cameras/spawn')
         cam_id = len(self.cam)
         self.register_camera(cam_id)
-        return res   # return the object name of the new camera
+        return res
 
     def register_camera(self, cam_id, obj_name=None):
+        """
+        Register a camera in self.cam (dict).
+
+        Args:
+            cam_id (int): The camera ID.
+            obj_name (str): The object name. Default is None.
+        """
         self.cam[cam_id] = dict(
             obj_name=obj_name,
             location=self.get_cam_location(cam_id, syns=False),
@@ -530,6 +967,16 @@ class UnrealCv_API(object):
         )
 
     def set_new_obj(self, class_name, obj_name):
+        """
+        Spawn a new object.
+
+        Args:
+            class_name (str): The class name of the object.
+            obj_name (str): The object name.
+
+        Returns:
+            str: The object name of the new object.
+        """
         cmd = f'vset /object/spawn {class_name} {obj_name}'
         res = self.client.request(cmd)
         if self.checker.is_error(res):
@@ -548,6 +995,16 @@ class UnrealCv_API(object):
             return obj_name
 
     def get_vertex_locations(self, obj, return_cmd=False):
+        """
+        Get the vertex locations of an object.
+
+        Args:
+            obj (str): The object name.
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+
+        Returns:
+            list: The vertex locations.
+        """
         cmd = f'vget /object/{obj}/vertex_location'
         if return_cmd:
             return cmd
@@ -557,6 +1014,16 @@ class UnrealCv_API(object):
         return self.decoder.decode_vertex(res)
 
     def get_obj_uclass(self, obj, return_cmd=False):
+        """
+        Get the Unreal class name of an object.
+
+        Args:
+            obj (str): The object name.
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+
+        Returns:
+            str: The Unreal class name of the object.
+        """
         cmd = f'vget /object/{obj}/uclass_name'
         if return_cmd:
             return cmd
@@ -566,6 +1033,13 @@ class UnrealCv_API(object):
         return res
 
     def set_map(self, map_name, return_cmd=False):  # change to a new level map
+        """
+        Change to a new level map.
+
+        Args:
+            map_name (str): The name of the map.
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+        """
         cmd = f'vset /action/game/level {map_name}'
         if return_cmd:
             return cmd
@@ -574,28 +1048,63 @@ class UnrealCv_API(object):
             self.init_map()
 
     def set_pause(self, return_cmd=False):
+        """
+        Pause the game.
+
+        Args:
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+        """
         cmd = f'vset /action/game/pause'
         if return_cmd:
             return cmd
         self.client.request(cmd)
 
     def set_resume(self, return_cmd=False):
+        """
+        Resume the game.
+
+        Args:
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+        """
         cmd = f'vset /action/game/resume'
         if return_cmd:
             return cmd
         self.client.request(cmd)
 
     def get_is_paused(self):
+        """
+        Check if the game is paused.
+
+        Returns:
+            bool: True if the game is paused, False otherwise.
+        """
         res = self.client.request('vget /action/game/is_paused')
         return res == 'true'
 
     def set_global_time_dilation(self, time_dilation, return_cmd=False):
+        """
+        Set the global time dilation, which affects the simulation speed of the game.
+
+        Args:
+            time_dilation (float): The time dilation factor.
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+        """
         cmd = f'vrun slomo {time_dilation}'
         if return_cmd:
             return cmd
         self.client.request(cmd, -1)
 
     def set_max_FPS(self, max_fps, return_cmd=False):
+        """
+        Set the maximum frames per second (FPS) for the Unreal Engine.
+
+        Args:
+            max_fps (int): The maximum FPS to set.
+            return_cmd (bool): Whether to return the command string instead of executing it. Default is False.
+
+        Returns:
+            str: The command string if return_cmd is True, otherwise None.
+        """
         cmd = f'vrun t.maxFPS {max_fps}'
         if return_cmd:
             return cmd
@@ -604,6 +1113,12 @@ class UnrealCv_API(object):
 
 class MsgDecoder(object):
     def __init__(self, resolution):
+        """
+        Initialize the MsgDecoder.
+
+        Args:
+            resolution (tuple): The resolution of the images.
+        """
         self.resolution = resolution
         self.decode_map = {
             'vertex_location': self.decode_vertex,
@@ -618,48 +1133,139 @@ class MsgDecoder(object):
         }
 
     def cmd2key(self, cmd):  # extract the last word of the command as key
+        """
+        Extract the last word of the command as key.
+
+        Args:
+            cmd (str): The command string.
+
+        Returns:
+            str: The key extracted from the command.
+        """
         return re.split(r'[/\s]+', cmd)[-1]
 
-    def decode(self, cmd, res):  # universal decode function
+    def decode(self, cmd, res):
+        """
+        Universal decode function.
+
+        Args:
+            cmd (str): The command string.
+            res (str): The response string.
+
+        Returns:
+            Any: The decoded result.
+        """
         key = self.cmd2key(cmd)
         decode_func = self.decode_map.get(key)
         return decode_func(res)
 
     def string2list(self, res):
+        """
+        Convert a string to a list.
+
+        Args:
+            res (str): The response string.
+
+        Returns:
+            list: The list of strings.
+        """
         return res.split()
 
-    def string2floats(self, res):  # decode number
+    def string2floats(self, res):
+        """
+        Decode a string of numbers into a list of floats.
+
+        Args:
+            res (str): The response string.
+
+        Returns:
+            list: The list of floats.
+        """
         return [float(i) for i in res.split()]
 
-    def string2color(self, res):  # decode color
+    def string2color(self, res):
+        """
+        Decode a color string.
+
+        Args:
+            res (str): The response string.
+
+        Returns:
+            list: The color as a list of integers [r, g, b].
+        """
         object_rgba = re.findall(r"\d+\.?\d*", res)
         color = [int(i) for i in object_rgba]  # [r,g,b,a]
         return color[:-1]  # [r,g,b]
 
-    def string2vector(self, res):  # decode vector
+    def string2vector(self, res):
+        """
+        Decode a vector string.
+
+        Args:
+            res (str): The response string.
+
+        Returns:
+            list: The vector as a list of floats.
+        """
         res = re.findall(r"[+-]?\d+\.?\d*", res)
         vector = [float(i) for i in res]
         return vector
 
-    def bpstring2floats(self, res):  # decode number
+    def bpstring2floats(self, res):
+        """
+        Decode a string of numbers into a list of floats for blueprint.
+
+        Args:
+            res (str): The response string.
+
+        Returns:
+            list or float: The list of floats or a single float.
+        """
         valuse = re.findall(r'"([\d]+\.?\d*)"', res)
         if len(valuse) == 1:
             return float(valuse[0])
         else:
             return [float(i) for i in valuse]
-    def bpvector2floats(self, res):  # decode number
+    def bpvector2floats(self, res):
+        """
+        Decode a vector string for blueprint.
+
+        Args:
+            res (str): The response string.
+
+        Returns:
+            list: The list of vectors.
+        """
         values = re.findall(r'([XYZ]=\d+\.\d+)', res)
         return [[float(i) for i in value] for value in values]
 
-    def decode_vertex(self, res):  # decode vertex
-        # input: string
-        # output: list of list of floats
+    def decode_vertex(self, res):
+        """
+        Decode vertex locations.
+
+        Args:
+            res (str): The response string.
+
+        Returns:
+            list: The list of vertex locations.
+        """
         lines = res.split('\n')
         lines = [line.strip() for line in lines]
         vertex_locations = [list(map(float, line.split())) for line in lines]
         return vertex_locations
 
-    def decode_img(self, res, mode, inverse=False):  # decode image
+    def decode_img(self, res, mode, inverse=False):
+        """
+        Decode an image.
+
+        Args:
+            res (str): The response string.
+            mode (str): The image format (e.g., 'png', 'bmp', 'npy').
+            inverse (bool): Whether to inverse the depth. Default is False.
+
+        Returns:
+            np.ndarray: The decoded image.
+        """
         if mode == 'png':
             img = self.decode_png(res)
         if mode == 'bmp':
@@ -668,26 +1274,65 @@ class MsgDecoder(object):
             img = self.decode_depth(res, inverse)
         return img
 
-    def decode_png(self, res):  # decode png image
+    def decode_png(self, res):
+        """
+        Decode a PNG image.
+
+        Args:
+            res (str): The response string.
+
+        Returns:
+            np.ndarray: The decoded image.
+        """
         img = np.asarray(PIL.Image.open(BytesIO(res)))
         img = img[:, :, :-1]  # delete alpha channel
         img = img[:, :, ::-1]  # transpose channel order
         return img
 
-    def decode_bmp(self, res, channel=4):  # decode bmp image
+    def decode_bmp(self, res, channel=4):
+        """
+        Decode a BMP image.
+
+        Args:
+            res (str): The response string.
+            channel (int): The number of channels. Default is 4.
+
+        Returns:
+            np.ndarray: The decoded image.
+        """
         # TODO: configurable resolution
         img = np.fromstring(res, dtype=np.uint8)
         img = img[-self.resolution[1]*self.resolution[0]*channel:]
         img = img.reshape(self.resolution[1], self.resolution[0], channel)
         return img[:, :, :-1]  # delete alpha channel
 
-    def decode_npy(self, res):  # decode npy image
+    def decode_npy(self, res):
+        """
+        Decode a NPY image.
+
+        Args:
+            res (str): The response string.
+
+        Returns:
+            np.ndarray: The decoded image.
+        """
         img = np.load(BytesIO(res))
         if len(img.shape) == 2:
             img = np.expand_dims(img, axis=-1)
         return img
 
-    def decode_depth(self, res, inverse=False, bytesio=True):  # decode depth image
+    def decode_depth(self, res, inverse=False, bytesio=True):
+        """
+        Decode a depth image.
+
+        Args:
+            res (str): The response string.
+            inverse (bool): Whether to inverse the depth. Default is False.
+            bytesio (bool): Whether to use BytesIO. Default is True.
+
+        Returns:
+            np.ndarray: The decoded depth image.
+        """
         if bytesio:
             depth = np.load(BytesIO(res))
         else:
@@ -699,4 +1344,13 @@ class MsgDecoder(object):
         return np.expand_dims(depth, axis=-1)
 
     def empty(self, res):
+        """
+        Return the response as is.
+
+        Args:
+            res (str): The response string.
+
+        Returns:
+            str: The response string.
+        """
         return res
