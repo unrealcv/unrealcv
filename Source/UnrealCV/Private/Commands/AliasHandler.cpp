@@ -32,6 +32,8 @@ void FAliasHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasHandler::VExecWithOutput);
 	CommandDispatcher->BindCommand("vbp [str] [str]", Cmd, Help);
@@ -245,75 +247,49 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 		Obj->ProcessEvent( Function, Parms );
 	}
 
-
-	// https://answers.unrealengine.com/questions/139582/get-property-value.html
-	// https://answers.unrealengine.com/questions/301428/set-string-for-fstring-via-uproperty.html
-	// for (TFieldIterator<UIntProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_ReturnParm); ++It)
-	for (TFieldIterator<FIntProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
-	{
-		FString CPPType = It->GetCPPType();
-		// float Target;
-		// It->CopyCompleteValue_InContainer(&Dest, Parms);
-		int Value = It->GetPropertyValue_InContainer(Parms);
-	}
-
-	// for (TFieldIterator<UNumericProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_ReturnParm); ++It)
-	for (TFieldIterator<FNumericProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
-	{
-		FString CPPType = It->GetCPPType();
-		// float Target;
-		// It->CopyCompleteValue_InContainer(&Dest, Parms);
-		FString Value = It->GetNumericPropertyValueToString(Parms);
-	}
-
 	TMap<FString, FString> Dict;
-	// CPF_OutParm, use this flag check!
-	for (TFieldIterator<FStrProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
-	{
-		FString CPPType = It->GetCPPType();
-		// float Target;
-		// It->CopyCompleteValue_InContainer(&Dest, Parms);
-		FString Value = It->GetPropertyValue_InContainer(Parms);
-		// FString Key = It->GetName();
-		// Dict.Emplace(Key, Value);
-	}
-
-	// Check SGraphNodeK2CreateDelegate.cpp
+	
 	for (TFieldIterator<FProperty> It(Function); It; ++It)
 	{
-		if (It->HasAnyPropertyFlags(CPF_OutParm) || It->HasAnyPropertyFlags(CPF_ReferenceParm))
+		if (It->HasAnyPropertyFlags(CPF_OutParm) || It->HasAnyPropertyFlags(CPF_ReferenceParm) || It->HasAnyPropertyFlags(CPF_ReturnParm))
 		{
 			FString Key = It->GetName();
 			FString Value;
+			
+			// 获取属性在内存中的正确偏移位置
+			void* ValuePtr = It->ContainerPtrToValuePtr<void>(Parms);
+			
+			// 先尝试作为字符串处理
 			FStrProperty* StrProperty = CastField<FStrProperty>(*It);
-			// if (IsValid(StrProperty))
-			// {
-			// 	Value = StrProperty->GetPropertyValue_InContainer(Parms);
-			// }
 			if (StrProperty != nullptr)
 			{
-				Value = StrProperty->GetPropertyValue_InContainer(Parms);
+				Value = StrProperty->GetPropertyValue(ValuePtr);
+				Dict.Emplace(Key, Value);
+				continue; // 避免同一参数被多次处理
 			}
 
+			// 再尝试作为数值处理
 			FNumericProperty* NumericProperty = CastField<FNumericProperty>(*It);
-			/*if (IsValid(NumericProperty))
-			{
-			Value = NumericProperty->GetNumericPropertyValueToString(Parms);
-			}*/
 			if (NumericProperty != nullptr)
 			{
-				Value = NumericProperty->GetNumericPropertyValueToString(Parms);
-			}
-
-			if (StrProperty == nullptr && NumericProperty == nullptr)
-			{
-				UE_LOG(LogUnrealCV, Warning, TEXT("Unrecognized type for parameter %s"), *Key);
+				Value = NumericProperty->GetNumericPropertyValueToString(ValuePtr);
+				Dict.Emplace(Key, Value);
+				continue;
 			}
 			
-			Dict.Emplace(Key, Value);
+			// 处理布尔类型
+			FBoolProperty* BoolProperty = CastField<FBoolProperty>(*It);
+			if (BoolProperty != nullptr)
+			{
+				Value = BoolProperty->GetPropertyValue(ValuePtr) ? TEXT("true") : TEXT("false");
+				Dict.Emplace(Key, Value);
+				continue;
+			}
+			
+			// 如果是其他类型，记录警告
+			UE_LOG(LogUnrealCV, Warning, TEXT("Unrecognized type for parameter %s"), *Key);
 		}
 	}
-
 
 	//!!destructframe see also UObject::ProcessEvent
 	for( TFieldIterator<FProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It )
