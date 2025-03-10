@@ -11,8 +11,8 @@ An example to show how to use the UnrealCV API to launch the game and run some f
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env-bin', default='/home/zfw/UnrealEnv/Collection_Linux_v5/Collection/Binaries/Linux/Collection', help='The path to the UE4Editor binary')
-    parser.add_argument('--env-map', default='Brass_Palace', help='The map to load')
+    parser.add_argument('--env-bin', default='UE5_ExampleScene_Win64\\UE5_ExampleScene_Win64\\Compile_unrealcv5_4\\Binaries\\UE5_ExampleScene_Win64\\Compile_unrealcv5_4.exe', help='The path to the UE4Editor binary')
+    parser.add_argument('--env-map', default='Old_Town', help='The map to load')
     parser.add_argument('--use-docker', action='store_true', help='Run the game in a docker container')
     parser.add_argument('--resolution', '-res', default='640x480', help='The resolution in the unrealcv.ini file')
     parser.add_argument('--display', default=None, help='The display to use')
@@ -38,8 +38,7 @@ if __name__ == '__main__':
 
     # connect to the game
     unrealcv = UnrealCv_API(env_port, env_ip, parse_resolution(args.resolution), 'tcp')  # 'tcp' or 'unix', 'unix' is only for local machine in Linux
-    # unrealcv.config_ue(parse_res(args.resolution))
-    # unrealcv.set_map(env_map)
+    unrealcv.set_map(env_map)
 
     # Test the API
     print(unrealcv.get_camera_num())
@@ -49,16 +48,22 @@ if __name__ == '__main__':
     unrealcv.build_color_dict(objects, batch=True)
     print(time.time() - t)
 
-    unrealcv.get_obj_bboxes(unrealcv.get_image(1, 'seg'), objects)
+    # unrealcv.get_obj_bboxes(unrealcv.get_image(1, 'seg'), objects)
     print(unrealcv.get_obj_pose(objects[0]))
     print(unrealcv.get_obj_location(objects[0]))
     print(unrealcv.get_obj_rotation(objects[0]))
-    images = unrealcv.get_image_multicam(range(unrealcv.get_camera_num()))
+    # images = unrealcv.get_image_multicam(range(unrealcv.get_camera_num()))
     for cam_id in range(unrealcv.get_camera_num()):
-        for mode in ['lit', 'normal', 'seg', 'depth']:
-            unrealcv.get_image(cam_id, mode, show=True)
-            fps = measure_fps(unrealcv.get_image, cam_id, mode, show=args.show)
-            print(f'FPS for cam {cam_id}, mode {mode}: {fps}')
+        for viewmode in ['lit', 'normal', 'seg', 'depth']:
+            for mode in ['bmp', 'png']:
+                if viewmode == 'depth' and mode == 'png':
+                    img = unrealcv.get_depth(cam_id, inverse=True, show=True)
+                else:
+                    img = unrealcv.get_image(cam_id, viewmode, mode, show=True, inverse=True)
+                fps = measure_fps(unrealcv.get_image, cam_id, viewmode, mode, show=args.show)
+                print(f'FPS for cam {cam_id}, mode {viewmode}, mode {mode}: {fps}')
+
+
     unrealcv.client.disconnect()
     if not args.editor:
         ue_binary.close()

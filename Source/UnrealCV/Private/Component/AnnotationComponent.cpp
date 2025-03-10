@@ -2,8 +2,8 @@
 // Overwrite the material
 
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
-#include "Runtime/Engine/Classes/Materials/Material.h"
-#include "Runtime/Engine/Classes/Materials/MaterialInstanceDynamic.h"
+#include "Materials/Material.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "Runtime/Engine/Classes/Engine/StaticMesh.h"
 #include "Runtime/Engine/Classes/Components/SkeletalMeshComponent.h"
 #include "Runtime/Launch/Resources/Version.h"
@@ -452,7 +452,7 @@ FBoxSphereBounds UAnnotationComponent::CalcBounds(const FTransform & LocalToWorl
 		return SkeletalMeshComponent->CalcBounds(LocalToWorld);
 	}
 
-	FBoxSphereBounds DefaultBounds;
+    FBoxSphereBounds DefaultBounds = FBoxSphereBounds(FVector::ZeroVector, FVector::ZeroVector, 0.0f);
 	return DefaultBounds;
 }
 

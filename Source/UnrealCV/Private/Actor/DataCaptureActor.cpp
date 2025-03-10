@@ -9,7 +9,7 @@
 #include "Runtime/Core/Public/HAL/PlatformFileManager.h"
 #include "Runtime/Engine/Classes/Animation/SkeletalMeshActor.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
-#include "Runtime/Engine/Classes/Materials/Material.h"
+#include "Materials/Material.h"
 #include "Runtime/Engine/Public/TimerManager.h"
 #include "Runtime/Engine/Classes/Components/SkeletalMeshComponent.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
@@ -390,7 +390,7 @@ void ADataCaptureActor::CaptureImageFromSensor(FString SensorName, UFusionCamSen
 		// "IntrinsicMatrix"
 		};
 	// Save camera information
-	FMatrix Matrix;
+	// FMatrix Matrix;
 	TArray<FJsonObjectBP> Values
 	{
 		FJsonObjectBP(SensorName),

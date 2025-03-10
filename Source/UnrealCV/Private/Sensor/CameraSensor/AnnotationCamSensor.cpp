@@ -78,12 +78,18 @@ void UAnnotationCamSensor::GetAnnotationComponents(UWorld* World, TArray<TWeakOb
 
     TArray<TArray<UPrimitiveComponent*>> TempComponentLists;
     TempComponentLists.SetNum(UObjectList.Num());
+
+    //initial every item in TempComponentLists
+    for (int32 i = 0; i < UObjectList.Num(); ++i)
+    {
+        TempComponentLists[i].Empty();
+    }
     ParallelFor(UObjectList.Num(), [&](int32 Index)
     {
         UObject* Object = UObjectList[Index];
         UPrimitiveComponent* Component = Cast<UPrimitiveComponent>(Object);
 
-        if (Component->GetWorld() == World)
+        if (Component && Component->GetWorld() == World)
         {
             TempComponentLists[Index].Add(Component);
         }
@@ -118,9 +124,19 @@ void UAnnotationCamSensor::CaptureSeg(TArray<FColor>& ImageData, int& Width, int
 
     if (ImageData.Num() != 0)
     {
-        ParallelFor(Width * Height, [&](int32 i)
+        if (Width > 0 && Height > 0 && static_cast<uint32>(Width * Height) == ImageData.Num())
         {
-            ImageData[i].A = 255;
-        });
+            ParallelFor(Width * Height, [&](int32 i)
+            {
+                if (i >= 0 && i < ImageData.Num())
+                {
+                    ImageData[i].A = 255;
+                }
+            });
+        }
+        else
+        {
+            UE_LOG(LogUnrealCV, Warning, TEXT("Invalid Width or Height for ImageData in CaptureSeg"));
+        }
     }
 }

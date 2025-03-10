@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "UnrealCV"
+dynamic = ["version"]
+description = "UnrealCV client for python. see http://unrealcv.org for more detail."
+authors = [
+    { name = "Weichao Qiu", email = "qiuwch@gmail.com" },
+    { name = "Fangwei Zhong", email = "zfw1226@gmail.com" },
+    { name = "Hai Ci" },
+    { name = "Kui Wu" }
+]
+requires-python = ">=3.7"
+dependencies = [
+    "docker",
+    "opencv-python",
+    "pillow",
+    "numpy"
+]
+keywords = ["computer vision", "unreal engine", "ue4/5", "synthetic", "simulator", "robotics"]
+urls = { "Homepage" = "http://unrealcv.org", "Download" = "http://unrealcv.github.io" }
+
+[tool.setuptools.dynamic]
+version = {attr = "unrealcv.__version__"}

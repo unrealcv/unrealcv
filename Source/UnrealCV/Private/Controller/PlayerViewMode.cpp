@@ -3,7 +3,7 @@
 #include "Runtime/Engine/Classes/Components/StaticMeshComponent.h"
 #include "Runtime/Engine/Public/EngineUtils.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
-#include "Runtime/Engine/Classes/Materials/Material.h"
+#include "Materials/Material.h"
 #include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
 #include "Runtime/Engine/Public/BufferVisualizationData.h"
 
