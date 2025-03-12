@@ -31,6 +31,7 @@ bool FUnixSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, 
 	int32 AmountToSend = Ar.Num();
 	int NumTrial = 100; // Only try a limited amount of times
 	// int ChunkSize = 4096;
+	//UE_LOG(LogUnrealCV, Verbose, Text("Sending payout...");
 	while (AmountToSend > 0)
 	{
 		int AmountSent = 0;
@@ -676,7 +677,7 @@ bool UUnixTcpServer::StartMessageServiceINet(FSocket* ClientSocket, const FIPv4E
 	UE_LOG(LogUnrealCV, Warning, TEXT("New client connected from %s"), *ClientEndpoint.ToString());
 	// ClientSocket->SetNonBlocking(false); // When this in blocking state, I can not use this socket to send message back
 	FString Confirm = FString::Printf(TEXT("connected to %s"), *GetProjectName());
-	bool IsSent = this->SendMessageINet(Confirm); // Send a hello message through IP-port 
+	bool IsSent = this->SendMessageINet(Confirm, this->ConnectionSocket); // Send a hello message through IP-port 
 	if (!IsSent)
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("Failed to send welcome message to client."));
@@ -764,15 +765,28 @@ bool UUnixTcpServer::Multi_Connected(FSocket* ClientSocket, const FIPv4Endpoint&
 
 	// Log the status of the threads
 	UE_LOG(LogUnrealCV, Warning, TEXT("Current number of threads: %d"), RunnerClients.Num());
+
 	for (FClientHandler* client : RunnerClients)
 	{
 		UE_LOG(LogUnrealCV, Warning, TEXT("Thread ID: %d"), client->Thread->GetThreadID());
+
+		// Assuming ConnectionSocket is an FSocket*
+		if (client->ConnectionSocket)
+		{
+			// Example of printing socket address if it's an FSocket pointer
+			FString SocketInfo = client->ConnectionSocket->GetDescription(); // Example method
+			UE_LOG(LogUnrealCV, Warning, TEXT("Socket: %s"), *SocketInfo);
+		}
+		else
+		{
+			UE_LOG(LogUnrealCV, Warning, TEXT("Socket: NULL"));
+		}
 	}
 
 	// bind OnReceived of FClientHandler to BroadcastReceived of UUnixTcpServer 
-	RunnerClient->OnReceived().AddLambda([this](const FString& Endpoint, const FString& Message) {
+	RunnerClient->OnReceived().AddLambda([this, RunnerClient](const FString& Endpoint, const FString& Message) {
 		this->BroadcastReceived(Endpoint, Message);
-		this->UnrealcvServer->HandleRawMessage(Endpoint, Message); // entry function that exec the commands
+		this->UnrealcvServer->HandleRawMessage(Endpoint, Message, RunnerClient->ConnectionSocket); // entry function that exec the commands
 	});
 	return ServiceStatus;
 }
@@ -856,6 +870,22 @@ bool UUnixTcpServer::SendMessage(const FString& Message)
 	#endif
 }
 
+bool UUnixTcpServer::SendData(const TArray<uint8>& Payload, FSocket* Socket)
+{
+#if PLATFORM_LINUX
+	if (bIsUDS)
+	{
+		return SendDataUDS(Payload);
+	}
+	else
+	{
+		return SendDataINet(Payload);
+	}
+#else
+	return SendDataINet(Payload, Socket);
+#endif
+}
+
 bool UUnixTcpServer::SendData(const TArray<uint8>& Payload)
 {
 #if PLATFORM_LINUX
@@ -872,9 +902,24 @@ bool UUnixTcpServer::SendData(const TArray<uint8>& Payload)
 #endif
 }
 
+
+bool UUnixTcpServer::SendMessageINet(const FString& Message, FSocket* Socket)
+{
+	if (Socket) // use client's socket instead of global one
+	{
+		TArray<uint8> Payload;
+		UnixBinaryArrayFromString(Message, Payload);
+		UE_LOG(LogUnrealCV, Verbose, TEXT("Send string message with size %d"), Payload.Num());
+		FUnixSocketMessageHeader::WrapAndSendPayload(Payload, Socket);
+		UE_LOG(LogUnrealCV, Verbose, TEXT("Payload sent"), Payload.Num());
+		return true;
+	}
+	return false;
+}
+
 bool UUnixTcpServer::SendMessageINet(const FString& Message)
 {
-	if (ConnectionSocket)
+	if (ConnectionSocket) // use global one
 	{
 		TArray<uint8> Payload;
 		UnixBinaryArrayFromString(Message, Payload);
@@ -886,10 +931,30 @@ bool UUnixTcpServer::SendMessageINet(const FString& Message)
 	return false;
 }
 
+bool UUnixTcpServer::SendDataINet(const TArray<uint8>& Payload, FSocket* Socket)
+{
+	UE_LOG(LogUnrealCV, Verbose, TEXT("Sending data by using Client Socket"));
+	if (Socket) // use client's socket instead of global one
+	{
+		FString SocketInfo = ConnectionSocket->GetDescription();
+		UE_LOG(LogUnrealCV, Warning, TEXT("Socket: %s"), *SocketInfo);
+		UE_LOG(LogUnrealCV, Verbose, TEXT("Send binary payload with size %d"), Payload.Num());
+		FUnixSocketMessageHeader::WrapAndSendPayload(Payload, Socket);
+		UE_LOG(LogUnrealCV, Verbose, TEXT("Payload sent"), Payload.Num());
+		return true;
+	}
+	UE_LOG(LogUnrealCV, Verbose, TEXT("Client Socket invalid"));
+	return false;
+}
+
 bool UUnixTcpServer::SendDataINet(const TArray<uint8>& Payload)
 {
-	if (ConnectionSocket)
+	UE_LOG(LogUnrealCV, Verbose, TEXT("Sending data by using Global Socket"));
+
+	if (ConnectionSocket) // use global one
 	{
+		FString SocketInfo = ConnectionSocket->GetDescription();
+		UE_LOG(LogUnrealCV, Warning, TEXT("Socket: %s"), *SocketInfo);
 		UE_LOG(LogUnrealCV, Verbose, TEXT("Send binary payload with size %d"), Payload.Num());
 		FUnixSocketMessageHeader::WrapAndSendPayload(Payload, ConnectionSocket);
 		UE_LOG(LogUnrealCV, Verbose, TEXT("Payload sent"), Payload.Num());

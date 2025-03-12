@@ -23,6 +23,17 @@ class ResChecker:
         return ext in valid_ext
 
 def measure_fps(func, *args, **kwargs):
+    """
+    Measure the frames per second (FPS) of a function.
+
+    Args:
+        func (function): The function to measure.
+        *args: Variable length argument list for the function.
+        **kwargs: Arbitrary keyword arguments for the function.
+
+    Returns:
+        float: The measured FPS.
+    """
     start_time = time.time()
     for _ in range(60):
         func(*args, **kwargs)
@@ -77,10 +88,16 @@ def read_npy(res):
 
 
 def convert2planedepth(PointDepth, f=320): # convert point depth to plane depth
-    '''
-    Convert point depth to plane depth
-    f is half of the width of the image plane
-    '''
+    """
+    Convert point depth to plane depth.
+
+    Args:
+        PointDepth (numpy.array): The point depth array.
+        f (int): half of the width of the image plane, default is 320.
+
+    Returns:
+        numpy.array: The plane depth array.
+    """
     H = PointDepth.shape[0]
     W = PointDepth.shape[1]
     i_c = np.float(H) / 2 - 1
@@ -91,6 +108,15 @@ def convert2planedepth(PointDepth, f=320): # convert point depth to plane depth
     return PlaneDepth
 
 def time_it(func):
+    """
+    Decorator to measure the execution time of a function.
+
+    Args:
+        func (function): The function to measure.
+
+    Returns:
+        function: The wrapped function with execution time measurement.
+    """
     def wrapper(*args, **kwargs):
         start_time = time.perf_counter()
         result = func(*args, **kwargs)
@@ -100,7 +126,19 @@ def time_it(func):
         return result
     return wrapper
 
-def parse_resolution(res):  # parse the resolution string
+def parse_resolution(res):
+    """
+    Parse the resolution string into a tuple of integers.
+
+    Args:
+        res (str): The resolution string in the format 'WIDTHxHEIGHT'.
+
+    Returns:
+        tuple: The parsed resolution as a tuple (width, height).
+
+    Raises:
+        ValueError: If the resolution string is not in the correct format or contains non-integer values.
+    """
     resolution = res.split('x')
     if len(resolution) != 2:
         parser.error('Resolution must be specified as WIDTHxHEIGHT')

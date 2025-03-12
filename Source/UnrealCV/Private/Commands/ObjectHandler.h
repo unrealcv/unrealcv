@@ -40,6 +40,8 @@ private:
 
 	FExecStatus SetShow(const TArray<FString>& Args);
 
+	FExecStatus SpawnBpAsset(const TArray<FString>& Args);
+
 	FExecStatus SetHide(const TArray<FString>& Args);
 
 	FExecStatus GetMobility(const TArray<FString>& Args);
@@ -47,6 +49,14 @@ private:
 	FExecStatus GetObjectVertexLocation(const TArray<FString>& Args);
 
 	FExecStatus Destroy(const TArray<FString>& Args);
+
+	FExecStatus SetPhysics(const TArray<FString>& Args);
+
+	FExecStatus SetCollision(const TArray<FString>& Args);
+
+	FExecStatus GetCollisionNums(const TArray<FString>& Args);
+
+	FExecStatus SetObjectMobility(const TArray<FString>& Args);
 
 	FExecStatus GetUClassName(const TArray<FString>& Args);
 

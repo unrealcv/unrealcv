@@ -46,15 +46,20 @@ public:
 	//Thread to create
 	FRunnableThread* Thread;
 
-protected:
+	//Sockect this thread is using.
+	FSocket* ConnectionSocket;
 
+protected:
+	//void ProcessRequest(FRequest& Request);
+
+	//void ProcessPendingRequest();
+
+	//void HandleRawMessage(const FString& Endpoint, const FString& InRawMessage)
 
 
     //Determine if the stop function is called to stop this thread
     bool bStop;
 
-    //Sockect this thread is using.
-    FSocket* ConnectionSocket;
 
 	/** Event handler for event `Received` */
 	FMultiReceivedEvent ReceivedEvent;

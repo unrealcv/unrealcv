@@ -23,6 +23,18 @@ public:
 		: Endpoint(InEndpoint), Message(InMessage), RequestId(InRequestId) {}
 };
 
+struct FRequestWithSocket
+{
+	FSocket* Socket;
+	FRequest Request;
+
+	FRequestWithSocket(FSocket* InSocket, const FRequest& InRequest)
+		: Socket(InSocket), Request(InRequest)
+	{}
+};
+
+
+
 /**
 * UnrealCV server to interact with external programs.
 * For UnrealCV server, when a game start:
@@ -98,7 +110,7 @@ public:
 	void InitWorldController();
 
 	/** Handle the raw message from TcpServer and parse raw message to a FRequest */
-	void HandleRawMessage(const FString& Endpoint, const FString& RawMessage);
+	void HandleRawMessage(const FString& Endpoint, const FString& RawMessage, FSocket* Socket);
 
 private:
 	/** Handlers for UnrealCV commands */
@@ -109,11 +121,14 @@ private:
 
 	void ProcessRequest(FRequest& Request);
 
+	void ProcessRequest(FRequestWithSocket& Request);
+
 	/** The number of incoming commands for the batch mode */
 	int BatchNum;
 
 	/** Array for batch commands */
-	TArray<FRequest> Batch;
+	//TArray<FRequest> Batch;
+	TArray<FRequestWithSocket> Batch;
 
 	/** The Pawn of the Game */
 	APawn* Pawn;
@@ -124,7 +139,8 @@ private:
 	FUnrealcvServer();
 
 	/** Store pending requests, A new request will be stored here and be processed in the next tick of GameThread */
-	TQueue<FRequest, EQueueMode::Spsc> PendingRequest; // TQueue is a thread safe implementation
+	//TQueue<FRequest, EQueueMode::Spsc> PendingRequest; // TQueue is a thread safe implementation
+	TQueue<TTuple<FSocket*, FRequest>, EQueueMode::Spsc> PendingRequest;
 
 	/** Handle errors from TcpServer */
 	void HandleError(const FString& ErrorMessage);

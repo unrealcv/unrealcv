@@ -94,12 +94,18 @@ public:
 	bool SendMessage(const FString& Message);
 
 	/** Send a byte array to connected client, return false if failed to send. */
+	bool SendData(const TArray<uint8>& Payload, FSocket* Socket);
+
 	bool SendData(const TArray<uint8>& Payload);
 
 	/** Send a string to connected client, return false if false to send. Will fail if no connection available */
+	bool SendMessageINet(const FString& Message, FSocket* Socket);
+
 	bool SendMessageINet(const FString& Message);
 
 	/** Send a byte array to connected client, return false if failed to send. */
+	bool SendDataINet(const TArray<uint8>& Payload, FSocket* Socket);
+
 	bool SendDataINet(const TArray<uint8>& Payload);
 
 	/** Send a string with UDS, only works on Linux */
