@@ -80,7 +80,7 @@ release = version
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # Folder can not end with /
 exclude_patterns = [
@@ -100,10 +100,10 @@ pygments_style = 'sphinx'
 todo_include_todos = True
 
 
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
 html_theme = 'sphinx_rtd_theme'
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+# html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 html_theme_options = {
     'collapse_navigation': False,
     'display_version': False,

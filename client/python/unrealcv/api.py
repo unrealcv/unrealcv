@@ -1,3 +1,23 @@
+"""UnrealCV API module for interacting with Unreal Engine.
+
+This module provides a high-level interface for communicating with Unreal Engine through UnrealCV.
+It includes functionality for:
+- Camera control and image capture
+- Object manipulation and querying
+- Environment control
+- Scene configuration
+
+Example:
+    >>> from unrealcv import api
+    >>> client = api.UnrealCv_API(port=9000, ip='127.0.0.1', resolution=(640, 480))
+    >>> # Get an RGB image from camera 0
+    >>> image = client.get_image(0, 'lit')
+    >>> # Get object names and locations
+    >>> objects = client.get_objects()
+    >>> for obj in objects:
+    >>>     location = client.get_obj_location(obj)
+"""
+
 import unrealcv
 import cv2
 import numpy as np
@@ -10,8 +30,6 @@ import PIL.Image
 import sys
 from unrealcv.util import ResChecker, time_it
 import warnings
-
-"APIs for UnrealCV, a toolkit for using Unreal Engine (UE) in Python."
 
 class UnrealCv_API(object):
     """
@@ -27,14 +45,17 @@ class UnrealCv_API(object):
             resolution (tuple): The resolution of the images.
             mode (str): The connection mode, either 'tcp' or 'unix'. Default is 'tcp'. 'unix' is only for local machine in Linux.
         """
+<<<<<<< HEAD
         # if ip == '127.0.0.1':
         #     self.docker = False
         # else:
         #     self.docker = True
         # self.envdir = env
+=======
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         self.ip = ip
-        self.resolution = resolution
-        self.decoder = MsgDecoder(resolution)
+        self.resolution = resolution # the resolution is not used.
+        self.decoder = MsgDecoder()
         self.checker = ResChecker()
         self.obj_dict = dict()
         self.cam = dict()
@@ -175,7 +196,17 @@ class UnrealCv_API(object):
 
         Returns:
             list: The list of results.
+<<<<<<< HEAD
         """
+=======
+        Examples:
+            >>> cmds = ['vget /camera/0/rotation', 'vget /camera/0/location']
+            >>> decoders = [self.decoder.string2floats, self.decoder.string2floats]
+            >>> results = self.batch_cmd(cmds, decoders)
+            >>> print(results)  # [[0, 0, 90], [100.0, 200.0, 300.0]]
+        """
+
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         res_list = self.client.request(cmds)
         if decoders is None: # vset commands do not decode return
             return res_list
@@ -218,7 +249,11 @@ class UnrealCv_API(object):
 
         return img_dirs
 
+<<<<<<< HEAD
     def get_image(self, cam_id, viewmode, mode='bmp', return_cmd=False, show=False):
+=======
+    def get_image(self, cam_id, viewmode, mode='bmp', return_cmd=False, show=False, inverse=False):
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         Get an image from a camera.
 
@@ -228,7 +263,11 @@ class UnrealCv_API(object):
             mode (str): The image format (e.g., 'bmp', 'png', 'npy'). Default is 'bmp'.
             return_cmd (bool): Whether to return the command instead of executing it. Default is False.
             show (bool): Whether to display the image. Default is False.
+<<<<<<< HEAD
 
+=======
+            inverse (bool): Whether to inverse the depth. Default is False.
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         Returns:
             np.ndarray: The image.
         """
@@ -237,7 +276,7 @@ class UnrealCv_API(object):
         cmd = f'vget /camera/{cam_id}/{viewmode} {mode}'
         if return_cmd:
             return cmd
-        image = self.decoder.decode_img(self.client.request(cmd), mode)
+        image = self.decoder.decode_img(self.client.request(cmd), mode, inverse)
         if show:
             cv2.imshow('image_'+viewmode, image)
             cv2.waitKey(1)
@@ -375,9 +414,16 @@ class UnrealCv_API(object):
         Args:
             cam_id (int): The camera ID.
             fov (float): The field of view.
+<<<<<<< HEAD
+=======
+        
+        Example:
+            >>> api.set_cam_fov(0, 90) # set the fov of the camera 0 to 90 degrees.
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         if fov == self.cam[cam_id]['fov']:
             return fov
+
         cmd = f'vset /camera/{cam_id}/fov {fov}'
         self.client.request(cmd, -1)
         self.cam[cam_id]['fov'] = fov
@@ -551,6 +597,7 @@ class UnrealCv_API(object):
     def set_keyboard(self, key, duration=0.01):
         """
         Simulate a keyboard action.
+<<<<<<< HEAD
 
         Args:
             key (str): The key to press, such as 'Up', 'Down', 'Left', 'Right'
@@ -562,6 +609,20 @@ class UnrealCv_API(object):
         cmd = 'vset /action/keyboard {key} {duration}'
         return self.client.request(cmd.format(key=key, duration=duration), -1)
 
+=======
+
+        Args:
+            key (str): The key to press, such as 'Up', 'Down', 'Left', 'Right'
+            duration (float): The duration to press the key. Default is 0.01.
+
+        Example:
+            >>> api.set_keyboard('Up', 0.1) # press the up key for 0.1 seconds
+            >>> api.set_keyboard('Left', 0.1) # press the left key for 0.1 seconds
+        """
+        cmd = 'vset /action/keyboard {key} {duration}'
+        self.client.request(cmd.format(key=key, duration=duration), -1)
+
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
     def get_obj_color(self, obj, return_cmd=False):
         """
         Get the color of an object in the object mask.
@@ -587,6 +648,12 @@ class UnrealCv_API(object):
             obj (str): The object name.
             color (list): The color to set [r, g, b].
             return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+<<<<<<< HEAD
+=======
+        
+        Example:
+            >>> api.set_obj_color('tree', [255, 0, 0]) # set the color of the tree to red
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         [r, g, b] = color
         cmd = f'vset /object/{obj}/color {r} {g} {b}'
@@ -597,19 +664,36 @@ class UnrealCv_API(object):
 
     def set_obj_location(self, obj, loc):
         """
+<<<<<<< HEAD
         Set the location of an object.
+=======
+        Set the location of an object in the scene with async mode.
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
 
         Args:
             obj (str): The object name.
             loc (list): The location to set [x, y, z].
+<<<<<<< HEAD
+=======
+
+        Example:
+            >>> api.set_obj_location('tree', [100, 200, 300]) # set the location of the tree to [100, 200, 300]
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         [x, y, z] = loc
         cmd = f'vset /object/{obj}/location {x} {y} {z}'
         self.client.request(cmd, -1)  # -1 means async mode
 
+<<<<<<< HEAD
     def set_obj_rotation(self, obj, rot):
         """
         Set the rotation of an object.
+=======
+
+    def set_obj_rotation(self, obj, rot):
+        """
+        Set the rotation of an object in the scene with async mode.
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
 
         Args:
             obj (str): The object name.
@@ -621,7 +705,11 @@ class UnrealCv_API(object):
 
     def get_mask(self, object_mask, obj, threshold=3):
         """
+<<<<<<< HEAD
         Get the mask of an object.
+=======
+        Get the mask of a specific object in the object mask image.
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
 
         Args:
             object_mask (np.ndarray): The object mask image.
@@ -637,6 +725,10 @@ class UnrealCv_API(object):
         mask = cv2.inRange(object_mask, lower_range, upper_range)
         return mask
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
     def get_bbox(self, object_mask, obj, normalize=True):
         """
         Get the bounding box of an object.
@@ -648,12 +740,20 @@ class UnrealCv_API(object):
 
         Returns:
             tuple: The mask and bounding box of the object.
+<<<<<<< HEAD
+=======
+
+        Example:
+            >>> object_mask = api.get_image(0, 'mask')
+            >>> mask, box = api.get_bbox(object_mask, 'tree')
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         width = object_mask.shape[1]
         height = object_mask.shape[0]
         mask = self.get_mask(object_mask, obj)
         nparray = np.array([[[0, 0]]])
         pixelpointsCV2 = cv2.findNonZero(mask)
+
 
         if type(pixelpointsCV2) == type(nparray):  # exist target in image
             x_min = pixelpointsCV2[:, :, 0].min()
@@ -704,6 +804,15 @@ class UnrealCv_API(object):
 
         Returns:
             dict: The color dictionary.
+<<<<<<< HEAD
+=======
+
+        Example:
+            >>> objects = ['tree', 'house']
+            >>> color_dict = api.build_color_dict(objects)
+            >>> color_dict['tree'] = [255, 0, 0]
+            >>> color_dict['house'] = [0, 255, 0]
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         color_dict = dict()
         if batch:
@@ -976,10 +1085,17 @@ class UnrealCv_API(object):
 
         Returns:
             str: The object name of the new object.
+<<<<<<< HEAD
+=======
+        
+        Example:
+            >>> api.set_new_obj('Cube_C', 'cube_1')
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         cmd = f'vset /object/spawn {class_name} {obj_name}'
         res = self.client.request(cmd)
         if self.checker.is_error(res):
+
             warnings.warn(res)
         else:  # add object to the object list, check if new cameras are added
             # assign a random color to the object
@@ -1049,25 +1165,47 @@ class UnrealCv_API(object):
 
     def set_pause(self, return_cmd=False):
         """
+<<<<<<< HEAD
         Pause the game.
 
         Args:
             return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+=======
+        Pause the game simulation.
+
+        Args:
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+        
+        Example:
+            >>> api.set_pause() # every object will not move
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         cmd = f'vset /action/game/pause'
         if return_cmd:
             return cmd
+
         self.client.request(cmd)
 
     def set_resume(self, return_cmd=False):
         """
+<<<<<<< HEAD
         Resume the game.
 
         Args:
             return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+=======
+        Resume the game simulation.
+
+        Args:
+            return_cmd (bool): Whether to return the command instead of executing it. Default is False.
+        
+        Example:
+            >>> api.set_resume() # every object will move again.
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         cmd = f'vset /action/game/resume'
         if return_cmd:
+
             return cmd
         self.client.request(cmd)
 
@@ -1112,6 +1250,7 @@ class UnrealCv_API(object):
 
 
 class MsgDecoder(object):
+<<<<<<< HEAD
     def __init__(self, resolution):
         """
         Initialize the MsgDecoder.
@@ -1120,6 +1259,40 @@ class MsgDecoder(object):
             resolution (tuple): The resolution of the images.
         """
         self.resolution = resolution
+=======
+    """
+    Message decoder for UnrealCV server responses.
+
+    This class provides methods to decode various types of responses from the UnrealCV server,
+    including images, vectors, colors, and other data formats.
+
+    Attributes:
+        decode_map (dict): Mapping of data types to their decoder functions:
+            - vertex_location: Decodes vertex coordinates
+            - color: Decodes RGB color values
+            - rotation: Decodes rotation angles
+            - location: Decodes position coordinates
+            - bounds: Decodes bounding box coordinates
+            - scale: Decodes scale factors
+            - png: Decodes PNG images
+            - bmp: Decodes BMP images
+            - npy: Decodes NumPy array data
+
+    Example:
+        >>> decoder = MsgDecoder()
+        >>> # Decode a color string
+        >>> color = decoder.string2color("(R=255,G=128,B=64)")
+        >>> print(color)  # [255, 128, 64]
+        >>>
+        >>> # Decode position coordinates
+        >>> pos = decoder.string2floats("100.0 200.0 300.0")
+        >>> print(pos)  # [100.0, 200.0, 300.0]
+    """
+    def __init__(self):
+        """
+        Initialize the decoder with mapping of data types to decoder functions.
+        """
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         self.decode_map = {
             'vertex_location': self.decode_vertex,
             'color': self.string2color,
@@ -1145,6 +1318,7 @@ class MsgDecoder(object):
         return re.split(r'[/\s]+', cmd)[-1]
 
     def decode(self, cmd, res):
+<<<<<<< HEAD
         """
         Universal decode function.
 
@@ -1154,6 +1328,20 @@ class MsgDecoder(object):
 
         Returns:
             Any: The decoded result.
+=======
+        """Universal decode function that selects appropriate decoder based on command.
+
+        Args:
+            cmd (str): Command string.
+            res (str): Response data.
+
+        Returns:
+            Any: Decoded data in appropriate format.
+
+        Example:
+            >>> res = decoder.decode("vget /object/cube/color", "(R=255,G=128,B=64)")
+            >>> print(res)  # [255, 128, 64]
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         key = self.cmd2key(cmd)
         decode_func = self.decode_map.get(key)
@@ -1172,6 +1360,7 @@ class MsgDecoder(object):
         return res.split()
 
     def string2floats(self, res):
+<<<<<<< HEAD
         """
         Decode a string of numbers into a list of floats.
 
@@ -1180,10 +1369,24 @@ class MsgDecoder(object):
 
         Returns:
             list: The list of floats.
+=======
+        """Convert space-separated string of numbers to float list.
+
+        Args:
+            res (str): Space-separated numbers string.
+
+        Returns:
+            list[float]: List of floating point numbers.
+
+        Example:
+            >>> floats = decoder.string2floats("1.0 2.5 3.7")
+            >>> print(floats)  # [1.0, 2.5, 3.7]
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         return [float(i) for i in res.split()]
 
     def string2color(self, res):
+<<<<<<< HEAD
         """
         Decode a color string.
 
@@ -1192,6 +1395,19 @@ class MsgDecoder(object):
 
         Returns:
             list: The color as a list of integers [r, g, b].
+=======
+        """Decode color string to RGB values.
+
+        Args:
+            res (str): Color string in format "(R=255,G=128,B=64)".
+
+        Returns:
+            list[int]: RGB color values as [r, g, b].
+
+        Example:
+            >>> color = decoder.string2color("(R=255,G=128,B=64)")
+            >>> print(color)  # [255, 128, 64]
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         object_rgba = re.findall(r"\d+\.?\d*", res)
         color = [int(i) for i in object_rgba]  # [r,g,b,a]
@@ -1226,6 +1442,10 @@ class MsgDecoder(object):
             return float(valuse[0])
         else:
             return [float(i) for i in valuse]
+<<<<<<< HEAD
+=======
+
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
     def bpvector2floats(self, res):
         """
         Decode a vector string for blueprint.
@@ -1244,10 +1464,21 @@ class MsgDecoder(object):
         Decode vertex locations.
 
         Args:
+<<<<<<< HEAD
             res (str): The response string.
 
         Returns:
             list: The list of vertex locations.
+=======
+            res (str): Multi-line string of vertex coordinates.
+
+        Returns:
+            list[list[float]]: List of vertex coordinates [x, y, z].
+
+        Example:
+            >>> vertices = decoder.decode_vertex("0.0 0.0 0.0\\n1.0 1.0 1.0")
+            >>> print(vertices)  # [[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]]
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         lines = res.split('\n')
         lines = [line.strip() for line in lines]
@@ -1262,9 +1493,15 @@ class MsgDecoder(object):
             res (str): The response string.
             mode (str): The image format (e.g., 'png', 'bmp', 'npy').
             inverse (bool): Whether to inverse the depth. Default is False.
+<<<<<<< HEAD
 
         Returns:
             np.ndarray: The decoded image.
+=======
+        Returns:
+            np.ndarray: The decoded image.
+        Note: The depth image should use the 'npy' mode to decode.
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         if mode == 'png':
             img = self.decode_png(res)
@@ -1289,6 +1526,7 @@ class MsgDecoder(object):
         img = img[:, :, ::-1]  # transpose channel order
         return img
 
+<<<<<<< HEAD
     def decode_bmp(self, res, channel=4):
         """
         Decode a BMP image.
@@ -1306,6 +1544,33 @@ class MsgDecoder(object):
         img = img.reshape(self.resolution[1], self.resolution[0], channel)
         return img[:, :, :-1]  # delete alpha channel
 
+=======
+    def decode_bmp(self, res):
+        """Decode BMP image data.
+
+        Args:
+            res (bytes): Raw BMP image data.
+
+        Returns:
+            np.ndarray: RGB image array of shape (H, W, 3) in uint8 format.
+
+        Raises:
+            ValueError: If image decoding fails.
+        """
+        nparr = np.frombuffer(res, np.uint8)
+        
+        # Decode image using OpenCV
+        img = cv2.imdecode(nparr, cv2.IMREAD_UNCHANGED)
+        
+        if img is None:
+            raise ValueError("Failed to decode image data")
+        
+        if len(img.shape) == 3 and img.shape[2] >= 3:
+            img = img[:, :, :3]  # Remove alpha channel if present
+
+        return img
+
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
     def decode_npy(self, res):
         """
         Decode a NPY image.
@@ -1321,13 +1586,18 @@ class MsgDecoder(object):
             img = np.expand_dims(img, axis=-1)
         return img
 
+<<<<<<< HEAD
     def decode_depth(self, res, inverse=False, bytesio=True):
+=======
+    def decode_depth(self, res, inverse=False):
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         Decode a depth image.
 
         Args:
             res (str): The response string.
             inverse (bool): Whether to inverse the depth. Default is False.
+<<<<<<< HEAD
             bytesio (bool): Whether to use BytesIO. Default is True.
 
         Returns:
@@ -1339,6 +1609,12 @@ class MsgDecoder(object):
             depth = np.fromstring(res, np.float32)
             depth = depth[-self.resolution[1] * self.resolution[0]:]
             depth = depth.reshape(self.resolution[1], self.resolution[0], 1)
+=======
+        Returns:
+            np.ndarray: The decoded depth image.
+        """
+        depth = np.load(BytesIO(res))
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         if inverse:
             depth = 1/depth
         return np.expand_dims(depth, axis=-1)

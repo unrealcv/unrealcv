@@ -7,11 +7,9 @@ import sys
 import threading
 import time
 import os
-
-# try:
-#     from Queue import Queue
-# except:
-#     from queue import Queue # for Python 3
+from .api import *
+from .automation import *
+from .launcher import *
 from queue import SimpleQueue
 
 
@@ -24,8 +22,7 @@ _L.addHandler(h)
 _L.propagate = False
 _L.setLevel(logging.INFO)
 
-__version__ = '1.0.0'  # add async request, IPC on linux
-
+__version__ = '1.1.5'  # add async request, IPC on linux >= 1.0.0
 
 class SocketMessage:
     """
@@ -173,7 +170,6 @@ class Client:
         self.recv_data_q = SimpleQueue()  # inf
         self.type = type
 
-    # TODO: async send
     def send(self, message):
         """Send message out, return whether the message was successfully sent"""
         if self.isconnected():
@@ -366,8 +362,10 @@ class Client:
     def request_batch_async(self, batch):
         """
         Send a batch of requests to server without waiting for any reply.
+
         batch : list
             a list of requests, each request is a string, such as ['command1', 'command2', ...]
+
         Returns
         -------
         None
@@ -429,9 +427,13 @@ class Client:
 
         Parameters
         ----------
-        message : str
-            command to control the game. More info can be seen from http://docs.unrealcv.org/en/master/reference/commands.html
+        message : str or list
+            UnrealCV command to interact with the game. 
+            When message is a list of commands, the commands will be sent in batch.
+            More info can be seen from http://docs.unrealcv.org/en/latest/reference/commands.html
+
         timeout : int
+            when timeout is larger than 0, the request will be sent synchronously, and the response will be returned
             when timeout is -1, the request will be sent asynchronously, and no response will be returned
         Returns
         -------
@@ -442,7 +444,10 @@ class Client:
         --------
         >>> client = Client('localhost', 9000)
         >>> client.connect()
-        >>> response = client.request('vget /camera/0/view')
+        >>> client.request('vget /camera/0/location')
+        '100.0 -100.0 100.0'
+        >>> # timeout -1 means async request, no response will be returned
+        >>> client.request('vset /camera/0/location 100 100 100', -1)
         """
 
         if timeout < 0 : # async

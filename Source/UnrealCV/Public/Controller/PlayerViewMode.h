@@ -3,7 +3,7 @@
 #include "CoreMinimal.h"
 #include "Runtime/Engine/Classes/Engine/PostProcessVolume.h"
 #include "Runtime/Engine/Public/ShowFlags.h"
-#include "Runtime/Engine/Classes/Materials/Material.h"
+#include "Materials/Material.h"
 #include "CommandDispatcher.h"
 #include "PlayerViewMode.generated.h"
 

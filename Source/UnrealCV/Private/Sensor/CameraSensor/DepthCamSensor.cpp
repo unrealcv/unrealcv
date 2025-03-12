@@ -38,9 +38,12 @@ void UDepthCamSensor::CaptureDepth(TArray<float>& DepthData, int& Width, int& He
 	TArray<FFloat16Color> FloatColorDepthData;
 	RenderTargetResource->ReadFloat16Pixels(FloatColorDepthData);
 
-	ParallelFor(FloatColorDepthData.Num(), [&](int32 i)
+    ParallelFor(FloatColorDepthData.Num(), [&](int32 i)
     {
-        FFloat16Color& FloatColor = FloatColorDepthData[i];
-        DepthData[i] = FloatColor.R;
+        if (i >= 0 && i < FloatColorDepthData.Num() && i < DepthData.Num())
+        {
+            FFloat16Color& FloatColor = FloatColorDepthData[i];
+            DepthData[i] = FloatColor.R;
+        }
     });
 }

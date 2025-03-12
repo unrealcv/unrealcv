@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Runtime/Engine/Classes/Components/SceneCaptureComponent2D.h"
 #include "Runtime/Engine/Classes/Engine/TextureRenderTarget2D.h"
-#include "Runtime/Engine/Classes/Materials/Material.h"
+#include "Materials/Material.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 
 #include "BaseCameraSensor.generated.h"

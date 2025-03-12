@@ -1,3 +1,30 @@
+"""UnrealCV launcher module for starting and managing Unreal Engine environments.
+
+This module provides utilities for:
+- Launching Unreal Engine binaries locally or in Docker containers
+- Managing environment configurations
+- Handling multi-GPU setups
+- Supporting headless rendering
+
+The module supports both local and containerized environments across Windows, Linux, and macOS.
+
+Example:
+    >>> from unrealcv.launcher import RunUnreal
+    >>> from unrealcv.api import UnrealCv_API
+    >>> 
+    >>> # Launch local environment
+    >>> launcher = RunUnreal('path/to/UnrealBinary')
+    >>> ip, port = launcher.start()
+    >>> 
+    >>> # Connect API
+    >>> api = UnrealCv_API(port, ip, resolution=(640, 480))
+    >>> 
+    >>> # Use environment...
+    >>> 
+    >>> # Cleanup when finished
+    >>> api.client.disconnect()
+    >>> launcher.close()
+"""
 import getpass
 import subprocess
 import atexit
@@ -6,38 +33,95 @@ import docker
 import time
 import sys
 import warnings
+<<<<<<< HEAD
 # api for launching UE4/5 binary in docker or local
+=======
+from unrealcv.util import get_path2UnrealEnv
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
 
 
 class RunUnreal():
     """
+<<<<<<< HEAD
     Initialize the RunUnreal class.
 
     Args:
         ENV_BIN (str): The path to the Unreal Engine binary.
         ENV_MAP (str, optional): The name of the map/scene. Default is None.
+=======
+    Launches and manages Unreal Engine environments with UnrealCV support.
+
+    This class handles:
+    - Local and Docker-based environment launching
+    - Multi-GPU support
+    - Headless rendering
+    - Resolution and port configuration
+    - Cross-platform compatibility
+
+    Args:
+        ENV_BIN (str): The path to the executable Unreal Engine binary.
+        ENV_MAP (str, optional): The name of the Unreal Engine map. Default is None.
+
+    Example:
+        >>> from unrealcv.launcher import RunUnreal
+        >>> from unrealcv.api import UnrealCv_API
+        >>> 
+        >>> # Launch a local Unreal environment
+        >>> launcher = RunUnreal('path/to/UnrealBinary')
+        >>> ip, port = launcher.start()  # Launch with default settings
+        >>> 
+        >>> # Launch headless on GPU 1 with custom resolution
+        >>> ip, port = launcher.start(offscreen=True, 
+        ...                          gpu_id=1,
+        ...                          resolution=(640, 480))
+        >>> 
+        >>> # Connect to environment with UnrealCV API
+        >>> unrealcv = UnrealCv_API(port, ip, resolution=(640, 480))
+        >>> 
+        >>> # Use the UnrealCV API...
+        >>> 
+        >>> # Cleanup
+        >>> unrealcv.client.disconnect()
+        >>> launcher.close()
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
     """
     def __init__(self, ENV_BIN, ENV_MAP=None):
+
+
         if os.path.isabs(ENV_BIN):
+
             self.path2binary = os.path.abspath(ENV_BIN)
             self.path2env, self.env_bin = self.parse_path(ENV_BIN)
         else:
-            self.path2env = self.get_path2UnrealEnv()  # get the path to UnrealEnv in gym-unrealcv
+            self.path2env = get_path2UnrealEnv()  # get the path to UnrealEnv in gym-unrealcv
             self.env_bin = ENV_BIN
             self.path2binary = os.path.abspath(os.path.join(self.path2env, self.env_bin))
         self.env_map = ENV_MAP
 
         if 'darwin' in sys.platform:
             env_bin_name = self.env_bin.split('/')[1].split('.')[0]
+<<<<<<< HEAD
             self.path2unrealcv = os.path.join(self.path2binary, 'Contents/UE4', env_bin_name, 'Binaries/Mac/unrealcv.ini')
             self.path2binary = os.path.join(self.path2binary, 'Contents/MacOS', env_bin_name)
+=======
+            if os.path.exists(os.path.join(self.path2binary, 'Contents/UE4')): #for mac UE4 binary
+                self.path2unrealcv = os.path.join(self.path2binary, 'Contents/UE4', env_bin_name, 'Binaries/Mac/unrealcv.ini')
+                self.path2binary = os.path.join(self.path2binary, 'Contents/MacOS', env_bin_name)
+            elif os.path.exists(os.path.join(self.path2binary, 'Contents/UE')): #for mac UE5 binary
+                self.path2unrealcv = os.path.join(self.path2binary, 'Contents/UE', env_bin_name,'Binaries/Mac/unrealcv.ini')
+                self.path2binary = os.path.join(self.path2binary, 'Contents/MacOS', env_bin_name)
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         else:
             self.path2unrealcv = os.path.join(os.path.split(self.path2binary)[0], 'unrealcv.ini')
         assert os.path.exists(self.path2binary), \
             'Please load env binary in UnrealEnv and Check the env_bin in setting file!'
 
     def start(self, docker=False, resolution=(640, 480), display=None, opengl=False, offscreen=False,
+<<<<<<< HEAD
               nullrhi=False, gpu_id=None, local_host=True, sleep_time=5):
+=======
+              nullrhi=False, gpu_id=None, local_host=True, sleep_time=8):
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         Start the Unreal Engine environment.
 
@@ -121,9 +205,16 @@ class RunUnreal():
         return cmd_exe
 
     def get_path2UnrealEnv(self):  # get path to UnrealEnv
-        import gym_unrealcv
-        gympath = os.path.dirname(gym_unrealcv.__file__)
-        return os.path.join(gympath, 'envs', 'UnrealEnv')
+        warnings.warn('This function is deprecated, please use get_path2UnrealEnv from unrealcv.util')
+        env_path = os.getenv('UnrealEnv')
+        if env_path is None:
+            # If environment variable not set, create default path in user home directory
+            default_path = os.path.join(os.path.expanduser('~'), '.unrealcv', 'UnrealEnv')
+            if not os.path.exists(default_path):
+                os.makedirs(default_path)
+            warnings.warn(f'UnrealEnv environment variable not set. Using default path at {default_path}')
+            return default_path
+        return env_path
 
     def parse_path(self, path):
         """
@@ -136,6 +227,7 @@ class RunUnreal():
             tuple: The root path and the binary path.
         """
         part_path = path.split(os.sep)
+        print(part_path)
         id_binaries = part_path.index('Binaries')
         if not part_path[0].startswith('/'):
             part_path[0] = '/' + part_path[0]
@@ -260,17 +352,25 @@ class RunDocker():
             path2env (str): The path to the Unreal environment.
             image (str): The Docker image to use. Default is 'zfw1226/unreal:latest'.
         """
+<<<<<<< HEAD
        self.docker_client = docker.from_env()
        self.check_image(target_images=image)
        os.system('xhost +')
        self.image = image
        self.path2env = path2env
+=======
+        self.docker_client = docker.from_env()
+        self.check_image(target_images=image)
+        os.system('xhost +')
+        self.image = image
+        self.path2env = path2env
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
 
     def start(self,
               ENV_BIN = '/RealisticRendering_RL/RealisticRendering/Binaries/Linux/RealisticRendering',
-              ENV_DIR_DOCKER='/UnrealEnv',
+              ENV_DIR_DOCKER='/UnrealEnv', # the path to the Unreal environment in Docker
               options='',
-              host_net=False
+              host_net=False # whether to use host networking
               ):
         """
         Start the Unreal Engine environment in Docker.
@@ -317,9 +417,25 @@ class RunDocker():
         return self.container.attrs['NetworkSettings']['IPAddress']
 
     def get_path2UnrealEnv(self):
-        import gym_unrealcv
-        gympath = os.path.dirname(gym_unrealcv.__file__)
-        return os.path.join(gympath, 'envs/UnrealEnv')
+        # get path to UnrealEnv
+        """
+            Get the path to the Unreal environment.
+            Default path to UnrealEnv is in user home directory under .unrealcv
+                Windows: C:\\Users\\<username>\\.unrealcv\\UnrealEnv
+                Linux: /home/<username>/.unrealcv/UnrealEnv
+                Mac: /Users/<username>/.unrealcv/UnrealEnv
+            Custom path can be set using the environment variable UnrealEnv.
+        """
+        warnings.warn('This function is deprecated, please use get_path2UnrealEnv from unrealcv.util')
+        env_path = os.getenv('UnrealEnv')
+        if env_path is None:
+            # If environment variable not set, create default path in user home directory
+            default_path = os.path.join(os.path.expanduser('~'), '.unrealcv', 'UnrealEnv')
+            if not os.path.exists(default_path):
+                os.makedirs(default_path)
+            warnings.warn(f'UnrealEnv environment variable not set. Using default path at {default_path}')
+            return default_path
+        return env_path
 
     def close(self):
         self.container.remove(force=True)

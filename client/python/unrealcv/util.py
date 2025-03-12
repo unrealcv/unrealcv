@@ -3,6 +3,7 @@ import PIL.Image
 from io import BytesIO
 import os
 import time
+import warnings
 # StringIO module is removed in python3, use io module
 
 class ResChecker:
@@ -146,3 +147,23 @@ def parse_resolution(res):
         return (int(resolution[0]), int(resolution[1]))
     except ValueError:
         parser.error('WIDTH and HEIGHT must be integers')
+
+def get_path2UnrealEnv():
+    # get path to UnrealEnv
+    """
+        Get the path to the Unreal environment.
+        Default path to UnrealEnv is in user home directory under .unrealcv
+            Windows: C:\\Users\\<username>\\.unrealcv\\UnrealEnv
+            Linux: /home/<username>/.unrealcv/UnrealEnv
+            Mac: /Users/<username>/.unrealcv/UnrealEnv
+        Custom path can be set using the environment variable UnrealEnv.
+    """
+    env_path = os.getenv('UnrealEnv')
+    if env_path is None:
+        # If environment variable not set, create default path in user home directory
+        default_path = os.path.join(os.path.expanduser('~'), '.unrealcv', 'UnrealEnv')
+        if not os.path.exists(default_path):
+            os.makedirs(default_path)
+        warnings.warn(f'UnrealEnv environment variable not set. Using default path at {default_path}')
+        return default_path
+    return env_path

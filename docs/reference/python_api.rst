@@ -1,15 +1,28 @@
-Python API
-==========
+Python API Reference
+===================
+
+This document provides detailed API reference for UnrealCV Python client.
+
+Basic Usage
+----------
 
 Basic Usage of UnrealCV Client
 ------------------
 .. automodule:: unrealcv
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+UnrealCV Client
+--------------
 
 .. autoclass:: Client
     :members:
+    :undoc-members:
+    :show-inheritance:
 
-.. .. autoclass:: BaseClient
-..     :members:
+UnrealCV API
+-----------
 
 UE Binary Launcher
 ------------------
@@ -34,8 +47,13 @@ Automation tools
 The unrealcv.automation module to help building the plugin, packaging model zoo binaries, etc.
 
 .. automodule:: unrealcv.automation
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 .. autofunction:: UE4Binary
 
 .. autoclass:: UE4Automation
     :members:
+    :undoc-members:
+    :show-inheritance:
