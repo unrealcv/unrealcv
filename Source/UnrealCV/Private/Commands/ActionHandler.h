@@ -34,6 +34,10 @@ private:
 
 	FExecStatus Tick(const TArray<FString>& Args);
 
+	FExecStatus SetSynchronousMode(const TArray<FString>& Args);
+
+	FExecStatus Tick(const TArray<FString>& Args);
+
 	/** vset /action/keyboard [key_name] [delta] */
 	FExecStatus Keyboard(const TArray<FString>& Args);
 
