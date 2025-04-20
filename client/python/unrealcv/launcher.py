@@ -33,11 +33,22 @@ import docker
 import time
 import sys
 import warnings
+<<<<<<< HEAD
+# api for launching UE4/5 binary in docker or local
+=======
 from unrealcv.util import get_path2UnrealEnv
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
 
 
 class RunUnreal():
     """
+<<<<<<< HEAD
+    Initialize the RunUnreal class.
+
+    Args:
+        ENV_BIN (str): The path to the Unreal Engine binary.
+        ENV_MAP (str, optional): The name of the map/scene. Default is None.
+=======
     Launches and manages Unreal Engine environments with UnrealCV support.
 
     This class handles:
@@ -72,6 +83,7 @@ class RunUnreal():
         >>> # Cleanup
         >>> unrealcv.client.disconnect()
         >>> launcher.close()
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
     """
     def __init__(self, ENV_BIN, ENV_MAP=None):
 
@@ -88,19 +100,28 @@ class RunUnreal():
 
         if 'darwin' in sys.platform:
             env_bin_name = self.env_bin.split('/')[1].split('.')[0]
+<<<<<<< HEAD
+            self.path2unrealcv = os.path.join(self.path2binary, 'Contents/UE4', env_bin_name, 'Binaries/Mac/unrealcv.ini')
+            self.path2binary = os.path.join(self.path2binary, 'Contents/MacOS', env_bin_name)
+=======
             if os.path.exists(os.path.join(self.path2binary, 'Contents/UE4')): #for mac UE4 binary
                 self.path2unrealcv = os.path.join(self.path2binary, 'Contents/UE4', env_bin_name, 'Binaries/Mac/unrealcv.ini')
                 self.path2binary = os.path.join(self.path2binary, 'Contents/MacOS', env_bin_name)
             elif os.path.exists(os.path.join(self.path2binary, 'Contents/UE')): #for mac UE5 binary
                 self.path2unrealcv = os.path.join(self.path2binary, 'Contents/UE', env_bin_name,'Binaries/Mac/unrealcv.ini')
                 self.path2binary = os.path.join(self.path2binary, 'Contents/MacOS', env_bin_name)
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         else:
             self.path2unrealcv = os.path.join(os.path.split(self.path2binary)[0], 'unrealcv.ini')
         assert os.path.exists(self.path2binary), \
             'Please load env binary in UnrealEnv and Check the env_bin in setting file!'
 
     def start(self, docker=False, resolution=(640, 480), display=None, opengl=False, offscreen=False,
+<<<<<<< HEAD
+              nullrhi=False, gpu_id=None, local_host=True, sleep_time=5):
+=======
               nullrhi=False, gpu_id=None, local_host=True, sleep_time=8):
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
         """
         Start the Unreal Engine environment.
 
@@ -331,11 +352,19 @@ class RunDocker():
             path2env (str): The path to the Unreal environment.
             image (str): The Docker image to use. Default is 'zfw1226/unreal:latest'.
         """
+<<<<<<< HEAD
+       self.docker_client = docker.from_env()
+       self.check_image(target_images=image)
+       os.system('xhost +')
+       self.image = image
+       self.path2env = path2env
+=======
         self.docker_client = docker.from_env()
         self.check_image(target_images=image)
         os.system('xhost +')
         self.image = image
         self.path2env = path2env
+>>>>>>> 60545a0687f980be54e645b13e311ab86bbe64ac
 
     def start(self,
               ENV_BIN = '/RealisticRendering_RL/RealisticRendering/Binaries/Linux/RealisticRendering',

@@ -31,6 +31,10 @@ void ULitCamSensor::InitTextureTarget(int filmWidth, int filmHeight)
 	TextureTarget = NewObject<UTextureRenderTarget2D>(this); 
 	TextureTarget->InitAutoFormat(filmWidth, filmHeight);
 	TextureTarget->TargetGamma = GEngine->GetDisplayGamma();
+	// Enable GPU Shared flag
+	TextureTarget->bGPUSharedFlag = true; 
+	TextureTarget->bCanCreateUAV = true; // Allow using Unordered Access Views (UAV)
+	TextureTarget->UpdateResource();
 }
 
 void ULitCamSensor::CaptureLit(TArray<FColor>& Image, int& Width, int& Height)

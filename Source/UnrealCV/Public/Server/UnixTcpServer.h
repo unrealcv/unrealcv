@@ -2,8 +2,7 @@
 #pragma once
 
 #include "Runtime/Sockets/Public/Sockets.h"
-#include "Runtime/Networking/Public/Common/TcpListener.h"
-#include "Runtime/Networking/Public/Interfaces/IPv4/IPv4Endpoint.h"
+#include "ClientHandler.h"
 #include "Runtime/Core/Public/Serialization/ArrayReader.h"
 
 #if PLATFORM_LINUX
@@ -18,7 +17,12 @@
 //#include <errno.h>
 #endif // PLATFORM_LINUX
 
+//#include "UnrealcvServer.h"
+
 #include "UnixTcpServer.generated.h"
+
+
+class FUnrealcvServer;
 
 /**
  * a simplified version from FNFSMessageHeader of UnrealEngine4, without CRC check
@@ -90,12 +94,18 @@ public:
 	bool SendMessage(const FString& Message);
 
 	/** Send a byte array to connected client, return false if failed to send. */
+	bool SendData(const TArray<uint8>& Payload, FSocket* Socket);
+
 	bool SendData(const TArray<uint8>& Payload);
 
 	/** Send a string to connected client, return false if false to send. Will fail if no connection available */
+	bool SendMessageINet(const FString& Message, FSocket* Socket);
+
 	bool SendMessageINet(const FString& Message);
 
 	/** Send a byte array to connected client, return false if failed to send. */
+	bool SendDataINet(const TArray<uint8>& Payload, FSocket* Socket);
+
 	bool SendDataINet(const TArray<uint8>& Payload);
 
 	/** Send a string with UDS, only works on Linux */
@@ -108,12 +118,19 @@ public:
 
 	FErrorEvent& OnError() { return ErrorEvent;  } // The reference can not be changed
 
+	TArray<FClientHandler*> RunnerClients;
+
+	FUnrealcvServer* UnrealcvServer;
+
 private:
 	/** Is the listening socket running */
 	bool bIsListening = false;
 
 	/** Handle a new connected client, need to decide accept of reject */
 	bool Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
+
+	/** Handle multiple connections to the server */
+	bool Multi_Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
 
 	/** The connected client socket, only maintain one client at a time */
 	FSocket* ConnectionSocket; // FSimpleAbstractSocket's receive is hard to use for non-blocking mode
@@ -135,6 +152,9 @@ private:
 
 	/** Start a service to handle incoming message, ReceivedEvent will be fired when a new message arrive */
 	bool StartMessageServiceINet(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
+
+	/** Start a service to handle incoming message from multiple cilents*/
+	bool StartMessageServiceINet_Multi(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
 
 	/** Start a service to handle incoming message, with UDS, blocking service*/
 	bool StartMessageServiceUDS();

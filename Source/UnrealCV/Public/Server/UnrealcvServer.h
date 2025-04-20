@@ -3,6 +3,7 @@
 
 #include "Runtime/Engine/Public/Tickable.h"
 #include "Runtime/Core/Public/Containers/Queue.h"
+
 // #include "TcpServer.h"
 #include "Runtime/Core/Public/Internationalization/Regex.h"
 #include "ServerConfig.h"
@@ -21,6 +22,18 @@ public:
 	FRequest(FString InEndpoint, FString InMessage, uint32 InRequestId) 
 		: Endpoint(InEndpoint), Message(InMessage), RequestId(InRequestId) {}
 };
+
+struct FRequestWithSocket
+{
+	FSocket* Socket;
+	FRequest Request;
+
+	FRequestWithSocket(FSocket* InSocket, const FRequest& InRequest)
+		: Socket(InSocket), Request(InRequest)
+	{}
+};
+
+
 
 /**
 * UnrealCV server to interact with external programs.
@@ -96,6 +109,9 @@ public:
 	/** InitWorldController */
 	void InitWorldController();
 
+	/** Handle the raw message from TcpServer and parse raw message to a FRequest */
+	void HandleRawMessage(const FString& Endpoint, const FString& RawMessage, FSocket* Socket);
+
 private:
 	/** Handlers for UnrealCV commands */
 	TArray<class FCommandHandler*> CommandHandlers;
@@ -105,11 +121,14 @@ private:
 
 	void ProcessRequest(FRequest& Request);
 
+	void ProcessRequest(FRequestWithSocket& Request);
+
 	/** The number of incoming commands for the batch mode */
 	int BatchNum;
 
 	/** Array for batch commands */
-	TArray<FRequest> Batch;
+	//TArray<FRequest> Batch;
+	TArray<FRequestWithSocket> Batch;
 
 	/** The Pawn of the Game */
 	APawn* Pawn;
@@ -120,10 +139,8 @@ private:
 	FUnrealcvServer();
 
 	/** Store pending requests, A new request will be stored here and be processed in the next tick of GameThread */
-	TQueue<FRequest, EQueueMode::Spsc> PendingRequest; // TQueue is a thread safe implementation
-
-	/** Handle the raw message from TcpServer and parse raw message to a FRequest */
-	void HandleRawMessage(const FString& Endpoint, const FString& RawMessage);
+	//TQueue<FRequest, EQueueMode::Spsc> PendingRequest; // TQueue is a thread safe implementation
+	TQueue<TTuple<FSocket*, FRequest>, EQueueMode::Spsc> PendingRequest;
 
 	/** Handle errors from TcpServer */
 	void HandleError(const FString& ErrorMessage);

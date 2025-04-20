@@ -1,4 +1,4 @@
-// Weichao Qiu @ 2016
+﻿// Weichao Qiu @ 2016
 #include "UnrealcvServer.h"
 #include "Runtime/Engine/Classes/Engine/GameEngine.h"
 //#include "Runtime/Core/Public/Internationalization/Regex.h"
@@ -92,14 +92,16 @@ void FUnrealcvServer::RegisterCommandHandlers()
 
 FUnrealcvServer::FUnrealcvServer() : myRegexPattern(MessageFormat)
 {
+	// Init Server
 	// Code defined here should not use FUnrealcvServer::Get();
 	//TcpServer = NewObject<UTcpServer>();
 	TcpServer = NewObject<UUnixTcpServer>();
 	CommandDispatcher = TSharedPtr<FCommandDispatcher>(new FCommandDispatcher());
 	FConsoleHelper::Get().SetCommandDispatcher(CommandDispatcher);
-
 	TcpServer->AddToRoot(); // Avoid GC
-	TcpServer->OnReceived().AddRaw(this, &FUnrealcvServer::HandleRawMessage);
+	TcpServer->UnrealcvServer = this;
+	//TcpServer->OnReceived().AddRaw(this, &FUnrealcvServer::HandleRawMessage); // not bind at this stage, move the binding to the UUnixTcpServer
+	//TcpServer->CommandDispatcher = CommandDispatcher;
 	TcpServer->OnError().AddRaw(this, &FUnrealcvServer::HandleError);
 }
 
@@ -258,7 +260,7 @@ bool FUnrealcvServer::InitWorld()
 void FUnrealcvServer::ProcessRequest(FRequest& Request)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ProcessRequest);
-	FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message);
+	FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message); //send meesage to the command dispatcher
 
 	// This can be removed for better performance
 	//UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
@@ -269,7 +271,34 @@ void FUnrealcvServer::ProcessRequest(FRequest& Request)
 	FExecStatus::BinaryArrayFromString(Header, ReplyData);
 
 	ReplyData += ExecStatus.GetData();
+	UE_LOG(LogUnrealCV, Warning, TEXT("TcpServer Sending Data"));
+
 	TcpServer->SendData(ReplyData);
+}
+
+void FUnrealcvServer::ProcessRequest(FRequestWithSocket& RequestwithSocket)
+{
+	SCOPE_CYCLE_COUNTER(STAT_ProcessRequest);
+
+	FRequest Request = RequestwithSocket.Request;
+	FSocket* Socket = RequestwithSocket.Socket;
+
+	FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message); //send meesage to the command dispatcher
+
+	// This can be removed for better performance
+	//UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
+	UE_LOG(LogUnrealCV, Warning, TEXT("Response id: %d"), Request.RequestId);
+
+	FString Header = FString::Printf(TEXT("%d:"), Request.RequestId);
+	TArray<uint8> ReplyData;
+	FExecStatus::BinaryArrayFromString(Header, ReplyData);
+
+	ReplyData += ExecStatus.GetData();
+	UE_LOG(LogUnrealCV, Warning, TEXT("TcpServer Sending Data with Sokcet"));
+
+	//FString SocketInfo = Socket->GetDescription();
+	//UE_LOG(LogUnrealCV, Warning, TEXT("Socket: %s"), *SocketInfo);
+	TcpServer->SendData(ReplyData, Socket);
 }
 
 // Each tick of GameThread.
@@ -280,57 +309,64 @@ void FUnrealcvServer::ProcessPendingRequest()
 	{
 		// if (!InitWorld()) break;
 
-		FRequest Request;
+		//FRequest Request;
 
-		// Dequeue one request each time
-		bool DequeueStatus = PendingRequest.Dequeue(Request);
-		int32 RequestId = Request.RequestId;
+		//// Dequeue one request each time
+		//bool DequeueStatus = PendingRequest.Dequeue(Request);
 
-		// vbatch should not stall the execution of the game thread.
-		if (Request.Message.StartsWith(TEXT("vbatch"))) // vbatch should not be nested.
+		TTuple<FSocket*, FRequest> Item;
+		if (PendingRequest.Dequeue(Item))
 		{
-			// Check whether it is a batch request. 
-			// Run all requests until all commands are received, 
-			// so that all commands can be run in the same frame
-			BatchNum = FCString::Atoi(*Request.Message.Replace(TEXT("vbatch"), TEXT("")));
-			if (BatchNum < 1)
+			FSocket* Socket = Item.Get<0>();  // 获取第一个元素 FSocket*
+			FRequest Request = Item.Get<1>();  // 获取第二个元素 FRequest
+			int32 RequestId = Request.RequestId;
+			// vbatch should not stall the execution of the game thread.
+			if (Request.Message.StartsWith(TEXT("vbatch"))) // vbatch should not be nested.
 			{
-				UE_LOG(LogUnrealCV, Warning, TEXT("Can not handle batch smaller than 1"));
+				// Check whether it is a batch request. 
+				// Run all requests until all commands are received, 
+				// so that all commands can be run in the same frame
+				BatchNum = FCString::Atoi(*Request.Message.Replace(TEXT("vbatch"), TEXT("")));
+				if (BatchNum < 1)
+				{
+					UE_LOG(LogUnrealCV, Warning, TEXT("Can not handle batch smaller than 1"));
+				}
+				FString Header = FString::Printf(TEXT("%d:"), Request.RequestId);
+				TArray<uint8> ReplyData;
+				FExecStatus::BinaryArrayFromString(Header, ReplyData);
+				ReplyData += FExecStatus::OK().GetData();
+				TcpServer->SendData(ReplyData, Socket); // return a fake ok for vbatch
+				continue;
 			}
-			FString Header = FString::Printf(TEXT("%d:"), Request.RequestId);
-			TArray<uint8> ReplyData;
-			FExecStatus::BinaryArrayFromString(Header, ReplyData);
-			ReplyData += FExecStatus::OK().GetData();
-			TcpServer->SendData(ReplyData); // return a fake ok for vbatch
-			continue;
-		}
-		else
-		{
-			BatchNum = 1;
-		}
-
-		if (BatchNum > 0) 
-		// Keep collecting commands until the batch is ready
-		// inside batch mode
-		{
-			Batch.Add(Request);
-			BatchNum -= 1;
-		}
-		
-		if (BatchNum == 0) // The batch is ready
-		{
-			// Otherwise hold the batch request until all commands are received.
-			for (FRequest RequestToRun : Batch)
+			else
 			{
-				ProcessRequest(RequestToRun);
+				BatchNum = 1;
 			}
-			Batch.Empty();
+
+			if (BatchNum > 0)
+				// Keep collecting commands until the batch is ready
+				// inside batch mode
+			{
+				Batch.Add(FRequestWithSocket(Socket, Request));
+				BatchNum -= 1;
+			}
+
+			if (BatchNum == 0) // The batch is ready
+			{
+				// Otherwise hold the batch request until all commands are received.
+				for (FRequestWithSocket RequestToRun : Batch)
+				{
+					//UE_LOG(LogUnrealCV, Warning, TEXT("Run batched command %s"), *RequestToRun.Message);
+					ProcessRequest(RequestToRun);
+				}
+				Batch.Empty();
+			}
 		}
 	}
 }
 
 /** Message handler for server */
-void FUnrealcvServer::HandleRawMessage(const FString& Endpoint, const FString& InRawMessage)
+void FUnrealcvServer::HandleRawMessage(const FString& Endpoint, const FString& InRawMessage, FSocket* Socket)
 {
 	UE_LOG(LogUnrealCV, Warning, TEXT("Request: %s"), *InRawMessage);
 	// Parse Raw Message
@@ -348,8 +384,11 @@ void FUnrealcvServer::HandleRawMessage(const FString& Endpoint, const FString& I
 		FString Message = Matcher.GetCaptureGroup(2);
 
 		uint32 RequestId = FCString::Atoi(*StrRequestId);
-		FRequest Request(Endpoint, Message, RequestId);
-		this->PendingRequest.Enqueue(Request);
+		FRequest Request(Endpoint, Message, RequestId); // Create a request
+		UE_LOG(LogUnrealCV, Warning, TEXT("Request: %s"), *Request.Message);
+
+		this->PendingRequest.Enqueue(TTuple<FSocket*, FRequest>(Socket, Request));
+		//this->PendingRequest.Enqueue(Request);
 	}
 	else
 	{

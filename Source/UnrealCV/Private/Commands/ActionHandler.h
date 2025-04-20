@@ -29,6 +29,10 @@ private:
 
 	/** vset /action/eyes_distance [float] */
 	FExecStatus SetStereoDistance(const TArray<FString>& Args);
+	/** vset /action/clean_garbage */
+	FExecStatus GarbageCollection(const TArray<FString>& Args);
+
+	FExecStatus SetFixedFPS(const TArray<FString>& Args);
 
 	FExecStatus SetSynchronousMode(const TArray<FString>& Args);
 
