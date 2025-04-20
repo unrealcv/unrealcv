@@ -21,14 +21,17 @@ void UDepthCamSensor::InitTextureTarget(int filmWidth, int filmHeight)
 
 void UDepthCamSensor::CaptureDepth(TArray<float>& DepthData, int& Width, int& Height)
 {
-	if (!bIgnoreTransparentObjects)
-	{
-		TArray<TWeakObjectPtr<UPrimitiveComponent> > ComponentList;
-		UAnnotationCamSensor::GetAnnotationComponents(this->GetWorld(), ComponentList);
-		this->ShowOnlyComponents = ComponentList;
-		this->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
-		this->ShowFlags.SetMaterials(false); // This will make annotation component visible
-	}
+	 if (!bIgnoreTransparentObjects)
+	 {
+	 	TArray<TWeakObjectPtr<UPrimitiveComponent> > ComponentList;
+	 	UAnnotationCamSensor::GetAnnotationComponents(this->GetWorld(), ComponentList);
+	 	this->ShowOnlyComponents = ComponentList;
+	 	this->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_UseShowOnlyList;
+	 	this->ShowFlags.SetMaterials(false); // This will make annotation component visible
+	 }
+
+	//this->PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_RenderScenePrimitives;
+
 
 	if (!CheckTextureTarget()) return;
 	this->CaptureScene();
