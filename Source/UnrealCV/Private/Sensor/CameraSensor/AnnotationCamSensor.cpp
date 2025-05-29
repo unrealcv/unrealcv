@@ -73,8 +73,16 @@ void UAnnotationCamSensor::GetAnnotationComponents(UWorld* World, TArray<TWeakOb
 	TArray<UObject*> UObjectList;
 	bool bIncludeDerivedClasses = false;
 	EObjectFlags ExclusionFlags = EObjectFlags::RF_ClassDefaultObject;
-
-	GetObjectsOfClass(UAnnotationComponent::StaticClass(), UObjectList, bIncludeDerivedClasses, ExclusionFlags);
+    
+    for (TObjectIterator<UObject> It; It; ++It) {
+        UObject* Obj = *It;
+        if (Obj->GetClass() == UAnnotationComponent::StaticClass()) {
+            if (!(Obj->GetFlags() & RF_ClassDefaultObject)) {
+                UObjectList.Add(Obj);
+            }
+        }
+    }    
+    //GetObjectsOfClass(UAnnotationComponent::StaticClass(), UObjectList, bIncludeDerivedClasses, ExclusionFlags);
 
     TArray<TArray<UPrimitiveComponent*>> TempComponentLists;
     TempComponentLists.SetNum(UObjectList.Num());

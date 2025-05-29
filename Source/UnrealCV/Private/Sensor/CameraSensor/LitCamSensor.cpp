@@ -49,6 +49,8 @@ void ULitCamSensor::CaptureLit(TArray<FColor>& Image, int& Width, int& Height)
 			return;
 		}
 	}
+
+	//GetWorld()->FlushLevelStreaming(EFlushLevelStreamingType::Full);
 	this->CaptureScene();
 	FReadSurfaceDataFlags ReadSurfaceDataFlags;
 	ReadSurfaceDataFlags.SetLinearToGamma(false); 
