@@ -6,6 +6,11 @@
 #include "Runtime/Engine/Public/TimerManager.h"
 #include "Runtime/Engine/Classes/GameFramework/Pawn.h"
 
+#include "Kismet2/DebuggerCommands.h"
+#include "Kismet2/KismetDebugUtilities.h"
+#include "UnrealEd.h"
+#include "Framework/Application/SlateApplication.h"
+
 #include "WorldController.h"
 #include "VisionBPLib.h"
 
@@ -48,8 +53,6 @@ void FActionHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionHandler::Keyboard);
 	Help = "Send a keyboard action to the game";
 	CommandDispatcher->BindCommand("vset /action/keyboard [str] [float]", Cmd, Help);
-<<<<<<< Updated upstream
-=======
 
 	CommandDispatcher->BindCommand(
 		"vset /action/clean_garbage",
@@ -63,30 +66,17 @@ void FActionHandler::RegisterCommands()
 		"Set fixed frame rate of the world"
 	);
 
-	CommandDispatcher->BindCommand(
-		"vset /action/set_synchronous_mode [str]",
-		FDispatcherDelegate::CreateRaw(this, &FActionHandler::SetFixedFPS),
-		"Set synchronous mode of the environmne,t false means asynchronous"
-	);
+	//CommandDispatcher->BindCommand(
+	//	"vset /action/set_synchronous_mode [str]",
+	//	FDispatcherDelegate::CreateRaw(this, &FActionHandler::SetFixedFPS),
+	//	"Set synchronous mode of the environmne,t false means asynchronous"
+	//);
 
 	CommandDispatcher->BindCommand(
 		"vset /action/tick",
 		FDispatcherDelegate::CreateRaw(this, &FActionHandler::Tick),
 		"Add a tick"
 	);
-
-	CommandDispatcher->BindCommand(
-		"vset /action/set_synchronous_mode [str]",
-		FDispatcherDelegate::CreateRaw(this, &FActionHandler::SetFixedFPS),
-		"Set synchronous mode of the environmne,t false means asynchronous"
-	);
-
-	CommandDispatcher->BindCommand(
-		"vset /action/tick",
-		FDispatcherDelegate::CreateRaw(this, &FActionHandler::Tick),
-		"Add a tick"
-	);
->>>>>>> Stashed changes
 }
 
 FExecStatus FActionHandler::PauseGame(const TArray<FString>& Args)
@@ -214,8 +204,6 @@ FExecStatus FActionHandler::Keyboard(const TArray<FString>& Args)
 
 	return FExecStatus::OK();
 }
-<<<<<<< Updated upstream
-=======
 
 FExecStatus FActionHandler::GarbageCollection(const TArray<FString>& Args)
 {
@@ -240,70 +228,54 @@ FExecStatus FActionHandler::SetFixedFPS(const TArray<FString>& Args)
 	return FExecStatus::Error("Can't find GEngine");
 }
 
-FExecStatus FActionHandler::SetSynchronousMode(const TArray<FString>& Args)
-{
-	FString SynchronousMode;
-	if (Args.Num() != 1)
-	{
-		return FExecStatus::Error("Missing parameter synchronous mode");
-	}
-	SynchronousMode = Args[0].ToLower();
-
-	if (SynchronousMode == "false") {
-		GetWorld()->bDebugFrameStepExecution = true;
-		UGameplayStatics::SetGamePaused(FUnrealcvServer::Get().GetWorld(), false);
-		return FExecStatus::OK();
-	}
-	else if (SynchronousMode == "true")  {
-		GetWorld()->bDebugFrameStepExecution = false;
-		UGameplayStatics::SetGamePaused(FUnrealcvServer::Get().GetWorld(), false);
-		return FExecStatus::OK();
-	}
-	else {
-		return FExecStatus::Error("Unrecognized mode");
-	}
-}
-
-FExecStatus FActionHandler::Tick(const TArray<FString>& Args)
-{
-	UGameplayStatics::SetGamePaused(FUnrealcvServer::Get().GetWorld(), false);
-	GEngine->bUseFixedFrameRate = false;
-	if (GEngine)
-	{
-		GEngine->FixedFrameRate = frame_rate;
-		GEngine->bUseFixedFrameRate = true;
-		return FExecStatus::OK();
-	}
-	return FExecStatus::Error("Can't find GEngine");
-}
-
-FExecStatus FActionHandler::SetSynchronousMode(const TArray<FString>& Args)
-{
-	FString SynchronousMode;
-	if (Args.Num() != 1)
-	{
-		return FExecStatus::Error("Missing parameter synchronous mode");
-	}
-	SynchronousMode = Args[0].ToLower();
-
-	if (SynchronousMode == "false") {
-		GetWorld()->bDebugFrameStepExecution = true;
-		UGameplayStatics::SetGamePaused(FUnrealcvServer::Get().GetWorld(), false);
-		return FExecStatus::OK();
-	}
-	else if (SynchronousMode == "true")  {
-		GetWorld()->bDebugFrameStepExecution = false;
-		UGameplayStatics::SetGamePaused(FUnrealcvServer::Get().GetWorld(), false);
-		return FExecStatus::OK();
-	}
-	else {
-		return FExecStatus::Error("Unrecognized mode");
-	}
-}
+//FExecStatus FActionHandler::SetSynchronousMode(const TArray<FString>& Args)
+//{
+//	FString SynchronousMode;
+//	if (Args.Num() != 1)
+//	{
+//		return FExecStatus::Error("Missing parameter synchronous mode");
+//	}
+//	SynchronousMode = Args[0].ToLower();
+//
+//	if (SynchronousMode == "false") {
+//		GetWorld()->bDebugFrameStepExecution = true;
+//		UGameplayStatics::SetGamePaused(FUnrealcvServer::Get().GetWorld(), false);
+//		return FExecStatus::OK();
+//	}
+//	else if (SynchronousMode == "true")  {
+//		GetWorld()->bDebugFrameStepExecution = false;
+//		UGameplayStatics::SetGamePaused(FUnrealcvServer::Get().GetWorld(), false);
+//		return FExecStatus::OK();
+//	}
+//	else {
+//		return FExecStatus::Error("Unrecognized mode");
+//	}
+//}
 
 FExecStatus FActionHandler::Tick(const TArray<FString>& Args)
 {
-	UGameplayStatics::SetGamePaused(FUnrealcvServer::Get().GetWorld(), false);
+	if (GIntraFrameDebuggingGameThread && FKismetDebugUtilities::GetCurrentDebuggingWorld() == nullptr)
+	{
+		return FExecStatus::Error("No valid debug world");;
+	}
+		
+	FKismetDebugUtilities::RequestSingleStepIn();
+	if (FPlayWorldCommandCallbacks::HasPlayWorld())
+	{
+		GUnrealEd->SetPIEWorldsPaused(false);
+		FSlateApplication::Get().LeaveDebuggingMode();
+		FSlateApplication::Get().LeaveDebuggingMode(true);
+
+		FKismetDebugUtilities::RequestSingleStepIn();
+		if (FPlayWorldCommandCallbacks::HasPlayWorld())
+		{
+			GUnrealEd->PlayWorld->bDebugFrameStepExecution = true;
+			FSlateApplication::Get().LeaveDebuggingMode();
+			GUnrealEd->PlaySessionSingleStepped();
+		}
+
+		GUnrealEd->PlaySessionSingleStepped();
+	}
+
 	return FExecStatus::OK();
 }
->>>>>>> Stashed changes

@@ -1,6 +1,6 @@
 #pragma once
 #include "CommandHandler.h"
-#include "Kismet/GameplayStatics.h"
+//#include "Kismet/GameplayStatics.h
 #include "Runtime/InputCore/Classes/InputCoreTypes.h"
 
 class FActionHandler : public FCommandHandler
@@ -33,12 +33,6 @@ private:
 	FExecStatus GarbageCollection(const TArray<FString>& Args);
 
 	FExecStatus SetFixedFPS(const TArray<FString>& Args);
-
-	FExecStatus SetSynchronousMode(const TArray<FString>& Args);
-
-	FExecStatus Tick(const TArray<FString>& Args);
-
-	FExecStatus SetSynchronousMode(const TArray<FString>& Args);
 
 	FExecStatus Tick(const TArray<FString>& Args);
 
