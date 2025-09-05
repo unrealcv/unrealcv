@@ -114,10 +114,10 @@ class RunUnreal():
             nullrhi (bool): Whether to use null RHI (turn off the graphics rendering). Default is False.
             gpu_id (int, optional): The GPU ID to use. Default is None.
             local_host (bool): Whether to use local host networking. Default is True.
-            sleep_time (int): The time to wait for the environment to launch. Default is 5 seconds.
+            sleep_time (int): The time to wait for the environment to launch. Default is 8 seconds.
 
         Returns:
-            tuple: The IP and port of the UnraelCV Server in the environment.
+            tuple: The IP and port of the UnrealCV Server in the environment.
         """
         port = self.read_port()
         self.write_resolution(resolution)
