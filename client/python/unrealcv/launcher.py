@@ -98,9 +98,10 @@ class RunUnreal():
             self.path2unrealcv = os.path.join(os.path.split(self.path2binary)[0], 'unrealcv.ini')
         assert os.path.exists(self.path2binary), \
             'Please load env binary in UnrealEnv and Check the env_bin in setting file!'
+        self.ue_pid = None
 
     def start(self, docker=False, resolution=(640, 480), display=None, opengl=False, offscreen=False,
-              nullrhi=False, gpu_id=None, local_host=True, sleep_time=8):
+              nullrhi=False, gpu_id=None, local_host=True, sleep_time=8, log_file_path=None):
         """
         Start the Unreal Engine environment.
 
@@ -113,10 +114,10 @@ class RunUnreal():
             nullrhi (bool): Whether to use null RHI (turn off the graphics rendering). Default is False.
             gpu_id (int, optional): The GPU ID to use. Default is None.
             local_host (bool): Whether to use local host networking. Default is True.
-            sleep_time (int): The time to wait for the environment to launch. Default is 5 seconds.
+            sleep_time (int): The time to wait for the environment to launch. Default is 8 seconds.
 
         Returns:
-            tuple: The IP and port of the UnraelCV Server in the environment.
+            tuple: The IP and port of the UnrealCV Server in the environment.
         """
         port = self.read_port()
         self.write_resolution(resolution)
@@ -144,7 +145,15 @@ class RunUnreal():
             cmd_exe = [os.path.abspath(self.path2binary)]
             self.set_ue_options(cmd_exe, opengl, offscreen, nullrhi, gpu_id)
             if 'darwin' in sys.platform:
-                self.env = subprocess.Popen(['open', cmd_exe[0]])
+                # self.env = subprocess.Popen(['open', cmd_exe[0]])
+                # Redirect stdout and stderr to log file
+                if log_file_path is not None:
+                    log_name = time.strftime("%Y%m%d-%H%M%S") + '_ue_log.log'
+                    log_file_path = os.path.join(log_file_path, log_name)
+                    with open(log_file_path, "w") as log_file:
+                        self.env = subprocess.Popen(cmd_exe, stdout=log_file, stderr=log_file)
+                else:
+                    self.env = subprocess.Popen(cmd_exe, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             else:
                 self.env = subprocess.Popen( cmd_exe, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
                                             stderr=subprocess.DEVNULL, start_new_session=True, env=display)
@@ -152,7 +161,8 @@ class RunUnreal():
             # signal.signal(signal.SIGTERM, self.signal_handler)
             # signal.signal(signal.SIGINT, self.signal_handler)
             print('Running docker-free env, pid:{}'.format(self.env.pid))
-
+            # get the pid of the unreal engine process
+            self.ue_pid = self.env.pid
         print('Please wait for a while to launch env......')
         time.sleep(sleep_time)
         return env_ip, port
