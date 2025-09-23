@@ -37,9 +37,8 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	LitCamSensor = CreateDefaultSubobject<ULitCamSensor>(*ComponentName);
 	FusionSensors.Add(LitCamSensor);
 
-	ComponentName = FString::Printf(TEXT("%s_%s"), *this->GetName(), TEXT("FlowCamSensor"));
-	FlowCamSensor = CreateDefaultSubobject<UFlowCamSensor>(*ComponentName);
-	FusionSensors.Add(FlowCamSensor);
+	// FlowCamSensor is created later to avoid template mismatch issues
+	FlowCamSensor = nullptr;
 
 	// The config loading code should not be placed into the ctor, otherwise it will break the copy behavior
 	FServerConfig& Config = FUnrealcvServer::Get().Config;
@@ -66,6 +65,18 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 void UFusionCamSensor::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// // Create FlowCamSensor at runtime to avoid template mismatch issues
+	// if (!FlowCamSensor)
+	// {
+	// 	FlowCamSensor = NewObject<UFlowCamSensor>(this, UFlowCamSensor::StaticClass());
+	// 	if (FlowCamSensor)
+	// 	{
+	// 		FlowCamSensor->SetupAttachment(this);
+	// 		FusionSensors.Add(FlowCamSensor);
+	// 		FlowCamSensor->RegisterComponent();
+	// 	}
+	// }
 
 	SetFilmSize(FilmWidth, FilmHeight);
 	SetSensorFOV(FOV);
@@ -123,6 +134,25 @@ void UFusionCamSensor::GetNormal(TArray<FColor>& NormalData, int& Width, int& He
 // optical flow
 void UFusionCamSensor::GetFlow(TArray<FColor>& FlowData, int& Width, int& Height)
 {
+	// Create FlowCamSensor at runtime to avoid template mismatch issues
+	if (!FlowCamSensor)
+	{
+		FlowCamSensor = NewObject<UFlowCamSensor>(this, UFlowCamSensor::StaticClass());
+		if (FlowCamSensor)
+		{
+			FlowCamSensor->SetupAttachment(this);
+			FusionSensors.Add(FlowCamSensor);
+			FlowCamSensor->RegisterComponent();
+		}
+	}
+	if (!FlowCamSensor)
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("FlowCamSensor is not initialized. Flow data will be empty."));
+		FlowData.Empty();
+		Width = 0;
+		Height = 0;
+		return;
+	}
 	this->FlowCamSensor->CaptureFlow(FlowData, Width, Height);
 }
 
