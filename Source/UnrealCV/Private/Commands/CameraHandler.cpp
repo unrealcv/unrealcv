@@ -312,6 +312,19 @@ FExecStatus FCameraHandler::GetCameraNormal(const TArray<FString>& Args)
 	return ExecStatus;
 }
 
+FExecStatus FCameraHandler::GetCameraFlow(const TArray<FString>& Args)
+{
+	FExecStatus ExecStatus = FExecStatus::OK();
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, ExecStatus);
+	if (!IsValid(FusionCamSensor)) return ExecStatus;
+
+	TArray<FColor> Data;
+	int Width, Height;
+	FusionCamSensor->GetFlow(Data, Width, Height);
+	SaveData(Data, Width, Height, Args, ExecStatus);
+	return ExecStatus;
+}
+
 FExecStatus FCameraHandler::GetCameraObjMask(const TArray<FString>& Args)
 {
 	FExecStatus ExecStatus = FExecStatus::OK();
@@ -778,7 +791,8 @@ void FCameraHandler::RegisterCommands()
 
 	CommandDispatcher->BindCommand(
 		"vget /camera/[uint]/lit [str]",
-		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraLit),
+		// FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraLit),
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraFlow),
 		"Get png binary data from lit sensor"
 	);
 
@@ -792,6 +806,16 @@ void FCameraHandler::RegisterCommands()
 		"vget /camera/[uint]/normal [str]",
 		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraNormal),
 		"Get npy binary data from surface normal sensor");
+
+	// CommandDispatcher->BindCommand(
+	// 	"vget /camera/[uint]/flow [str]",
+	// 	FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraFlow),
+	// 	"Get npy binary data from optical flow sensor");
+
+	CommandDispatcher->BindCommand(
+		"vget /camera/[uint]/optical_flow [str]",
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraFlow),
+		"Get npy binary data from optical flow sensor");
 
 	CommandDispatcher->BindCommand(
 		"vget /camera/[uint]/object_mask [str]",

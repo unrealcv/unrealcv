@@ -34,11 +34,13 @@ public:
 	UFlowCamSensor(const FObjectInitializer& ObjectInitializer);
 
 	virtual void InitTextureTarget(int FilmWidth, int FilmHeight) override;
+	// LogOutputDevice: Error: Ensure condition failed: false  [File:D:\build\++UE5\Sync\Engine\Source\Runtime\Engine\Private\Components\SceneComponent.cpp] [Line: 2104] 
+	// LogOutputDevice: Error: Template Mismatch during attachment. Attaching instanced component to template component. Parent 'FusionCamSensor_GEN_VARIABLE' (Owner 'None') Self 'FusionCamSensor_GEN_VARIABLE_FlowCamSensor' (Owner 'BP_Drone01_C_1').
 
 	void CaptureFlow(TArray<FColor>& Image, int& Width, int& Height);
 
 private:
 	/** Post process material to extract optical flow data */
-	UPROPERTY()
+	// UPROPERTY()
 	UMaterial* OpticalFlowPPMaterial;
 };

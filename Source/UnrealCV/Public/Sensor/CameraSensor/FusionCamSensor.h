@@ -177,7 +177,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "unrealcv")
 	class ULitCamSensor* LitCamSensor;
 
-	UPROPERTY(EditDefaultsOnly, Category = "unrealcv")
+	// UPROPERTY(EditDefaultsOnly, Category = "unrealcv")
+	// LogOutputDevice: Error: Ensure condition failed: false  [File:D:\build\++UE5\Sync\Engine\Source\Runtime\Engine\Private\Components\SceneComponent.cpp] [Line: 2104] 
+	// LogOutputDevice: Error: Template Mismatch during attachment. Attaching instanced component to template component. Parent 'FusionCamSensor_GEN_VARIABLE' (Owner 'None') Self 'FusionCamSensor_GEN_VARIABLE_FlowCamSensor' (Owner 'BP_Drone01_C_1').
+	// UPROPERTY(BlueprintReadOnly, Category = "unrealcv")
 	class UFlowCamSensor* FlowCamSensor;
 
 	/** This preview camera is used for UE version < 4.17 which only support UCameraComponent PIP preview
