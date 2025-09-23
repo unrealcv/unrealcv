@@ -11,6 +11,7 @@
 #include "DepthCamSensor.h"
 #include "NormalCamSensor.h"
 #include "AnnotationCamSensor.h"
+#include "FlowCamSensor.h"
 
 UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -35,6 +36,10 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	ComponentName = FString::Printf(TEXT("%s_%s"), *this->GetName(), TEXT("LitCamSensor"));
 	LitCamSensor = CreateDefaultSubobject<ULitCamSensor>(*ComponentName);
 	FusionSensors.Add(LitCamSensor);
+
+	ComponentName = FString::Printf(TEXT("%s_%s"), *this->GetName(), TEXT("FlowCamSensor"));
+	FlowCamSensor = CreateDefaultSubobject<UFlowCamSensor>(*ComponentName);
+	FusionSensors.Add(FlowCamSensor);
 
 	// The config loading code should not be placed into the ctor, otherwise it will break the copy behavior
 	FServerConfig& Config = FUnrealcvServer::Get().Config;
@@ -97,21 +102,31 @@ bool UFusionCamSensor::GetEditorPreviewInfo(float DeltaTime, FMinimalViewInfo& V
 	}
 }
 
+// color
 void UFusionCamSensor::GetLit(TArray<FColor>& LitData, int& Width, int& Height, ELitMode LitMode)
 {
 	this->LitCamSensor->CaptureLit(LitData, Width, Height);
 }
 
+// depth
 void UFusionCamSensor::GetDepth(TArray<float>& DepthData, int& Width, int& Height, EDepthMode DepthMode)
 {
 	this->DepthCamSensor->CaptureDepth(DepthData, Width, Height);
 }
 
+// normal
 void UFusionCamSensor::GetNormal(TArray<FColor>& NormalData, int& Width, int& Height)
 {
 	this->NormalCamSensor->Capture(NormalData, Width, Height);
 }
 
+// optical flow
+void UFusionCamSensor::GetFlow(TArray<FColor>& FlowData, int& Width, int& Height)
+{
+	this->FlowCamSensor->CaptureFlow(FlowData, Width, Height);
+}
+
+// Semantic
 void UFusionCamSensor::GetSeg(TArray<FColor>& ObjMaskData, int& Width, int& Height, ESegMode SegMode)
 {
 	this->AnnotationCamSensor->CaptureSeg(ObjMaskData, Width, Height);
