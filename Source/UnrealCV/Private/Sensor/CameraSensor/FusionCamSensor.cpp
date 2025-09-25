@@ -41,7 +41,6 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	// Unhandled Exception: EXCEPTION_ACCESS_VIOLATION reading address 0x0000000000000008 UnrealEditor_Engine UnrealEditor_UnrealCV!AUnrealcvWorldController::OpenLevel() [C:\Users\hulc\Desktop\HUAWEI_Project\Plugins\unrealcv\Source\UnrealCV\Private\Controller\WorldController.cpp:90]
 	// FlowCamSensor = nullptr;
 	ComponentName = FString::Printf(TEXT("%s_%s"), *this->GetName(), TEXT("FlowCamSensor"));
-	// FlowCamSensor = CreateDefaultSubobject<UFlowCamSensor>(*ComponentName);
 	FlowCamSensor = CreateDefaultSubobject<UFlowCamSensor>(*ComponentName);
 	// FlowCamSensor = NewObject<UFlowCamSensor>(this, UFlowCamSensor::StaticClass()); /*NewObject with empty name can't be used to create default subobjects*/
 	FusionSensors.Add(FlowCamSensor);
@@ -54,19 +53,11 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	// Note: If FOV == 0, the render will give FMod assert error.
 	// Need to call update functions after copy operator (in BeginPlay), here just sets value
 
-	// // print pointers in FusionSensors
-	// UE_LOG(LogUnrealCV, Warning, TEXT("FusionSensors: %p, DepthCamSensor: %p, NormalCamSensor: %p, AnnotationCamSensor: %p, LitCamSensor: %p, FlowCamSensor: %p"),
-	// 	FusionSensors.GetData(), DepthCamSensor, NormalCamSensor, AnnotationCamSensor, LitCamSensor, FlowCamSensor);
-	// for (int i = 0; i < FusionSensors.Num(); i++)
-	// {
-	// 	UE_LOG(LogUnrealCV, Warning, TEXT("Sensor %d: %p"), i, FusionSensors[i]);
-	// }
-
 	for (UBaseCameraSensor* Sensor : FusionSensors)
 	{
 		if (IsValid(Sensor))
 		{
-			Sensor->SetupAttachment(this);
+			if (Sensor != FlowCamSensor) { Sensor->SetupAttachment(this); }
 		}
 		else
 		{
@@ -78,32 +69,43 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	// print pointers in FusionSensors
 }
 
-// void UFusionCamSensor::checkFusionSensors()
-// {
-// 	for (int i = 0; i < FusionSensors.Num(); i++)
-// 	{
-// 		if (!IsValid(FusionSensors[i]))
-// 		{
-// 			UE_LOG(LogUnrealCV, Error, TEXT("UFusionCamSensor::checkFusionSensors: Invalid sensor id=%d p=%p, total=%d, this=%p"), i, FusionSensors[i], FusionSensors.Num(), this);
-// 		}
-// 	}
-// }
+void UFusionCamSensor::checkFusionSensors()
+{
+	for (int i = 0; i < FusionSensors.Num(); i++)
+	{
+		if (!IsValid(FusionSensors[i]))
+		{
+			// UE_LOG(LogUnrealCV, Error, TEXT("UFusionCamSensor::checkFusionSensors: Invalid sensor id=%d p=%p, total=%d, this=%p"), i, FusionSensors[i], FusionSensors.Num(), this);
+			UE_LOG(LogTemp, Warning, TEXT("Sensor %d within FusionCamSensor is invalid."), i);
+		}
+	}
+}
 
 void UFusionCamSensor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// // Create FlowCamSensor at runtime to avoid template mismatch issues
-	// if (!FlowCamSensor)
-	// {
-	// 	FlowCamSensor = NewObject<UFlowCamSensor>(this, UFlowCamSensor::StaticClass());
-	// 	if (FlowCamSensor)
-	// 	{
-	// 		FlowCamSensor->SetupAttachment(this);
-	// 		FusionSensors.Add(FlowCamSensor);
-	// 		FlowCamSensor->RegisterComponent();
-	// 	}
-	// }
+	// LogOutputDevice: Error: Ensure condition failed: false  [File:D:\build\++UE5\Sync\Engine\Source\Runtime\Engine\Private\Components\SceneComponent.cpp] [Line: 2104] 
+	// LogOutputDevice: Error: Template Mismatch during attachment. Attaching instanced component to template component. Parent 'FusionCamSensor_GEN_VARIABLE' (Owner 'None') Self 'FusionCamSensor_GEN_VARIABLE_FlowCamSensor' (Owner 'BP_Drone01_C_1').
+	// So we have to attach FlowCamSensor after the actor is spawned, in BeginPlay.
+	// If we put this in the ctor, I think all the blueprints have to be rebuild to fix this bug.
+	// Howerver, because we put the AttachToComponent here, we can no longger use editor to adjust the FlowCam transform in blueprint.
+	if (IsValid(FlowCamSensor))
+	{
+		// Ensure condition failed: !bRegistered  [File:D:\build\++UE5\Sync\Engine\Source\Runtime\Engine\Private\Components\SceneComponent.cpp] [Line: 1958] 
+		// SetupAttachment should only be used to initialize AttachParent and AttachSocketName for a future AttachToComponent. Once a component is registered you must use AttachToComponent. Owner [/Game/SuburbNeighborhoodHousePack/Maps/SuburbNeighborhood_Day.SuburbNeighborhood_Day:PersistentLevel.BP_Character_C_1], InParent [FusionCamSensor], InSocketName [None]
+		// FlowCamSensor->SetupAttachment(this);
+
+		FlowCamSensor->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
+	    const FTransform LitTransform = LitCamSensor->GetComponentTransform();
+	    FlowCamSensor->SetWorldTransform(LitTransform);
+		// const FTransform LitRelativeTransform = LitCamSensor->GetRelativeTransform();
+		// FlowCamSensor->SetRelativeTransform(LitRelativeTransform);
+	}
+	else 
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("FlowCamSensor is not initialized. Flow data will be empty."));
+	}
 
 	SetFilmSize(FilmWidth, FilmHeight);
 	SetSensorFOV(FOV);
@@ -209,19 +211,17 @@ void UFusionCamSensor::SetFilmSize(int Width, int Height)
 		return;
 	}
 
-	// // FusionSensors.Empty();
-	// // FusionSensors.Add(DepthCamSensor);
-	// // FusionSensors.Add(NormalCamSensor);
-	// // FusionSensors.Add(AnnotationCamSensor);
-	// // FusionSensors.Add(LitCamSensor);
-	// // FusionSensors.Add(FlowCamSensor);
-	// // print pointers in FusionSensors
-	// UE_LOG(LogUnrealCV, Warning, TEXT("FusionSensors: %p, DepthCamSensor: %p, NormalCamSensor: %p, AnnotationCamSensor: %p, LitCamSensor: %p, FlowCamSensor: %p"),
-	// 	FusionSensors.GetData(), DepthCamSensor, NormalCamSensor, AnnotationCamSensor, LitCamSensor, FlowCamSensor);
-	// for (int i = 0; i < FusionSensors.Num(); i++)
-	// {
-	// 	UE_LOG(LogUnrealCV, Warning, TEXT("Sensor %d: %p"), i, FusionSensors[i]);
-	// }
+	// There are still bugs in compiled blueprints, I tried to fix them in the ctor, but it still fails.
+	// So I have to manually init the texture target for FlowCamSensor.
+	if (IsValid(FlowCamSensor))
+	{
+		FlowCamSensor->SetFilmSize(Width, Height);
+	}
+	else
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("FlowCamSensor is not initialized. Flow data will be empty."));
+	}
+
 	for (int i = 0; i < FusionSensors.Num(); i++)
 	{
 		UBaseCameraSensor* Sensor = FusionSensors[i];
@@ -231,8 +231,8 @@ void UFusionCamSensor::SetFilmSize(int Width, int Height)
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("SetFilmSize: Sensor %d within FusionCamSensor is invalid. this: %p"), i, this);
-			// UE_LOG(LogTemp, Warning, TEXT("SetFilmSize: Sensor %d within FusionCamSensor is invalid."), i);
+			// UE_LOG(LogTemp, Error, TEXT("SetFilmSize: Sensor %d within FusionCamSensor is invalid. this: %p"), i, this);
+			UE_LOG(LogTemp, Warning, TEXT("SetFilmSize: Sensor %d within FusionCamSensor is invalid."), i);
 		}
 	}
 }
@@ -307,8 +307,8 @@ void UFusionCamSensor::SetProjectionType(ECameraProjectionMode::Type ProjectionT
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("SetProjectionType: Sensor %d within FusionCamSensor is invalid."), i);
-			// UE_LOG(LogTemp, Warning, TEXT("SetFilmSize: Sensor %d within FusionCamSensor is invalid."), i);
+			// UE_LOG(LogTemp, Error, TEXT("SetProjectionType: Sensor %d within FusionCamSensor is invalid."), i);
+			UE_LOG(LogTemp, Warning, TEXT("SetFilmSize: Sensor %d within FusionCamSensor is invalid."), i);
 		}
 	}
 }
@@ -320,8 +320,8 @@ void UFusionCamSensor::SetOrthoWidth(float OrthoWidth)
 		UBaseCameraSensor* Sensor = FusionSensors[i];
 		if (!IsValid(Sensor))
 		{
-			UE_LOG(LogTemp, Error, TEXT("SetOrthoWidth: Sensor %d within FusionCamSensor is invalid."), i);
-			// UE_LOG(LogTemp, Warning, TEXT("SetFilmSize: Sensor %d within FusionCamSensor is invalid."), i);
+			// UE_LOG(LogTemp, Error, TEXT("SetOrthoWidth: Sensor %d within FusionCamSensor is invalid."), i);
+			UE_LOG(LogTemp, Warning, TEXT("SetFilmSize: Sensor %d within FusionCamSensor is invalid."), i);
 			continue;
 		}
 		Sensor->OrthoWidth = OrthoWidth;

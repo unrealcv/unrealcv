@@ -7,26 +7,23 @@ UFlowCamSensor::UFlowCamSensor(const FObjectInitializer& ObjectInitializer)
 	FString OpticalFlowPPMaterialPath = TEXT("Material'/UnrealCV/OpticalFlowMaterial.OpticalFlowMaterial'");
 	// FString OpticalFlowPPMaterialPath = TEXT("Material'/UnrealCV/WorldNormal.WorldNormal'");
 	ConstructorHelpers::FObjectFinder<UMaterial> Material(*OpticalFlowPPMaterialPath);
-
-	SetPostProcessMaterial(Material.Object);
-
-	// if (Material.Object != NULL)
-	// {
-	// 	// SetPostProcessMaterial(Material.Object);
-	// 	UMaterialInstanceDynamic* PostProcessMaterialInstance = UMaterialInstanceDynamic::Create(Material.Object, nullptr);
-	// 	if (!PostProcessMaterialInstance)
-	// 	{
-	// 		UE_LOG(LogUnrealCV, Error, TEXT("%s: Could not create the material instance dynamic"), *FString(__FUNCTION__))
-	// 	} else {
-	// 		PostProcessMaterialInstance->SetScalarParameterValue(TEXT("OpticalFlowScale"), 100.0);
-	// 		PostProcessSettings.WeightedBlendables.Array.Empty();
-	// 		PostProcessSettings.WeightedBlendables.Array.Add(FWeightedBlendable(1.0f, PostProcessMaterialInstance));
-	// 	}
-	// }
-	// else
-	// {
-	// 	UE_LOG(LogUnrealCV, Error, TEXT("OpticalFlowMaterial not found at %s"), *OpticalFlowPPMaterialPath);
-	// }
+	if (Material.Object)
+	{
+		// SetPostProcessMaterial(Material.Object);
+		UMaterialInstanceDynamic* PostProcessMaterialInstance = UMaterialInstanceDynamic::Create(Material.Object, nullptr);
+		if (!PostProcessMaterialInstance)
+		{
+			UE_LOG(LogTemp, Error, TEXT("%s: Could not create the material instance dynamic"), *FString(__FUNCTION__))
+		} else {
+			PostProcessMaterialInstance->SetScalarParameterValue(TEXT("OpticalFlowScale"), 30.0);
+			PostProcessSettings.WeightedBlendables.Array.Empty();
+			PostProcessSettings.WeightedBlendables.Array.Add(FWeightedBlendable(1.0f, PostProcessMaterialInstance));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("OpticalFlowMaterial not found at %s"), *OpticalFlowPPMaterialPath);
+	}
 }
 
 // void UFlowCamSensor::InitTextureTarget(int filmWidth, int filmHeight)

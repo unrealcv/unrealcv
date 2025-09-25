@@ -43,7 +43,7 @@ class UNREALCV_API UFusionCamSensor : public UPrimitiveComponent
 public:
 	UFusionCamSensor(const FObjectInitializer& ObjectInitializer);
 
-	// void checkFusionSensors();
+	void checkFusionSensors();
 
 	// virtual void OnRegister() override;
 	virtual bool GetEditorPreviewInfo(float DeltaTime, FMinimalViewInfo& ViewOut);
