@@ -1,4 +1,4 @@
-// Weichao Qiu @ 2017
+// shc @ 2025
 #pragma once
 
 #include "BaseCameraSensor.h"
@@ -25,7 +25,7 @@
  *   FusionCamSensor.h/.cpp (integration point)
  */
 
-UCLASS(meta = (BlueprintSpawnableComponent))
+UCLASS()
 class UNREALCV_API UFlowCamSensor : public UBaseCameraSensor
 {
 	GENERATED_BODY()
@@ -33,12 +33,12 @@ class UNREALCV_API UFlowCamSensor : public UBaseCameraSensor
 public:
 	UFlowCamSensor(const FObjectInitializer& ObjectInitializer);
 
-	virtual void InitTextureTarget(int FilmWidth, int FilmHeight) override;
+	// virtual void InitTextureTarget(int FilmWidth, int FilmHeight) override;
 
-	void CaptureFlow(TArray<FColor>& Image, int& Width, int& Height);
+	// void CaptureFlow(TArray<FColor>& Image, int& Width, int& Height);
 
-private:
-	/** Post process material to extract optical flow data */
-	UPROPERTY()
-	UMaterial* OpticalFlowPPMaterial;
+// private:
+// 	/** Post process material to extract optical flow data */
+// 	UPROPERTY()
+// 	UMaterial* OpticalFlowPPMaterial;
 };

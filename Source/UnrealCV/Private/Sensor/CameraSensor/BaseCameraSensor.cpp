@@ -115,7 +115,11 @@ void UBaseCameraSensor::Capture(TArray<FColor>& ImageData, int& Width, int& Heig
 {
 	SCOPE_CYCLE_COUNTER(STAT_ReadBuffer);
 
-	if (!CheckTextureTarget()) return;
+	if (!CheckTextureTarget())
+	{
+		UE_LOG(LogTemp, Error, TEXT("The TextureTarget was not initialized. Capture failed."));
+		return;
+	}
 	this->CaptureScene();
 
 	ReadTextureRenderTarget(TextureTarget, ImageData, Width, Height);

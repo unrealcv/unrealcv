@@ -13,7 +13,11 @@ UPawnCamSensor::UPawnCamSensor(const FObjectInitializer& ObjectInitializer)
 
 	for (UBaseCameraSensor* Sensor : FusionSensors)
 	{
-		if (!IsValid(Sensor)) continue;
+		if (!IsValid(Sensor))
+		{
+			UE_LOG(LogTemp, Error, TEXT("UPawnCamSensor::UPawnCamSensor: Sensor %p within PawnCamSensor is invalid. this: %p"), Sensor, this);
+		 	continue;
+		}
 		// Sensor->bAbsoluteLocation = true;
 		// Sensor->bAbsoluteRotation = true;
 	}
@@ -30,6 +34,7 @@ void UPawnCamSensor::TickComponent(float DeltaTime, enum ELevelTick TickType, FA
 	APawn *Pawn = Cast<APawn>(Owner);
 	if (!IsValid(Pawn))
 	{
+		UE_LOG(LogTemp, Error, TEXT("UPawnCamSensor::TickComponent: Pawn is invalid. this: %p"), this);
 		return;
 	}
 
@@ -63,7 +68,11 @@ void UPawnCamSensor::TickComponent(float DeltaTime, enum ELevelTick TickType, FA
 
 	for (UBaseCameraSensor* Sensor : FusionSensors)
 	{
-		if (!IsValid(Sensor)) continue;
+		if (!IsValid(Sensor))
+		{
+			UE_LOG(LogTemp, Error, TEXT("SetSensorLocation: Sensor %p within PawnCamSensor is invalid. this: %p"), Sensor, this);
+		 	continue;
+		}
 		Sensor->SetSensorLocation(EyeLocation);
 		Sensor->SetSensorRotation(EyeRotation);
 	}
@@ -82,6 +91,7 @@ void UPawnCamSensor::SetSensorLocation(FVector Location)
 	APawn *Pawn = Cast<APawn>(Owner);
 	if (!IsValid(Pawn))
 	{
+		UE_LOG(LogTemp, Error, TEXT("UPawnCamSensor::SetSensorLocation: Pawn is invalid. this: %p"), this);
 		return;
 	}
 	bool Sweep = false;
@@ -94,6 +104,7 @@ void UPawnCamSensor::SetSensorRotation(FRotator Rotation)
 	APawn *Pawn = Cast<APawn>(Owner);
 	if (!IsValid(Pawn))
 	{
+		UE_LOG(LogTemp, Error, TEXT("UPawnCamSensor::SetSensorRotation: Pawn is invalid. this: %p"), this);
 		return;
 	}
 	AController* Controller = Pawn->GetController();

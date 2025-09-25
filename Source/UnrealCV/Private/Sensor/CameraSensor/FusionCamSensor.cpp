@@ -38,7 +38,13 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	FusionSensors.Add(LitCamSensor);
 
 	// FlowCamSensor is created later to avoid template mismatch issues
-	FlowCamSensor = nullptr;
+	// Unhandled Exception: EXCEPTION_ACCESS_VIOLATION reading address 0x0000000000000008 UnrealEditor_Engine UnrealEditor_UnrealCV!AUnrealcvWorldController::OpenLevel() [C:\Users\hulc\Desktop\HUAWEI_Project\Plugins\unrealcv\Source\UnrealCV\Private\Controller\WorldController.cpp:90]
+	// FlowCamSensor = nullptr;
+	ComponentName = FString::Printf(TEXT("%s_%s"), *this->GetName(), TEXT("FlowCamSensor"));
+	// FlowCamSensor = CreateDefaultSubobject<UFlowCamSensor>(*ComponentName);
+	FlowCamSensor = CreateDefaultSubobject<UNormalCamSensor>(*ComponentName);
+	// FlowCamSensor = NewObject<UFlowCamSensor>(this, UFlowCamSensor::StaticClass()); /*NewObject with empty name can't be used to create default subobjects*/
+	FusionSensors.Add(FlowCamSensor);
 
 	// The config loading code should not be placed into the ctor, otherwise it will break the copy behavior
 	FServerConfig& Config = FUnrealcvServer::Get().Config;
@@ -48,6 +54,14 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	// Note: If FOV == 0, the render will give FMod assert error.
 	// Need to call update functions after copy operator (in BeginPlay), here just sets value
 
+	// // print pointers in FusionSensors
+	// UE_LOG(LogUnrealCV, Warning, TEXT("FusionSensors: %p, DepthCamSensor: %p, NormalCamSensor: %p, AnnotationCamSensor: %p, LitCamSensor: %p, FlowCamSensor: %p"),
+	// 	FusionSensors.GetData(), DepthCamSensor, NormalCamSensor, AnnotationCamSensor, LitCamSensor, FlowCamSensor);
+	// for (int i = 0; i < FusionSensors.Num(); i++)
+	// {
+	// 	UE_LOG(LogUnrealCV, Warning, TEXT("Sensor %d: %p"), i, FusionSensors[i]);
+	// }
+
 	for (UBaseCameraSensor* Sensor : FusionSensors)
 	{
 		if (IsValid(Sensor))
@@ -56,11 +70,24 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 		}
 		else
 		{
-			UE_LOG(LogUnrealCV, Warning, TEXT("Invalid sensor is found in the ctor of FusionCamSensor"));
+			// UE_LOG(LogUnrealCV, Warning, TEXT("Invalid sensor is found in the ctor of FusionCamSensor"));
+			UE_LOG(LogUnrealCV, Error, TEXT("Invalid sensor is found in the ctor of FusionCamSensor"));
 		}
 	}
 	// SetFilmSize(FilmWidth, FilmHeight); // This should not not be done in CTOR.
+	// print pointers in FusionSensors
 }
+
+// void UFusionCamSensor::checkFusionSensors()
+// {
+// 	for (int i = 0; i < FusionSensors.Num(); i++)
+// 	{
+// 		if (!IsValid(FusionSensors[i]))
+// 		{
+// 			UE_LOG(LogUnrealCV, Error, TEXT("UFusionCamSensor::checkFusionSensors: Invalid sensor id=%d p=%p, total=%d, this=%p"), i, FusionSensors[i], FusionSensors.Num(), this);
+// 		}
+// 	}
+// }
 
 void UFusionCamSensor::BeginPlay()
 {
@@ -134,26 +161,16 @@ void UFusionCamSensor::GetNormal(TArray<FColor>& NormalData, int& Width, int& He
 // optical flow
 void UFusionCamSensor::GetFlow(TArray<FColor>& FlowData, int& Width, int& Height)
 {
-	// Create FlowCamSensor at runtime to avoid template mismatch issues
 	if (!FlowCamSensor)
 	{
-		FlowCamSensor = NewObject<UFlowCamSensor>(this, UFlowCamSensor::StaticClass());
-		if (FlowCamSensor)
-		{
-			FlowCamSensor->SetupAttachment(this);
-			FusionSensors.Add(FlowCamSensor);
-			FlowCamSensor->RegisterComponent();
-		}
-	}
-	if (!FlowCamSensor)
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("FlowCamSensor is not initialized. Flow data will be empty."));
+		UE_LOG(LogUnrealCV, Error, TEXT("FlowCamSensor is not initialized. Flow data will be empty."));
 		FlowData.Empty();
 		Width = 0;
 		Height = 0;
 		return;
 	}
-	this->FlowCamSensor->CaptureFlow(FlowData, Width, Height);
+	// this->FlowCamSensor->CaptureFlow(FlowData, Width, Height);
+	this->FlowCamSensor->Capture(FlowData, Width, Height);
 }
 
 // Semantic
@@ -191,6 +208,20 @@ void UFusionCamSensor::SetFilmSize(int Width, int Height)
 		UE_LOG(LogTemp, Warning, TEXT("Invalid film size %d x %d"), Width, Height);
 		return;
 	}
+
+	// // FusionSensors.Empty();
+	// // FusionSensors.Add(DepthCamSensor);
+	// // FusionSensors.Add(NormalCamSensor);
+	// // FusionSensors.Add(AnnotationCamSensor);
+	// // FusionSensors.Add(LitCamSensor);
+	// // FusionSensors.Add(FlowCamSensor);
+	// // print pointers in FusionSensors
+	// UE_LOG(LogUnrealCV, Warning, TEXT("FusionSensors: %p, DepthCamSensor: %p, NormalCamSensor: %p, AnnotationCamSensor: %p, LitCamSensor: %p, FlowCamSensor: %p"),
+	// 	FusionSensors.GetData(), DepthCamSensor, NormalCamSensor, AnnotationCamSensor, LitCamSensor, FlowCamSensor);
+	// for (int i = 0; i < FusionSensors.Num(); i++)
+	// {
+	// 	UE_LOG(LogUnrealCV, Warning, TEXT("Sensor %d: %p"), i, FusionSensors[i]);
+	// }
 	for (int i = 0; i < FusionSensors.Num(); i++)
 	{
 		UBaseCameraSensor* Sensor = FusionSensors[i];
@@ -200,7 +231,8 @@ void UFusionCamSensor::SetFilmSize(int Width, int Height)
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Sensor %d within FusionCamSensor is invalid."), i);
+			UE_LOG(LogTemp, Error, TEXT("SetFilmSize: Sensor %d within FusionCamSensor is invalid. this: %p"), i, this);
+			// UE_LOG(LogTemp, Warning, TEXT("SetFilmSize: Sensor %d within FusionCamSensor is invalid."), i);
 		}
 	}
 }
@@ -275,7 +307,8 @@ void UFusionCamSensor::SetProjectionType(ECameraProjectionMode::Type ProjectionT
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Sensor %d within FusionCamSensor is invalid."), i);
+			UE_LOG(LogTemp, Error, TEXT("SetProjectionType: Sensor %d within FusionCamSensor is invalid."), i);
+			// UE_LOG(LogTemp, Warning, TEXT("SetFilmSize: Sensor %d within FusionCamSensor is invalid."), i);
 		}
 	}
 }
@@ -287,7 +320,8 @@ void UFusionCamSensor::SetOrthoWidth(float OrthoWidth)
 		UBaseCameraSensor* Sensor = FusionSensors[i];
 		if (!IsValid(Sensor))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Sensor %d within FusionCamSensor is invalid."), i);
+			UE_LOG(LogTemp, Error, TEXT("SetOrthoWidth: Sensor %d within FusionCamSensor is invalid."), i);
+			// UE_LOG(LogTemp, Warning, TEXT("SetFilmSize: Sensor %d within FusionCamSensor is invalid."), i);
 			continue;
 		}
 		Sensor->OrthoWidth = OrthoWidth;
