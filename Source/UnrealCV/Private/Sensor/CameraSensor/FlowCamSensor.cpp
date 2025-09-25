@@ -4,11 +4,11 @@
 UFlowCamSensor::UFlowCamSensor(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
-	// FString OpticalFlowPPMaterialPath = TEXT("Material'/UnrealCV/OpticalFlowMaterial.OpticalFlowMaterial'");
-	// // FString OpticalFlowPPMaterialPath = TEXT("Material'/UnrealCV/WorldNormal.WorldNormal'");
-	// ConstructorHelpers::FObjectFinder<UMaterial> Material(*OpticalFlowPPMaterialPath);
+	FString OpticalFlowPPMaterialPath = TEXT("Material'/UnrealCV/OpticalFlowMaterial.OpticalFlowMaterial'");
+	// FString OpticalFlowPPMaterialPath = TEXT("Material'/UnrealCV/WorldNormal.WorldNormal'");
+	ConstructorHelpers::FObjectFinder<UMaterial> Material(*OpticalFlowPPMaterialPath);
 
-	// SetPostProcessMaterial(Material.Object);
+	SetPostProcessMaterial(Material.Object);
 
 	// if (Material.Object != NULL)
 	// {

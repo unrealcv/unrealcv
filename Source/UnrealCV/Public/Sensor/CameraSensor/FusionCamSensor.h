@@ -189,8 +189,7 @@ protected:
 	 */
 	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "unrealcv")
 	UPROPERTY(EditDefaultsOnly, Category = "unrealcv")
-	// class UFlowCamSensor* FlowCamSensor;
-	class UNormalCamSensor* FlowCamSensor;
+	class UFlowCamSensor* FlowCamSensor;
 
 
 	/** This preview camera is used for UE version < 4.17 which only support UCameraComponent PIP preview

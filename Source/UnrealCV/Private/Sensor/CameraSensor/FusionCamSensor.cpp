@@ -42,7 +42,7 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	// FlowCamSensor = nullptr;
 	ComponentName = FString::Printf(TEXT("%s_%s"), *this->GetName(), TEXT("FlowCamSensor"));
 	// FlowCamSensor = CreateDefaultSubobject<UFlowCamSensor>(*ComponentName);
-	FlowCamSensor = CreateDefaultSubobject<UNormalCamSensor>(*ComponentName);
+	FlowCamSensor = CreateDefaultSubobject<UFlowCamSensor>(*ComponentName);
 	// FlowCamSensor = NewObject<UFlowCamSensor>(this, UFlowCamSensor::StaticClass()); /*NewObject with empty name can't be used to create default subobjects*/
 	FusionSensors.Add(FlowCamSensor);
 

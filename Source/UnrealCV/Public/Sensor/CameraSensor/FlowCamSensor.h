@@ -37,8 +37,8 @@ public:
 
 	// void CaptureFlow(TArray<FColor>& Image, int& Width, int& Height);
 
-// private:
-// 	/** Post process material to extract optical flow data */
-// 	UPROPERTY()
-// 	UMaterial* OpticalFlowPPMaterial;
+private:
+	/** Post process material to extract optical flow data */
+	UPROPERTY()
+	UMaterial* OpticalFlowPPMaterial;
 };
