@@ -9,8 +9,9 @@ UFlowCamSensor::UFlowCamSensor(const FObjectInitializer& ObjectInitializer)
 	ConstructorHelpers::FObjectFinder<UMaterial> Material(*OpticalFlowPPMaterialPath);
 	if (Material.Object)
 	{
-		// SetPostProcessMaterial(Material.Object);
-		UMaterialInstanceDynamic* PostProcessMaterialInstance = UMaterialInstanceDynamic::Create(Material.Object, nullptr);
+		OpticalFlowPPMaterial = Material.Object;
+		// SetPostProcessMaterial(OpticalFlowPPMaterial);
+		UMaterialInstanceDynamic* PostProcessMaterialInstance = UMaterialInstanceDynamic::Create(OpticalFlowPPMaterial, nullptr);
 		if (!PostProcessMaterialInstance)
 		{
 			UE_LOG(LogTemp, Error, TEXT("%s: Could not create the material instance dynamic"), *FString(__FUNCTION__))
@@ -23,6 +24,23 @@ UFlowCamSensor::UFlowCamSensor(const FObjectInitializer& ObjectInitializer)
 	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("OpticalFlowMaterial not found at %s"), *OpticalFlowPPMaterialPath);
+	}
+}
+
+void UFlowCamSensor::SetFilmSize(int Width, int Height)
+{
+	Super::SetFilmSize(Width, Height);
+	if (OpticalFlowPPMaterial)
+	{
+		UMaterialInstanceDynamic* PostProcessMaterialInstance = UMaterialInstanceDynamic::Create(OpticalFlowPPMaterial, nullptr);
+		if (!PostProcessMaterialInstance)
+		{
+			UE_LOG(LogTemp, Error, TEXT("%s: Could not create the material instance dynamic"), *FString(__FUNCTION__))
+		} else {
+			PostProcessMaterialInstance->SetScalarParameterValue(TEXT("OpticalFlowScale"), 30.0);
+			PostProcessSettings.WeightedBlendables.Array.Empty();
+			PostProcessSettings.WeightedBlendables.Array.Add(FWeightedBlendable(1.0f, PostProcessMaterialInstance));
+		}
 	}
 }
 

@@ -33,6 +33,8 @@ class UNREALCV_API UFlowCamSensor : public UBaseCameraSensor
 public:
 	UFlowCamSensor(const FObjectInitializer& ObjectInitializer);
 
+	void SetFilmSize(int Width, int Height);
+
 	// virtual void InitTextureTarget(int FilmWidth, int FilmHeight) override;
 
 	// void CaptureFlow(TArray<FColor>& Image, int& Width, int& Height);
