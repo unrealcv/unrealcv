@@ -312,6 +312,24 @@ FExecStatus FCameraHandler::GetCameraNormal(const TArray<FString>& Args)
 	return ExecStatus;
 }
 
+FExecStatus FCameraHandler::GetCameraFlow(const TArray<FString>& Args)
+{
+	FExecStatus ExecStatus = FExecStatus::OK();
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, ExecStatus);
+	if (!IsValid(FusionCamSensor)) return ExecStatus;
+	// FusionCamSensor->checkFusionSensors();
+
+	TArray<FColor> Data;
+	int Width, Height;
+	FusionCamSensor->GetFlow(Data, Width, Height);
+	if (Data.Num() == 0)
+	{
+		UE_LOG(LogTemp, Error, TEXT("%s: Flow data is empty (if you are using old character/drone blueprints, you have to rebuild this project, because the flow sensor in FusionCamSensor is a component of the blueprint.)"), *FString(__FUNCTION__));
+	}
+	SaveData(Data, Width, Height, Args, ExecStatus);
+	return ExecStatus;
+}
+
 FExecStatus FCameraHandler::GetCameraObjMask(const TArray<FString>& Args)
 {
 	FExecStatus ExecStatus = FExecStatus::OK();
@@ -792,6 +810,16 @@ void FCameraHandler::RegisterCommands()
 		"vget /camera/[uint]/normal [str]",
 		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraNormal),
 		"Get npy binary data from surface normal sensor");
+
+	// CommandDispatcher->BindCommand(
+	// 	"vget /camera/[uint]/flow [str]",
+	// 	FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraFlow),
+	// 	"Get npy binary data from optical flow sensor");
+
+	CommandDispatcher->BindCommand(
+		"vget /camera/[uint]/optical_flow [str]",
+		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraFlow),
+		"Get npy binary data from optical flow sensor");
 
 	CommandDispatcher->BindCommand(
 		"vget /camera/[uint]/object_mask [str]",

@@ -284,6 +284,17 @@ class UnrealCv_API(object):
             cv2.imshow('image', depth/depth.max())  # normalize the depth image
             cv2.waitKey(10)
         return depth
+    
+    def get_optical_flow(self, cam_id, return_cmd=False, show=False):
+        cmd = f'vget /camera/{cam_id}/optical_flow bmp'
+        if return_cmd:
+            return cmd
+        res = self.client.request(cmd)
+        optical_flow = self.decoder.decode_bmp(res)
+        if show:
+            cv2.imshow('image', optical_flow)
+            cv2.waitKey(1)
+        return optical_flow
 
     def get_image_multicam(self, cam_ids, viewmode='lit', mode='bmp', inverse=True):
         """
