@@ -43,6 +43,8 @@ class UNREALCV_API UFusionCamSensor : public UPrimitiveComponent
 public:
 	UFusionCamSensor(const FObjectInitializer& ObjectInitializer);
 
+	void checkFusionSensors();
+
 	// virtual void OnRegister() override;
 	virtual bool GetEditorPreviewInfo(float DeltaTime, FMinimalViewInfo& ViewOut);
 
@@ -57,6 +59,10 @@ public:
 	/** Get surface normal data */
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
 	void GetNormal(TArray<FColor>& NormalData, int& Width, int& Height);
+
+	/** Get optical flow data */
+	UFUNCTION(BlueprintPure, Category = "unrealcv")
+	void GetFlow(TArray<FColor>& FlowData, int& Width, int& Height);
 
 	/** Get object mask data, the annotation color can be extracted from FObjectAnnotator */
 	UFUNCTION(BlueprintPure, Category = "unrealcv")
@@ -172,6 +178,19 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "unrealcv")
 	class ULitCamSensor* LitCamSensor;
+
+	/* LogOutputDevice: Error: Ensure condition failed: false  [File:D:\build\++UE5\Sync\Engine\Source\Runtime\Engine\Private\Components\SceneComponent.cpp] [Line: 2104] 
+	 * LogOutputDevice: Error: Template Mismatch during attachment. Attaching instanced component to template component. Parent 'FusionCamSensor_GEN_VARIABLE' (Owner 'None') Self 'FusionCamSensor_GEN_VARIABLE_FlowCamSensor' (Owner 'BP_Drone01_C_1').
+	 * 'FusionCamSensor_1_AnnotationCamSensor': FusionCamSensor /Game/SuburbNeighborhood_Day_dooropen.SuburbNeighborhood_Day_dooropen:PersistentLevel.BP_Drone01_C_1.FusionCamSensor
+	 * 'FusionCamSensor_1_PreviewCamera': FusionCamSensor /Game/SuburbNeighborhood_Day_dooropen.SuburbNeighborhood_Day_dooropen:PersistentLevel.BP_Drone01_C_1.FusionCamSensor
+	 * 'FusionCamSensor_1_DepthCamSensor': FusionCamSensor /Game/SuburbNeighborhood_Day_dooropen.SuburbNeighborhood_Day_dooropen:PersistentLevel.BP_Drone01_C_1.FusionCamSensor
+	 * 'FusionCamSensor_1_LitCamSensor': FusionCamSensor /Game/SuburbNeighborhood_Day_dooropen.SuburbNeighborhood_Day_dooropen:PersistentLevel.BP_Drone01_C_1.FusionCamSensor
+	 * 'FusionCamSensor_1_NormalCamSensor': FusionCamSensor /Game/SuburbNeighborhood_Day_dooropen.SuburbNeighborhood_Day_dooropen:PersistentLevel.BP_Drone01_C_1.FusionCamSensor
+	 */
+	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "unrealcv")
+	UPROPERTY(EditDefaultsOnly, Category = "unrealcv")
+	class UFlowCamSensor* FlowCamSensor;
+
 
 	/** This preview camera is used for UE version < 4.17 which only support UCameraComponent PIP preview
 	See the difference between

@@ -26,6 +26,9 @@ public:
 	void Object();
 	void BaseColor();
 
+	/** Set to optical flow mode with global material */
+	void OpticalFlow();
+
 	/** Set to VertexColor mode with painting objects */
 	void VertexColor();
 

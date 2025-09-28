@@ -24,6 +24,7 @@ UPlayerViewMode::UPlayerViewMode() : CurrentViewMode("lit")
 	MaterialPathMap.Add(TEXT("debug"), TEXT("Material'/UnrealCV/debug.debug'"));
 	// MaterialPathMap->Add(TEXT("object_mask"), TEXT("Material'/UnrealCV/VertexColorMaterial.VertexColorMaterial'"));
 	MaterialPathMap.Add(TEXT("normal"), TEXT("Material'/UnrealCV/WorldNormal.WorldNormal'"));
+	MaterialPathMap.Add(TEXT("optical_flow"), TEXT("Material'/UnrealCV/OpticalFlowMaterial.OpticalFlowMaterial'"));
 	FString OpaqueMaterialName = "Material'/UnrealCV/OpaqueMaterial.OpaqueMaterial'";
 	MaterialPathMap.Add(TEXT("opaque"), OpaqueMaterialName);
 
@@ -114,6 +115,11 @@ void UPlayerViewMode::Normal()
 	this->ApplyPostProcess("normal");
 }
 
+void UPlayerViewMode::OpticalFlow()
+{
+	this->ApplyPostProcess("optical_flow");
+}
+
 void UPlayerViewMode::BaseColor()
 {
 	SetCurrentBufferVisualizationMode(TEXT("BaseColor"));
@@ -188,6 +194,7 @@ FExecStatus UPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input
 		ViewModeHandlers = new TMap<FString, ViewModeFunc>();
 		ViewModeHandlers->Add(TEXT("depth"), ViewModeFunc::CreateUObject(this, &UPlayerViewMode::Depth));
 		ViewModeHandlers->Add(TEXT("normal"), ViewModeFunc::CreateUObject(this, &UPlayerViewMode::Normal));
+		ViewModeHandlers->Add(TEXT("optical_flow"), ViewModeFunc::CreateUObject(this, &UPlayerViewMode::OpticalFlow));
 		ViewModeHandlers->Add(TEXT("object_mask"), ViewModeFunc::CreateUObject(this, &UPlayerViewMode::Object));
 		// ViewModeHandlers->Add(TEXT("vertex_color"), ViewModeFunc::CreateRaw(this, &FPlayerViewMode::VertexColor));
 		ViewModeHandlers->Add(TEXT("lit"), ViewModeFunc::CreateUObject(this, &UPlayerViewMode::Lit));
