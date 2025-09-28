@@ -6,7 +6,15 @@ UFlowCamSensor::UFlowCamSensor(const FObjectInitializer& ObjectInitializer)
 {
 	FString OpticalFlowPPMaterialPath = TEXT("Material'/UnrealCV/OpticalFlowMaterial.OpticalFlowMaterial'");
 	// FString OpticalFlowPPMaterialPath = TEXT("Material'/UnrealCV/WorldNormal.WorldNormal'");
+
+	// Assertion failed: IsInGameThread() [File:D:\build\++UE5\Sync\Engine\Source\Runtime\CoreUObject\Private\Serialization\AsyncLoading.cpp] [Line: 7453] 
+	// LoadPackageAsync is only thread-safe when using the zenloader (i.e. AsyncLoading2).
+	// This error may occur if UnrealCV has been updated, but the project hasn't been fully rebuilt.
+	// To resolve this, try loading the material in the BeginPlay method.
+	// Note: A similar FObjectFinder is used in the constructor of NormalCamSensor.
+	// To fix this issue, try rebuilding the project completely.
 	ConstructorHelpers::FObjectFinder<UMaterial> Material(*OpticalFlowPPMaterialPath);
+
 	if (Material.Object)
 	{
 		OpticalFlowPPMaterial = Material.Object;

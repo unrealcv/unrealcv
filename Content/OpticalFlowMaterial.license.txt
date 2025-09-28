@@ -1,0 +1,8 @@
+This file (OpticalFlowMaterial.uasset) is adapted from:
+
+EasySynth by ydrive
+https://github.com/ydrive/EasySynth
+Original file:
+https://github.com/ydrive/EasySynth/tree/main/Content/PostProcessMaterials/M_PPOpticalFlowImage.uasset
+
+License: MIT

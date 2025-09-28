@@ -43,9 +43,9 @@ bool ReadTextureRenderTarget(UTextureRenderTarget2D* RenderTarget, TArray<FColor
 }
 
 
-// bool ResizeFastReadTexture2DAsync(FTexture2DRHIRef Texture2D, int TargetWidth, int TargetHeight, TFunction<void(FColor*, int32, int32)> Callback)
+// bool ResizeFastReadTexture2DAsync(FTextureRHIRef Texture2D, int TargetWidth, int TargetHeight, TFunction<void(FColor*, int32, int32)> Callback)
 // {
-// 	auto RenderCommand = [=](FRHICommandListImmediate& RHICmdList, FTexture2DRHIRef SrcTexture)
+// 	auto RenderCommand = [=](FRHICommandListImmediate& RHICmdList, FTextureRHIRef SrcTexture)
 // 	{
 // 		// RHICmdList.ImmediateFlush(EImmediateFlushType::FlushRHIThread);
 
@@ -115,7 +115,7 @@ bool ReadTextureRenderTarget(UTextureRenderTarget2D* RenderTarget, TArray<FColor
 // 		}
 
 // 		FRHIResourceCreateInfo CreateInfo;
-// 		FTexture2DRHIRef ReadbackTexture = RHICreateTexture2D(
+// 		FTextureRHIRef ReadbackTexture = RHICreateTexture2D(
 // 			TargetWidth,
 // 			TargetHeight,
 // 			SrcTexture->GetFormat(),
@@ -151,8 +151,8 @@ bool ReadTextureRenderTarget(UTextureRenderTarget2D* RenderTarget, TArray<FColor
 
 // 	ENQUEUE_UNIQUE_RENDER_COMMAND_TWOPARAMETER(
 // 		FastReadBufferResize,
-// 		TFunction<void(FRHICommandListImmediate&, FTexture2DRHIRef)>, InRenderCommand, RenderCommand,
-// 		FTexture2DRHIRef, InTexture2D, Texture2D,
+// 		TFunction<void(FRHICommandListImmediate&, FTextureRHIRef)>, InRenderCommand, RenderCommand,
+// 		FTextureRHIRef, InTexture2D, Texture2D,
 // 	{
 // 		InRenderCommand(RHICmdList, InTexture2D);
 // 	});
