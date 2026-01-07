@@ -47,11 +47,12 @@ public:
 
 	UMaterial* GetMaterial(FString InModeName);
 private:
-	FEngineShowFlags* GameShowFlags;
-	void SetCurrentBufferVisualizationMode(FString ViewMode);
 	UPlayerViewMode();
-	FString CurrentViewMode;
+	void SetCurrentBufferVisualizationMode(FString ViewMode);
 	void ClearPostProcess();
+	void LoadMaterial();
 
+	FString CurrentViewMode;
+	static FEngineShowFlags* GameShowFlags;
 	static TMap<FString, UMaterial*> PPMaterialMap;
 };
