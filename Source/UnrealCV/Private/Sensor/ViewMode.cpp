@@ -99,6 +99,7 @@ void FViewMode::Wireframe(FEngineShowFlags& ShowFlags)
 void FViewMode::VertexColor(FEngineShowFlags& ShowFlags)
 {
 	FEngineShowFlags PreviousShowFlags(ShowFlags); // Store previous ShowFlags
+	BasicSetting(ShowFlags);
 	ApplyViewMode(VMI_Lit, true, ShowFlags);
 
 	// From MeshPaintEdMode.cpp:2942
