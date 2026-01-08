@@ -14,6 +14,9 @@
 
 DECLARE_DELEGATE(ViewModeFunc)
 
+TMap<FString, UMaterial*> UPlayerViewMode::PPMaterialMap;
+FEngineShowFlags* UPlayerViewMode::GameShowFlags = nullptr;
+
 UPlayerViewMode::UPlayerViewMode() : CurrentViewMode("lit")
 {
 	// Load material for visualization
@@ -22,22 +25,33 @@ UPlayerViewMode::UPlayerViewMode() : CurrentViewMode("lit")
 	MaterialPathMap.Add(TEXT("plane_depth"), TEXT("Material'/UnrealCV/ScenePlaneDepthWorldUnits.ScenePlaneDepthWorldUnits'"));
 	MaterialPathMap.Add(TEXT("vis_depth"), TEXT("Material'/UnrealCV/SceneDepth.SceneDepth'"));
 	MaterialPathMap.Add(TEXT("debug"), TEXT("Material'/UnrealCV/debug.debug'"));
-	// MaterialPathMap->Add(TEXT("object_mask"), TEXT("Material'/UnrealCV/VertexColorMaterial.VertexColorMaterial'"));
+	MaterialPathMap.Add(TEXT("object_mask"), TEXT("Material'/UnrealCV/VertexColorMaterial.VertexColorMaterial'"));
 	MaterialPathMap.Add(TEXT("normal"), TEXT("Material'/UnrealCV/WorldNormal.WorldNormal'"));
 	MaterialPathMap.Add(TEXT("optical_flow"), TEXT("Material'/UnrealCV/OpticalFlowMaterial.OpticalFlowMaterial'"));
 	FString OpaqueMaterialName = "Material'/UnrealCV/OpaqueMaterial.OpaqueMaterial'";
 	MaterialPathMap.Add(TEXT("opaque"), OpaqueMaterialName);
 
+	PPMaterialMap = {};
 	for (auto& Elem : MaterialPathMap)
 	{
 		FString ModeName = Elem.Key;
 		FString MaterialPath = Elem.Value;
-		ConstructorHelpers::FObjectFinder<UMaterial> Material(*MaterialPath); 
-		// ConsturctorHelpers is only available in the CTOR of UObject.
+		// ConstructorHelpers::FObjectFinder<UMaterial> Material(*MaterialPath); 
+		// // ConsturctorHelpers is only available in the CTOR of UObject.
+		// UMaterial* MaterialObject = Cast<UMaterial>(Material.Object);
+		UMaterial* MaterialObject = Cast<UMaterial>(StaticLoadObject(
+			UMaterial::StaticClass(),
+			nullptr,
+			*MaterialPath
+		));
 
-		if (Material.Object != NULL)
+		if (MaterialObject != nullptr)
 		{
-			PPMaterialMap.Add(ModeName, Cast<UMaterial>(Material.Object));
+			PPMaterialMap.Add(ModeName, MaterialObject);
+		}
+		else
+		{
+			UE_LOG(LogUnrealCV, Error, TEXT("Failed to load material for mode: %s from path: %s"), *ModeName, *MaterialPath);
 		}
 	}
 
@@ -45,6 +59,11 @@ UPlayerViewMode::UPlayerViewMode() : CurrentViewMode("lit")
 
 UMaterial* UPlayerViewMode::GetMaterial(FString InModeName)
 {
+	if (!PPMaterialMap.Contains(InModeName))
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("Can not recognize visualization mode %s"), *InModeName);
+		return nullptr;
+	}
 	UMaterial* Material = PPMaterialMap.FindRef(InModeName);
 	if (Material == nullptr)
 	{
@@ -101,27 +120,32 @@ void UPlayerViewMode::DepthWorldUnits()
 {
 	UWorld* World = FUnrealcvServer::Get().GetWorld();
 	UGameViewportClient* Viewport = World->GetGameViewport();
+	Viewport->SetViewMode(VMI_Lit);
 	FViewMode::BufferVisualization(Viewport->EngineShowFlags);
 	SetCurrentBufferVisualizationMode(TEXT("SceneDepthWorldUnits"));
 }
 
 void UPlayerViewMode::Depth()
 {
+	FUnrealcvServer::Get().GetWorld()->GetGameViewport()->SetViewMode(VMI_Lit);
 	this->ApplyPostProcess("vis_depth");
 }
 
 void UPlayerViewMode::Normal()
 {
+	FUnrealcvServer::Get().GetWorld()->GetGameViewport()->SetViewMode(VMI_Lit);
 	this->ApplyPostProcess("normal");
 }
 
 void UPlayerViewMode::OpticalFlow()
 {
+	FUnrealcvServer::Get().GetWorld()->GetGameViewport()->SetViewMode(VMI_Lit);
 	this->ApplyPostProcess("optical_flow");
 }
 
 void UPlayerViewMode::BaseColor()
 {
+	FUnrealcvServer::Get().GetWorld()->GetGameViewport()->SetViewMode(VMI_Lit);
 	SetCurrentBufferVisualizationMode(TEXT("BaseColor"));
 }
 
@@ -131,42 +155,27 @@ void UPlayerViewMode::Lit()
 	this->ClearPostProcess();
 	if (GameShowFlags == nullptr)
 	{
-		UE_LOG(LogUnrealCV, Error, TEXT("The lit mode is not correctly configured."));
+		UE_LOG(LogUnrealCV, Error, TEXT("The default show flags is not correctly configured."));
 		return;
 	}
-	World->GetGameViewport()->EngineShowFlags = *GameShowFlags;
+	auto Viewport = World->GetGameViewport();
+	Viewport->SetViewMode(VMI_Lit);
+	Viewport->EngineShowFlags = *GameShowFlags;
 	// FViewMode::Lit(Viewport->EngineShowFlags);
 }
 
 void UPlayerViewMode::Unlit()
 {
 	UWorld* World = FUnrealcvServer::Get().GetWorld();
+	this->ClearPostProcess();
+	if (GameShowFlags == nullptr)
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("The default show flags is not correctly configured."));
+		return;
+	}
 	auto Viewport = World->GetGameViewport();
-	FViewMode::Unlit(Viewport->EngineShowFlags);
-}
-
-void UPlayerViewMode::ClearPostProcess()
-{
-	GetPostProcessVolume()->BlendWeight = 0;
-}
-
-
-
-void UPlayerViewMode::ApplyPostProcess(FString ModeName)
-{
-	UWorld* World = FUnrealcvServer::Get().GetWorld();
-	UGameViewportClient* GameViewportClient = World->GetGameViewport();
-	FSceneViewport* SceneViewport = GameViewportClient->GetGameViewport();
-
-	FViewMode::PostProcess(GameViewportClient->EngineShowFlags);
-
-	UMaterial* Material = GetMaterial(ModeName);
-	APostProcessVolume* PostProcessVolume = GetPostProcessVolume();
-	PostProcessVolume->Settings.WeightedBlendables.Array.Empty();
-
-	// PostProcessVolume->AddOrUpdateBlendable(Material);
-	PostProcessVolume->Settings.AddBlendable(Material, 1);
-	PostProcessVolume->BlendWeight = 1;
+	Viewport->SetViewMode(VMI_Unlit);
+	Viewport->EngineShowFlags = *GameShowFlags;
 }
 
 void UPlayerViewMode::DebugMode()
@@ -178,9 +187,41 @@ void UPlayerViewMode::Object()
 {
 	UWorld* World = FUnrealcvServer::Get().GetWorld();
 	auto Viewport = World->GetGameViewport();
+	Viewport->SetViewMode(VMI_Lit);
 	FViewMode::VertexColor(Viewport->EngineShowFlags);
+	this->ClearPostProcess();
 	// ApplyPostProcess("object_mask");
 }
+
+void UPlayerViewMode::ClearPostProcess()
+{
+	GetPostProcessVolume()->BlendWeight = 0;
+}
+
+void UPlayerViewMode::ApplyPostProcess(FString ModeName)
+{
+	UWorld* World = FUnrealcvServer::Get().GetWorld();
+	UGameViewportClient* GameViewportClient = World->GetGameViewport();
+	// FSceneViewport* SceneViewport = GameViewportClient->GetGameViewport();
+
+	FViewMode::PostProcess(GameViewportClient->EngineShowFlags);
+
+	UMaterial* Material = GetMaterial(ModeName);
+	if (!IsValid(Material))
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("Can not find material for mode %s"), *ModeName);
+		return;
+	}
+
+	APostProcessVolume* PostProcessVolume = GetPostProcessVolume();
+	// PostProcessVolume->bEnabled = true;
+	PostProcessVolume->Settings.WeightedBlendables.Array.Empty();
+	// PostProcessVolume->AddOrUpdateBlendable(Material);
+	PostProcessVolume->Settings.AddBlendable(Material, 1);
+	PostProcessVolume->BlendWeight = 1;
+}
+
+
 
 FExecStatus UPlayerViewMode::SetMode(const TArray<FString>& Args) // Check input arguments
 {
@@ -240,10 +281,10 @@ FExecStatus UPlayerViewMode::GetMode(const TArray<FString>& Args) // Check input
 
 void UPlayerViewMode::SaveGameDefault(FEngineShowFlags ShowFlags)
 {
-	if (this->GameShowFlags != nullptr)
+	if (GameShowFlags != nullptr)
 	{
-		delete this->GameShowFlags;
-		this->GameShowFlags = nullptr;
+		delete GameShowFlags;
+		GameShowFlags = nullptr;
 	}
 	GameShowFlags = new FEngineShowFlags(ShowFlags);
 }
@@ -251,6 +292,7 @@ void UPlayerViewMode::SaveGameDefault(FEngineShowFlags ShowFlags)
 void UPlayerViewMode::VertexColor()
 {
 	auto Viewport = FUnrealcvServer::Get().GetWorld()->GetGameViewport();
+	Viewport->SetViewMode(VMI_Lit);
 	FViewMode::VertexColor(Viewport->EngineShowFlags);
 }
 
