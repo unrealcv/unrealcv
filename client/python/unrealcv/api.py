@@ -1041,10 +1041,10 @@ class UnrealCv_API(object):
             warnings.warn(res)
         else:  # add object to the object list, check if new cameras are added
             # assign a random color to the object
-            color = np.random.randint(0, 255, 3)
-            used_colors = self.obj_dict.values()
+            color = np.random.randint(0, 255, 3).tolist()
+            used_colors = [list(c) for c in self.obj_dict.values()]
             while color in used_colors:
-                color = np.random.randint(0, 255, 3)
+                color = np.random.randint(0, 255, 3).tolist()
             self.obj_dict[obj_name] = color
             self.set_obj_color(obj_name, color)
             # check if new cameras are added
