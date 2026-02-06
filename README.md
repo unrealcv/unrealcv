@@ -23,7 +23,8 @@ Images generated from the technical demo <a href="http://docs.unrealcv.org/en/ma
 </center>
 
 ## New Features
- - Support Unreal Engine 5.5.
+ - Support Unreal Engine 5.6 (recommended).
+ - Optical flow image capture: `vget /camera/[id]/optical_flow [format]`.
  - Call any Blueprint function from Python by `vbp [obj_name] [func_name] [arg1] [arg2] ...` command.
  - Support RPC communication between Server and Client in Linux, higher FPS and more reliable.
  - A set of new commands for camera control and object manipulation, please refer to [command system](https://docs.unrealcv.org/en/latest/reference/commands.html) for more details.
