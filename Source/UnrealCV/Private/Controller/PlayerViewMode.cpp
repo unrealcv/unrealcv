@@ -6,6 +6,8 @@
 #include "Materials/Material.h"
 #include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
 #include "Runtime/Engine/Public/BufferVisualizationData.h"
+#include "Runtime/Launch/Resources/Version.h"
+#include "GenericPlatform/GenericPlatformProperties.h"
 
 #include "CommandDispatcher.h"
 #include "ViewMode.h"
@@ -94,6 +96,31 @@ APostProcessVolume* UPlayerViewMode::GetPostProcessVolume()
 // 	return *Singleton;
 // }
 
+void UPlayerViewMode::SetViewportViewMode(UGameViewportClient* Viewport, EViewModeIndex Mode)
+{
+	if (!Viewport)
+	{
+		return;
+	}
+
+#if (ENGINE_MAJOR_VERSION < 5) || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION < 6)
+	if (FPlatformProperties::SupportsWindowedMode() == false)
+	{
+		if (Mode == VMI_Unlit
+			|| Mode == VMI_StationaryLightOverlap
+			|| Mode == VMI_Lit_DetailLighting
+			|| Mode == VMI_ReflectionOverride)
+		{
+			UE_LOG(LogUnrealCV, Warning, TEXT("This view mode is currently not supported on consoles."));
+			Mode = VMI_Lit;
+		}
+	}
+	Viewport->ViewModeIndex = Mode;
+#else
+	Viewport->SetViewMode(Mode);
+#endif
+}
+
 void UPlayerViewMode::SetCurrentBufferVisualizationMode(FString ViewMode)
 {
 	// A complete list can be found from Engine/Config/BaseEngine.ini, Engine.BufferVisualizationMaterials
@@ -120,32 +147,32 @@ void UPlayerViewMode::DepthWorldUnits()
 {
 	UWorld* World = FUnrealcvServer::Get().GetWorld();
 	UGameViewportClient* Viewport = World->GetGameViewport();
-	Viewport->SetViewMode(VMI_Lit);
+	SetViewportViewMode(Viewport, VMI_Lit);
 	FViewMode::BufferVisualization(Viewport->EngineShowFlags);
 	SetCurrentBufferVisualizationMode(TEXT("SceneDepthWorldUnits"));
 }
 
 void UPlayerViewMode::Depth()
 {
-	FUnrealcvServer::Get().GetWorld()->GetGameViewport()->SetViewMode(VMI_Lit);
+	SetViewportViewMode(FUnrealcvServer::Get().GetWorld()->GetGameViewport(), VMI_Lit);
 	this->ApplyPostProcess("vis_depth");
 }
 
 void UPlayerViewMode::Normal()
 {
-	FUnrealcvServer::Get().GetWorld()->GetGameViewport()->SetViewMode(VMI_Lit);
+	SetViewportViewMode(FUnrealcvServer::Get().GetWorld()->GetGameViewport(), VMI_Lit);
 	this->ApplyPostProcess("normal");
 }
 
 void UPlayerViewMode::OpticalFlow()
 {
-	FUnrealcvServer::Get().GetWorld()->GetGameViewport()->SetViewMode(VMI_Lit);
+	SetViewportViewMode(FUnrealcvServer::Get().GetWorld()->GetGameViewport(), VMI_Lit);
 	this->ApplyPostProcess("optical_flow");
 }
 
 void UPlayerViewMode::BaseColor()
 {
-	FUnrealcvServer::Get().GetWorld()->GetGameViewport()->SetViewMode(VMI_Lit);
+	SetViewportViewMode(FUnrealcvServer::Get().GetWorld()->GetGameViewport(), VMI_Lit);
 	SetCurrentBufferVisualizationMode(TEXT("BaseColor"));
 }
 
@@ -159,7 +186,7 @@ void UPlayerViewMode::Lit()
 		return;
 	}
 	auto Viewport = World->GetGameViewport();
-	Viewport->SetViewMode(VMI_Lit);
+	SetViewportViewMode(Viewport, VMI_Lit);
 	Viewport->EngineShowFlags = *GameShowFlags;
 	// FViewMode::Lit(Viewport->EngineShowFlags);
 }
@@ -174,7 +201,7 @@ void UPlayerViewMode::Unlit()
 		return;
 	}
 	auto Viewport = World->GetGameViewport();
-	Viewport->SetViewMode(VMI_Unlit);
+	SetViewportViewMode(Viewport, VMI_Unlit);
 	Viewport->EngineShowFlags = *GameShowFlags;
 }
 
@@ -187,7 +214,7 @@ void UPlayerViewMode::Object()
 {
 	UWorld* World = FUnrealcvServer::Get().GetWorld();
 	auto Viewport = World->GetGameViewport();
-	Viewport->SetViewMode(VMI_Lit);
+	SetViewportViewMode(Viewport, VMI_Lit);
 	FViewMode::VertexColor(Viewport->EngineShowFlags);
 	this->ClearPostProcess();
 	// ApplyPostProcess("object_mask");
@@ -292,7 +319,7 @@ void UPlayerViewMode::SaveGameDefault(FEngineShowFlags ShowFlags)
 void UPlayerViewMode::VertexColor()
 {
 	auto Viewport = FUnrealcvServer::Get().GetWorld()->GetGameViewport();
-	Viewport->SetViewMode(VMI_Lit);
+	SetViewportViewMode(Viewport, VMI_Lit);
 	FViewMode::VertexColor(Viewport->EngineShowFlags);
 }
 

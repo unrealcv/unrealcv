@@ -2,7 +2,9 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Runtime/Engine/Classes/Engine/PostProcessVolume.h"
+#include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
 #include "Runtime/Engine/Public/ShowFlags.h"
+#include "Runtime/Engine/Classes/Engine/EngineBaseTypes.h"
 #include "Materials/Material.h"
 #include "CommandDispatcher.h"
 #include "PlayerViewMode.generated.h"
@@ -46,11 +48,15 @@ public:
 	void SaveGameDefault(FEngineShowFlags ShowFlags);
 
 	UMaterial* GetMaterial(FString InModeName);
+
 private:
 	UPlayerViewMode();
 	void SetCurrentBufferVisualizationMode(FString ViewMode);
 	void ClearPostProcess();
 	void LoadMaterial();
+
+	/** Set viewport view mode. Uses ViewModeIndex for UE < 5.6, SetViewMode for UE 5.6+. */
+	void SetViewportViewMode(UGameViewportClient* Viewport, EViewModeIndex Mode);
 
 	FString CurrentViewMode;
 	static FEngineShowFlags* GameShowFlags;
