@@ -14,15 +14,20 @@ def infer_category(command: str) -> str:
     if len(parts) < 2:
         return "misc"
     path = parts[1]
+    if not path.startswith("/"):
+        if parts[0] in {"vrun", "vexec", "vbp"}:
+            return "alias"
+        return "misc"
     segments = [s for s in path.split("/") if s]
     if not segments:
         return "misc"
     return segments[0]
 
 
-def extract_commands_from_file(path: Path) -> list[dict]:
+def extract_commands_from_file(path: Path, repo_root: Path) -> list[dict]:
     text = path.read_text(encoding="utf-8", errors="ignore")
     items: list[dict] = []
+    relative_source = path.relative_to(repo_root).as_posix()
     for match in BIND_RE.finditer(text):
         command = " ".join(match.group("cmd").split())
         line = text.count("\n", 0, match.start()) + 1
@@ -30,7 +35,7 @@ def extract_commands_from_file(path: Path) -> list[dict]:
             {
                 "command": command,
                 "category": infer_category(command),
-                "source": str(path).replace("\\", "/"),
+                "source": relative_source,
                 "line": line,
             }
         )
@@ -41,7 +46,7 @@ def generate_schema(repo_root: Path) -> dict:
     command_files = sorted((repo_root / "Source/UnrealCV/Private/Commands").glob("*.cpp"))
     extracted: list[dict] = []
     for file_path in command_files:
-        extracted.extend(extract_commands_from_file(file_path))
+        extracted.extend(extract_commands_from_file(file_path, repo_root))
 
     unique: dict[str, dict] = {}
     for item in extracted:

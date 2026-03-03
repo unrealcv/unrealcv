@@ -9,6 +9,8 @@ CLIENT_CMD_RE = re.compile(r"\b(vget|vset|vrun|vexec|vbp)\s+/[^\s'\"]+")
 def normalize(command: str) -> str:
     text = " ".join(command.split()).strip()
     text = re.sub(r"\[[^\]]+\]", "[arg]", text)
+    text = re.sub(r"\{[^\}]+\}", "arg", text)
+    text = re.sub(r"/\d+", "/[arg]", text)
     return text
 
 
@@ -33,7 +35,8 @@ def main() -> int:
     schema_commands = [normalize(item["command"]) for item in schema.get("commands", [])]
 
     docs_text = (repo_root / "docs/reference/commands.rst").read_text(encoding="utf-8", errors="ignore")
-    docs_hits = [cmd for cmd in schema_commands if cmd in docs_text]
+    normalized_docs_text = normalize(docs_text)
+    docs_hits = [cmd for cmd in schema_commands if cmd in normalized_docs_text]
 
     client_text = "\n".join(
         p.read_text(encoding="utf-8", errors="ignore")
@@ -41,7 +44,11 @@ def main() -> int:
     )
     client_literals = {normalize(m.group(0)) for m in CLIENT_CMD_RE.finditer(client_text)}
 
-    schema_path_tokens = {path_token(cmd) for cmd in schema_commands}
+    schema_path_tokens = {
+        path_token(cmd)
+        for cmd in schema_commands
+        if len(cmd.split()) >= 2 and cmd.split()[1].startswith("/")
+    }
     client_path_tokens = {path_token(cmd) for cmd in client_literals}
     missing_in_client = sorted(schema_path_tokens - client_path_tokens)
 
