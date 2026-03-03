@@ -37,7 +37,7 @@ def main():
         action='store_false',
         help='Do not overwrite existing compiled binaries'
     )
-    parser.set_defaults(overwrite=True)
+    parser.set_defaults(overwrite=False)
 
     args = parser.parse_args()
     need_install = args.install

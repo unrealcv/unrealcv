@@ -31,8 +31,7 @@ def task_build():
     abs_plugin_file = os.path.abspath('./UnrealCV.uplugin')
     # Avoid generating to current folder, otherwise the binary built by the editor might conflict
     abs_output_folder = os.path.abspath('/tmp/unrealcv_binary')
-    cmd = os.path.join(uat_script, 'BuildPlugin -plugin={abs_plugin_file} \
-    -package={abs_output_folder} -rocket -targetplatforms=Linux -compile'.format(**locals()))
+    cmd = '"{uat_script}" BuildPlugin -plugin={abs_plugin_file} -package={abs_output_folder} -rocket -targetplatforms=Linux -compile'.format(**locals())
     actions = [cmd]
 
     return {'actions': actions, 'verbosity': 2}
@@ -42,10 +41,7 @@ def task_package():
     # Mainly used to check whether the package is successful
     abs_uproject_file = os.path.abspath('../CarAct.uproject')
     abs_output_folder = os.path.abspath('/tmp/CarAct_binary')
-    cmd = os.path.join(uat_script, 'BuildCookRun -project={abs_uproject_file} \
-    -archivedirectory={abs_output_folder} \
-    -platform=Linux -clientconfig=Development \
-    -noP4 -stage -pak -archive -cook -build'.format(**locals()))
+    cmd = '"{uat_script}" BuildCookRun -project={abs_uproject_file} -archivedirectory={abs_output_folder} -platform=Linux -clientconfig=Development -noP4 -stage -pak -archive -cook -build'.format(**locals())
     actions = [cmd]
 
     return {'actions': actions, 'verbosity': 2}

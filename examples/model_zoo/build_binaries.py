@@ -1,4 +1,4 @@
-import subprocess, os
+import subprocess, os, sys
 
 ue4_win = os.getenv('UE4_WIN', r"C:\Program Files\Epic Games\UE_4.16")
 ue4_linux = os.getenv('UE4_LINUX', "/home/qiuwch/workspace/UE416")
@@ -34,9 +34,12 @@ mac_uprojects = [
 custom_uprojects = os.getenv('UE4_UPROJECTS')
 if custom_uprojects:
     projects = [p for p in custom_uprojects.split(os.pathsep) if p]
-    win_uprojects = projects
-    linux_uprojects = projects
-    mac_uprojects = projects
+    if sys.platform.startswith('win'):
+        win_uprojects = projects
+    elif sys.platform.startswith('linux'):
+        linux_uprojects = projects
+    elif sys.platform == 'darwin':
+        mac_uprojects = projects
 
 uprojects = []
 
