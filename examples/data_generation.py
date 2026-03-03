@@ -45,7 +45,10 @@ class Camera:
         return img
 
 def main():
-    binary_path = r'C:\qiuwch\workspace\unrealcv\Binaries\RealisticRendering.uproject\WindowsNoEditor\RealisticRendering.exe'
+    binary_path = os.environ.get(
+        'UNREALCV_BINARY',
+        os.path.join(os.path.expanduser('~'), '.unrealcv', 'RealisticRendering', 'RealisticRendering.exe')
+    )
     binary = UE4Binary(binary_path)
     playback_seq = PlaybackSequence('./rr_573.json')
     camera = Camera(client, 0)
