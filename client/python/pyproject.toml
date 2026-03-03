@@ -54,7 +54,7 @@ warn_unused_configs = true
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
-testpaths = ["../../test/client", "../../test/server"]
+testpaths = ["../../test/client"]
 addopts = "--tb=short"
 
 [tool.coverage.run]

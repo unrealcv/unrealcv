@@ -3,8 +3,11 @@ repos:
     rev: v0.6.9
     hooks:
       - id: ruff
-        args: [--fix]
+        args: [--fix, --config, client/python/pyproject.toml]
+        files: ^client/python/
       - id: ruff-format
+        args: [--config, client/python/pyproject.toml]
+        files: ^client/python/
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.11.2

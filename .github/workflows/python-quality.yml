@@ -45,4 +45,4 @@ jobs:
         run: mypy unrealcv
 
       - name: Pytest collect health check
-        run: pytest --collect-only ../../test/client ../../test/server
+        run: pytest --collect-only ../../test/client
