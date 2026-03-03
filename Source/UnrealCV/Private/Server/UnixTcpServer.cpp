@@ -3,6 +3,7 @@
 #include "Runtime/Core/Public/Serialization/BufferArchive.h"
 #include "Runtime/Core/Public/Serialization/MemoryReader.h"
 #include <string>
+#include <cstring>
 #include "UnrealcvLog.h"
 #include "UnrealcvShim.h"
 
@@ -442,7 +443,8 @@ bool StartUDSMessageService_test()
 
 	memset(&serun, 0, sizeof(serun));
 	serun.sun_family = AF_UNIX;
-	strcpy(serun.sun_path, socket_path);
+	strncpy(serun.sun_path, socket_path, sizeof(serun.sun_path) - 1);
+	serun.sun_path[sizeof(serun.sun_path) - 1] = '\0';
 	size = offsetof(struct sockaddr_un, sun_path) + strlen(serun.sun_path);
 	unlink(socket_path);
 	if (bind(listenfd, (struct sockaddr*)&serun, size) < 0) {
@@ -557,7 +559,8 @@ bool UUnixTcpServer::StartMessageServiceUDS()
 
 	memset(&serun, 0, sizeof(serun));
 	serun.sun_family = AF_UNIX;
-	strcpy(serun.sun_path, socket_path);
+	strncpy(serun.sun_path, socket_path, sizeof(serun.sun_path) - 1);
+	serun.sun_path[sizeof(serun.sun_path) - 1] = '\0';
 	size = offsetof(struct sockaddr_un, sun_path) + strlen(serun.sun_path);
 	unlink(socket_path);
 	if (bind(listenfd, (struct sockaddr*)&serun, size) < 0) {

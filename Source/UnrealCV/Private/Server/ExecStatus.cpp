@@ -109,6 +109,7 @@ TArray<uint8> FExecStatus::GetData() const // Define how to format the reply str
 			Message = "ok";
 		else
 			Message = MessageBody;
+		break;
 	case FExecStatusType::ErrorMsg:
 		TypeName = "error"; break;
 	default:

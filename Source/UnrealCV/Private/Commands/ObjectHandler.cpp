@@ -330,6 +330,10 @@ FExecStatus FObjectHandler::SetHide(const TArray<FString>& Args)
 FExecStatus FObjectHandler::GetObjectVertexLocation(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
+	if (!Actor)
+	{
+		return FExecStatus::Error("Can not find object");
+	}
 	FVertexSensor VertexSensor(Actor);
 	TArray<FVector> VertexArray = VertexSensor.GetVertexArray();
 

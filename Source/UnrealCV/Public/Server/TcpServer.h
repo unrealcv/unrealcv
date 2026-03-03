@@ -86,7 +86,7 @@ private:
 	bool Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
 
 	/** The connected client socket, only maintain one client at a time */
-	FSocket* ConnectionSocket; // FSimpleAbstractSocket's receive is hard to use for non-blocking mode
+	FSocket* ConnectionSocket = nullptr; // FSimpleAbstractSocket's receive is hard to use for non-blocking mode
 
 	/** TcpListener used to listen new incoming connection */
 	TSharedPtr<FTcpListener> TcpListener;

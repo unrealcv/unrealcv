@@ -362,11 +362,16 @@ FExecStatus FCameraHandler::MoveTo(const TArray<FString>& Args)
 
 	float X = FCString::Atof(*Args[1]), Y = FCString::Atof(*Args[2]), Z = FCString::Atof(*Args[3]);
 	FVector Location = FVector(X, Y, Z);
+	APawn* Pawn = FUnrealcvServer::Get().GetPawn();
+	if (!IsValid(Pawn))
+	{
+		return FExecStatus::Error("Player pawn is invalid");
+	}
 
 	bool Sweep = true;
 	// if sweep is true, the object can not move through another object
 	// Check invalid location and move back a bit.
-	bool Success = FUnrealcvServer::Get().GetPawn()->SetActorLocation(Location, Sweep, NULL, ETeleportType::TeleportPhysics);
+	bool Success = Pawn->SetActorLocation(Location, Sweep, nullptr, ETeleportType::TeleportPhysics);
 
 	return FExecStatus::OK();
 }
@@ -378,7 +383,15 @@ FExecStatus FCameraHandler::GetScreenshot(const TArray<FString>& Args)
 	FString Filename = Args[0];
 
 	UWorld* World = FUnrealcvServer::Get().GetWorld();
+	if (!IsValid(World))
+	{
+		return FExecStatus::Error("World is invalid");
+	}
 	UGameViewportClient* ViewportClient = World->GetGameViewport();
+	if (!IsValid(ViewportClient) || !ViewportClient->Viewport)
+	{
+		return FExecStatus::Error("Viewport is invalid");
+	}
 
 	bool bScreenshotSuccessful = false;
 	FViewport* InViewport = ViewportClient->Viewport;
@@ -403,12 +416,20 @@ FExecStatus FCameraHandler::GetScreenshot(const TArray<FString>& Args)
 FExecStatus FCameraHandler::SetPlayerViewMode(const TArray<FString>& Args)
 {
 	TWeakObjectPtr<AUnrealcvWorldController> WorldController = FUnrealcvServer::Get().WorldController;
+	if (!WorldController.IsValid() || WorldController->PlayerViewMode == nullptr)
+	{
+		return FExecStatus::Error("WorldController is invalid");
+	}
 	return WorldController->PlayerViewMode->SetMode(Args);
 }
 
 FExecStatus FCameraHandler::GetPlayerViewMode(const TArray<FString>& Args)
 {
 	TWeakObjectPtr<AUnrealcvWorldController> WorldController = FUnrealcvServer::Get().WorldController;
+	if (!WorldController.IsValid() || WorldController->PlayerViewMode == nullptr)
+	{
+		return FExecStatus::Error("WorldController is invalid");
+	}
 	return WorldController->PlayerViewMode->GetMode(Args);
 }
 

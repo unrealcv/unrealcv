@@ -53,6 +53,10 @@ void FActionHandler::RegisterCommands()
 FExecStatus FActionHandler::PauseGame(const TArray<FString>& Args)
 {
 	APlayerController* PlayerController = this->GetWorld()->GetFirstPlayerController();
+	if (!IsValid(PlayerController))
+	{
+		return FExecStatus::Error("PlayerController is invalid");
+	}
 	// PlayerController->Pause();
 	PlayerController->SetPause(true);
 	return FExecStatus::OK();
@@ -61,6 +65,10 @@ FExecStatus FActionHandler::PauseGame(const TArray<FString>& Args)
 FExecStatus FActionHandler::ResumeGame(const TArray<FString>& Args)
 {
 	APlayerController* PlayerController = this->GetWorld()->GetFirstPlayerController();
+	if (!IsValid(PlayerController))
+	{
+		return FExecStatus::Error("PlayerController is invalid");
+	}
 	// PlayerController->Pause();
 	PlayerController->SetPause(false);
 	return FExecStatus::OK();
@@ -69,6 +77,10 @@ FExecStatus FActionHandler::ResumeGame(const TArray<FString>& Args)
 FExecStatus FActionHandler::GetIsPaused(const TArray<FString>& Args)
 {
 	APlayerController* PlayerController = this->GetWorld()->GetFirstPlayerController();
+	if (!IsValid(PlayerController))
+	{
+		return FExecStatus::Error("PlayerController is invalid");
+	}
 	// PlayerController->Pause();
 	bool bIsPaused = PlayerController->IsPaused();
 	// PlayerController->SetPause(false);
@@ -81,6 +93,10 @@ FExecStatus FActionHandler::OpenLevel(const TArray<FString>& Args)
 	if (Args.Num() == 1) // Level name
 	{
 		FString LevelName = Args[0];
+		if (!FUnrealcvServer::Get().WorldController.IsValid())
+		{
+			return FExecStatus::Error("WorldController is invalid");
+		}
 		FUnrealcvServer::Get().WorldController->OpenLevel(FName(*LevelName));
 		return FExecStatus::OK();
 	}
@@ -93,7 +109,7 @@ FExecStatus FActionHandler::OpenLevel(const TArray<FString>& Args)
 FExecStatus FActionHandler::EnableInput(const TArray<FString>& Args)
 {
 	APawn* Pawn = FUnrealcvServer::Get().GetPawn();
-	if (!IsValid(Pawn))
+	if (IsValid(Pawn))
 	{
 		UVisionBPLib::UpdateInput(Pawn, true);
 		return FExecStatus::OK();
@@ -109,7 +125,7 @@ FExecStatus FActionHandler::DisableInput(const TArray<FString>& Args)
 	APawn* Pawn = FUnrealcvServer::Get().GetPawn();
 	if (IsValid(Pawn))
 	{
-		UVisionBPLib::UpdateInput(Pawn, true);
+		UVisionBPLib::UpdateInput(Pawn, false);
 		return FExecStatus::OK();
 	}
 	else
@@ -142,6 +158,10 @@ TFunction<void(void)> FActionHandler::GetReleaseKey(FKey Key)
 {
 	const UWorld* World = this->GetWorld();
 	return [=]() {
+		if (!World || !World->GetFirstPlayerController())
+		{
+			return;
+		}
 		FInputKeyParams KeyParams(Key, EInputEvent::IE_Released, 0, false);
 		World->GetFirstPlayerController()->InputKey(KeyParams);
 	};
@@ -167,9 +187,14 @@ FExecStatus FActionHandler::Keyboard(const TArray<FString>& Args)
 	float DeltaTime = FCString::Atof(*Args[1]);
 	int32 NumSamples = 1;
 	bool bGamepad = false;
+	APlayerController* PlayerController = World ? World->GetFirstPlayerController() : nullptr;
+	if (!IsValid(PlayerController))
+	{
+		return FExecStatus::Error("PlayerController is invalid");
+	}
 	// The DeltaTime is not used in the code.
 	FInputKeyParams KeyParams(Key, Delta, DeltaTime, NumSamples, bGamepad);
-	World->GetFirstPlayerController()->InputKey(KeyParams);
+	PlayerController->InputKey(KeyParams);
 	FTimerHandle TimerHandle;
 	World->GetTimerManager().SetTimer(TimerHandle, GetReleaseKey(Key), DeltaTime, false);
 
