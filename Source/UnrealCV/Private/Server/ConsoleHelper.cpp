@@ -9,6 +9,7 @@ void FConsoleHelper::VBp(const TArray<FString>& Args)
 	if (!CommandDispatcher.IsValid())
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set"));
+		return;
 	}
 	FString Cmd = "vbp ";
 	uint32 NumArgs = Args.Num();
@@ -177,6 +178,12 @@ void FConsoleHelper::VSet(const TArray<FString>& Args)
 
 void FConsoleHelper::VExec(const TArray<FString>& Args)
 {
+	if (!CommandDispatcher.IsValid())
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set"));
+		return;
+	}
+
 	FString Cmd = "vexec ";
 	uint32 NumArgs = Args.Num();
 	if (NumArgs == 0) return;

@@ -372,6 +372,10 @@ FExecStatus FCameraHandler::MoveTo(const TArray<FString>& Args)
 	// if sweep is true, the object can not move through another object
 	// Check invalid location and move back a bit.
 	bool Success = Pawn->SetActorLocation(Location, Sweep, nullptr, ETeleportType::TeleportPhysics);
+	if (!Success)
+	{
+		return FExecStatus::Error(TEXT("Failed to move player pawn to requested location"));
+	}
 
 	return FExecStatus::OK();
 }
@@ -380,7 +384,7 @@ FExecStatus FCameraHandler::MoveTo(const TArray<FString>& Args)
 /** vget /screenshot [filename] */
 FExecStatus FCameraHandler::GetScreenshot(const TArray<FString>& Args)
 {
-	FString Filename = Args[0];
+	FString Filename = Args.Num() > 0 ? Args[0] : TEXT("screenshot.png");
 
 	UWorld* World = FUnrealcvServer::Get().GetWorld();
 	if (!IsValid(World))
