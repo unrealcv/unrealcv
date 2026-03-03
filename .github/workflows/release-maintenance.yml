@@ -1,0 +1,49 @@
+name: Release Maintenance
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "5.2" ]
+    paths:
+      - "build.py"
+      - "dodo.py"
+      - "examples/model_zoo/**"
+      - ".github/workflows/release-maintenance.yml"
+
+jobs:
+  validate-release-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Syntax check release/build scripts
+        run: |
+          python -m py_compile build.py dodo.py \
+            examples/model_zoo/build_binaries.py \
+            examples/model_zoo/github_release.py
+
+      - name: Show release environment hints
+        run: |
+          echo "UE_ROOT=$UE_ROOT"
+          echo "UE4_WIN=$UE4_WIN"
+          echo "UE4_LINUX=$UE4_LINUX"
+          echo "UE4_MAC=$UE4_MAC"
+          echo "UE4_UPROJECTS=$UE4_UPROJECTS"
+
+      - name: Archive release scripts
+        run: |
+          mkdir -p dist
+          tar -czf dist/release-tools.tar.gz \
+            build.py dodo.py examples/model_zoo
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-tools
+          path: dist/release-tools.tar.gz
