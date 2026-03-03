@@ -7,7 +7,7 @@
     },
     "ghcr.io/devcontainers/features/git:1": {}
   },
-  "postCreateCommand": "bash -lc 'python3 -m pip install --upgrade pip && if [ -f client/python/pyproject.toml ]; then python3 -m pip install -e client/python || true; fi && if [ -f docs/requirements.txt ]; then python3 -m pip install -r docs/requirements.txt || true; fi && if [ -f test/requirements.txt ]; then python3 -m pip install -r test/requirements.txt || true; fi'",
+  "postCreateCommand": "python3 tools/bootstrap_dev.py",
   "customizations": {
     "vscode": {
       "extensions": [

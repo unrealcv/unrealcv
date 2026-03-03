@@ -4,8 +4,7 @@
   "files.insertFinalNewline": true,
   "python.testing.pytestEnabled": true,
   "python.testing.pytestArgs": [
-    "test/client",
-    "test/server"
+    "test/client"
   ],
   "search.exclude": {
     "**/.tox": true,
