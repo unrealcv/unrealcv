@@ -15,12 +15,7 @@ authors = [
     { name = "Kui Wu" }
 ]
 requires-python = ">=3.8"
-dependencies = [
-    "docker",
-    "opencv-python",
-    "pillow",
-    "numpy"
-]
+dependencies = []
 keywords = ["computer vision", "unreal engine", "ue4/5", "synthetic", "simulator", "robotics"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -51,6 +46,7 @@ dev = [
     "mypy",
 ]
 full = [
+    "docker",
     "opencv-python",
     "numpy",
     "pillow",
@@ -58,3 +54,6 @@ full = [
 
 [tool.setuptools.dynamic]
 version = {attr = "unrealcv.__version__"}
+
+[tool.setuptools.package-data]
+unrealcv = ["py.typed"]

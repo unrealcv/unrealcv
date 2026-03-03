@@ -383,7 +383,7 @@ class RunDocker():
             warnings.warn('Did not find unreal environment, Please move your binary file to env/UnrealEnv')
             sys.exit()
 
-        client = docker.from_env()
+        client = self.docker_client
         # network_settings = self.container.attrs['NetworkSettings']
         volumes = f'-v {self.path2env}:{ENV_DIR_DOCKER}:rw'
 

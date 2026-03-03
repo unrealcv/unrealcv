@@ -42,7 +42,7 @@ except ImportError as _e:
 
 def _check_cv_deps() -> None:
     """Raise a helpful error if heavy CV dependencies are missing."""
-    if cv2 is None or np is None:
+    if cv2 is None or np is None or PIL is None:
         raise ImportError(
             "UnrealCv_API requires 'opencv-python', 'numpy', and 'pillow'. "
             "Install them with: pip install unrealcv[full] "
@@ -81,8 +81,8 @@ class UnrealCv_API(object):
         _check_cv_deps()
         self.ip = ip
         self.resolution = resolution # the resolution is not used.
-        self.max_retries = max_retries or self.DEFAULT_MAX_RETRIES
-        self.request_timeout = request_timeout or self.DEFAULT_REQUEST_TIMEOUT
+        self.max_retries = self.DEFAULT_MAX_RETRIES if max_retries is None else max_retries
+        self.request_timeout = self.DEFAULT_REQUEST_TIMEOUT if request_timeout is None else request_timeout
         self.decoder = MsgDecoder()
         self.checker = ResChecker()
         self.obj_dict = dict()
@@ -157,7 +157,10 @@ class UnrealCv_API(object):
                 RuntimeWarning,
                 stacklevel=3,
             )
-            time.sleep(min(delay, self.request_timeout - (time.monotonic() - start_time)))
+            remaining = self.request_timeout - (time.monotonic() - start_time)
+            if remaining <= 0:
+                break
+            time.sleep(min(delay, remaining))
             delay = min(delay * 2, 2.0)  # exponential backoff, capped at 2s
         raise UnrealCVTimeoutError(
             f'Request failed after {self.max_retries} retries '
