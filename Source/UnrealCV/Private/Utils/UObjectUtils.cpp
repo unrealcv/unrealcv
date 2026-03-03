@@ -5,11 +5,43 @@
 
 AActor* GetActorById(UWorld* World, FString ActorId)
 {
+	if (!World)
+	{
+		return nullptr;
+	}
+
+	static TWeakObjectPtr<UWorld> CachedWorld;
+	static TMap<FString, TWeakObjectPtr<AActor>> ActorCache;
+
+	if (CachedWorld.Get() != World)
+	{
+		ActorCache.Empty();
+		for (TActorIterator<AActor> ActorItr(World); ActorItr; ++ActorItr)
+		{
+			AActor* Actor = *ActorItr;
+			if (Actor && Actor->GetWorld() == World)
+			{
+				ActorCache.Add(Actor->GetName(), Actor);
+			}
+		}
+		CachedWorld = World;
+	}
+
+	if (TWeakObjectPtr<AActor>* CachedActor = ActorCache.Find(ActorId))
+	{
+		if (CachedActor->IsValid())
+		{
+			return CachedActor->Get();
+		}
+		ActorCache.Remove(ActorId);
+	}
+
 	for (TActorIterator<AActor> ActorItr(World); ActorItr; ++ActorItr)
 	{
 		AActor* Actor = *ActorItr;
 		if (Actor->GetWorld() == World && Actor->GetName() == ActorId)
 		{
+			ActorCache.Add(ActorId, Actor);
 			return Actor;
 		}
 	}

@@ -23,26 +23,9 @@ TArray<uint8> FSerializationUtils::Array2Npy(const TArray<float>& ImageData, int
 	if (Channel != 1) Shape.push_back(Channel);
 
 	std::vector<char> NpyHeader = cnpy::create_npy_header(TypePointer, Shape);
-	std::vector<float> FloatData;
-
-	for (int i = 0; i < ImageData.Num(); i++)
-	{
-		// TODO: a faster conversion
-		float v = ImageData[i];
-		FloatData.push_back(v);
-	}
-
-	// Convert to binary array
-	const unsigned char* bytes = reinterpret_cast<const unsigned char*>(&FloatData[0]);
-	std::vector<unsigned char> NpyData(bytes, bytes + sizeof(float) * FloatData.size());
-
-	NpyHeader.insert(NpyHeader.end(), NpyData.begin(), NpyData.end());
-
-	// FIXME: Find a more efficient implementation
-	for (char Element : NpyHeader)
-	{
-		BinaryData.Add(Element);
-	}
+	BinaryData.Reserve(NpyHeader.size() + ImageData.Num() * sizeof(float));
+	BinaryData.Append(reinterpret_cast<const uint8*>(NpyHeader.data()), NpyHeader.size());
+	BinaryData.Append(reinterpret_cast<const uint8*>(ImageData.GetData()), ImageData.Num() * sizeof(float));
 	return BinaryData;
 }
 

@@ -85,6 +85,7 @@ bool UnixSocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
 		{
 			if (LastError == ESocketErrors::SE_EWOULDBLOCK)
 			{
+				FPlatformProcess::Sleep(0.001f);
 				continue; // No data and keep waiting
 			}
 			// Use this check instead of use return status of recv to ensure backward compatibility
@@ -349,8 +350,12 @@ bool FUnixSocketMessageHeader::ReceivePayloadUDS(FArrayReader& OutPayload, int f
 
 FString UnixStringFromBinaryArray(const TArray<uint8>& BinaryArray)
 {
-	std::string cstr(reinterpret_cast<const char*>(BinaryArray.GetData()), BinaryArray.Num());
-	return FString(cstr.c_str());
+	if (BinaryArray.Num() == 0)
+	{
+		return FString();
+	}
+	FUTF8ToTCHAR Converter(reinterpret_cast<const ANSICHAR*>(BinaryArray.GetData()), BinaryArray.Num());
+	return FString(Converter.Length(), Converter.Get());
 }
 
 void UnixBinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray)

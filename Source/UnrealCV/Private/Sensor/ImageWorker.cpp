@@ -30,12 +30,18 @@ uint32 FImageWorker::Run()
 {
 	while (!Stopping)
 	{
+		bool bProcessedFrame = false;
 		FFrameData Frame;
 		while (PendingData.Dequeue(Frame))
 		{
+			bProcessedFrame = true;
 			UE_LOG(LogUnrealCV, Log, TEXT("Saving frame number %d"), Frame.FrameNumber);
 			// ImageUtil.SavePngFile(Frame.ImageData, Frame.Width, Frame.Height, Frame.Filename);
 			ImageUtil.SaveBmpFile(Frame.ImageData, Frame.Width, Frame.Height, Frame.Filename);
+		}
+		if (!bProcessedFrame)
+		{
+			FPlatformProcess::Sleep(0.001f);
 		}
 	}
 	return 0;
