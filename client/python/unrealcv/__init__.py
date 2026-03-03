@@ -10,6 +10,14 @@ import os
 from .api import *
 from .automation import *
 from .launcher import *
+from .exceptions import (
+    UnrealCVError,
+    ConnectionError as UCVConnectionError,
+    DisconnectedError,
+    MessageError,
+    RequestError,
+    TimeoutError as UCVTimeoutError,
+)
 from queue import SimpleQueue
 
 
@@ -170,6 +178,19 @@ class Client:
         self.recv_data_q = SimpleQueue()  # inf
         self.type = type
 
+    def __enter__(self):
+        """Connect to the server when entering context."""
+        if not self.connect():
+            raise UCVConnectionError(
+                f'Failed to connect to {self.endpoint}'
+            )
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Disconnect from the server when leaving context."""
+        self.disconnect()
+        return False
+
     def send(self, message):
         """Send message out, return whether the message was successfully sent"""
         if self.isconnected():
@@ -198,10 +219,16 @@ class Client:
             if message_id == self.recv_message_id:
                 return message_body
             else:
-                assert False, f'this_msg_id: {message_id}; record_msg_id: {self.recv_message_id}'
+                raise MessageError(
+                    f'Message ID mismatch: received {message_id}, '
+                    f'expected {self.recv_message_id}'
+                )
         else:
-            # Instead of just dropping this message, give a verbose notice
             _L.error('No message handler to handle message with length %d', len(raw_message))
+            raise MessageError(
+                f'Unhandled raw message (length={len(raw_message)}): '
+                f'does not match expected id:payload format'
+            )
 
     def connect(self, timeout=1):
         """
@@ -310,7 +337,9 @@ class Client:
                         time.sleep(1)
                 print('disconnecting...')
                 self.disconnect()
-                assert 0, 'exit because of abnormal disconnection'
+                raise DisconnectedError(
+                    'Lost connection to server and all reconnection attempts failed'
+                )
 
             return message
 
@@ -350,13 +379,11 @@ class Client:
 
         raw_message = b'%d:%s' % (self.send_message_id, message)
         if not self.send(raw_message):
-            assert 0, 'failed send because of socket is closed'
-            # return None
+            raise RequestError('Failed to send async request: socket is closed')
 
         self.send_message_id += 1
 
         self.recv_num_q.put(1)
-        # self.message_id += 1
         return None
 
     def request_batch_async(self, batch):
@@ -377,8 +404,7 @@ class Client:
 
             raw_message = b'%d:%s' % (self.send_message_id, message)
             if not self.send(raw_message):
-                assert 0, 'failed send because of socket is closed'
-            # self.send(raw_message)
+                raise RequestError('Failed to send batch async request: socket is closed')
             self.send_message_id += 1
 
         self.recv_num_q.put(len(batch))
@@ -408,7 +434,7 @@ class Client:
 
             raw_message = b'%d:%s' % (self.send_message_id, message)
             if not self.send(raw_message):
-                assert 0, 'failed send because of socket is closed'
+                raise RequestError('Failed to send batch request: socket is closed')
                 # return None
             self.send_message_id += 1
 
@@ -467,7 +493,7 @@ class Client:
         raw_message = b'%d:%s' % (self.send_message_id, message)
         # _L.debug('Request: %s', raw_message.decode("utf-8"))
         if not self.send(raw_message):
-            assert 0, 'failed send because of socket is closed'
+            raise RequestError('Failed to send request: socket is closed')
             # return None
 
         self.send_message_id += 1
