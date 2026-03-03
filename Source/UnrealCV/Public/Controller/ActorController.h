@@ -25,6 +25,6 @@ public:
 	// FColor GetAnnotaionColor();
 
 private:
-	AActor* Actor;
+	TWeakObjectPtr<AActor> Actor;
 
 };

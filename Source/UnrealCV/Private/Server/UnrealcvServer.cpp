@@ -63,10 +63,11 @@ APawn* FUnrealcvServer::GetPawn()
 
 	if (!IsValid(PlayerController))
 	{
+		Pawn.Reset();
 		return nullptr;
 	}
 	Pawn = PlayerController->GetPawn();
-	return Pawn;
+	return Pawn.Get();
 }
 
 FUnrealcvServer& FUnrealcvServer::Get()
@@ -78,15 +79,18 @@ FUnrealcvServer& FUnrealcvServer::Get()
 void FUnrealcvServer::RegisterCommandHandlers()
 {
 	// Taken from ctor, because might cause loop-invoke.
-	CommandHandlers.Add(new FObjectHandler());
-	CommandHandlers.Add(new FPluginHandler());
-	CommandHandlers.Add(new FActionHandler());
-	CommandHandlers.Add(new FAliasHandler());
-	CommandHandlers.Add(new FCameraHandler());
-	for (FCommandHandler* Handler : CommandHandlers)
+	CommandHandlers.Add(MakeUnique<FObjectHandler>());
+	CommandHandlers.Add(MakeUnique<FPluginHandler>());
+	CommandHandlers.Add(MakeUnique<FActionHandler>());
+	CommandHandlers.Add(MakeUnique<FAliasHandler>());
+	CommandHandlers.Add(MakeUnique<FCameraHandler>());
+	for (const TUniquePtr<FCommandHandler>& Handler : CommandHandlers)
 	{
-		Handler->CommandDispatcher = CommandDispatcher;
-		Handler->RegisterCommands();
+		if (Handler.IsValid())
+		{
+			Handler->CommandDispatcher = CommandDispatcher;
+			Handler->RegisterCommands();
+		}
 	}
 }
 
@@ -105,7 +109,11 @@ FUnrealcvServer::FUnrealcvServer() : myRegexPattern(MessageFormat)
 
 FUnrealcvServer::~FUnrealcvServer()
 {
-	// this->TcpServer->FinishDestroy(); // TODO: Check is this usage correct?
+	CommandHandlers.Empty();
+	if (TcpServer)
+	{
+		TcpServer->RemoveFromRoot();
+	}
 }
 
 // TODO: Write an article to explain this.

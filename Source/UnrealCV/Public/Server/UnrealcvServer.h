@@ -98,7 +98,7 @@ public:
 
 private:
 	/** Handlers for UnrealCV commands */
-	TArray<class FCommandHandler*> CommandHandlers;
+	TArray<TUniquePtr<class FCommandHandler>> CommandHandlers;
 
 	/** Process pending requests in a tick */
 	void ProcessPendingRequest();
@@ -112,7 +112,7 @@ private:
 	TArray<FRequest> Batch;
 
 	/** The Pawn of the Game */
-	APawn* Pawn;
+	TWeakObjectPtr<APawn> Pawn;
 
 	bool bIsTicking = true;
 

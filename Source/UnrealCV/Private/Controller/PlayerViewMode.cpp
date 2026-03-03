@@ -75,15 +75,24 @@ UMaterial* UPlayerViewMode::GetMaterial(FString InModeName)
 APostProcessVolume* UPlayerViewMode::GetPostProcessVolume()
 {
 	UWorld* World = FUnrealcvServer::Get().GetWorld();
-	static APostProcessVolume* PostProcessVolume = nullptr;
-	static UWorld* CurrentWorld = nullptr; // Check whether the world has been restarted.
-	if (PostProcessVolume == nullptr || CurrentWorld != World)
+	if (!IsValid(World))
 	{
-		PostProcessVolume = World->SpawnActor<APostProcessVolume>();
-		PostProcessVolume->bUnbound = true;
+		return nullptr;
+	}
+	static TWeakObjectPtr<APostProcessVolume> PostProcessVolume;
+	static TWeakObjectPtr<UWorld> CurrentWorld; // Check whether the world has been restarted.
+	if (!PostProcessVolume.IsValid() || CurrentWorld.Get() != World)
+	{
+		APostProcessVolume* SpawnedPostProcessVolume = World->SpawnActor<APostProcessVolume>();
+		if (!IsValid(SpawnedPostProcessVolume))
+		{
+			return nullptr;
+		}
+		SpawnedPostProcessVolume->bUnbound = true;
+		PostProcessVolume = SpawnedPostProcessVolume;
 		CurrentWorld = World;
 	}
-	return PostProcessVolume;
+	return PostProcessVolume.Get();
 }
 
 // UPlayerViewMode::~UPlayerViewMode() {}

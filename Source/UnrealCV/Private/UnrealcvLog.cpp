@@ -2,6 +2,8 @@
 #include "UnrealcvLog.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
 
+FUnrealcvLogger GLogger;
+
 void FUnrealcvLogger::ScreenLog(const FString& Message)
 {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, Message);

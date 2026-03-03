@@ -19,6 +19,6 @@ public:
 	void ScreenLog(const FString& LogMessage);
 };
 
-static FUnrealcvLogger GLogger;
+extern FUnrealcvLogger GLogger;
 #define LOG1(x) GLogger.LogOnce(x)
 #define LOGV(x) GLogger.ScreenLog(x)
