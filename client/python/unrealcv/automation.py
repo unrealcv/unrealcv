@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # Build script of unrealcv, supports win, linux and mac.
 # A single file library
 # Weichao Qiu @ 2017
@@ -5,7 +7,7 @@ import subprocess, sys, os, argparse, platform, logging, glob, shutil, json
 try: input = raw_input # to support python3
 except NameError: pass
 
-def get_platform_name():
+def get_platform_name() -> str | None:
     ''''
     Python and UE4 use different names for platform, in this script we will use UE4 platform name exclusively
     '''
@@ -21,7 +23,7 @@ def get_platform_name():
         print('Can not recognize platform %s' % platform.system())
     return platform_name
 
-def get_plugin_version(plugin_descriptor):
+def get_plugin_version(plugin_descriptor: str) -> str:
     with open(plugin_descriptor) as f:
         description = json.load(f)
     plugin_version = description['VersionName']
@@ -29,7 +31,7 @@ def get_plugin_version(plugin_descriptor):
 
 class UE4Automation:
     ''' UE4 engine wrapper '''
-    def __init__(self, engine):
+    def __init__(self, engine: str | None) -> None:
         self.platform_name = self._get_platform_name()
         if engine:
             self.UE4_dir = engine
@@ -40,10 +42,10 @@ class UE4Automation:
         if not os.path.isfile(self.abs_UAT_path):
             print('Can not found UAT script in the engine folder %s' % self.UE4_dir)
 
-    def _get_platform_name(self):
+    def _get_platform_name(self) -> str | None:
         return get_platform_name()
 
-    def build_plugin(self, plugin_descriptor, output_folder, overwrite = False):
+    def build_plugin(self, plugin_descriptor: str, output_folder: str, overwrite: bool = False) -> None:
         '''
         Use RunUAT script to build the plugin
 
@@ -69,7 +71,7 @@ class UE4Automation:
                 '-rocket', '-targetplatforms=%s' % self.platform_name
             ], cwd = script_dir)
 
-    def install(self, plugin_folder, overwrite = False):
+    def install(self, plugin_folder: str, overwrite: bool = False) -> None:
         '''
         Install the plugin to UE4 engine folder
 
@@ -94,7 +96,7 @@ class UE4Automation:
         shutil.copytree(abs_src_unrealcv_folder, abs_tgt_unrealcv_folder)
         print('Installation of UnrealCV is successful.')
 
-    def package(self, project_descriptor, output_folder, overwrite = False):
+    def package(self, project_descriptor: str, output_folder: str, overwrite: bool = False) -> None:
         '''
         Package an UE4 project
 
@@ -121,7 +123,7 @@ class UE4Automation:
                 '-noP4', '-allmaps', '-stage', '-pak', '-archive', '-cook', '-build'
             ])
 
-    def _get_UATPath(self):
+    def _get_UATPath(self) -> str:
         platform2UATRelativePath = {
             'Linux': 'Engine/Build/BatchFiles/RunUAT.sh',
             'Mac': 'Engine/Build/BatchFiles/RunUAT.sh',
@@ -134,7 +136,7 @@ class UE4Automation:
 
 
 
-    def _get_UE4_dir(self):
+    def _get_UE4_dir(self) -> str:
         win_candidates = [
             'C:\\Program Files\\Epic Games\\UE_4.??',
             'D:\\Program Files\\Epic Games\\UE_4.??',]
@@ -160,7 +162,7 @@ class UE4Automation:
         return found_UE4[num-1]
 
 
-def UE4Binary(binary_path):
+def UE4Binary(binary_path: str) -> UE4BinaryBase | None:
     '''
     Return a platform-dependent binary for user.
 
@@ -203,28 +205,28 @@ class UE4BinaryBase(object):
         with bin:
             client.request('vget /camera/0/lit test.png')
     '''
-    def __init__(self, binary_path):
+    def __init__(self, binary_path: str) -> None:
         self.binary_path = binary_path
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         ''' Start the binary '''
         if os.path.isfile(self.binary_path) or os.path.isdir(self.binary_path):
             self.start()
         else:
             print('Binary %s can not be found' % self.binary_path)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type: type | None, value: BaseException | None, traceback: object) -> None:
         ''' Close the binary '''
         self.close()
 
 class WindowsBinary(UE4BinaryBase):
-    def start(self):
+    def start(self) -> None:
         print('Start windows binary %s' % self.binary_path)
         subprocess.Popen(self.binary_path)
         time.sleep(10) # FIXME: How long is needed for the binary to launch?
         # Wait for the process to run. FIXME: Wait for an output line?
 
-    def close(self):
+    def close(self) -> None:
         # Kill windows process
         basename = os.path.basename(self.binary_path)
         cmd = ['taskkill', '/F', '/IM', basename]
@@ -232,20 +234,20 @@ class WindowsBinary(UE4BinaryBase):
         subprocess.call(cmd)
 
 class LinuxBinary(UE4BinaryBase):
-    def start(self):
+    def start(self) -> None:
         null_file = open(os.devnull, 'w')
         popen_obj = subprocess.Popen([self.binary_path], stdout = null_file, stderr = null_file)
         self.pid = popen_obj.pid
         time.sleep(6)
 
-    def close(self):
+    def close(self) -> None:
         # Kill Linux process
         cmd = ['kill', str(self.pid)]
         print('Kill process %s with command %s' % (self.pid, cmd))
         subprocess.call(cmd)
 
 class MacBinary(UE4BinaryBase):
-    def start(self):
+    def start(self) -> None:
         popen_obj = subprocess.Popen([
             'open',
             self.binary_path
@@ -254,15 +256,15 @@ class MacBinary(UE4BinaryBase):
         # TODO: Track the stdout to see whether it is started?
         time.sleep(5)
 
-    def close(self):
+    def close(self) -> None:
         subprocess.call(['pkill', self.program_name])
 
 class DockerBinary(UE4BinaryBase):
-    def start(self):
+    def start(self) -> None:
         # nvidia-docker run --rm -p 9000:9000 --env="DISPLAY" --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" qiuwch/rr:${version} > log/docker-rr.log &
         pass
 
-    def close(self):
+    def close(self) -> None:
         pass
 
 if __name__ == '__main__':

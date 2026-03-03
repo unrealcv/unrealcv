@@ -1,29 +1,35 @@
+from __future__ import annotations
+
 import numpy as np
+import numpy.typing as npt
 import PIL.Image
 from io import BytesIO
 import os
 import time
 import warnings
+from collections.abc import Callable, Sequence
+from typing import Any
 # StringIO module is removed in python3, use io module
+
 
 class ResChecker:
     # Define some utility functions to check whether the response is as expected
-    def is_error(self, res):
+    def is_error(self, res: str | None) -> bool:
         return (res is None) or res.startswith('error')
 
-    def is_ok(self, res):
+    def is_ok(self, res: str) -> bool:
         return res == 'ok'
 
-    def not_error(self, res):
+    def not_error(self, res: str | None) -> bool:
         return not self.is_error(res)
 
-    def is_expected_file_extension(self, path, valid_ext):
+    def is_expected_file_extension(self, path: str, valid_ext: Sequence[str]) -> bool:
         ext = os.path.splitext(path)[-1]
         if ext not in valid_ext:
             print(print(f'Invalid file extension {ext}, should be in {valid_ext}'))
         return ext in valid_ext
 
-def measure_fps(func, *args, **kwargs):
+def measure_fps(func: Callable[..., Any], *args: Any, **kwargs: Any) -> float:
     """
     Measure the frames per second (FPS) of a function.
 
@@ -43,7 +49,7 @@ def measure_fps(func, *args, **kwargs):
     fps = 60 / elapsed_time
     return fps
 
-def read_png(res):
+def read_png(res: bytes) -> npt.NDArray[np.uint8] | None:
     '''
     Return a numpy array from binary bytes of png format
 
@@ -65,7 +71,7 @@ def read_png(res):
         print('Read png can not parse response %s' % str(res[:20]))
     return img
 
-def read_npy(res):
+def read_npy(res: bytes) -> npt.NDArray[Any] | None:
     '''
     Return a numpy array from binary bytes of numpy binary file format
 
@@ -88,7 +94,7 @@ def read_npy(res):
     return arr
 
 
-def convert2planedepth(PointDepth, f=320): # convert point depth to plane depth
+def convert2planedepth(PointDepth: npt.NDArray[Any], f: int = 320) -> npt.NDArray[Any]: # convert point depth to plane depth
     """
     Convert point depth to plane depth.
 
@@ -108,7 +114,7 @@ def convert2planedepth(PointDepth, f=320): # convert point depth to plane depth
     PlaneDepth = PointDepth / (1 + (DistanceFromCenter / f) ** 2) ** 0.5
     return PlaneDepth
 
-def time_it(func):
+def time_it(func: Callable[..., Any]) -> Callable[..., Any]:
     """
     Decorator to measure the execution time of a function.
 
@@ -118,7 +124,7 @@ def time_it(func):
     Returns:
         function: The wrapped function with execution time measurement.
     """
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         start_time = time.perf_counter()
         result = func(*args, **kwargs)
         end_time = time.perf_counter()
@@ -127,7 +133,7 @@ def time_it(func):
         return result
     return wrapper
 
-def parse_resolution(res):
+def parse_resolution(res: str) -> tuple[int, int]:
     """
     Parse the resolution string into a tuple of integers.
 
@@ -148,7 +154,7 @@ def parse_resolution(res):
     except ValueError:
         parser.error('WIDTH and HEIGHT must be integers')
 
-def get_path2UnrealEnv():
+def get_path2UnrealEnv() -> str:
     # get path to UnrealEnv
     """
         Get the path to the Unreal environment.

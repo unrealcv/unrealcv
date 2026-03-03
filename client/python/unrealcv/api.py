@@ -18,9 +18,12 @@ Example:
     >>>     location = client.get_obj_location(obj)
 """
 
+from __future__ import annotations
+
 import unrealcv
 import cv2
 import numpy as np
+import numpy.typing as npt
 import math
 import time
 import os
@@ -28,6 +31,7 @@ import re
 from io import BytesIO
 import PIL.Image
 import sys
+from typing import Any
 from unrealcv.util import ResChecker, time_it
 import warnings
 
@@ -35,7 +39,7 @@ class UnrealCv_API(object):
     """
     A class to interact with UnrealCV, a toolkit for using Unreal Engine (UE) in Python.
     """
-    def __init__(self, port, ip, resolution, mode='tcp'):
+    def __init__(self, port: int, ip: str, resolution: tuple[int, int], mode: str = 'tcp') -> None:
         """
         Initialize the UnrealCV API.
 
@@ -45,18 +49,18 @@ class UnrealCv_API(object):
             resolution (tuple): The resolution of the images.
             mode (str): The connection mode, either 'tcp' or 'unix'. Default is 'tcp'. 'unix' is only for local machine in Linux.
         """
-        self.ip = ip
-        self.resolution = resolution # the resolution is not used.
-        self.decoder = MsgDecoder()
-        self.checker = ResChecker()
-        self.obj_dict = dict()
-        self.cam = dict()
+        self.ip: str = ip
+        self.resolution: tuple[int, int] = resolution # the resolution is not used.
+        self.decoder: MsgDecoder = MsgDecoder()
+        self.checker: ResChecker = ResChecker()
+        self.obj_dict: dict[str, list[int]] = dict()
+        self.cam: dict[int, dict[str, Any]] = dict()
         # build a client to connect to the env
         self.client = self.connect(ip, port, mode)
         self.client.message_handler = self.message_handler
         self.init_map()
 
-    def connect(self, ip, port, mode='tcp'):
+    def connect(self, ip: str, port: int, mode: str = 'tcp') -> unrealcv.Client:
         """
         Connect to the UnrealCV server.
 
@@ -85,14 +89,14 @@ class UnrealCv_API(object):
                 warnings.warn('unix socket mode is not supported in this platform, switch to tcp mode.')
         return client
 
-    def init_map(self):
+    def init_map(self) -> None:
         """
         Initialize the map by getting camera configurations and building a color dictionary for objects.
         """
         self.cam = self.get_camera_config()
         self.obj_dict = self.build_color_dict(self.get_objects())
 
-    def camera_info(self):
+    def camera_info(self) -> dict[int, dict[str, Any]]:
         """
         Get the camera information.
 
@@ -101,7 +105,7 @@ class UnrealCv_API(object):
         """
         return self.cam
 
-    def config_ue(self, resolution=(320, 240), low_quality=False, disable_all_screen_messages=True):
+    def config_ue(self, resolution: tuple[int, int] = (320, 240), low_quality: bool = False, disable_all_screen_messages: bool = True) -> None:
         """
         Configure Unreal Engine settings.
 
@@ -121,7 +125,7 @@ class UnrealCv_API(object):
             self.client.request('vrun sg.EffectsQuality 0', -1)  # set effects quality to low
         time.sleep(0.1)
 
-    def message_handler(self, message):
+    def message_handler(self, message: str) -> None:
         """
         Handle messages from the UnrealCV server.
 
@@ -131,7 +135,7 @@ class UnrealCv_API(object):
         msg = message
         print(msg)
 
-    def check_connection(self):
+    def check_connection(self) -> None:
         """
         Check the connection to the UnrealCV server and reconnect if necessary.
         """
@@ -140,7 +144,7 @@ class UnrealCv_API(object):
             time.sleep(1)
             self.client.connect()
 
-    def get_camera_config(self):
+    def get_camera_config(self) -> dict[int, dict[str, Any]]:
         """
         Get the camera configuration(the location, rotation, and fov of each camera).
 
@@ -157,16 +161,7 @@ class UnrealCv_API(object):
             )
         return cam
 
-    def get_camera_num(self):
-        """
-        Get the number of cameras.
-
-        Returns:
-            int: The number of cameras.
-        """
-        return len(self.client.request('vget /cameras').split())
-
-    def get_objects(self):
+    def get_camera_num(self) -> int:
         """
         Get all object names in the map.
 
@@ -177,7 +172,7 @@ class UnrealCv_API(object):
         return objects
 
     # batch_functions for multiple commands
-    def batch_cmd(self, cmds, decoders, **kwargs):
+    def batch_cmd(self, cmds: list[str], decoders: list[Any] | None, **kwargs: Any) -> list[Any]:
         """
         Execute a batch of commands.
 
@@ -202,7 +197,7 @@ class UnrealCv_API(object):
             res_list[i] = decoders[i](res, **kwargs)
         return res_list
 
-    def save_image(self, cam_id, viewmode, path, return_cmd=False):
+    def save_image(self, cam_id: int, viewmode: str, path: str, return_cmd: bool = False) -> str:
         """
         Save an image from a camera.
 
@@ -237,7 +232,7 @@ class UnrealCv_API(object):
 
         return img_dirs
 
-    def get_image(self, cam_id, viewmode, mode='bmp', return_cmd=False, show=False, inverse=False):
+    def get_image(self, cam_id: int, viewmode: str, mode: str = 'bmp', return_cmd: bool = False, show: bool = False, inverse: bool = False) -> npt.NDArray[Any] | str:
         """
         Get an image from a camera.
 
@@ -262,7 +257,7 @@ class UnrealCv_API(object):
             cv2.waitKey(1)
         return image
 
-    def get_depth(self, cam_id, inverse=False, return_cmd=False, show=False):  # get depth from unrealcv in npy format
+    def get_depth(self, cam_id: int, inverse: bool = False, return_cmd: bool = False, show: bool = False) -> npt.NDArray[Any] | str:  # get depth from unrealcv in npy format
         """
         Get the depth image from a camera.
 
@@ -285,7 +280,7 @@ class UnrealCv_API(object):
             cv2.waitKey(10)
         return depth
     
-    def get_optical_flow(self, cam_id, return_cmd=False, show=False):
+    def get_optical_flow(self, cam_id: int, return_cmd: bool = False, show: bool = False) -> npt.NDArray[Any] | str:
         cmd = f'vget /camera/{cam_id}/optical_flow bmp'
         if return_cmd:
             return cmd
@@ -296,7 +291,7 @@ class UnrealCv_API(object):
             cv2.waitKey(1)
         return optical_flow
 
-    def get_image_multicam(self, cam_ids, viewmode='lit', mode='bmp', inverse=True):
+    def get_image_multicam(self, cam_ids: list[int], viewmode: str = 'lit', mode: str = 'bmp', inverse: bool = True) -> list[npt.NDArray[Any]]:
         """
         Get images from multiple cameras with the same view mode.
 
@@ -314,7 +309,7 @@ class UnrealCv_API(object):
         img_list = self.batch_cmd(cmds, decoders, mode=mode, inverse=inverse)
         return img_list
 
-    def get_image_multimodal(self, cam_id, viewmodes=['lit', 'depth'], modes=['bmp', 'npy']): # get rgb and depth image
+    def get_image_multimodal(self, cam_id: int, viewmodes: list[str] = ['lit', 'depth'], modes: list[str] = ['bmp', 'npy']) -> npt.NDArray[Any]: # get rgb and depth image
         """
         Get multimodal images from a camera, such as RGB-D images (default).
 
@@ -332,7 +327,7 @@ class UnrealCv_API(object):
         concat_img = np.concatenate(res, axis=2)
         return concat_img
 
-    def get_img_batch(self, cam_info):
+    def get_img_batch(self, cam_info: dict[int, dict[str, dict[str, Any]]]) -> dict[int, dict[str, dict[str, Any]]]:
         """
         Get multiple images from multiple cameras or viewmodes, the most flexible function to get images.
 
@@ -359,7 +354,7 @@ class UnrealCv_API(object):
         return cam_info
 
 
-    def set_cam_pose(self, cam_id, pose):
+    def set_cam_pose(self, cam_id: int, pose: list[float]) -> None:
         """
         Set the camera pose.
 
@@ -375,7 +370,7 @@ class UnrealCv_API(object):
         self.cam[cam_id]['location'] = [x, y, z]
         self.cam[cam_id]['rotation'] = [roll, yaw, pitch]
 
-    def get_cam_pose(self, cam_id, mode='hard'):  # get camera pose, pose = [x, y, z, roll, yaw, pitch]
+    def get_cam_pose(self, cam_id: int, mode: str = 'hard') -> list[float]:  # get camera pose, pose = [x, y, z, roll, yaw, pitch]
         """
         Get the camera pose. The mode can be 'hard' or 'soft'. The 'hard' mode will get the pose from UnrealCV, while the 'soft' mode will get the pose from self.cam.
 
@@ -398,7 +393,7 @@ class UnrealCv_API(object):
             self.cam[cam_id]['rotation'] = res[1]
             return res[0] + res[1]
 
-    def set_cam_fov(self, cam_id, fov):
+    def set_cam_fov(self, cam_id: int, fov: float) -> float:
         """
         Set the camera field of view (fov).
 
@@ -417,7 +412,7 @@ class UnrealCv_API(object):
         self.cam[cam_id]['fov'] = fov
         return fov
 
-    def get_cam_fov(self, cam_id):
+    def get_cam_fov(self, cam_id: int) -> Any:
         """
         Get the camera field of view (fov).
 
@@ -431,7 +426,7 @@ class UnrealCv_API(object):
         fov = self.client.request(cmd)
         return fov
 
-    def set_cam_location(self, cam_id, loc):
+    def set_cam_location(self, cam_id: int, loc: list[float]) -> None:
         """
         Set the camera location.
 
@@ -444,7 +439,7 @@ class UnrealCv_API(object):
         self.client.request(cmd, -1)
         self.cam[cam_id]['location'] = loc
 
-    def get_cam_location(self, cam_id, newest=True, return_cmd=False, syns=True):
+    def get_cam_location(self, cam_id: int, newest: bool = True, return_cmd: bool = False, syns: bool = True) -> list[float] | str:
         """
         Get the camera location.
 
@@ -471,7 +466,7 @@ class UnrealCv_API(object):
             return self.cam[cam_id]['location']
         return res
 
-    def set_cam_rotation(self, cam_id, rot, rpy=False):
+    def set_cam_rotation(self, cam_id: int, rot: list[float], rpy: bool = False) -> None:
         """
         Set the camera rotation.
 
@@ -488,7 +483,7 @@ class UnrealCv_API(object):
         self.client.request(cmd, -1)
         self.cam[cam_id]['rotation'] = [pitch, yaw, roll]
 
-    def get_cam_rotation(self, cam_id, newest=True, return_cmd=False, syns=True):
+    def get_cam_rotation(self, cam_id: int, newest: bool = True, return_cmd: bool = False, syns: bool = True) -> list[float] | str:
         """
         Get the camera rotation.
 
@@ -515,7 +510,7 @@ class UnrealCv_API(object):
         else:
             return self.cam[cam_id]['rotation']
 
-    def move_cam(self, cam_id, loc):
+    def move_cam(self, cam_id: int, loc: list[float]) -> None:
         """
         Move the camera to a location with physics simulation.
 
@@ -527,7 +522,7 @@ class UnrealCv_API(object):
         cmd = f'vset /camera/{cam_id}/moveto {x} {y} {z}'
         self.client.request(cmd)
 
-    def move_cam_forward(self, cam_id, yaw, distance, height=0, pitch=0):
+    def move_cam_forward(self, cam_id: int, yaw: float, distance: float, height: float = 0, pitch: float = 0) -> bool:
         """
         Move the camera forward as a mobile robot at specific height.
 
@@ -566,7 +561,7 @@ class UnrealCv_API(object):
         else:
             return True
 
-    def get_distance(self, pos_now, pos_exp, n=2):  # get distance between two points, n is the dimension
+    def get_distance(self, pos_now: list[float], pos_exp: list[float], n: int = 2) -> float:  # get distance between two points, n is the dimension
         """
         Get the distance between two points.
 
@@ -582,7 +577,7 @@ class UnrealCv_API(object):
         distance = np.linalg.norm(error)
         return distance
 
-    def set_keyboard(self, key, duration=0.01):
+    def set_keyboard(self, key: str, duration: float = 0.01) -> None:
         """
         Simulate a keyboard action.
 
@@ -597,7 +592,7 @@ class UnrealCv_API(object):
         cmd = 'vset /action/keyboard {key} {duration}'
         self.client.request(cmd.format(key=key, duration=duration), -1)
 
-    def get_obj_color(self, obj, return_cmd=False):
+    def get_obj_color(self, obj: str, return_cmd: bool = False) -> list[int] | str:
         """
         Get the color of an object in the object mask.
 
@@ -614,7 +609,7 @@ class UnrealCv_API(object):
         res = self.client.request(cmd)
         return self.decoder.string2color(res)[:-1]
 
-    def set_obj_color(self, obj, color, return_cmd=False):  # set object color in object mask, color = [r,g,b]
+    def set_obj_color(self, obj: str, color: list[int], return_cmd: bool = False) -> str | None:  # set object color in object mask, color = [r,g,b]
         """
         Set the color of an object to render in the object mask.
 
@@ -633,7 +628,7 @@ class UnrealCv_API(object):
             return cmd
         self.client.request(cmd, -1)  # -1 means async mode
 
-    def set_obj_location(self, obj, loc):
+    def set_obj_location(self, obj: str, loc: list[float]) -> None:
         """
         Set the location of an object in the scene with async mode.
 
@@ -649,7 +644,7 @@ class UnrealCv_API(object):
         self.client.request(cmd, -1)  # -1 means async mode
 
 
-    def set_obj_rotation(self, obj, rot):
+    def set_obj_rotation(self, obj: str, rot: list[float]) -> None:
         """
         Set the rotation of an object in the scene with async mode.
 
@@ -661,7 +656,7 @@ class UnrealCv_API(object):
         cmd = f'vset /object/{obj}/rotation {pitch} {yaw} {roll}'
         self.client.request(cmd, -1)
 
-    def get_mask(self, object_mask, obj, threshold=3):
+    def get_mask(self, object_mask: npt.NDArray[Any], obj: str, threshold: int = 3) -> npt.NDArray[np.uint8]:
         """
         Get the mask of a specific object in the object mask image.
 
@@ -680,7 +675,7 @@ class UnrealCv_API(object):
         return mask
 
 
-    def get_bbox(self, object_mask, obj, normalize=True):
+    def get_bbox(self, object_mask: npt.NDArray[Any], obj: str, normalize: bool = True) -> tuple[npt.NDArray[np.uint8], Any]:
         """
         Get the bounding box of an object.
 
@@ -721,7 +716,7 @@ class UnrealCv_API(object):
 
         return mask, box
 
-    def get_obj_bboxes(self, object_mask, objects, return_dict=False):
+    def get_obj_bboxes(self, object_mask: npt.NDArray[Any], objects: list[str], return_dict: bool = False) -> list[Any] | dict[str, Any]:
         """
         Get the bounding boxes of multiple objects.
 
@@ -742,7 +737,7 @@ class UnrealCv_API(object):
         else:
             return boxes
 
-    def build_color_dict(self, objects, batch=True):  # build a color dictionary for objects
+    def build_color_dict(self, objects: list[str], batch: bool = True) -> dict[str, list[int]]:  # build a color dictionary for objects
         """
         Build a color dictionary for objects.
 
@@ -771,7 +766,7 @@ class UnrealCv_API(object):
         self.obj_dict = color_dict
         return color_dict
 
-    def get_obj_location(self, obj, return_cmd=False):  # get object location
+    def get_obj_location(self, obj: str, return_cmd: bool = False) -> list[float] | str:  # get object location
         """
         Get the location of an object.
 
@@ -790,7 +785,7 @@ class UnrealCv_API(object):
             res = self.client.request(cmd)
         return self.decoder.string2floats(res)
 
-    def get_obj_rotation(self, obj, return_cmd=False):  # get object rotation
+    def get_obj_rotation(self, obj: str, return_cmd: bool = False) -> list[float] | str:  # get object rotation
         """
         Get the rotation of an object.
 
@@ -809,7 +804,7 @@ class UnrealCv_API(object):
             res = self.client.request(cmd)
         return self.decoder.string2floats(res)
 
-    def get_obj_pose(self, obj):
+    def get_obj_pose(self, obj: str) -> list[float]:
         """
         Get the pose of an object.
 
@@ -824,7 +819,7 @@ class UnrealCv_API(object):
         res = self.batch_cmd(cmds, decoders)
         return res[0] + res[1]
 
-    def build_pose_dic(self, objects):  # build a pose dictionary for objects
+    def build_pose_dic(self, objects: list[str]) -> dict[str, list[float]]:  # build a pose dictionary for objects
         """
         Build a pose dictionary for objects.
 
@@ -841,7 +836,7 @@ class UnrealCv_API(object):
             pose_dic[obj] = pose
         return pose_dic
 
-    def get_obj_bounds(self, obj, return_cmd=False): # get object location
+    def get_obj_bounds(self, obj: str, return_cmd: bool = False) -> list[float] | str: # get object location
         """
         Get the bounds of an object.
 
@@ -860,7 +855,7 @@ class UnrealCv_API(object):
             res = self.client.request(cmd)
         return self.decoder.string2floats(res)  # min x,y,z  max x,y,z
 
-    def get_obj_size(self, obj, box=True):
+    def get_obj_size(self, obj: str, box: bool = True) -> list[float] | float:
         """
         Get the size of an object.
 
@@ -881,7 +876,7 @@ class UnrealCv_API(object):
         else:
             return x*y*z
 
-    def get_obj_scale(self, obj, return_cmd=False):
+    def get_obj_scale(self, obj: str, return_cmd: bool = False) -> list[float] | str:
         """
         Get the scale of an object.
 
@@ -901,7 +896,7 @@ class UnrealCv_API(object):
         print(obj, res)
         return self.decoder.string2floats(res)  # [scale_x, scale_y, scale_z]
 
-    def set_obj_scale(self, obj, scale=[1, 1, 1], return_cmd=False):
+    def set_obj_scale(self, obj: str, scale: list[float] = [1, 1, 1], return_cmd: bool = False) -> str | None:
         """
         Set the scale of an object.
 
@@ -916,7 +911,7 @@ class UnrealCv_API(object):
             return cmd
         self.client.request(cmd, -1)
 
-    def set_hide_obj(self, obj, return_cmd=False):
+    def set_hide_obj(self, obj: str, return_cmd: bool = False) -> str | None:
         """
         Hide an object, making it invisible but still present in the physics engine.
 
@@ -929,7 +924,7 @@ class UnrealCv_API(object):
             return cmd
         self.client.request(cmd, -1)
 
-    def set_show_obj(self, obj, return_cmd=False):
+    def set_show_obj(self, obj: str, return_cmd: bool = False) -> str | None:
         """
         Show an object, making it visible.
 
@@ -942,7 +937,7 @@ class UnrealCv_API(object):
             return cmd
         self.client.request(cmd, -1)
 
-    def set_hide_objects(self, objects):
+    def set_hide_objects(self, objects: list[str]) -> None:
         """
         Hide multiple objects, making them invisible but still present in the physics engine.
 
@@ -952,7 +947,7 @@ class UnrealCv_API(object):
         cmds = [self.set_hide_obj(obj, return_cmd=True) for obj in objects]
         self.client.request(cmds, -1)
 
-    def set_show_objects(self, objects):
+    def set_show_objects(self, objects: list[str]) -> None:
         """
         Show multiple objects, making them visible.
 
@@ -962,7 +957,7 @@ class UnrealCv_API(object):
         cmds = [self.set_show_obj(obj, return_cmd=True) for obj in objects]
         self.client.request(cmds, -1)
 
-    def destroy_obj(self, obj):
+    def destroy_obj(self, obj: str) -> None:
         """
         Destroy an object, removing it from the scene.
 
@@ -983,7 +978,7 @@ class UnrealCv_API(object):
         res = self.client.request('vget /cameras')
         return len(res.split())
 
-    def get_camera_list(self):
+    def get_camera_list(self) -> list[str]:
         """
         Get the list of cameras.
 
@@ -993,7 +988,7 @@ class UnrealCv_API(object):
         res = self.client.request('vget /cameras')
         return res.split()
 
-    def set_new_camera(self):
+    def set_new_camera(self) -> str:
         """
         Spawn a new camera.
 
@@ -1005,7 +1000,7 @@ class UnrealCv_API(object):
         self.register_camera(cam_id)
         return res
 
-    def register_camera(self, cam_id, obj_name=None):
+    def register_camera(self, cam_id: int, obj_name: str | None = None) -> None:
         """
         Register a camera in self.cam (dict).
 
@@ -1020,7 +1015,7 @@ class UnrealCv_API(object):
             fov=self.get_cam_fov(cam_id),
         )
 
-    def set_new_obj(self, class_name, obj_name):
+    def set_new_obj(self, class_name: str, obj_name: str) -> str | None:
         """
         Spawn a new object.
 
@@ -1052,7 +1047,7 @@ class UnrealCv_API(object):
                 self.register_camera(len(self.cam), obj_name)
             return obj_name
 
-    def get_vertex_locations(self, obj, return_cmd=False):
+    def get_vertex_locations(self, obj: str, return_cmd: bool = False) -> list[list[float]] | str:
         """
         Get the vertex locations of an object.
 
@@ -1071,7 +1066,7 @@ class UnrealCv_API(object):
             res = self.client.request(cmd)
         return self.decoder.decode_vertex(res)
 
-    def get_obj_uclass(self, obj, return_cmd=False):
+    def get_obj_uclass(self, obj: str, return_cmd: bool = False) -> str:
         """
         Get the Unreal class name of an object.
 
@@ -1090,7 +1085,7 @@ class UnrealCv_API(object):
             res = self.client.request(cmd)
         return res
 
-    def set_map(self, map_name, return_cmd=False):  # change to a new level map
+    def set_map(self, map_name: str, return_cmd: bool = False) -> str | None:  # change to a new level map
         """
         Change to a new level map.
 
@@ -1105,7 +1100,7 @@ class UnrealCv_API(object):
         if self.checker.not_error(res):
             self.init_map()
 
-    def set_pause(self, return_cmd=False):
+    def set_pause(self, return_cmd: bool = False) -> str | None:
         """
         Pause the game simulation.
 
@@ -1121,7 +1116,7 @@ class UnrealCv_API(object):
 
         self.client.request(cmd)
 
-    def set_resume(self, return_cmd=False):
+    def set_resume(self, return_cmd: bool = False) -> str | None:
         """
         Resume the game simulation.
 
@@ -1137,7 +1132,7 @@ class UnrealCv_API(object):
             return cmd
         self.client.request(cmd)
 
-    def get_is_paused(self):
+    def get_is_paused(self) -> bool:
         """
         Check if the game is paused.
 
@@ -1147,7 +1142,7 @@ class UnrealCv_API(object):
         res = self.client.request('vget /action/game/is_paused')
         return res == 'true'
 
-    def set_global_time_dilation(self, time_dilation, return_cmd=False):
+    def set_global_time_dilation(self, time_dilation: float, return_cmd: bool = False) -> str | None:
         """
         Set the global time dilation, which affects the simulation speed of the game.
 
@@ -1160,7 +1155,7 @@ class UnrealCv_API(object):
             return cmd
         self.client.request(cmd, -1)
 
-    def set_max_FPS(self, max_fps, return_cmd=False):
+    def set_max_FPS(self, max_fps: int, return_cmd: bool = False) -> str | None:
         """
         Set the maximum frames per second (FPS) for the Unreal Engine.
 
@@ -1206,10 +1201,7 @@ class MsgDecoder(object):
         >>> pos = decoder.string2floats("100.0 200.0 300.0")
         >>> print(pos)  # [100.0, 200.0, 300.0]
     """
-    def __init__(self):
-        """
-        Initialize the decoder with mapping of data types to decoder functions.
-        """
+    def __init__(self) -> None:
         self.decode_map = {
             'vertex_location': self.decode_vertex,
             'color': self.string2color,
@@ -1222,7 +1214,7 @@ class MsgDecoder(object):
             'npy': self.decode_npy
         }
 
-    def cmd2key(self, cmd):  # extract the last word of the command as key
+    def cmd2key(self, cmd: str) -> str:  # extract the last word of the command as key
         """
         Extract the last word of the command as key.
 
@@ -1234,7 +1226,7 @@ class MsgDecoder(object):
         """
         return re.split(r'[/\s]+', cmd)[-1]
 
-    def decode(self, cmd, res):
+    def decode(self, cmd: str, res: str | bytes) -> Any:
         """Universal decode function that selects appropriate decoder based on command.
 
         Args:
@@ -1252,7 +1244,7 @@ class MsgDecoder(object):
         decode_func = self.decode_map.get(key)
         return decode_func(res)
 
-    def string2list(self, res):
+    def string2list(self, res: str) -> list[str]:
         """
         Convert a string to a list.
 
@@ -1264,7 +1256,7 @@ class MsgDecoder(object):
         """
         return res.split()
 
-    def string2floats(self, res):
+    def string2floats(self, res: str) -> list[float]:
         """Convert space-separated string of numbers to float list.
 
         Args:
@@ -1279,7 +1271,7 @@ class MsgDecoder(object):
         """
         return [float(i) for i in res.split()]
 
-    def string2color(self, res):
+    def string2color(self, res: str) -> list[int]:
         """Decode color string to RGB values.
 
         Args:
@@ -1296,7 +1288,7 @@ class MsgDecoder(object):
         color = [int(i) for i in object_rgba]  # [r,g,b,a]
         return color[:-1]  # [r,g,b]
 
-    def string2vector(self, res):
+    def string2vector(self, res: str) -> list[float]:
         """
         Decode a vector string.
 
@@ -1310,7 +1302,7 @@ class MsgDecoder(object):
         vector = [float(i) for i in res]
         return vector
 
-    def bpstring2floats(self, res):
+    def bpstring2floats(self, res: str) -> list[float] | float:
         """
         Decode a string of numbers into a list of floats for blueprint.
 
@@ -1326,7 +1318,7 @@ class MsgDecoder(object):
         else:
             return [float(i) for i in valuse]
 
-    def bpvector2floats(self, res):
+    def bpvector2floats(self, res: str) -> list[list[float]]:
         """
         Decode a vector string for blueprint.
 
@@ -1339,7 +1331,7 @@ class MsgDecoder(object):
         values = re.findall(r'([XYZ]=\d+\.\d+)', res)
         return [[float(i) for i in value] for value in values]
 
-    def decode_vertex(self, res):
+    def decode_vertex(self, res: str) -> list[list[float]]:
         """
         Decode vertex locations.
 
@@ -1358,7 +1350,7 @@ class MsgDecoder(object):
         vertex_locations = [list(map(float, line.split())) for line in lines]
         return vertex_locations
 
-    def decode_img(self, res, mode, inverse=False):
+    def decode_img(self, res: bytes, mode: str, inverse: bool = False) -> npt.NDArray[Any]:
         """
         Decode an image.
 
@@ -1378,7 +1370,7 @@ class MsgDecoder(object):
             img = self.decode_depth(res, inverse)
         return img
 
-    def decode_png(self, res):
+    def decode_png(self, res: bytes) -> npt.NDArray[Any]:
         """
         Decode a PNG image.
 
@@ -1393,7 +1385,7 @@ class MsgDecoder(object):
         img = img[:, :, ::-1]  # transpose channel order
         return img
 
-    def decode_bmp(self, res):
+    def decode_bmp(self, res: bytes) -> npt.NDArray[np.uint8]:
         """Decode BMP image data.
 
         Args:
@@ -1418,7 +1410,7 @@ class MsgDecoder(object):
 
         return img
 
-    def decode_npy(self, res):
+    def decode_npy(self, res: bytes) -> npt.NDArray[Any]:
         """
         Decode a NPY image.
 
@@ -1433,7 +1425,7 @@ class MsgDecoder(object):
             img = np.expand_dims(img, axis=-1)
         return img
 
-    def decode_depth(self, res, inverse=False):
+    def decode_depth(self, res: bytes, inverse: bool = False) -> npt.NDArray[Any]:
         """
         Decode a depth image.
 
@@ -1448,7 +1440,7 @@ class MsgDecoder(object):
             depth = 1/depth
         return np.expand_dims(depth, axis=-1)
 
-    def empty(self, res):
+    def empty(self, res: str) -> str:
         """
         Return the response as is.
 

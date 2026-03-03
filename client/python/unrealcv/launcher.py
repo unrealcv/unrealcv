@@ -25,6 +25,8 @@ Example:
     >>> api.client.disconnect()
     >>> launcher.close()
 """
+from __future__ import annotations
+
 import getpass
 import subprocess
 import atexit
@@ -73,7 +75,7 @@ class RunUnreal():
         >>> unrealcv.client.disconnect()
         >>> launcher.close()
     """
-    def __init__(self, ENV_BIN, ENV_MAP=None):
+    def __init__(self, ENV_BIN: str, ENV_MAP: str | None = None) -> None:
 
 
         if os.path.isabs(ENV_BIN):
@@ -100,8 +102,19 @@ class RunUnreal():
             'Please load env binary in UnrealEnv and Check the env_bin in setting file!'
         self.ue_pid = None
 
-    def start(self, docker=False, resolution=(640, 480), display=None, opengl=False, offscreen=False,
-              nullrhi=False, gpu_id=None, local_host=True, sleep_time=8, log_file_path=None):
+    def start(
+        self,
+        docker: bool = False,
+        resolution: tuple[int, int] = (640, 480),
+        display: str | None = None,
+        opengl: bool = False,
+        offscreen: bool = False,
+        nullrhi: bool = False,
+        gpu_id: int | None = None,
+        local_host: bool = True,
+        sleep_time: int = 8,
+        log_file_path: str | None = None,
+    ) -> tuple[str, int]:
         """
         Start the Unreal Engine environment.
 
@@ -167,7 +180,14 @@ class RunUnreal():
         time.sleep(sleep_time)
         return env_ip, port
 
-    def set_ue_options(self, cmd_exe=[], opengl=False, offscreen=False, nullrhi=False, gpu_id=None):
+    def set_ue_options(
+        self,
+        cmd_exe: list[str] | None = None,
+        opengl: bool = False,
+        offscreen: bool = False,
+        nullrhi: bool = False,
+        gpu_id: int | None = None,
+    ) -> list[str]:
         """
         Set options for running the Unreal Engine environment.
 
@@ -181,6 +201,8 @@ class RunUnreal():
         Returns:
             list: The command with options.
         """
+        if cmd_exe is None:
+            cmd_exe = []
         if self.env_map is not None:
             cmd_exe.append(self.env_map)
         if opengl:
@@ -193,7 +215,7 @@ class RunUnreal():
             cmd_exe.append(f'-graphicsadapter={gpu_id}')
         return cmd_exe
 
-    def get_path2UnrealEnv(self):  # get path to UnrealEnv
+    def get_path2UnrealEnv(self) -> str:  # get path to UnrealEnv
         warnings.warn('This function is deprecated, please use get_path2UnrealEnv from unrealcv.util')
         env_path = os.getenv('UnrealEnv')
         if env_path is None:
@@ -205,7 +227,7 @@ class RunUnreal():
             return default_path
         return env_path
 
-    def parse_path(self, path):
+    def parse_path(self, path: str) -> tuple[str, str]:
         """
         Parse the path to get the root path and the relative path to the binary.
 
@@ -224,7 +246,7 @@ class RunUnreal():
         binary_path = os.path.join(*part_path[id_binaries-2:])
         return root_path, binary_path
 
-    def close(self):
+    def close(self) -> None:
         """
         Close the Unreal Engine environment.
         """
@@ -235,7 +257,7 @@ class RunUnreal():
             # self.env.terminate()
             self.env.wait()
 
-    def signal_handler(self, signum, frame):
+    def signal_handler(self, signum: int, frame: object) -> None:
         """
         Handle signals to close the environment.
 
@@ -245,7 +267,7 @@ class RunUnreal():
         """
         self.close()
 
-    def modify_permission(self, path):
+    def modify_permission(self, path: str) -> None:
         """
         Modify the permission of the environment path.
 
@@ -256,7 +278,7 @@ class RunUnreal():
         username = getpass.getuser()
         os.system(cmd.format(USER=username, ENV_PATH=path))
 
-    def read_port(self):
+    def read_port(self) -> int:
         """
         Read the port number from unrealcv.ini.
 
@@ -271,7 +293,7 @@ class RunUnreal():
         else:
             return 9000 # default port number
 
-    def write_port(self, port):
+    def write_port(self, port: int) -> None:
         self.write__ = """
         Write the port number to unrealcv.ini.
 
@@ -288,7 +310,7 @@ class RunUnreal():
             s_new = d.join(ss)
             f.write(s_new)
 
-    def write_resolution(self, resolution):
+    def write_resolution(self, resolution: tuple[int, int]) -> None:
         """
         Set the UnrealCV camera resolution by writing to unrealcv.ini.
 
@@ -306,7 +328,7 @@ class RunUnreal():
                 s_new = d.join(ss)
                 f.write(s_new)
 
-    def isPortFree(self, ip, port):
+    def isPortFree(self, ip: str, port: int) -> bool:
         """
         Check if the port is free.
 
@@ -333,7 +355,7 @@ class RunUnreal():
 
 # run binary in docker
 class RunDocker():
-    def __init__(self, path2env, image='zfw1226/unreal:latest'):
+    def __init__(self, path2env: str, image: str = 'zfw1226/unreal:latest') -> None:
         """
         Initialize the RunDocker class.
 
@@ -347,12 +369,13 @@ class RunDocker():
         self.image = image
         self.path2env = path2env
 
-    def start(self,
-              ENV_BIN = '/RealisticRendering_RL/RealisticRendering/Binaries/Linux/RealisticRendering',
-              ENV_DIR_DOCKER='/UnrealEnv', # the path to the Unreal environment in Docker
-              options='',
-              host_net=False # whether to use host networking
-              ):
+    def start(
+        self,
+        ENV_BIN: str = '/RealisticRendering_RL/RealisticRendering/Binaries/Linux/RealisticRendering',
+        ENV_DIR_DOCKER: str = '/UnrealEnv',
+        options: str = '',
+        host_net: bool = False,
+    ) -> str:
         """
         Start the Unreal Engine environment in Docker.
 
@@ -392,13 +415,12 @@ class RunDocker():
 
         return self.get_ip()
 
-    def get_ip(self):
+    def get_ip(self) -> str:
         # return '127.0.0.1'
         print(self.container.attrs['NetworkSettings']['IPAddress'])
         return self.container.attrs['NetworkSettings']['IPAddress']
 
-    def get_path2UnrealEnv(self):
-        # get path to UnrealEnv
+    def get_path2UnrealEnv(self) -> str:
         """
             Get the path to the Unreal environment.
             Default path to UnrealEnv is in user home directory under .unrealcv
@@ -418,10 +440,10 @@ class RunDocker():
             return default_path
         return env_path
 
-    def close(self):
+    def close(self) -> None:
         self.container.remove(force=True)
 
-    def check_image(self, target_images='zfw1226/unreal:latest'):
+    def check_image(self, target_images: str = 'zfw1226/unreal:latest') -> None:
         # Check the existence of image
         images = self.docker_client.images.list()
         found_img = False

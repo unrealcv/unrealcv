@@ -41,4 +41,5 @@ docs/doxygen/
 !*.ini
 !*.uplugin
 !*.bat
+!**/py.typed
 # !*.ipynb  Add ipython notebook and png, jpg by force

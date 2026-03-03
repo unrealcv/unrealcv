@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ctypes
 import logging
 import re
@@ -7,6 +9,7 @@ import sys
 import threading
 import time
 import os
+from typing import Any
 from .api import *
 from .automation import *
 from .launcher import *
@@ -34,11 +37,11 @@ class SocketMessage:
     magic = ctypes.c_uint32(0x9E2B83C1).value
     fmt = 'I'
 
-    def __init__(self, payload):
-        self.payload_size = ctypes.c_uint32(len(payload)).value
+    def __init__(self, payload: bytes) -> None:
+        self.payload_size: int = ctypes.c_uint32(len(payload)).value
 
     @classmethod
-    def ReceivePayload(cls, sock):
+    def ReceivePayload(cls, sock: socket.socket) -> bytes | None:
         """
         Return only payload, not the raw message, None if failed.
         sock: a blocking socket for read data.
@@ -107,7 +110,7 @@ class SocketMessage:
         return payload
 
     @classmethod
-    def WrapAndSendPayload(cls, sock, payload):
+    def WrapAndSendPayload(cls, sock: socket.socket, payload: bytes) -> bool:
         """
         Send payload, true if success, false if failed
         """
@@ -153,24 +156,24 @@ class Client:
     More clients will be rejected
     """
 
-    def __init__(self, endpoint, type='inet'):
+    def __init__(self, endpoint: tuple[str, int] | str, type: str = 'inet') -> None:
         """
         Parameters:
         endpoint: a tuple (ip, port)
         type: unix or inet
         """
-        self.endpoint = endpoint
-        self.sock = None  # if socket == None, means client is not connected
-        self.raw_message_regexp = re.compile(rb'(\d{1,}):(.*)')  # A binary regexp
+        self.endpoint: tuple[str, int] | str = endpoint
+        self.sock: socket.socket | None = None  # if socket == None, means client is not connected
+        self.raw_message_regexp: re.Pattern[bytes] = re.compile(rb'(\d{1,}):(.*)')  # A binary regexp
         # self.message_id = 0
-        self.wait_response = threading.Event()
-        self.send_message_id = 0
-        self.recv_message_id = 0
-        self.recv_num_q = SimpleQueue()  # inf
-        self.recv_data_q = SimpleQueue()  # inf
-        self.type = type
+        self.wait_response: threading.Event = threading.Event()
+        self.send_message_id: int = 0
+        self.recv_message_id: int = 0
+        self.recv_num_q: SimpleQueue[int | None] = SimpleQueue()  # inf
+        self.recv_data_q: SimpleQueue[Any] = SimpleQueue()  # inf
+        self.type: str = type
 
-    def send(self, message):
+    def send(self, message: bytes) -> bool:
         """Send message out, return whether the message was successfully sent"""
         if self.isconnected():
             _L.debug('BaseClient: Send message %s', message)
@@ -180,7 +183,7 @@ class Client:
             _L.error('Fail to send message, client is not connected')
             return False
 
-    def raw_message_handler(self, raw_message):
+    def raw_message_handler(self, raw_message: bytes) -> str | bytes | None:
         match = self.raw_message_regexp.match(raw_message)
 
         if match:
@@ -203,7 +206,7 @@ class Client:
             # Instead of just dropping this message, give a verbose notice
             _L.error('No message handler to handle message with length %d', len(raw_message))
 
-    def connect(self, timeout=1):
+    def connect(self, timeout: float = 1) -> bool:
         """
         Try to connect to server, return whether connection successful
         """
@@ -255,11 +258,11 @@ class Client:
             # self.sock = None
             return False
 
-    def isconnected(self):
+    def isconnected(self) -> bool:
         """Check whether client is connected to server"""
         return self.sock is not None
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """Disconnect from server"""
         if self.isconnected():
             _L.debug(
@@ -279,7 +282,7 @@ class Client:
                 self.recv_num_q.put(None)
                 self.t.join()
 
-    def receive(self):
+    def receive(self) -> bytes | None:
         """
         Receive packages, Extract message from packages
         Call self.message_handler if got a message
@@ -314,7 +317,7 @@ class Client:
 
             return message
 
-    def receive_loop_queue(self):
+    def receive_loop_queue(self) -> None:
         while True:
             num = self.recv_num_q.get()
 
@@ -337,7 +340,7 @@ class Client:
                     raw_message = self.receive()
                     self.recv_message_id += 1
 
-    def request_async(self, message):
+    def request_async(self, message: str | bytes | list[str]) -> None:
         """
         Send request without waiting for any reply
         """
@@ -359,7 +362,7 @@ class Client:
         # self.message_id += 1
         return None
 
-    def request_batch_async(self, batch):
+    def request_batch_async(self, batch: list[str | bytes]) -> None:
         """
         Send a batch of requests to server without waiting for any reply.
 
@@ -384,7 +387,7 @@ class Client:
         self.recv_num_q.put(len(batch))
         return None
 
-    def request_batch(self, batch):
+    def request_batch(self, batch: list[str | bytes]) -> list[str | bytes]:
         """
         Send a batch of requests to server and wait util get all responses from server.
         Parameters
@@ -421,7 +424,7 @@ class Client:
 
         return batch_res
 
-    def request(self, message, timeout=5):
+    def request(self, message: str | bytes | list[str], timeout: float = 5) -> str | bytes | bool | list[str | bytes] | None:
         """
         Send a request to server and wait util get a response from server or timeout.
 
