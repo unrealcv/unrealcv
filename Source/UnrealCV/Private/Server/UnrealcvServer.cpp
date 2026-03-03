@@ -348,6 +348,50 @@ void FUnrealcvServer::HandleRawMessage(const FString& Endpoint, const FString& I
 		FString Message = Matcher.GetCaptureGroup(2);
 
 		uint32 RequestId = FCString::Atoi(*StrRequestId);
+
+		if (!Config.AuthToken.IsEmpty())
+		{
+			if (AuthEndpoint != Endpoint)
+			{
+				AuthEndpoint = Endpoint;
+				bEndpointAuthenticated = false;
+			}
+
+			if (!bEndpointAuthenticated)
+			{
+				const FString AuthPrefix = TEXT("vset /unrealcv/auth ");
+				if (Message.StartsWith(AuthPrefix))
+				{
+					FString Token = Message.RightChop(AuthPrefix.Len()).TrimStartAndEnd();
+					FExecStatus AuthStatus;
+					if (Token == Config.AuthToken)
+					{
+						bEndpointAuthenticated = true;
+						AuthStatus = FExecStatus::OK(TEXT("Authentication succeeded"));
+					}
+					else
+					{
+						AuthStatus = FExecStatus::Error(TEXT("Authentication failed"));
+					}
+
+					FString Header = FString::Printf(TEXT("%d:"), RequestId);
+					TArray<uint8> ReplyData;
+					FExecStatus::BinaryArrayFromString(Header, ReplyData);
+					ReplyData += AuthStatus.GetData();
+					TcpServer->SendData(ReplyData);
+					return;
+				}
+
+				FExecStatus Required = FExecStatus::Error(TEXT("Authentication required, use: vset /unrealcv/auth <token>"));
+				FString Header = FString::Printf(TEXT("%d:"), RequestId);
+				TArray<uint8> ReplyData;
+				FExecStatus::BinaryArrayFromString(Header, ReplyData);
+				ReplyData += Required.GetData();
+				TcpServer->SendData(ReplyData);
+				return;
+			}
+		}
+
 		FRequest Request(Endpoint, Message, RequestId);
 		this->PendingRequest.Enqueue(Request);
 	}

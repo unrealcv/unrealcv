@@ -1,7 +1,7 @@
-#include "Runtime/Core/Public/Misc/CommandLine.h"
-#include "Runtime/Core/Public/Misc/Parse.h"
-#include "Runtime/Engine/Classes/Engine/Engine.h"
-#include "Runtime/Core/Public/Modules/ModuleInterface.h"
+#include "Misc/CommandLine.h"
+#include "Misc/Parse.h"
+#include "Engine/Engine.h"
+#include "Modules/ModuleInterface.h"
 #include "Modules/ModuleManager.h"
 
 #include "UnrealcvServer.h"
@@ -81,7 +81,7 @@ void FUnrealCVPlugin::StartupModule()
 		Server.Config.ExitOnFailure = OverrideExitOnFailure;
 	}
 
-	bool StartSuccess = Server.TcpServer->Start(Server.Config.Port);
+	bool StartSuccess = Server.TcpServer->Start(Server.Config.Port, Server.Config.BindAddress);
 	if (!StartSuccess)
 	{
 		UE_LOG(LogUnrealCV, Warning, TEXT("Failed to start network server"));

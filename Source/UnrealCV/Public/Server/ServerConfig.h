@@ -12,12 +12,15 @@ private:
 	FString CoreSection;
 public:
 	int Port;
+	FString BindAddress;
+	FString AuthToken;
 	int Width;
 	int Height;
 	float FOV;
 	bool EnableInput;
 	bool ExitOnFailure;
 	bool EnableRightEye;
+	bool AllowDangerousCommands;
 
 	TArray<FString> SupportedModes;
 

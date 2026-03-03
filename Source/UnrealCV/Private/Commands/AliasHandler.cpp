@@ -1,9 +1,9 @@
 #include "AliasHandler.h"
-#include "Runtime/Engine/Public/EngineUtils.h"
-#include "Runtime/Engine/Classes/Engine/LevelScriptActor.h"
-#include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
-#include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
-#include "Runtime/Core/Public/UObject/PropertyPortFlags.h"
+#include "EngineUtils.h"
+#include "Engine/LevelScriptActor.h"
+#include "Engine/GameViewportClient.h"
+#include "GameFramework/PlayerController.h"
+#include "UObject/PropertyPortFlags.h"
 #include "Utils/UObjectUtils.h"
 #include "SerializeBPLib.h"
 #include "UnrealcvLog.h"
@@ -107,6 +107,11 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 
 	// if (Obj->CallFunctionByNameWithArguments(*Cmd, OutputDevice, nullptr, true))
 	// {
+		if (!FUnrealcvServer::Get().Config.AllowDangerousCommands)
+		{
+			return FExecStatus::Error(TEXT("Command disabled by policy: set AllowDangerousCommands=true or -cvallowdangerous"));
+		}
+
 	// 	return FExecStatus::OK();
 	// }
 	// else
@@ -118,6 +123,11 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 	FOutputDevice& Ar = OutputDevice;
 	UObject* Executor = nullptr;
 	bool bForceCallWithNonExec = true;/*=false*/
+
+	if (!FUnrealcvServer::Get().Config.AllowDangerousCommands)
+	{
+		return FExecStatus::Error(TEXT("Command disabled by policy: set AllowDangerousCommands=true or -cvallowdangerous"));
+	}
 
 	// Find an exec function.
 	FString MsgStr;
@@ -333,6 +343,11 @@ FExecStatus FAliasHandler::VExec(const TArray<FString>& Args)
 	// Args[0] : ActorId
 	// Args[1] : BlueprintFunctionName
 	// Args[2 .. end] : Parameters
+
+	if (!FUnrealcvServer::Get().Config.AllowDangerousCommands)
+	{
+		return FExecStatus::Error(TEXT("Command disabled by policy: set AllowDangerousCommands=true or -cvallowdangerous"));
+	}
 
 	FString ActorId, FuncName;
 	if (Args.Num() < 1)

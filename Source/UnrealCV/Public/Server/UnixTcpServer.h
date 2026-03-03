@@ -84,7 +84,7 @@ public:
 
 	/** Start the underlying TcpListener to listen for new connection */
 	// TODO: Handle port in use exception
-	bool Start(int32 InPortNum);
+	bool Start(int32 InPortNum, const FString& InBindAddress = TEXT("127.0.0.1"));
 
 	/** Send a string to connected client, return false if false to send. Will fail if no connection available */
 	bool SendMessage(const FString& Message);

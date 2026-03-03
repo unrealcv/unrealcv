@@ -1,8 +1,8 @@
 // Weichao Qiu @ 2016
 #include "ServerConfig.h"
-#include "Runtime/Core/Public/HAL/FileManager.h"
-#include "Runtime/Core/Public/Misc/ConfigCacheIni.h"
-#include "Runtime/Core/Public/Misc/CommandLine.h"
+#include "HAL/FileManager.h"
+#include "Misc/ConfigCacheIni.h"
+#include "Misc/CommandLine.h"
 #include "Modules/ModuleManager.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetRegistry/AssetData.h"
@@ -19,12 +19,19 @@ FServerConfig::FServerConfig()
 
 	// Default value, will be unchanged if the config is missing.
 	Port = 9000; 
+	BindAddress = TEXT("127.0.0.1");
+	AuthToken = TEXT("");
 	Width = 640;
 	Height = 480;
 	FOV = 90.0f;
 	EnableInput = true;
 	ExitOnFailure = false;
 	EnableRightEye = false;
+#if WITH_EDITOR
+	AllowDangerousCommands = true;
+#else
+	AllowDangerousCommands = false;
+#endif
 
 	SupportedModes.Add(TEXT("lit"));
 	SupportedModes.Add(TEXT("depth"));
@@ -41,11 +48,13 @@ FServerConfig::FServerConfig()
 	this->ParseCmdArgs();
 
 	UE_LOG(LogUnrealCV, Warning, TEXT("Port: %d"), this->Port);
+	UE_LOG(LogUnrealCV, Warning, TEXT("BindAddress: %s"), *this->BindAddress);
 	UE_LOG(LogUnrealCV, Warning, TEXT("Width: %d"), this->Width);
 	UE_LOG(LogUnrealCV, Warning, TEXT("Height: %d"), this->Height);
 	UE_LOG(LogUnrealCV, Warning, TEXT("FOV: %f"), this->FOV);
 	UE_LOG(LogUnrealCV, Warning, TEXT("EnableInput: %s"), *BoolToString(this->EnableInput));
 	UE_LOG(LogUnrealCV, Warning, TEXT("EnableRightEye: %s"), *BoolToString(this->EnableRightEye));
+	UE_LOG(LogUnrealCV, Warning, TEXT("AllowDangerousCommands: %s"), *BoolToString(this->AllowDangerousCommands));
 }
 
 void FServerConfig::ParseCmdArgs()
@@ -59,11 +68,29 @@ void FServerConfig::ParseCmdArgs()
 		Port = ArgPort;
 	}
 
+	FString ArgBindAddress;
+	if (FParse::Value(FCommandLine::Get(), TEXT("cvip"), ArgBindAddress))
+	{
+		BindAddress = ArgBindAddress;
+	}
+
+	FString ArgAuthToken;
+	if (FParse::Value(FCommandLine::Get(), TEXT("cvauth"), ArgAuthToken))
+	{
+		AuthToken = ArgAuthToken;
+	}
+
 	FString LsFolder;
 	if (FParse::Value(FCommandLine::Get(), TEXT("cvls"), LsFolder)) 
 	{
 		ListAsset(LsFolder);
 		FGenericPlatformMisc::RequestExit(false);
+	}
+
+	bool ArgAllowDangerousCommands = this->AllowDangerousCommands;
+	if (FParse::Bool(FCommandLine::Get(), TEXT("cvallowdangerous"), ArgAllowDangerousCommands))
+	{
+		this->AllowDangerousCommands = ArgAllowDangerousCommands;
 	}
 }
 
@@ -105,11 +132,14 @@ FString FServerConfig::ToString() {
 	FString AbsConfigFile = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*ConfigFile);
 	Msg += FString::Printf(TEXT("Config file: %s\n"), *AbsConfigFile);
 	Msg += FString::Printf(TEXT("Port: %d\n"), this->Port);
+	Msg += FString::Printf(TEXT("BindAddress: %s\n"), *this->BindAddress);
+	Msg += FString::Printf(TEXT("AuthTokenEnabled: %s\n"), this->AuthToken.IsEmpty() ? TEXT("false") : TEXT("true"));
 	Msg += FString::Printf(TEXT("Width: %d\n"), this->Width);
 	Msg += FString::Printf(TEXT("Height: %d\n"), this->Height);
 	Msg += FString::Printf(TEXT("FOV: %f\n"), this->FOV);
 	Msg += FString::Printf(TEXT("EnableInput: %s\n"), *BoolToString(this->EnableInput));
 	Msg += FString::Printf(TEXT("EnableRightEye: %s\n"), *BoolToString(this->EnableRightEye));
+	Msg += FString::Printf(TEXT("AllowDangerousCommands: %s\n"), *BoolToString(this->AllowDangerousCommands));
 	return Msg;
 }
 
@@ -120,11 +150,14 @@ bool FServerConfig::Load() {
 
 	// Assume the value will not be overwrote if the read failed
 	GConfig->GetInt(*CoreSection, TEXT("Port"), this->Port, this->ConfigFile);
+	GConfig->GetString(*CoreSection, TEXT("BindAddress"), this->BindAddress, this->ConfigFile);
+	GConfig->GetString(*CoreSection, TEXT("AuthToken"), this->AuthToken, this->ConfigFile);
 	GConfig->GetInt(*CoreSection, TEXT("Width"), this->Width, this->ConfigFile);
 	GConfig->GetInt(*CoreSection, TEXT("Height"), this->Height, this->ConfigFile);
 	GConfig->GetFloat(*CoreSection, TEXT("FOV"), this->FOV, this->ConfigFile);
 	GConfig->GetBool(*CoreSection, TEXT("EnableInput"), this->EnableInput, this->ConfigFile);
 	GConfig->GetBool(*CoreSection, TEXT("EnableRightEye"), this->EnableRightEye, this->ConfigFile);
+	GConfig->GetBool(*CoreSection, TEXT("AllowDangerousCommands"), this->AllowDangerousCommands, this->ConfigFile);
 
 
 	return true;
@@ -136,11 +169,14 @@ bool FServerConfig::Save()
 	if (!GConfig) return false;
 
 	GConfig->SetInt(*CoreSection, TEXT("Port"), this->Port, this->ConfigFile);
+	GConfig->SetString(*CoreSection, TEXT("BindAddress"), *this->BindAddress, this->ConfigFile);
+	GConfig->SetString(*CoreSection, TEXT("AuthToken"), *this->AuthToken, this->ConfigFile);
 	GConfig->SetInt(*CoreSection, TEXT("Width"), this->Width, this->ConfigFile);
 	GConfig->SetInt(*CoreSection, TEXT("Height"), this->Height, this->ConfigFile);
 	GConfig->SetFloat(*CoreSection, TEXT("FOV"), this->FOV, this->ConfigFile);
 	GConfig->SetBool(*CoreSection, TEXT("EnableInput"), this->EnableInput, this->ConfigFile);
 	GConfig->SetBool(*CoreSection, TEXT("EnableRightEye"), this->EnableRightEye, this->ConfigFile);
+	GConfig->SetBool(*CoreSection, TEXT("AllowDangerousCommands"), this->AllowDangerousCommands, this->ConfigFile);
 
 	bool Read = false;
 	GConfig->Flush(Read, this->ConfigFile);

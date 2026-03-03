@@ -128,6 +128,10 @@ private:
 	/** Handle errors from TcpServer */
 	void HandleError(const FString& ErrorMessage);
 
+	/** Auth state for current endpoint when AuthToken is enabled */
+	bool bEndpointAuthenticated = false;
+	FString AuthEndpoint = TEXT("");
+
 	FString MessageFormat = "(\\d{1,}):(.*)";  // for inf message id
 	FRegexPattern myRegexPattern;
 

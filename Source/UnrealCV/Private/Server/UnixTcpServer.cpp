@@ -719,7 +719,7 @@ bool UUnixTcpServer::Connected(FSocket* ClientSocket, const FIPv4Endpoint& Clien
 }
 
 
-bool UUnixTcpServer::Start(int32 InPortNum) // Restart the server if configuration changed
+bool UUnixTcpServer::Start(int32 InPortNum, const FString& InBindAddress) // Restart the server if configuration changed
 {
 	if (InPortNum == this->PortNum && this->bIsListening) return true; // Already started
 
@@ -736,7 +736,12 @@ bool UUnixTcpServer::Start(int32 InPortNum) // Restart the server if configurati
 	}
 
 	this->PortNum = InPortNum; // Start a new TCPListener
-	FIPv4Address IPAddress = FIPv4Address(0, 0, 0, 0);
+	FIPv4Address IPAddress;
+	if (!FIPv4Address::Parse(InBindAddress, IPAddress))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Invalid BindAddress '%s', falling back to 127.0.0.1"), *InBindAddress);
+		IPAddress = FIPv4Address(127, 0, 0, 1);
+	}
 	// int32 PortNum = this->PortNum; // Make this configuable
 	FIPv4Endpoint Endpoint(IPAddress, PortNum);
 
@@ -766,7 +771,7 @@ bool UUnixTcpServer::Start(int32 InPortNum) // Restart the server if configurati
 	if (TcpListener->Init())
 	{
 		this->bIsListening = true;
-		UE_LOG(LogUnrealCV, Warning, TEXT("Start listening on %d"), PortNum);
+		UE_LOG(LogUnrealCV, Warning, TEXT("Start listening on %s:%d"), *IPAddress.ToString(), PortNum);
 		return true;
 	}
 	else
