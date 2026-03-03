@@ -310,7 +310,7 @@ class Client:
                         time.sleep(1)
                 print('disconnecting...')
                 self.disconnect()
-                assert 0, 'exit because of abnormal disconnection'
+                raise RuntimeError('exit because of abnormal disconnection')
 
             return message
 
@@ -344,13 +344,12 @@ class Client:
         if type(message) is list:
             return self.request_batch_async(message)
 
-        if sys.version_info[0] == 3:
-            if not isinstance(message, bytes):
-                message = message.encode('utf-8')
+        if not isinstance(message, bytes):
+            message = message.encode('utf-8')
 
         raw_message = b'%d:%s' % (self.send_message_id, message)
         if not self.send(raw_message):
-            assert 0, 'failed send because of socket is closed'
+            raise RuntimeError('failed send because of socket is closed')
             # return None
 
         self.send_message_id += 1
@@ -371,13 +370,12 @@ class Client:
         None
         """
         for message in batch:
-            if sys.version_info[0] == 3:
-                if not isinstance(message, bytes):
-                    message = message.encode('utf-8')
+            if not isinstance(message, bytes):
+                message = message.encode('utf-8')
 
             raw_message = b'%d:%s' % (self.send_message_id, message)
             if not self.send(raw_message):
-                assert 0, 'failed send because of socket is closed'
+                raise RuntimeError('failed send because of socket is closed')
             # self.send(raw_message)
             self.send_message_id += 1
 
@@ -402,13 +400,12 @@ class Client:
         ['100.0 -100.0 100.0', '0.0 0.0 0.0']
         """
         for message in batch:
-            if sys.version_info[0] == 3:
-                if not isinstance(message, bytes):
-                    message = message.encode('utf-8')
+            if not isinstance(message, bytes):
+                message = message.encode('utf-8')
 
             raw_message = b'%d:%s' % (self.send_message_id, message)
             if not self.send(raw_message):
-                assert 0, 'failed send because of socket is closed'
+                raise RuntimeError('failed send because of socket is closed')
                 # return None
             self.send_message_id += 1
 
@@ -460,14 +457,13 @@ class Client:
         if type(message) is list:
             return self.request_batch(message)
 
-        if sys.version_info[0] == 3:
-            if not isinstance(message, bytes):
-                message = message.encode('utf-8')
+        if not isinstance(message, bytes):
+            message = message.encode('utf-8')
 
         raw_message = b'%d:%s' % (self.send_message_id, message)
         # _L.debug('Request: %s', raw_message.decode("utf-8"))
         if not self.send(raw_message):
-            assert 0, 'failed send because of socket is closed'
+            raise RuntimeError('failed send because of socket is closed')
             # return None
 
         self.send_message_id += 1

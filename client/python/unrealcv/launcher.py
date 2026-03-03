@@ -167,7 +167,7 @@ class RunUnreal():
         time.sleep(sleep_time)
         return env_ip, port
 
-    def set_ue_options(self, cmd_exe=[], opengl=False, offscreen=False, nullrhi=False, gpu_id=None):
+    def set_ue_options(self, cmd_exe=None, opengl=False, offscreen=False, nullrhi=False, gpu_id=None):
         """
         Set options for running the Unreal Engine environment.
 
@@ -181,6 +181,8 @@ class RunUnreal():
         Returns:
             list: The command with options.
         """
+        if cmd_exe is None:
+            cmd_exe = []
         if self.env_map is not None:
             cmd_exe.append(self.env_map)
         if opengl:
@@ -252,9 +254,8 @@ class RunUnreal():
         Args:
             path (str): The path to modify.
         """
-        cmd = 'sudo chown {USER} {ENV_PATH} -R'
         username = getpass.getuser()
-        os.system(cmd.format(USER=username, ENV_PATH=path))
+        subprocess.run(['sudo', 'chown', username, path, '-R'], check=False)
 
     def read_port(self):
         """
@@ -265,14 +266,19 @@ class RunUnreal():
         """
         if os.path.exists(self.path2unrealcv):  # check unrealcv.ini exist
             with open(self.path2unrealcv, 'r') as f:
-                s = f.read()  # read unrealcv.ini
-                ss = s.split()
-            return int(ss[1][-4:])  # return port number
+                for line in f:
+                    line = line.strip()
+                    if line.startswith('Port='):
+                        try:
+                            return int(line.split('=', 1)[1])
+                        except ValueError:
+                            break
         else:
             return 9000 # default port number
+        return 9000
 
     def write_port(self, port):
-        self.write__ = """
+        """
         Write the port number to unrealcv.ini.
 
         Args:
@@ -343,7 +349,7 @@ class RunDocker():
         """
         self.docker_client = docker.from_env()
         self.check_image(target_images=image)
-        os.system('xhost +')
+        subprocess.run(['xhost', '+'], check=False)
         self.image = image
         self.path2env = path2env
 
@@ -371,24 +377,31 @@ class RunDocker():
             warnings.warn('Did not find unreal environment, Please move your binary file to env/UnrealEnv')
             sys.exit()
 
-        client = docker.from_env()
-        # network_settings = self.container.attrs['NetworkSettings']
-        volumes = f'-v {self.path2env}:{ENV_DIR_DOCKER}:rw'
-
         ENV_DIR_BIN_DOCKER = os.path.join(ENV_DIR_DOCKER, ENV_BIN)
         exe_cmd = ENV_DIR_BIN_DOCKER + ' ' + options
         run_cmd = f'/bin/bash -c \"su user -c \'{exe_cmd}\'\"'
-
-        docker_cmd = 'docker run --gpus all  -e DISPLAY=$DISPLAY -e SDL_VIDEODRIVER=x11' \
-                     ' -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d ' \
-                     '-e QT_X11_NO_MITSHM=1 -e NVIDIA_DRIVER_CAPABILITIES=all --privileged -d -it'
+        cmd = [
+            'docker', 'run', '--gpus', 'all',
+            '-e', 'DISPLAY=' + os.environ.get('DISPLAY', ''),
+            '-e', 'SDL_VIDEODRIVER=x11',
+            '-v', '/tmp/.X11-unix:/tmp/.X11-unix:rw',
+            '-v', '/usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d',
+            '-e', 'QT_X11_NO_MITSHM=1',
+            '-e', 'NVIDIA_DRIVER_CAPABILITIES=all',
+            '--privileged', '-d', '-it'
+        ]
         if host_net:
-            docker_cmd += ' --net=host'
-        cmd = docker_cmd + ' ' + volumes + ' ' + self.image + ' ' + run_cmd
+            cmd.append('--net=host')
+        cmd.extend([
+            '-v', f'{self.path2env}:{ENV_DIR_DOCKER}:rw',
+            self.image,
+            '/bin/bash', '-c', f"su user -c '{exe_cmd}'"
+        ])
 
-        print(cmd)
-        os.system(cmd)
-        self.container = self.docker_client.containers.list()[0]
+        print(' '.join(cmd))
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        container_id = result.stdout.strip()
+        self.container = self.docker_client.containers.get(container_id)
 
         return self.get_ip()
 
@@ -429,7 +442,7 @@ class RunDocker():
             if images[i].tags.count(target_images) > 0:
                 found_img = True
         # Download image
-        if found_img == False:
+        if not found_img:
             warnings.warn('Do not found images, Downloading')
             self.docker_client.images.pull(target_images)
         else:

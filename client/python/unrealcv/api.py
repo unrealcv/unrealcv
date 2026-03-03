@@ -901,7 +901,7 @@ class UnrealCv_API(object):
         print(obj, res)
         return self.decoder.string2floats(res)  # [scale_x, scale_y, scale_z]
 
-    def set_obj_scale(self, obj, scale=[1, 1, 1], return_cmd=False):
+    def set_obj_scale(self, obj, scale=None, return_cmd=False):
         """
         Set the scale of an object.
 
@@ -910,6 +910,8 @@ class UnrealCv_API(object):
             scale (list): The scale to set [scale_x, scale_y, scale_z].
             return_cmd (bool): Whether to return the command instead of executing it. Default is False.
         """
+        if scale is None:
+            scale = [1, 1, 1]
         [x, y, z] = scale
         cmd = f'vset /object/{obj}/scale {x} {y} {z}'
         if return_cmd:
