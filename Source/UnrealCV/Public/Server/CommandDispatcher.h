@@ -3,7 +3,7 @@
 
 #include "CoreMinimal.h"
 #include "ExecStatus.h"
-#include "Runtime/Core/Public/Internationalization/Regex.h"
+#include "Internationalization/Regex.h"
 
 // DECLARE_DELEGATE(FCallbackDelegate);
 DECLARE_DELEGATE_OneParam(FCallbackDelegate, FExecStatus); // Callback needs to be set before Exec, accept ExecStatus

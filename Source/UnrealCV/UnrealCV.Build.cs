@@ -1,4 +1,4 @@
-// Copyright 1998-2016 Epic Games, Inc. All Rights Reserved.
+// UnrealCV Build.cs (UE5 modernized)
 using System.IO;
 using System.Collections.Generic;
 
@@ -75,7 +75,7 @@ namespace UnrealBuildTool.Rules
 		public UnrealCV(ReadOnlyTargetRules Target) : base(Target)
 		// 4.16 or better
 		{
-			//bEnforceIWYU = true;
+			bEnforceIWYU = true;
 	  		//bFasterWithoutUnity = true;
 			PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
