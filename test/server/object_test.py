@@ -14,4 +14,3 @@ def test_object_list():
         color = client.request('vget /object/%s/color' % obj_id)
         assert checker.not_error(color)
     client.disconnect()
-    exit()
