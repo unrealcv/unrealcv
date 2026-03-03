@@ -7,9 +7,23 @@ import sys
 import threading
 import time
 import os
-from .api import *
-from .automation import *
-from .launcher import *
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
+# Explicit imports instead of wildcard imports to avoid namespace pollution.
+# Heavy-dependency modules (api, launcher) are available but don't force
+# cv2/numpy/PIL installation just for the core Client.
+from .automation import UE4Automation, UE4Binary, get_platform_name, get_plugin_version
+from .launcher import RunUnreal, RunDocker
+from .util import read_png, read_npy, convert2planedepth, measure_fps, parse_resolution, ResChecker
+
+# Lazy import for UnrealCv_API to avoid forcing heavy deps at import time
+def __getattr__(name: str) -> Any:
+    if name in ('UnrealCv_API', 'MsgDecoder', 'UnrealCVTimeoutError'):
+        from .api import UnrealCv_API, MsgDecoder, UnrealCVTimeoutError
+        globals()[name] = locals()[name]
+        return locals()[name]
+    raise AttributeError(f"module 'unrealcv' has no attribute {name!r}")
+
 from queue import SimpleQueue
 
 
@@ -23,6 +37,31 @@ _L.propagate = False
 _L.setLevel(logging.INFO)
 
 __version__ = '1.1.7'  # add async request, IPC on linux >= 1.0.0
+
+__all__ = [
+    '__version__',
+    'Client',
+    'SocketMessage',
+    # From automation
+    'UE4Automation',
+    'UE4Binary',
+    'get_platform_name',
+    'get_plugin_version',
+    # From launcher
+    'RunUnreal',
+    'RunDocker',
+    # From util
+    'read_png',
+    'read_npy',
+    'convert2planedepth',
+    'measure_fps',
+    'parse_resolution',
+    'ResChecker',
+    # Lazy-loaded from api
+    'UnrealCv_API',
+    'MsgDecoder',
+    'UnrealCVTimeoutError',
+]
 
 class SocketMessage:
     """
@@ -153,10 +192,10 @@ class Client:
     More clients will be rejected
     """
 
-    def __init__(self, endpoint, type='inet'):
+    def __init__(self, endpoint: Union[Tuple[str, int], str], type: str = 'inet') -> None:
         """
         Parameters:
-        endpoint: a tuple (ip, port)
+        endpoint: a tuple (ip, port) or a unix socket path
         type: unix or inet
         """
         self.endpoint = endpoint
@@ -170,7 +209,7 @@ class Client:
         self.recv_data_q = SimpleQueue()  # inf
         self.type = type
 
-    def send(self, message):
+    def send(self, message: bytes) -> bool:
         """Send message out, return whether the message was successfully sent"""
         if self.isconnected():
             _L.debug('BaseClient: Send message %s', message)
@@ -180,7 +219,7 @@ class Client:
             _L.error('Fail to send message, client is not connected')
             return False
 
-    def raw_message_handler(self, raw_message):
+    def raw_message_handler(self, raw_message: bytes) -> Optional[Union[str, bytes]]:
         match = self.raw_message_regexp.match(raw_message)
 
         if match:
@@ -203,7 +242,7 @@ class Client:
             # Instead of just dropping this message, give a verbose notice
             _L.error('No message handler to handle message with length %d', len(raw_message))
 
-    def connect(self, timeout=1):
+    def connect(self, timeout: float = 1) -> bool:
         """
         Try to connect to server, return whether connection successful
         """
@@ -255,11 +294,11 @@ class Client:
             # self.sock = None
             return False
 
-    def isconnected(self):
+    def isconnected(self) -> bool:
         """Check whether client is connected to server"""
         return self.sock is not None
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """Disconnect from server"""
         if self.isconnected():
             _L.debug(
@@ -279,7 +318,7 @@ class Client:
                 self.recv_num_q.put(None)
                 self.t.join()
 
-    def receive(self):
+    def receive(self) -> Optional[bytes]:
         """
         Receive packages, Extract message from packages
         Call self.message_handler if got a message
@@ -314,7 +353,7 @@ class Client:
 
             return message
 
-    def receive_loop_queue(self):
+    def receive_loop_queue(self) -> None:
         while True:
             num = self.recv_num_q.get()
 
@@ -337,16 +376,15 @@ class Client:
                     raw_message = self.receive()
                     self.recv_message_id += 1
 
-    def request_async(self, message):
+    def request_async(self, message: Union[str, bytes, List[str]]) -> None:
         """
         Send request without waiting for any reply
         """
         if type(message) is list:
             return self.request_batch_async(message)
 
-        if sys.version_info[0] == 3:
-            if not isinstance(message, bytes):
-                message = message.encode('utf-8')
+        if not isinstance(message, bytes):
+            message = message.encode('utf-8')
 
         raw_message = b'%d:%s' % (self.send_message_id, message)
         if not self.send(raw_message):
@@ -359,7 +397,7 @@ class Client:
         # self.message_id += 1
         return None
 
-    def request_batch_async(self, batch):
+    def request_batch_async(self, batch: List[str]) -> None:
         """
         Send a batch of requests to server without waiting for any reply.
 
@@ -371,9 +409,8 @@ class Client:
         None
         """
         for message in batch:
-            if sys.version_info[0] == 3:
-                if not isinstance(message, bytes):
-                    message = message.encode('utf-8')
+            if not isinstance(message, bytes):
+                message = message.encode('utf-8')
 
             raw_message = b'%d:%s' % (self.send_message_id, message)
             if not self.send(raw_message):
@@ -384,7 +421,7 @@ class Client:
         self.recv_num_q.put(len(batch))
         return None
 
-    def request_batch(self, batch):
+    def request_batch(self, batch: List[str]) -> List[Union[str, bytes]]:
         """
         Send a batch of requests to server and wait util get all responses from server.
         Parameters
@@ -402,9 +439,8 @@ class Client:
         ['100.0 -100.0 100.0', '0.0 0.0 0.0']
         """
         for message in batch:
-            if sys.version_info[0] == 3:
-                if not isinstance(message, bytes):
-                    message = message.encode('utf-8')
+            if not isinstance(message, bytes):
+                message = message.encode('utf-8')
 
             raw_message = b'%d:%s' % (self.send_message_id, message)
             if not self.send(raw_message):
@@ -421,7 +457,7 @@ class Client:
 
         return batch_res
 
-    def request(self, message, timeout=5):
+    def request(self, message: Union[str, bytes, List[str]], timeout: int = 5) -> Optional[Union[str, bytes, bool, List[Union[str, bytes]]]]:
         """
         Send a request to server and wait util get a response from server or timeout.
 
@@ -460,9 +496,8 @@ class Client:
         if type(message) is list:
             return self.request_batch(message)
 
-        if sys.version_info[0] == 3:
-            if not isinstance(message, bytes):
-                message = message.encode('utf-8')
+        if not isinstance(message, bytes):
+            message = message.encode('utf-8')
 
         raw_message = b'%d:%s' % (self.send_message_id, message)
         # _L.debug('Request: %s', raw_message.decode("utf-8"))
