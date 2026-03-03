@@ -153,6 +153,13 @@ class Client:
     More clients will be rejected
     """
 
+    # Default socket timeout (seconds).  ``None`` = blocking (legacy behaviour).
+    SOCKET_TIMEOUT = 60
+    # Reconnect parameters (exponential back-off)
+    RECONNECT_ATTEMPTS = 5
+    RECONNECT_BASE_DELAY = 0.5   # seconds
+    RECONNECT_MAX_DELAY = 8.0    # seconds
+
     def __init__(self, endpoint, type='inet'):
         """
         Parameters:
@@ -160,25 +167,31 @@ class Client:
         type: unix or inet
         """
         self.endpoint = endpoint
-        self.sock = None  # if socket == None, means client is not connected
         self.raw_message_regexp = re.compile(rb'(\d{1,}):(.*)')  # A binary regexp
-        # self.message_id = 0
         self.wait_response = threading.Event()
         self.send_message_id = 0
         self.recv_message_id = 0
         self.recv_num_q = SimpleQueue()  # inf
         self.recv_data_q = SimpleQueue()  # inf
         self.type = type
+        # Guards all accesses to self.sock, self.send_message_id, and send()
+        self._sock_lock = threading.Lock()
+        self.sock = None  # if socket is None, means client is not connected
+        self.t = None
 
     def send(self, message):
-        """Send message out, return whether the message was successfully sent"""
-        if self.isconnected():
-            _L.debug('BaseClient: Send message %s', message)
-            SocketMessage.WrapAndSendPayload(self.sock, message)
-            return True
-        else:
-            _L.error('Fail to send message, client is not connected')
-            return False
+        """Send message out, return whether the message was successfully sent.
+
+        Thread-safe: acquires ``_sock_lock`` before touching the socket.
+        """
+        with self._sock_lock:
+            if self.isconnected():
+                _L.debug('BaseClient: Send message %s', message)
+                SocketMessage.WrapAndSendPayload(self.sock, message)
+                return True
+            else:
+                _L.error('Fail to send message, client is not connected')
+                return False
 
     def raw_message_handler(self, raw_message):
         match = self.raw_message_regexp.match(raw_message)
@@ -205,23 +218,31 @@ class Client:
 
     def connect(self, timeout=1):
         """
-        Try to connect to server, return whether connection successful
+        Try to connect to server, return whether connection successful.
+
+        Sets a socket-level timeout so that recv() never blocks indefinitely.
+        Starts the receive loop as a *daemon* thread so it won't prevent
+        interpreter shutdown.
         """
         if self.isconnected():
             return True
 
         try:
             if self.type == 'unix':
-                print('=>Info: using uds socket')
+                _L.info('Using UDS socket')
                 s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             elif self.type == 'inet':
-                print('=>Info: using ip-port socket')
+                _L.info('Using ip-port socket')
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             else:
                 raise NotImplementedError
-            # Make the socket working in the blocking mode
+
+            s.settimeout(self.SOCKET_TIMEOUT)
             s.connect(self.endpoint)
-            self.sock = s
+
+            with self._sock_lock:
+                self.sock = s
+
             _L.debug('BaseClient: wait for connection confirm')
 
             message = SocketMessage.ReceivePayload(self.sock)
@@ -229,13 +250,14 @@ class Client:
                 if message.startswith(b'connected'):
                     _L.info('Got connection confirm: %s', repr(message))
 
-                    # start receive queue here
-                    self.t = threading.Thread(target=self.receive_loop_queue)
+                    # start receive queue as daemon so it won't block exit
+                    self.t = threading.Thread(
+                        target=self.receive_loop_queue, daemon=True
+                    )
                     self.t.start()
 
                     return True
 
-            # self.sock = None
             self.disconnect()
             _L.error(
                 'Socket is created, but can not get connection confirm from %s. Disconnect!',
@@ -243,16 +265,10 @@ class Client:
             )
             return False
 
-            # only assign self.socket to connected socket
-            # so it is safe to use self.socket != None to check connection status
-            # This does not neccessarily mean connection successful, might be closed by server
-            # Unless explicitly to tell the server to accept new socket
-
         except Exception as e:
             _L.error('Can not connect to %s', str(self.endpoint))
             _L.error('Error %s', e)
             self.disconnect()
-            # self.sock = None
             return False
 
     def isconnected(self):
@@ -260,57 +276,60 @@ class Client:
         return self.sock is not None
 
     def disconnect(self):
-        """Disconnect from server"""
-        if self.isconnected():
-            _L.debug(
-                'BaseClient, request disconnect from server in %s',
-                threading.current_thread().name,
-            )
+        """Disconnect from server.
 
-            self.sock.shutdown(socket.SHUT_RD)
-            # Because socket is on read in __receiving thread, need to call shutdown to force it to close
-            if self.sock:  # This may also be set to None in the __receiving thread
-                self.sock.close()
+        Thread-safe: uses ``_sock_lock`` to avoid racing with the receive
+        thread that may set ``self.sock = None`` concurrently.
+        """
+        with self._sock_lock:
+            if self.sock is not None:
+                _L.debug(
+                    'BaseClient, request disconnect from server in %s',
+                    threading.current_thread().name,
+                )
+                try:
+                    self.sock.shutdown(socket.SHUT_RD)
+                except OSError:
+                    pass  # already closed / not connected
+                try:
+                    self.sock.close()
+                except OSError:
+                    pass
                 self.sock = None
-            time.sleep(0.1)
 
-        if getattr(self, 't', None):
-            if self.t.is_alive():
-                self.recv_num_q.put(None)
-                self.t.join()
+        if self.t is not None and self.t.is_alive():
+            self.recv_num_q.put(None)
+            self.t.join(timeout=5)
 
     def receive(self):
         """
-        Receive packages, Extract message from packages
-        Call self.message_handler if got a message
-        Also check whether client is still connected
+        Receive packages, extract message from packages.
+        Also check whether client is still connected and attempt reconnect
+        with exponential back-off on disconnect.
         """
         if self.isconnected():
-            # Only this thread is allowed to read from socket, otherwise need lock to avoid competing
             message = SocketMessage.ReceivePayload(self.sock)
 
-            # message may be None here
-            # _L.debug('Got server raw message with length %d', len(message))
-
             if not message:
-                print('BaseClient: remote disconnected, no more message')
-                _L.debug('BaseClient: remote disconnected, no more message')
-                # self.sock = None
+                _L.warning('BaseClient: remote disconnected, attempting reconnect')
                 self.disconnect()
 
-                # try reconnect
-                print('try reconnecting!')
-                for _ in range(5):
-                    flag = self.connect()
-                    if flag:
-                        print('reconnect succeed!')
-                        break
-                    else:
-                        print('reconnect fail! sleep 1s and retry...')
-                        time.sleep(1)
-                print('disconnecting...')
+                # exponential back-off reconnect
+                delay = self.RECONNECT_BASE_DELAY
+                for attempt in range(1, self.RECONNECT_ATTEMPTS + 1):
+                    _L.info('Reconnect attempt %d/%d (delay %.1fs)',
+                            attempt, self.RECONNECT_ATTEMPTS, delay)
+                    if self.connect():
+                        _L.info('Reconnect succeeded on attempt %d', attempt)
+                        return self.receive()  # retry the read on the fresh connection
+                    time.sleep(delay)
+                    delay = min(delay * 2, self.RECONNECT_MAX_DELAY)
+
                 self.disconnect()
-                assert 0, 'exit because of abnormal disconnection'
+                raise ConnectionError(
+                    f'Failed to reconnect to {self.endpoint} after '
+                    f'{self.RECONNECT_ATTEMPTS} attempts'
+                )
 
             return message
 
