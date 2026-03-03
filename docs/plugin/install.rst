@@ -1,7 +1,7 @@
 Install UnrealCV Plugin
 =======================
 
-This page briefly describes how to install UnrealCV as a UE4 plugin. Make sure you read :doc:`getting started </tutorials/getting_started>` before trying to use the plugin.
+This page briefly describes how to install UnrealCV as an Unreal Engine plugin. Make sure you read :doc:`getting started </tutorials/getting_started>` before trying to use the plugin.
 
 Use compiled plugin binary
 --------------------------
@@ -19,11 +19,6 @@ You can download compiled UnrealCV binaries from our `github release page <https
 Open ``Menu -> Edit -> Plugins``, make sure UnrealCV is installed and enabled. You have to be in play mode before you type the commands.
 
 .. image:: ../images/plugin.png
-
-Install from UE4 marketplace (coming)
--------------------------------------
-
-For Windows and Mac user, UnrealCV will be released to the UE4 marketplace. We are still finalizing the submission to the UE4 marketplace and it will be available soon.
 
 .. _compile_plugin:
 
@@ -56,6 +51,6 @@ If you want to modify UnrealCV code and add new features. Please refer to the :d
 Special tips for Linux
 ----------------------
 
-In Linux, the Unreal Engine needs to be built from source code. How to compile from source code can be found in this official document `Building On Linux <https://wiki.unrealengine.com/Building_On_Linux>`__.
+In Linux, the Unreal Engine needs to be built from source code. How to compile from source code can be found in the `official documentation <https://dev.epicgames.com/documentation/en-us/unreal-engine/building-unreal-engine-from-source>`__.
 
 Previous versions of unrealcv depends on using OpenEXR module to generate depth, this requirement has been removed.
