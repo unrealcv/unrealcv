@@ -255,7 +255,7 @@ class RunUnreal():
             path (str): The path to modify.
         """
         username = getpass.getuser()
-        subprocess.run(['sudo', 'chown', username, path, '-R'], check=False)
+        subprocess.run(['sudo', 'chown', '-R', username, path], check=False)
 
     def read_port(self):
         """
@@ -349,9 +349,11 @@ class RunDocker():
         """
         self.docker_client = docker.from_env()
         self.check_image(target_images=image)
-        subprocess.run(['xhost', '+'], check=False)
+        if sys.platform.startswith('linux') and os.environ.get('DISPLAY'):
+            subprocess.run(['xhost', '+local:docker'], check=False)
         self.image = image
         self.path2env = path2env
+        self.host_net = False
 
     def start(self,
               ENV_BIN = '/RealisticRendering_RL/RealisticRendering/Binaries/Linux/RealisticRendering',
@@ -379,7 +381,7 @@ class RunDocker():
 
         ENV_DIR_BIN_DOCKER = os.path.join(ENV_DIR_DOCKER, ENV_BIN)
         exe_cmd = ENV_DIR_BIN_DOCKER + ' ' + options
-        run_cmd = f'/bin/bash -c \"su user -c \'{exe_cmd}\'\"'
+        self.host_net = host_net
         cmd = [
             'docker', 'run', '--gpus', 'all',
             '-e', 'DISPLAY=' + os.environ.get('DISPLAY', ''),
@@ -395,7 +397,7 @@ class RunDocker():
         cmd.extend([
             '-v', f'{self.path2env}:{ENV_DIR_DOCKER}:rw',
             self.image,
-            '/bin/bash', '-c', f"su user -c '{exe_cmd}'"
+            'su', 'user', '-c', exe_cmd
         ])
 
         print(' '.join(cmd))
@@ -407,8 +409,11 @@ class RunDocker():
 
     def get_ip(self):
         # return '127.0.0.1'
-        print(self.container.attrs['NetworkSettings']['IPAddress'])
-        return self.container.attrs['NetworkSettings']['IPAddress']
+        ip_address = self.container.attrs['NetworkSettings'].get('IPAddress', '')
+        if self.host_net and not ip_address:
+            ip_address = '127.0.0.1'
+        print(ip_address)
+        return ip_address
 
     def get_path2UnrealEnv(self):
         # get path to UnrealEnv

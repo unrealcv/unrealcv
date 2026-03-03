@@ -4,6 +4,7 @@ from io import BytesIO
 import os
 import time
 import warnings
+import argparse
 # StringIO module is removed in python3, use io module
 
 class ResChecker:
@@ -62,7 +63,7 @@ def read_png(res):
         PIL_img = PIL.Image.open(BytesIO(res))
         img = np.asarray(PIL_img)
     except (OSError, ValueError, TypeError):
-        print('Read png can not parse response %s' % str(res[:20]))
+        print('Read png can not parse response %s' % repr(res))
     return img
 
 def read_npy(res):
@@ -84,7 +85,7 @@ def read_npy(res):
     try:
         arr = np.load(BytesIO(res))
     except (ValueError, OSError, TypeError):
-        print('Read npy can not parse response %s' % str(res[:20]))
+        print('Read npy can not parse response %s' % repr(res))
     return arr
 
 
@@ -142,11 +143,11 @@ def parse_resolution(res):
     """
     resolution = res.split('x')
     if len(resolution) != 2:
-        raise ValueError('Resolution must be specified as WIDTHxHEIGHT')
+        raise argparse.ArgumentTypeError('Resolution must be specified as WIDTHxHEIGHT')
     try:
         return (int(resolution[0]), int(resolution[1]))
     except ValueError:
-        raise ValueError('WIDTH and HEIGHT must be integers')
+        raise argparse.ArgumentTypeError('WIDTH and HEIGHT must be integers')
 
 def get_path2UnrealEnv():
     # get path to UnrealEnv

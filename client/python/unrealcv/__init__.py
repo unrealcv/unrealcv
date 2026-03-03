@@ -300,14 +300,18 @@ class Client:
 
                 # try reconnect
                 print('try reconnecting!')
+                reconnected = False
                 for _ in range(5):
                     flag = self.connect()
                     if flag:
                         print('reconnect succeed!')
+                        reconnected = True
                         break
                     else:
                         print('reconnect fail! sleep 1s and retry...')
                         time.sleep(1)
+                if reconnected:
+                    return self.receive()
                 print('disconnecting...')
                 self.disconnect()
                 raise RuntimeError('exit because of abnormal disconnection')
