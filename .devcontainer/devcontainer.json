@@ -1,0 +1,33 @@
+{
+  "name": "unrealcv-dev",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.11"
+    },
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "postCreateCommand": "bash -lc 'python3 -m pip install --upgrade pip && if [ -f client/python/pyproject.toml ]; then python3 -m pip install -e client/python || true; fi && if [ -f docs/requirements.txt ]; then python3 -m pip install -r docs/requirements.txt || true; fi && if [ -f test/requirements.txt ]; then python3 -m pip install -r test/requirements.txt || true; fi'",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "ms-azuretools.vscode-docker",
+        "yzhang.markdown-all-in-one"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/python/current/bin/python",
+        "editor.formatOnSave": true,
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/.pytest_cache": true,
+          "**/.tox": true
+        }
+      }
+    }
+  },
+  "remoteUser": "vscode"
+}

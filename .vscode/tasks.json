@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Bootstrap: Dev Workspace",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "python3 -m pip install --upgrade pip && if [ -f client/python/pyproject.toml ]; then python3 -m pip install -e client/python || true; fi && if [ -f docs/requirements.txt ]; then python3 -m pip install -r docs/requirements.txt || true; fi && if [ -f test/requirements.txt ]; then python3 -m pip install -r test/requirements.txt || true; fi"
+      ],
+      "group": "build"
+    },
+    {
+      "label": "Python: Client Unit Tests",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "pytest test/client"
+      ],
+      "group": "test"
+    },
+    {
+      "label": "Docs: Build HTML",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "python3 docs/build_doc.py"
+      ]
+    }
+  ]
+}
