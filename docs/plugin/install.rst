@@ -6,7 +6,7 @@ This page briefly describes how to install UnrealCV as an Unreal Engine plugin. 
 Use compiled plugin binary
 --------------------------
 
-You can download compiled UnrealCV binaries from our `github release page <https://github.com/unrealcv/unrealcv/releases>`_. Then copy the compiled binaries to the plugins folder to install it. Build it yourself by following the :ref:`compile_plugin`. You can install the plugin to either a game project or to UE4 engine.
+You can download compiled UnrealCV binaries from our `github release page <https://github.com/unrealcv/unrealcv/releases>`_. Then copy the compiled binaries to the plugins folder to install it. Build it yourself by following the :ref:`compile_plugin`. You can install the plugin to either a game project or to the Unreal Engine installation.
 
 - Install to project
     - Go to project folder which contains :file:`[ProjectName].uproject`
@@ -35,10 +35,10 @@ To compile UnrealCV plugin, use
 	# Install the latest version of unrealcv, the build.py depends on unrealcv.automation module
     python build.py
     # This script will search common Unreal Engine folders of Windows and Mac
-    # If this script fails to find UE4 installation path, you can also manually specify the engine path
-    python build.py --UE4 {UE4}
+    # If this script fails to find the Unreal Engine installation path, you can also manually specify the engine path
+    python build.py --UE {UE_PATH}
     # For example
-    # python build.py --UE4 "/Users/Shared/Epic Games/UE_4.16"
+    # python build.py --UE "/Users/Shared/Epic Games/UE_5.2"
 
 After running this command you should see ``Automation.Execute: BUILD SUCCESSFUL`` and the plugin binaries will be produced in the ``Plugins/UnrealCV`` folder. Then you can copy the compiled plugin to Plugins folder.
 

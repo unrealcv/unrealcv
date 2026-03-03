@@ -1,7 +1,7 @@
 # Python Client for UnrealCV
 
 [![PyPI version](https://badge.fury.io/py/unrealcv.svg)](https://pypi.org/project/unrealcv/)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
 
 This is the official Python client for [UnrealCV](https://unrealcv.org), a project to help computer vision researchers build virtual worlds using [Unreal Engine](https://www.unrealengine.com/).
 
