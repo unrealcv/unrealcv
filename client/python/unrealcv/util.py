@@ -1,10 +1,12 @@
+import logging
 import numpy as np
 import PIL.Image
 from io import BytesIO
 import os
 import time
 import warnings
-# StringIO module is removed in python3, use io module
+
+_L = logging.getLogger(__name__)
 
 class ResChecker:
     # Define some utility functions to check whether the response is as expected
@@ -20,7 +22,7 @@ class ResChecker:
     def is_expected_file_extension(self, path, valid_ext):
         ext = os.path.splitext(path)[-1]
         if ext not in valid_ext:
-            print(print(f'Invalid file extension {ext}, should be in {valid_ext}'))
+            _L.warning('Invalid file extension %s, should be in %s', ext, valid_ext)
         return ext in valid_ext
 
 def measure_fps(func, *args, **kwargs):
@@ -62,7 +64,7 @@ def read_png(res):
         PIL_img = PIL.Image.open(BytesIO(res))
         img = np.asarray(PIL_img)
     except:
-        print('Read png can not parse response %s' % str(res[:20]))
+        _L.warning('Read png can not parse response %s', str(res[:20]))
     return img
 
 def read_npy(res):
@@ -84,7 +86,7 @@ def read_npy(res):
     try:
         arr = np.load(BytesIO(res))
     except:
-        print('Read npy can not parse response %s' % str(res[:20]))
+        _L.warning('Read npy can not parse response %s', str(res[:20]))
     return arr
 
 
@@ -123,7 +125,7 @@ def time_it(func):
         result = func(*args, **kwargs)
         end_time = time.perf_counter()
         execution_time = end_time - start_time
-        print(f"{func.__name__} executed in {execution_time:.4f} seconds")
+        _L.debug("%s executed in %.4f seconds", func.__name__, execution_time)
         return result
     return wrapper
 

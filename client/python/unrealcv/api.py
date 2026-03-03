@@ -25,11 +25,14 @@ import math
 import time
 import os
 import re
+import logging
 from io import BytesIO
 import PIL.Image
 import sys
 from unrealcv.util import ResChecker, time_it
 import warnings
+
+_L = logging.getLogger(__name__)
 
 class UnrealCv_API(object):
     """
@@ -129,7 +132,7 @@ class UnrealCv_API(object):
             message (str): The message from the server.
         """
         msg = message
-        print(msg)
+        _L.debug('Server message: %s', msg)
 
     def check_connection(self):
         """
@@ -898,7 +901,7 @@ class UnrealCv_API(object):
         res = None
         while res is None:
             res = self.client.request(cmd)
-        print(obj, res)
+        _L.debug('get_obj_scale %s: %s', obj, res)
         return self.decoder.string2floats(res)  # [scale_x, scale_y, scale_z]
 
     def set_obj_scale(self, obj, scale=[1, 1, 1], return_cmd=False):

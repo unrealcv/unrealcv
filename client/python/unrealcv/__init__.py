@@ -14,13 +14,7 @@ from queue import SimpleQueue
 
 
 _L = logging.getLogger(__name__)
-# _L.addHandler(logging.NullHandler()) # Let client to decide how to do logging
-_L.handlers = []
-h = logging.StreamHandler()
-h.setFormatter(logging.Formatter('%(levelname)s:%(module)s:%(lineno)d:%(message)s'))
-_L.addHandler(h)
-_L.propagate = False
-_L.setLevel(logging.INFO)
+_L.addHandler(logging.NullHandler())  # Library best practice: let consumers configure logging
 
 __version__ = '1.1.7'  # add async request, IPC on linux >= 1.0.0
 
@@ -54,11 +48,10 @@ class SocketMessage:
                 recv_data = sock.recv(4)
                 if not recv_data:
                     # socket closed by server
-                    print('Warning: socket disconnected by server')
+                    _L.warning('Socket disconnected by server')
                     break
                 raw_magic += recv_data
         except Exception as e:
-            print(f'fail to read raw_magic, exception: {e}')
             _L.debug('Fail to read raw_magic, exception: "%s"', e)
             raw_magic = None
 
@@ -68,13 +61,11 @@ class SocketMessage:
 
         magic = struct.unpack(cls.fmt, raw_magic)[0]  # 'I' means unsigned int
         if magic != cls.magic:
-            print(
-                'Error: receive a malformat message, the message should start from a four bytes uint32 magic number'
-            )
             _L.error(
-                'Error: receive a malformat message, the message should start from a four bytes uint32 magic number'
+                'Received malformed message: expected magic 0x%08X, got 0x%08X',
+                cls.magic,
+                magic,
             )
-            print('Actually received magic message: %s', repr(magic))
             return None
             # The next time it will read four bytes again
 
@@ -82,7 +73,7 @@ class SocketMessage:
         # raw_payload_size = rfile.read(4)
         raw_payload_size = sock.recv(4)
         if not raw_payload_size:
-            print('Warning: socket disconnected by server')
+            _L.warning('Socket disconnected by server (payload size)')
             return None
         # print 'Receive raw payload size: %d, %s' % (len(raw_payload_size), raw_payload_size)
         payload_size = struct.unpack('I', raw_payload_size)[0]
@@ -95,7 +86,7 @@ class SocketMessage:
             # data = rfile.read(remain_size)
             data = sock.recv(remain_size)
             if not data:
-                print('recv data is None!')
+                _L.warning('Socket disconnected by server (payload body)')
                 return None
 
             payload += data
@@ -132,7 +123,6 @@ class SocketMessage:
             wfile.close()  # Close file object, not close the socket
             return True
         except Exception as e:
-            print(f'Fail to send message {e}')
             _L.error('Fail to send message %s', e)
             return False
 
@@ -212,10 +202,10 @@ class Client:
 
         try:
             if self.type == 'unix':
-                print('=>Info: using uds socket')
+                _L.info('Using UDS socket')
                 s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             elif self.type == 'inet':
-                print('=>Info: using ip-port socket')
+                _L.info('Using ip-port socket')
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             else:
                 raise NotImplementedError
@@ -293,24 +283,23 @@ class Client:
             # _L.debug('Got server raw message with length %d', len(message))
 
             if not message:
-                print('BaseClient: remote disconnected, no more message')
-                _L.debug('BaseClient: remote disconnected, no more message')
-                # self.sock = None
+                _L.warning('BaseClient: remote disconnected, no more message')
                 self.disconnect()
 
                 # try reconnect
-                print('try reconnecting!')
-                for _ in range(5):
+                _L.info('Attempting reconnect...')
+                for attempt in range(1, 6):
                     flag = self.connect()
                     if flag:
-                        print('reconnect succeed!')
+                        _L.info('Reconnect succeeded on attempt %d', attempt)
                         break
                     else:
-                        print('reconnect fail! sleep 1s and retry...')
+                        _L.warning('Reconnect attempt %d failed, retrying in 1s...', attempt)
                         time.sleep(1)
-                print('disconnecting...')
-                self.disconnect()
-                assert 0, 'exit because of abnormal disconnection'
+                else:
+                    _L.error('All reconnect attempts failed, disconnecting')
+                    self.disconnect()
+                    assert 0, 'exit because of abnormal disconnection'
 
             return message
 

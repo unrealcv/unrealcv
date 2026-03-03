@@ -26,6 +26,7 @@ Example:
     >>> launcher.close()
 """
 import getpass
+import logging
 import subprocess
 import atexit
 import os
@@ -34,6 +35,8 @@ import time
 import sys
 import warnings
 from unrealcv.util import get_path2UnrealEnv
+
+_L = logging.getLogger(__name__)
 
 
 class RunUnreal():
@@ -139,7 +142,7 @@ class RunUnreal():
             self.docker = RunDocker(self.path2env)
             options = self.set_ue_options([], opengl, offscreen, nullrhi, gpu_id)
             env_ip = self.docker.start(ENV_BIN=self.env_bin, options=' '.join(options), host_net=local_host)  # use local host ip
-            print('Running nvidia-docker env')
+            _L.info('Running nvidia-docker env')
         else:
             #self.modify_permission(self.path2env)
             cmd_exe = [os.path.abspath(self.path2binary)]
@@ -160,10 +163,10 @@ class RunUnreal():
             atexit.register(self.close)
             # signal.signal(signal.SIGTERM, self.signal_handler)
             # signal.signal(signal.SIGINT, self.signal_handler)
-            print('Running docker-free env, pid:{}'.format(self.env.pid))
+            _L.info('Running docker-free env, pid:%d', self.env.pid)
             # get the pid of the unreal engine process
             self.ue_pid = self.env.pid
-        print('Please wait for a while to launch env......')
+        _L.info('Please wait for a while to launch env...')
         time.sleep(sleep_time)
         return env_ip, port
 
@@ -216,7 +219,7 @@ class RunUnreal():
             tuple: The root path and the binary path.
         """
         part_path = path.split(os.sep)
-        print(part_path)
+        _L.debug('Parsed path parts: %s', part_path)
         id_binaries = part_path.index('Binaries')
         if not part_path[0].startswith('/'):
             part_path[0] = '/' + part_path[0]
@@ -282,7 +285,7 @@ class RunUnreal():
             s = f.read()
             ss = s.split('\n')
         with open(self.path2unrealcv, 'w') as f:
-            print(ss[1])
+            _L.debug('Current port line: %s', ss[1])
             ss[1] = 'Port={port}'.format(port=port)
             d = '\n'
             s_new = d.join(ss)
@@ -366,7 +369,7 @@ class RunDocker():
             str: The IP address of the Docker container.
         """
         path2binary = os.path.join(self.path2env, ENV_BIN)
-        print(path2binary)
+        _L.debug('Docker binary path: %s', path2binary)
         if not os.path.exists(path2binary):
             warnings.warn('Did not find unreal environment, Please move your binary file to env/UnrealEnv')
             sys.exit()
@@ -386,7 +389,7 @@ class RunDocker():
             docker_cmd += ' --net=host'
         cmd = docker_cmd + ' ' + volumes + ' ' + self.image + ' ' + run_cmd
 
-        print(cmd)
+        _L.info('Docker command: %s', cmd)
         os.system(cmd)
         self.container = self.docker_client.containers.list()[0]
 
@@ -394,7 +397,7 @@ class RunDocker():
 
     def get_ip(self):
         # return '127.0.0.1'
-        print(self.container.attrs['NetworkSettings']['IPAddress'])
+        _L.info('Container IP: %s', self.container.attrs['NetworkSettings']['IPAddress'])
         return self.container.attrs['NetworkSettings']['IPAddress']
 
     def get_path2UnrealEnv(self):
@@ -433,7 +436,7 @@ class RunDocker():
             warnings.warn('Do not found images, Downloading')
             self.docker_client.images.pull(target_images)
         else:
-            print('Found images')
+            _L.info('Found images')
 
 
 

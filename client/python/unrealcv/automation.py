@@ -5,6 +5,8 @@ import subprocess, sys, os, argparse, platform, logging, glob, shutil, json
 try: input = raw_input # to support python3
 except NameError: pass
 
+_L = logging.getLogger(__name__)
+
 def get_platform_name():
     ''''
     Python and UE4 use different names for platform, in this script we will use UE4 platform name exclusively
@@ -18,7 +20,7 @@ def get_platform_name():
     # Key: python platform name, Value: UE4
     platform_name = py2UE4.get(platform.system())
     if not platform_name:
-        print('Can not recognize platform %s' % platform.system())
+        _L.error('Can not recognize platform %s', platform.system())
     return platform_name
 
 def get_plugin_version(plugin_descriptor):
@@ -38,7 +40,7 @@ class UE4Automation:
         self.abs_UAT_path = self._get_UATPath()
 
         if not os.path.isfile(self.abs_UAT_path):
-            print('Can not found UAT script in the engine folder %s' % self.UE4_dir)
+            _L.error('Can not found UAT script in the engine folder %s', self.UE4_dir)
 
     def _get_platform_name(self):
         return get_platform_name()
@@ -58,8 +60,8 @@ class UE4Automation:
         abs_output_folder = os.path.abspath(output_folder)
 
         if overwrite == False and os.path.isdir(abs_output_folder):
-            print('Output folder "%s" already exists, skip compilation.' % abs_output_folder)
-            print('Remove this folder if you want to compile the plugin with a different UE4 version.')
+            _L.info('Output folder "%s" already exists, skip compilation.', abs_output_folder)
+            _L.info('Remove this folder if you want to compile the plugin with a different UE4 version.')
         else:
             script_dir = os.path.dirname(os.path.realpath(__file__))
             subprocess.call([
@@ -78,7 +80,7 @@ class UE4Automation:
         plugin_folder : str
             The plugin folder with compiled binaries
         '''
-        print('-' * 30 + ' Install ' + '-' * 30)
+        _L.info('%s Install %s', '-' * 30, '-' * 30)
         engine_plugin_folder = os.path.join(self.UE4_dir, 'Engine', 'Plugins')
         abs_tgt_unrealcv_folder = os.path.join(engine_plugin_folder, 'UnrealCV')
         abs_src_unrealcv_folder = plugin_folder
@@ -87,12 +89,12 @@ class UE4Automation:
             if overwrite:
                 shutil.rmtree(abs_tgt_unrealcv_folder)
             else:
-                print('UnrealCV is already found in the Engine/Plugins folder')
+                _L.info('UnrealCV is already found in the Engine/Plugins folder')
                 return
 
-        print('Copy the plugin from %s to %s' % (abs_src_unrealcv_folder, abs_tgt_unrealcv_folder))
+        _L.info('Copy the plugin from %s to %s', abs_src_unrealcv_folder, abs_tgt_unrealcv_folder)
         shutil.copytree(abs_src_unrealcv_folder, abs_tgt_unrealcv_folder)
-        print('Installation of UnrealCV is successful.')
+        _L.info('Installation of UnrealCV is successful.')
 
     def package(self, project_descriptor, output_folder, overwrite = False):
         '''
@@ -110,7 +112,7 @@ class UE4Automation:
         abs_output_folder = os.path.abspath(output_folder)
 
         if overwrite == False and os.path.isdir(abs_output_folder):
-            print('Packaged binary already exist')
+            _L.info('Packaged binary already exist')
         else:
             subprocess.call([
                 self.abs_UAT_path, 'BuildCookRun',
@@ -151,10 +153,10 @@ class UE4Automation:
         # Ask user to make a selection
         if len(found_UE4) == 1: return found_UE4[0]
         if len(found_UE4) == 0:
-            print('Can not automatically found a UE4 path, please specify it with --UE4')
+            _L.error('Can not automatically found a UE4 path, please specify it with --UE4')
 
-        print('Found UE4 in the following path, please make a selection:')
-        print('\n'.join('%d : %s' % (i+1, found_UE4[i]) for i in range(len(found_UE4))))
+        _L.info('Found UE4 in the following path, please make a selection:')
+        _L.info('\n'.join('%d : %s' % (i+1, found_UE4[i]) for i in range(len(found_UE4))))
 
         num = int(input())
         return found_UE4[num-1]
@@ -211,7 +213,7 @@ class UE4BinaryBase(object):
         if os.path.isfile(self.binary_path) or os.path.isdir(self.binary_path):
             self.start()
         else:
-            print('Binary %s can not be found' % self.binary_path)
+            _L.warning('Binary %s can not be found', self.binary_path)
 
     def __exit__(self, type, value, traceback):
         ''' Close the binary '''
@@ -219,7 +221,7 @@ class UE4BinaryBase(object):
 
 class WindowsBinary(UE4BinaryBase):
     def start(self):
-        print('Start windows binary %s' % self.binary_path)
+        _L.info('Start windows binary %s', self.binary_path)
         subprocess.Popen(self.binary_path)
         time.sleep(10) # FIXME: How long is needed for the binary to launch?
         # Wait for the process to run. FIXME: Wait for an output line?
@@ -228,7 +230,7 @@ class WindowsBinary(UE4BinaryBase):
         # Kill windows process
         basename = os.path.basename(self.binary_path)
         cmd = ['taskkill', '/F', '/IM', basename]
-        print('Kill windows binary with command %s' % cmd)
+        _L.info('Kill windows binary with command %s', cmd)
         subprocess.call(cmd)
 
 class LinuxBinary(UE4BinaryBase):
@@ -241,7 +243,7 @@ class LinuxBinary(UE4BinaryBase):
     def close(self):
         # Kill Linux process
         cmd = ['kill', str(self.pid)]
-        print('Kill process %s with command %s' % (self.pid, cmd))
+        _L.info('Kill process %s with command %s', self.pid, cmd)
         subprocess.call(cmd)
 
 class MacBinary(UE4BinaryBase):
