@@ -58,6 +58,11 @@ void FAliasHandler::RegisterCommands()
 
 FExecStatus FAliasHandler::VRun(const TArray<FString>& Args)
 {
+	if (!FUnrealcvServer::Get().Config.AllowDangerousCommands)
+	{
+		return FExecStatus::Error(TEXT("Command disabled by policy: set AllowDangerousCommands=true or -cvallowdangerous"));
+	}
+
 	FString Cmd = "";
 
 	uint32 NumArgs = Args.Num();
@@ -107,11 +112,6 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 
 	// if (Obj->CallFunctionByNameWithArguments(*Cmd, OutputDevice, nullptr, true))
 	// {
-		if (!FUnrealcvServer::Get().Config.AllowDangerousCommands)
-		{
-			return FExecStatus::Error(TEXT("Command disabled by policy: set AllowDangerousCommands=true or -cvallowdangerous"));
-		}
-
 	// 	return FExecStatus::OK();
 	// }
 	// else

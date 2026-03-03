@@ -69,6 +69,7 @@ class UNREALCV_API UUnixTcpServer : public UObject
 public:
 	/** The port number this server is listening on */
 	int32 PortNum = -1;
+	FString BindAddress = TEXT("127.0.0.1");
 
 	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	// bool bIsConnected = false;

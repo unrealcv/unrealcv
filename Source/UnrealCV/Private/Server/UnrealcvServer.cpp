@@ -404,6 +404,9 @@ void FUnrealcvServer::HandleRawMessage(const FString& Endpoint, const FString& I
 /** Error handler for server */
 void FUnrealcvServer::HandleError(const FString& InErrorMessage)
 {
+	bEndpointAuthenticated = false;
+	AuthEndpoint = TEXT("");
+
 	if (Config.ExitOnFailure)
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("Unexpected error from server. Requesting exit. Error message: %s"), *InErrorMessage);
