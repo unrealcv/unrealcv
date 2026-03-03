@@ -22,6 +22,9 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip pytest
+
       - name: Verify snapshot is up to date
         run: python client/python/tools/update_public_api_snapshot.py --repo-root . --check
 

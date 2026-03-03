@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "source": "ast-static-analysis",
-  "symbol_count": 16,
+  "symbol_count": 15,
   "symbols": [
     "Client",
     "DockerBinary",
@@ -17,7 +17,6 @@
     "UnrealCv_API",
     "WindowsBinary",
     "get_platform_name",
-    "get_plugin_version",
-    "h"
+    "get_plugin_version"
   ]
 }

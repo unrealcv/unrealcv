@@ -2,14 +2,16 @@ import argparse
 import ast
 import json
 from pathlib import Path
+from typing import Any, Dict, Set
 
 
 MODULES = ["api.py", "automation.py", "launcher.py"]
+EXCLUDED_SYMBOLS = {"annotations", "h"}
 
 
-def _collect_public_names_from_module(path: Path) -> set[str]:
+def _collect_public_names_from_module(path: Path) -> Set[str]:
     tree = ast.parse(path.read_text(encoding="utf-8", errors="ignore"), filename=str(path))
-    exported: set[str] = set()
+    exported: Set[str] = set()
     for node in tree.body:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
             if not node.name.startswith("_"):
@@ -21,9 +23,9 @@ def _collect_public_names_from_module(path: Path) -> set[str]:
     return exported
 
 
-def build_snapshot(repo_root: Path) -> dict[str, object]:
+def build_snapshot(repo_root: Path) -> Dict[str, Any]:
     package_dir = repo_root / "client/python/unrealcv"
-    names: set[str] = set()
+    names: Set[str] = set()
 
     init_names = _collect_public_names_from_module(package_dir / "__init__.py")
     names.update(init_names)
@@ -31,7 +33,7 @@ def build_snapshot(repo_root: Path) -> dict[str, object]:
     for module in MODULES:
         names.update(_collect_public_names_from_module(package_dir / module))
 
-    names.discard("annotations")
+    names.difference_update(EXCLUDED_SYMBOLS)
 
     return {
         "schema_version": 1,
@@ -58,7 +60,10 @@ def main() -> int:
 
     generated = build_snapshot(repo_root)
 
-    if args.check and snapshot_path.exists():
+    if args.check:
+        if not snapshot_path.exists():
+            print("Public API snapshot is missing. Run update_public_api_snapshot.py without --check.")
+            return 1
         current = json.loads(snapshot_path.read_text(encoding="utf-8"))
         if current != generated:
             print("Public API snapshot is out of date. Run update_public_api_snapshot.py without --check.")
