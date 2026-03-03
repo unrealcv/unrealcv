@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "source": "ast-static-analysis",
+  "symbol_count": 16,
+  "symbols": [
+    "Client",
+    "DockerBinary",
+    "LinuxBinary",
+    "MacBinary",
+    "MsgDecoder",
+    "RunDocker",
+    "RunUnreal",
+    "SocketMessage",
+    "UE4Automation",
+    "UE4Binary",
+    "UE4BinaryBase",
+    "UnrealCv_API",
+    "WindowsBinary",
+    "get_platform_name",
+    "get_plugin_version",
+    "h"
+  ]
+}
