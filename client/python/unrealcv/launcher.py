@@ -26,6 +26,7 @@ Example:
     >>> launcher.close()
 """
 import getpass
+import logging
 import subprocess
 import atexit
 import os
@@ -33,6 +34,8 @@ import docker
 import time
 import sys
 import warnings
+
+_L = logging.getLogger(__name__)
 from unrealcv.util import get_path2UnrealEnv
 
 
@@ -167,12 +170,12 @@ class RunUnreal():
         time.sleep(sleep_time)
         return env_ip, port
 
-    def set_ue_options(self, cmd_exe=[], opengl=False, offscreen=False, nullrhi=False, gpu_id=None):
+    def set_ue_options(self, cmd_exe=None, opengl=False, offscreen=False, nullrhi=False, gpu_id=None):
         """
         Set options for running the Unreal Engine environment.
 
         Args:
-            cmd_exe (list): The command to execute.
+            cmd_exe (list, optional): The command to execute. Default is None (creates a new list).
             opengl (bool): Whether to use OpenGL rendering. Default is False. If False, Vulkan is used.
             offscreen (bool): Whether to render offscreen. Default is False. This is useful for headless servers.
             nullrhi (bool): Whether to use null RHI. Default is False. This turns off the graphics rendering to save resources when rendering not needed.
@@ -181,6 +184,8 @@ class RunUnreal():
         Returns:
             list: The command with options.
         """
+        if cmd_exe is None:
+            cmd_exe = []
         if self.env_map is not None:
             cmd_exe.append(self.env_map)
         if opengl:
@@ -227,12 +232,17 @@ class RunUnreal():
     def close(self):
         """
         Close the Unreal Engine environment.
+
+        Handles the case where the process has already terminated (e.g. crashed)
+        to avoid ProcessLookupError / OSError.
         """
         if self.use_docker:
             self.docker.close()
         else:
-            self.env.kill()
-            # self.env.terminate()
+            try:
+                self.env.kill()
+            except OSError:
+                pass  # already terminated
             self.env.wait()
 
     def signal_handler(self, signum, frame):
@@ -252,9 +262,11 @@ class RunUnreal():
         Args:
             path (str): The path to modify.
         """
-        cmd = 'sudo chown {USER} {ENV_PATH} -R'
         username = getpass.getuser()
-        os.system(cmd.format(USER=username, ENV_PATH=path))
+        subprocess.run(
+            ['sudo', 'chown', username, '-R', path],
+            check=False,
+        )
 
     def read_port(self):
         """
@@ -272,7 +284,7 @@ class RunUnreal():
             return 9000 # default port number
 
     def write_port(self, port):
-        self.write__ = """
+        """
         Write the port number to unrealcv.ini.
 
         Args:
@@ -318,17 +330,13 @@ class RunUnreal():
             bool: True if the port is free, False otherwise.
         """
         import socket
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            if 'linux' in sys.platform or 'darwin' in sys.platform:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            try:
                 sock.bind((ip, port))
-            elif 'win' in sys.platform:
-                sock.bind((ip, port))
-                sock.connect((ip, port))
-        except Exception as e:
-            sock.close()
-            return False
-        sock.close()
+                if 'win' in sys.platform:
+                    sock.connect((ip, port))
+            except Exception:
+                return False
         return True
 
 # run binary in docker
@@ -343,7 +351,7 @@ class RunDocker():
         """
         self.docker_client = docker.from_env()
         self.check_image(target_images=image)
-        os.system('xhost +')
+        subprocess.run(['xhost', '+'], check=False)
         self.image = image
         self.path2env = path2env
 
@@ -371,23 +379,29 @@ class RunDocker():
             warnings.warn('Did not find unreal environment, Please move your binary file to env/UnrealEnv')
             sys.exit()
 
-        client = docker.from_env()
-        # network_settings = self.container.attrs['NetworkSettings']
-        volumes = f'-v {self.path2env}:{ENV_DIR_DOCKER}:rw'
-
         ENV_DIR_BIN_DOCKER = os.path.join(ENV_DIR_DOCKER, ENV_BIN)
         exe_cmd = ENV_DIR_BIN_DOCKER + ' ' + options
-        run_cmd = f'/bin/bash -c \"su user -c \'{exe_cmd}\'\"'
 
-        docker_cmd = 'docker run --gpus all  -e DISPLAY=$DISPLAY -e SDL_VIDEODRIVER=x11' \
-                     ' -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d ' \
-                     '-e QT_X11_NO_MITSHM=1 -e NVIDIA_DRIVER_CAPABILITIES=all --privileged -d -it'
+        docker_args = [
+            'docker', 'run', '--gpus', 'all',
+            '-e', f'DISPLAY={os.environ.get("DISPLAY", ":0")}',
+            '-e', 'SDL_VIDEODRIVER=x11',
+            '-v', '/tmp/.X11-unix:/tmp/.X11-unix:rw',
+            '-v', '/usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d',
+            '-e', 'QT_X11_NO_MITSHM=1',
+            '-e', 'NVIDIA_DRIVER_CAPABILITIES=all',
+            '--privileged', '-d', '-it',
+        ]
         if host_net:
-            docker_cmd += ' --net=host'
-        cmd = docker_cmd + ' ' + volumes + ' ' + self.image + ' ' + run_cmd
+            docker_args += ['--net=host']
+        docker_args += [
+            '-v', f'{self.path2env}:{ENV_DIR_DOCKER}:rw',
+            self.image,
+            '/bin/bash', '-c', f'su user -c \'{exe_cmd}\'',
+        ]
 
-        print(cmd)
-        os.system(cmd)
+        _L.info('Docker command: %s', ' '.join(docker_args))
+        subprocess.run(docker_args, check=True)
         self.container = self.docker_client.containers.list()[0]
 
         return self.get_ip()

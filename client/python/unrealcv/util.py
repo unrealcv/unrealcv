@@ -20,7 +20,7 @@ class ResChecker:
     def is_expected_file_extension(self, path, valid_ext):
         ext = os.path.splitext(path)[-1]
         if ext not in valid_ext:
-            print(print(f'Invalid file extension {ext}, should be in {valid_ext}'))
+            print(f'Invalid file extension {ext}, should be in {valid_ext}')
         return ext in valid_ext
 
 def measure_fps(func, *args, **kwargs):

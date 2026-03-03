@@ -233,8 +233,11 @@ class WindowsBinary(UE4BinaryBase):
 
 class LinuxBinary(UE4BinaryBase):
     def start(self):
-        null_file = open(os.devnull, 'w')
-        popen_obj = subprocess.Popen([self.binary_path], stdout = null_file, stderr = null_file)
+        popen_obj = subprocess.Popen(
+            [self.binary_path],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
         self.pid = popen_obj.pid
         time.sleep(6)
 
