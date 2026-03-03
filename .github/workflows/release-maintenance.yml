@@ -10,6 +10,9 @@ on:
       - "examples/model_zoo/**"
       - ".github/workflows/release-maintenance.yml"
 
+permissions:
+  contents: read
+
 jobs:
   validate-release-scripts:
     runs-on: ubuntu-latest
@@ -39,6 +42,8 @@ jobs:
       - name: Archive release scripts
         run: |
           mkdir -p dist
+          find examples/model_zoo -type d -name "__pycache__" -prune -exec rm -rf {} +
+          find examples/model_zoo -type f -name "*.pyc" -delete
           tar -czf dist/release-tools.tar.gz \
             build.py dodo.py examples/model_zoo
 
