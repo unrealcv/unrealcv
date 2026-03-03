@@ -272,7 +272,7 @@ class RunUnreal():
             return 9000 # default port number
 
     def write_port(self, port):
-        self.write__ = """
+        """
         Write the port number to unrealcv.ini.
 
         Args:
@@ -371,7 +371,6 @@ class RunDocker():
             warnings.warn('Did not find unreal environment, Please move your binary file to env/UnrealEnv')
             sys.exit()
 
-        client = docker.from_env()
         # network_settings = self.container.attrs['NetworkSettings']
         volumes = f'-v {self.path2env}:{ENV_DIR_DOCKER}:rw'
 

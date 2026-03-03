@@ -2,8 +2,6 @@
 # A single file library
 # Weichao Qiu @ 2017
 import subprocess, sys, os, argparse, platform, logging, glob, shutil, json
-try: input = raw_input # to support python3
-except NameError: pass
 
 def get_platform_name():
     ''''
@@ -57,8 +55,7 @@ class UE4Automation:
         abs_plugin_descriptor = os.path.abspath(plugin_descriptor)
         abs_output_folder = os.path.abspath(output_folder)
 
-        if overwrite == False and os.path.isdir(abs_output_folder):
-            print('Output folder "%s" already exists, skip compilation.' % abs_output_folder)
+        if not overwrite and os.path.isdir(abs_output_folder):
             print('Remove this folder if you want to compile the plugin with a different UE4 version.')
         else:
             script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -109,7 +106,7 @@ class UE4Automation:
         abs_project_path = os.path.abspath(project_descriptor)
         abs_output_folder = os.path.abspath(output_folder)
 
-        if overwrite == False and os.path.isdir(abs_output_folder):
+        if not overwrite and os.path.isdir(abs_output_folder):
             print('Packaged binary already exist')
         else:
             subprocess.call([
@@ -191,7 +188,7 @@ def UE4Binary(binary_path):
 
 import time, os
 # The environment runner
-class UE4BinaryBase(object):
+class UE4BinaryBase:
     '''
     UE4BinaryBase is the base class for all platform-dependent classes, it is different from UE4Binary which serves as a factory to create a platform-dependent binary wrapper. User should use UE4Binary instead of UE4BinaryBase
 
@@ -213,7 +210,7 @@ class UE4BinaryBase(object):
         else:
             print('Binary %s can not be found' % self.binary_path)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         ''' Close the binary '''
         self.close()
 
@@ -233,8 +230,11 @@ class WindowsBinary(UE4BinaryBase):
 
 class LinuxBinary(UE4BinaryBase):
     def start(self):
-        null_file = open(os.devnull, 'w')
-        popen_obj = subprocess.Popen([self.binary_path], stdout = null_file, stderr = null_file)
+        popen_obj = subprocess.Popen(
+            [self.binary_path],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
         self.pid = popen_obj.pid
         time.sleep(6)
 
@@ -285,6 +285,3 @@ if __name__ == '__main__':
     with binary:
         client.connect()
         client.request('vget /unrealcv/status')
-
-    pass
-    # Try some simple tests in here?

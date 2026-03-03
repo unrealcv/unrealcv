@@ -31,7 +31,7 @@ import sys
 from unrealcv.util import ResChecker, time_it
 import warnings
 
-class UnrealCv_API(object):
+class UnrealCv_API:
     """
     A class to interact with UnrealCV, a toolkit for using Unreal Engine (UE) in Python.
     """
@@ -156,15 +156,6 @@ class UnrealCv_API(object):
                  fov=self.get_cam_fov(i)
             )
         return cam
-
-    def get_camera_num(self):
-        """
-        Get the number of cameras.
-
-        Returns:
-            int: The number of cameras.
-        """
-        return len(self.client.request('vget /cameras').split())
 
     def get_objects(self):
         """
@@ -314,7 +305,7 @@ class UnrealCv_API(object):
         img_list = self.batch_cmd(cmds, decoders, mode=mode, inverse=inverse)
         return img_list
 
-    def get_image_multimodal(self, cam_id, viewmodes=['lit', 'depth'], modes=['bmp', 'npy']): # get rgb and depth image
+    def get_image_multimodal(self, cam_id, viewmodes=None, modes=None): # get rgb and depth image
         """
         Get multimodal images from a camera, such as RGB-D images (default).
 
@@ -326,6 +317,10 @@ class UnrealCv_API(object):
         Returns:
             np.ndarray: The concatenated image.
         """
+        if viewmodes is None:
+            viewmodes = ['lit', 'depth']
+        if modes is None:
+            modes = ['bmp', 'npy']
         cmds = [self.get_image(cam_id, viewmode, mode, return_cmd=True) for viewmode, mode in zip(viewmodes, modes)]
         decoders = [self.decoder.decode_map[mode] for mode in modes]
         res = self.batch_cmd(cmds, decoders)
@@ -699,11 +694,10 @@ class UnrealCv_API(object):
         width = object_mask.shape[1]
         height = object_mask.shape[0]
         mask = self.get_mask(object_mask, obj)
-        nparray = np.array([[[0, 0]]])
         pixelpointsCV2 = cv2.findNonZero(mask)
 
 
-        if type(pixelpointsCV2) == type(nparray):  # exist target in image
+        if isinstance(pixelpointsCV2, np.ndarray):  # exist target in image
             x_min = pixelpointsCV2[:, :, 0].min()
             x_max = pixelpointsCV2[:, :, 0].max()
             y_min = pixelpointsCV2[:, :, 1].min()
@@ -898,18 +892,19 @@ class UnrealCv_API(object):
         res = None
         while res is None:
             res = self.client.request(cmd)
-        print(obj, res)
         return self.decoder.string2floats(res)  # [scale_x, scale_y, scale_z]
 
-    def set_obj_scale(self, obj, scale=[1, 1, 1], return_cmd=False):
+    def set_obj_scale(self, obj, scale=None, return_cmd=False):
         """
         Set the scale of an object.
 
         Args:
             obj (str): The object name.
-            scale (list): The scale to set [scale_x, scale_y, scale_z].
+            scale (list): The scale to set [scale_x, scale_y, scale_z]. Default is [1, 1, 1].
             return_cmd (bool): Whether to return the command instead of executing it. Default is False.
         """
+        if scale is None:
+            scale = [1, 1, 1]
         [x, y, z] = scale
         cmd = f'vset /object/{obj}/scale {x} {y} {z}'
         if return_cmd:
@@ -1177,7 +1172,7 @@ class UnrealCv_API(object):
         self.client.request(cmd, -1)
 
 
-class MsgDecoder(object):
+class MsgDecoder:
     """
     Message decoder for UnrealCV server responses.
 
