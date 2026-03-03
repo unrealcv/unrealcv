@@ -1,0 +1,18 @@
+Checks: >
+  -*,
+  bugprone-*,
+  modernize-*,
+  performance-*,
+  readability-*,
+  cppcoreguidelines-avoid-c-arrays,
+  cppcoreguidelines-pro-type-static-cast-downcast,
+  cppcoreguidelines-pro-bounds-array-to-pointer-decay
+WarningsAsErrors: ''
+HeaderFilterRegex: 'Source/UnrealCV/.*'
+FormatStyle: none
+AnalyzeTemporaryDtors: false
+CheckOptions:
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  - key: readability-identifier-naming.MemberSuffix
+    value: ''

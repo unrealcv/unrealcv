@@ -14,3 +14,14 @@ UnrealCV is still developing and we really want to make it more helpful to compu
 Pull Request
 ------------
 If you make improvements to UnrealCV,like fixing a bug or adding a new feature, please submit a pull request. Please make sure that you follow the syntax of UnrealCV. You will be greatly appreciated if you can fully describe the changes you have made.
+
+C++ Quality Checks
+------------------
+UnrealCV uses ``clang-format`` and ``clang-tidy`` checks for changed C++ files in pull requests.
+
+To run checks locally before opening a PR:
+
+1. ``clang-format --dry-run --Werror <path-to-cpp-or-h-file>``
+2. ``clang-tidy <path-to-cpp-or-h-file> --extra-arg=-std=c++17 -- -I Source/UnrealCV/Public``
+
+The ``clang-tidy`` step is currently advisory to support gradual adoption and avoid blocking large legacy refactors.
