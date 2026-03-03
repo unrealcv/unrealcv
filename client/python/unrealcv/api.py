@@ -1363,34 +1363,42 @@ class MsgDecoder(object):
         Decode an image.
 
         Args:
-            res (str): The response string.
+            res (bytes): The response data.
             mode (str): The image format (e.g., 'png', 'bmp', 'npy').
             inverse (bool): Whether to inverse the depth. Default is False.
         Returns:
             np.ndarray: The decoded image.
         Note: The depth image should use the 'npy' mode to decode.
+        Raises:
+            ValueError: If the mode is not recognised.
         """
         if mode == 'png':
-            img = self.decode_png(res)
-        if mode == 'bmp':
-            img = self.decode_bmp(res)
-        if mode == 'npy':
-            img = self.decode_depth(res, inverse)
-        return img
+            return self.decode_png(res)
+        elif mode == 'bmp':
+            return self.decode_bmp(res)
+        elif mode == 'npy':
+            return self.decode_depth(res, inverse)
+        else:
+            raise ValueError(f"Unknown image mode '{mode}', expected 'png', 'bmp', or 'npy'")
 
     def decode_png(self, res):
         """
-        Decode a PNG image.
+        Decode a PNG image using OpenCV.
+
+        Uses ``cv2.imdecode`` directly instead of PIL → numpy → slice → reverse,
+        which avoids two intermediate array copies (alpha-strip and channel-flip).
+        OpenCV already decodes into BGR uint8 which matches the rest of the pipeline.
 
         Args:
-            res (str): The response string.
+            res (bytes): Raw PNG image data.
 
         Returns:
-            np.ndarray: The decoded image.
+            np.ndarray: The decoded BGR image of shape (H, W, 3).
         """
-        img = np.asarray(PIL.Image.open(BytesIO(res)))
-        img = img[:, :, :-1]  # delete alpha channel
-        img = img[:, :, ::-1]  # transpose channel order
+        nparr = np.frombuffer(res, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)  # decodes as BGR, drops alpha
+        if img is None:
+            raise ValueError("Failed to decode PNG image data")
         return img
 
     def decode_bmp(self, res):
@@ -1420,33 +1428,41 @@ class MsgDecoder(object):
 
     def decode_npy(self, res):
         """
-        Decode a NPY image.
+        Decode a NPY buffer, ensuring a 3-D array (H, W, 1) for 2-D inputs.
+
+        Uses ``reshape`` instead of ``np.expand_dims`` to avoid an extra copy
+        when the underlying data is already contiguous.
 
         Args:
-            res (str): The response string.
+            res (bytes): Raw .npy binary data.
 
         Returns:
-            np.ndarray: The decoded image.
+            np.ndarray: Array with shape (H, W, C).
         """
         img = np.load(BytesIO(res))
-        if len(img.shape) == 2:
-            img = np.expand_dims(img, axis=-1)
+        if img.ndim == 2:
+            img = img.reshape(img.shape[0], img.shape[1], 1)
         return img
 
     def decode_depth(self, res, inverse=False):
         """
-        Decode a depth image.
+        Decode a depth image from .npy binary data.
+
+        Uses ``reshape`` for the trailing dimension and ``np.reciprocal``
+        (with ``out=`` parameter) for in-place inversion when requested.
 
         Args:
-            res (str): The response string.
-            inverse (bool): Whether to inverse the depth. Default is False.
+            res (bytes): Raw .npy binary data.
+            inverse (bool): Whether to invert the depth (1/depth). Default is False.
         Returns:
-            np.ndarray: The decoded depth image.
+            np.ndarray: Depth array with shape (H, W, 1).
         """
         depth = np.load(BytesIO(res))
         if inverse:
-            depth = 1/depth
-        return np.expand_dims(depth, axis=-1)
+            # in-place reciprocal avoids allocating a temporary array
+            depth = depth.astype(np.float64, copy=False)
+            np.reciprocal(depth, out=depth)
+        return depth.reshape(depth.shape[0], depth.shape[1], 1)
 
     def empty(self, res):
         """
