@@ -38,101 +38,84 @@ class SocketMessage:
         self.payload_size = ctypes.c_uint32(len(payload)).value
 
     @classmethod
+    def _recv_exact(cls, sock, nbytes):
+        """
+        Read exactly *nbytes* from *sock*, using a pre-allocated bytearray
+        and memoryview to avoid intermediate copies.
+
+        Returns bytes on success, None on disconnect / error.
+        """
+        buf = bytearray(nbytes)
+        view = memoryview(buf)
+        pos = 0
+        while pos < nbytes:
+            n = sock.recv_into(view[pos:], nbytes - pos)
+            if n == 0:
+                # peer closed the connection
+                return None
+            pos += n
+        return bytes(buf)
+
+    @classmethod
     def ReceivePayload(cls, sock):
         """
         Return only payload, not the raw message, None if failed.
         sock: a blocking socket for read data.
+
+        Uses pre-allocated bytearray buffers to avoid O(n²) concatenation
+        that the previous ``payload += data`` loop suffered from on large
+        payloads (e.g. high-resolution images transferred as raw bytes).
         """
-        # print(sock.gettimeout())
-        # rbufsize = -1 # From SocketServer.py
-        # rbufsize = 0
-        # rfile = sock.makefile('rb', rbufsize)
+        # --- read 4-byte magic number ---
         try:
-            # raw_magic = rfile.read(4) # socket is disconnected or invalid
-            raw_magic = b''
-            while len(raw_magic) < 4:
-                recv_data = sock.recv(4)
-                if not recv_data:
-                    # socket closed by server
-                    print('Warning: socket disconnected by server')
-                    break
-                raw_magic += recv_data
+            raw_magic = cls._recv_exact(sock, 4)
         except Exception as e:
-            print(f'fail to read raw_magic, exception: {e}')
             _L.debug('Fail to read raw_magic, exception: "%s"', e)
             raw_magic = None
 
-        if not raw_magic:
-            # _L.debug('socket disconnect by server')
+        if raw_magic is None:
+            _L.debug('Socket disconnected by server (magic)')
             return None
 
-        magic = struct.unpack(cls.fmt, raw_magic)[0]  # 'I' means unsigned int
+        magic = struct.unpack(cls.fmt, raw_magic)[0]  # 'I' = unsigned 32-bit int
         if magic != cls.magic:
-            print(
-                'Error: receive a malformat message, the message should start from a four bytes uint32 magic number'
-            )
             _L.error(
-                'Error: receive a malformat message, the message should start from a four bytes uint32 magic number'
+                'Received malformed message: expected magic 0x%08X, got 0x%08X',
+                cls.magic,
+                magic,
             )
-            print('Actually received magic message: %s', repr(magic))
             return None
-            # The next time it will read four bytes again
 
-        # _L.debug('read payload')
-        # raw_payload_size = rfile.read(4)
-        raw_payload_size = sock.recv(4)
-        if not raw_payload_size:
-            print('Warning: socket disconnected by server')
+        # --- read 4-byte payload size ---
+        raw_payload_size = cls._recv_exact(sock, 4)
+        if raw_payload_size is None:
+            _L.debug('Socket disconnected by server (payload size)')
             return None
-        # print 'Receive raw payload size: %d, %s' % (len(raw_payload_size), raw_payload_size)
+
         payload_size = struct.unpack('I', raw_payload_size)[0]
-        # _L.debug('Receive payload size %d', payload_size)
 
-        # if the message is incomplete, should wait until all the data received
-        payload = b''
-        remain_size = payload_size
-        while remain_size > 0:
-            # data = rfile.read(remain_size)
-            data = sock.recv(remain_size)
-            if not data:
-                print('recv data is None!')
-                return None
-
-            payload += data
-            bytes_read = len(data)  # len(data) is its string length, but we want length of bytes
-            # print 'bytes_read %d, remain_size %d, read_str %s' % (bytes_read, remain_size, data)
-            assert bytes_read <= remain_size
-            remain_size -= bytes_read
+        # --- read payload into a pre-allocated buffer ---
+        payload = cls._recv_exact(sock, payload_size)
+        if payload is None:
+            _L.debug('Socket disconnected by server (payload body)')
+            return None
 
         return payload
 
     @classmethod
     def WrapAndSendPayload(cls, sock, payload):
         """
-        Send payload, true if success, false if failed
+        Send payload, true if success, false if failed.
+
+        Packs magic + payload_size into a single 8-byte header and sends
+        it together with the payload using ``sendall``, avoiding the
+        overhead of ``makefile`` / ``flush`` / ``close`` on every call.
         """
         try:
-            # From SocketServer.py
-            # wbufsize = 0, flush immediately
-            wbufsize = -1
-            # Convert
-            socket_message = SocketMessage(payload)
-            wfile = sock.makefile('wb', wbufsize)
-            # Write the message
-            wfile.write(struct.pack(cls.fmt, socket_message.magic))
-            # Need to send the packed version
-            # print 'Sent ', socket_message.magic
-
-            wfile.write(struct.pack(cls.fmt, socket_message.payload_size))
-            # print 'Sent ', socket_message.payload_size
-
-            wfile.write(payload)
-            # print 'Sent ', payload
-            wfile.flush()
-            wfile.close()  # Close file object, not close the socket
+            header = struct.pack(cls.fmt + cls.fmt, cls.magic, len(payload))
+            sock.sendall(header + payload)
             return True
         except Exception as e:
-            print(f'Fail to send message {e}')
             _L.error('Fail to send message %s', e)
             return False
 
