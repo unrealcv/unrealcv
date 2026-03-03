@@ -112,6 +112,8 @@ FUnrealcvServer::~FUnrealcvServer()
 	CommandHandlers.Empty();
 	if (TcpServer)
 	{
+		TcpServer->OnReceived().RemoveAll(this);
+		TcpServer->OnError().RemoveAll(this);
 		TcpServer->RemoveFromRoot();
 	}
 }

@@ -204,7 +204,13 @@ void UPlayerViewMode::Object()
 
 void UPlayerViewMode::ClearPostProcess()
 {
-	GetPostProcessVolume()->BlendWeight = 0;
+	APostProcessVolume* PostProcessVolume = GetPostProcessVolume();
+	if (!IsValid(PostProcessVolume))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("PostProcessVolume is invalid in ClearPostProcess"));
+		return;
+	}
+	PostProcessVolume->BlendWeight = 0;
 }
 
 void UPlayerViewMode::ApplyPostProcess(FString ModeName)
@@ -223,6 +229,11 @@ void UPlayerViewMode::ApplyPostProcess(FString ModeName)
 	}
 
 	APostProcessVolume* PostProcessVolume = GetPostProcessVolume();
+	if (!IsValid(PostProcessVolume))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("PostProcessVolume is invalid in ApplyPostProcess"));
+		return;
+	}
 	// PostProcessVolume->bEnabled = true;
 	PostProcessVolume->Settings.WeightedBlendables.Array.Empty();
 	// PostProcessVolume->AddOrUpdateBlendable(Material);
