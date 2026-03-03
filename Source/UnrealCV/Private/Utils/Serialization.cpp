@@ -4,6 +4,8 @@
 #include "Runtime/ImageWrapper/Public/IImageWrapper.h"
 #include "Runtime/ImageWrapper/Public/IImageWrapperModule.h"
 
+#include <limits>
+
 #include "libs/cnpy.h"
 #include "UnrealcvLog.h"
 
@@ -23,9 +25,18 @@ TArray<uint8> FSerializationUtils::Array2Npy(const TArray<float>& ImageData, int
 	if (Channel != 1) Shape.push_back(Channel);
 
 	std::vector<char> NpyHeader = cnpy::create_npy_header(TypePointer, Shape);
-	BinaryData.Reserve(NpyHeader.size() + ImageData.Num() * sizeof(float));
-	BinaryData.Append(reinterpret_cast<const uint8*>(NpyHeader.data()), NpyHeader.size());
-	BinaryData.Append(reinterpret_cast<const uint8*>(ImageData.GetData()), ImageData.Num() * sizeof(float));
+	const int64 HeaderSize = static_cast<int64>(NpyHeader.size());
+	const int64 PayloadSize = static_cast<int64>(ImageData.Num()) * static_cast<int64>(sizeof(float));
+	const int64 TotalSize = HeaderSize + PayloadSize;
+	if (HeaderSize > std::numeric_limits<int32>::max() || PayloadSize > std::numeric_limits<int32>::max() || TotalSize > std::numeric_limits<int32>::max())
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("Array2Npy payload too large for int32-backed buffer"));
+		return BinaryData;
+	}
+
+	BinaryData.Reserve(static_cast<int32>(TotalSize));
+	BinaryData.Append(reinterpret_cast<const uint8*>(NpyHeader.data()), static_cast<int32>(HeaderSize));
+	BinaryData.Append(reinterpret_cast<const uint8*>(ImageData.GetData()), static_cast<int32>(PayloadSize));
 	return BinaryData;
 }
 

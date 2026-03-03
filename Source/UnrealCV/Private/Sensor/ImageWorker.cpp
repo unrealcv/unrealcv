@@ -1,6 +1,7 @@
 #include "ImageWorker.h"
 #include "Runtime/Core/Public/HAL/RunnableThread.h"
 #include "UnrealcvLog.h"
+#include "Utils/RuntimeConstants.h"
 
 FImageWorker::FImageWorker() : Thread(nullptr)
 {
@@ -41,7 +42,7 @@ uint32 FImageWorker::Run()
 		}
 		if (!bProcessedFrame)
 		{
-			FPlatformProcess::Sleep(0.001f);
+			FPlatformProcess::Sleep(UnrealcvRuntimeConstants::BusyWaitSleepSeconds);
 		}
 	}
 	return 0;

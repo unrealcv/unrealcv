@@ -5,6 +5,7 @@
 #include <string>
 #include "UnrealcvLog.h"
 #include "UnrealcvShim.h"
+#include "Utils/RuntimeConstants.h"
 
 uint32 FUnixSocketMessageHeader::DefaultMagic = 0x9E2B83C1;
 
@@ -85,7 +86,7 @@ bool UnixSocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
 		{
 			if (LastError == ESocketErrors::SE_EWOULDBLOCK)
 			{
-				FPlatformProcess::Sleep(0.001f);
+				FPlatformProcess::Sleep(UnrealcvRuntimeConstants::BusyWaitSleepSeconds);
 				continue; // No data and keep waiting
 			}
 			// Use this check instead of use return status of recv to ensure backward compatibility
@@ -354,7 +355,17 @@ FString UnixStringFromBinaryArray(const TArray<uint8>& BinaryArray)
 	{
 		return FString();
 	}
-	FUTF8ToTCHAR Converter(reinterpret_cast<const ANSICHAR*>(BinaryArray.GetData()), BinaryArray.Num());
+	const uint8* Data = BinaryArray.GetData();
+	int32 Utf8Length = BinaryArray.Num();
+	for (int32 Index = 0; Index < BinaryArray.Num(); ++Index)
+	{
+		if (Data[Index] == 0)
+		{
+			Utf8Length = Index;
+			break;
+		}
+	}
+	FUTF8ToTCHAR Converter(reinterpret_cast<const ANSICHAR*>(Data), Utf8Length);
 	return FString(Converter.Length(), Converter.Get());
 }
 

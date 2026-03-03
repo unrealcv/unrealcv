@@ -31,7 +31,11 @@ AActor* GetActorById(UWorld* World, FString ActorId)
 	{
 		if (CachedActor->IsValid())
 		{
-			return CachedActor->Get();
+			AActor* Actor = CachedActor->Get();
+			if (Actor && Actor->GetName() == ActorId)
+			{
+				return Actor;
+			}
 		}
 		ActorCache.Remove(ActorId);
 	}
