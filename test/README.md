@@ -29,7 +29,19 @@ The test scripts usually ended with a suffix '\_test.py'
 
 # Test
 - connection_test.py        # Make sure the client can successfully connect to the UnrealCV server, also include throughput test
--
+- contract_test.py          # Contract tests for status/help/version/echo and unknown-command behavior
+
+## Command Contract Tests
+
+`test/server/contract_test.py` validates protocol-level behavior that external clients rely on:
+
+- `vget /unrealcv/status` returns core config information
+- `vget /unrealcv/help` includes key command entries
+- `vget /unrealcv/version` follows the `vX.Y.Z` style prefix
+- `vget /unrealcv/echo` returns the exact payload
+- unknown commands return an error contract instead of silently succeeding
+
+These tests are intentionally scene-agnostic and fast, and should be used as the first validation layer for server compatibility.
 ```
 
 ## Docker
