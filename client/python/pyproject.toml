@@ -22,5 +22,12 @@ dependencies = [
 keywords = ["computer vision", "unreal engine", "ue4/5", "synthetic", "simulator", "robotics"]
 urls = { "Homepage" = "http://unrealcv.org", "Download" = "http://unrealcv.github.io" }
 
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff"
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "unrealcv.__version__"}
