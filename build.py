@@ -28,9 +28,16 @@ def main():
     )
     parser.add_argument(
         '--overwrite',
-        type=bool,
-        help='Whether to overwrite the compiled binary'
+        action='store_true',
+        help='Overwrite existing compiled binaries when output folder already exists'
     )
+    parser.add_argument(
+        '--no-overwrite',
+        dest='overwrite',
+        action='store_false',
+        help='Do not overwrite existing compiled binaries'
+    )
+    parser.set_defaults(overwrite=True)
 
     args = parser.parse_args()
     need_install = args.install

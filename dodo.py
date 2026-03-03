@@ -2,8 +2,8 @@
 # Utility commands to make unrealcv development easier
 
 import os
-ue4_root = '/home/qiuwch/UE419' # The configuration only for my machine
-uat_script = os.path.join(ue4_root, '/Engine/Build/BatchFiles/RunUAT.sh')
+ue4_root = os.getenv('UE_ROOT', '')
+uat_script = os.path.join(ue4_root, 'Engine/Build/BatchFiles/RunUAT.sh') if ue4_root else 'RunUAT.sh'
 
 def task_cleanup():
     cmd = 'rm -rf Binaries/ Intermediate/'
@@ -33,6 +33,7 @@ def task_build():
     abs_output_folder = os.path.abspath('/tmp/unrealcv_binary')
     cmd = os.path.join(uat_script, 'BuildPlugin -plugin={abs_plugin_file} \
     -package={abs_output_folder} -rocket -targetplatforms=Linux -compile'.format(**locals()))
+    actions = [cmd]
 
     return {'actions': actions, 'verbosity': 2}
 
