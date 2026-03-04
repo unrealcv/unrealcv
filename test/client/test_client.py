@@ -21,6 +21,7 @@ def random_payload():
     return random_str
 
 
+# End-to-end client/server behavior checks
 def test_request(server, echo_port, localhost):
     """Simple test for basic functions"""
     client = unrealcv.Client((localhost, echo_port))
