@@ -6,6 +6,11 @@ def _assert_plain_request_calls(client, commands):
     assert client.calls == [(command, ()) for command in commands]
 
 
+def _assert_cam_pose_cache(api, location, rotation):
+    assert api.cam[0]["location"] == location
+    assert api.cam[0]["rotation"] == rotation
+
+
 def test_batch_cmd_decodes_each_response_with_kwargs(dummy_client_factory, api_factory):
     client = dummy_client_factory([["1 2 3", "4 5 6"]])
     api = api_factory(client)
@@ -183,5 +188,4 @@ def test_get_cam_pose_hard_mode_updates_cache_from_batch(monkeypatch, api_factor
     pose = api.get_cam_pose(0, mode="hard")
 
     assert pose == [10.0, 20.0, 30.0, 1.0, 2.0, 3.0]
-    assert api.cam[0]["location"] == [10.0, 20.0, 30.0]
-    assert api.cam[0]["rotation"] == [1.0, 2.0, 3.0]
+    _assert_cam_pose_cache(api, [10.0, 20.0, 30.0], [1.0, 2.0, 3.0])
