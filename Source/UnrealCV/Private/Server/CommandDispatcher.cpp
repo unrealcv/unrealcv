@@ -5,6 +5,19 @@
 
 DECLARE_CYCLE_STAT(TEXT("FCommandDispatcher::Exec"), STAT_Exec, STATGROUP_UnrealCV);
 
+namespace
+{
+FString ExtractVerb(const FString& CommandLikeString)
+{
+	int32 SpaceIndex = INDEX_NONE;
+	if (CommandLikeString.FindChar(TEXT(' '), SpaceIndex))
+	{
+		return CommandLikeString.Left(SpaceIndex);
+	}
+	return CommandLikeString;
+}
+} // anonymous namespace
+
 FCommandDispatcher::FCommandDispatcher()
 {
 	const FString Str   = TEXT("([^ ]*)");
@@ -89,6 +102,7 @@ bool FCommandDispatcher::BindCommand(const FString& ReadableUriTemplate, const F
 	UriMapping.Emplace(UriRegex, Command);
 	UriDescription.Emplace(ReadableUriTemplate, Description);
 	UriRegexPattern.Emplace(UriRegex, FRegexPattern(UriRegex));
+	UriVerb.FindOrAdd(UriRegex) = ExtractVerb(ReadableUriTemplate);
 	UriList.AddUnique(UriRegex);
 	return true;
 }
@@ -149,9 +163,16 @@ FExecStatus FCommandDispatcher::Exec(const FString& Uri)
 		return FExecStatus::Error(TEXT("Command execution must happen on the game thread."));
 	}
 
+	const FString IncomingVerb = ExtractVerb(Uri);
+
 	for (int32 UriIndex = UriList.Num() - 1; UriIndex >= 0; --UriIndex)
 	{
 		const FString& Key = UriList[UriIndex];
+		if (const FString* RegisteredVerb = UriVerb.Find(Key))
+		{
+			if (*RegisteredVerb != IncomingVerb) { continue; }
+		}
+
 		const FRegexPattern* Pattern = UriRegexPattern.Find(Key);
 		if (!Pattern) { continue; }
 		FRegexMatcher Matcher(*Pattern, Uri);
@@ -159,6 +180,7 @@ FExecStatus FCommandDispatcher::Exec(const FString& Uri)
 		if (!Matcher.FindNext()) { continue; }
 
 		TArray<FString> Args;
+		Args.Reserve(NumArgsLimit);
 		for (uint32 GroupIndex = 1; GroupIndex <= NumArgsLimit; ++GroupIndex)
 		{
 			const int32 BeginIndex = Matcher.GetCaptureGroupBeginning(GroupIndex);

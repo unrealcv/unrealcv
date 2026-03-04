@@ -41,6 +41,7 @@ private:
 	TMap<FString, FDispatcherDelegate> UriMapping;
 	TArray<FString> UriList;
 	TMap<FString, FRegexPattern> UriRegexPattern;
+	TMap<FString, FString> UriVerb;
 	TMap<FString, FString> UriDescription;
 	TMap<FString, TArray<FString>> AliasMapping;
 	TMap<FString, FString> TypeRegexp;
