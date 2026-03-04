@@ -107,15 +107,15 @@ def server(localhost, echo_port):
 @pytest.fixture
 def null_server_factory(localhost):
     """Create NullServer instances and guarantee cleanup after each test."""
-    created_servers = []
+    servers_to_cleanup = []
 
     def _factory(port):
         null_server = NullServer((localhost, port))
         null_server.start()
-        created_servers.append(null_server)
+        servers_to_cleanup.append(null_server)
         return null_server
 
     yield _factory
 
-    for null_server in created_servers:
+    for null_server in servers_to_cleanup:
         null_server.shutdown()
