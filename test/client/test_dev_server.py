@@ -2,14 +2,13 @@
 Test the correctness of the dev server, which simulates the functions of unrealcv server in python
 """
 
-import threading, time, socket, unittest, logging, sys
+import socket, logging, sys
 
 if sys.version_info > (3, 0):
     import socketserver as SocketServer
 else:
     import SocketServer
-from dev_server import MessageServer, MessageTCPHandler
-import unrealcv, pytest
+from dev_server import MessageServer
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

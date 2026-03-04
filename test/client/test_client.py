@@ -2,9 +2,8 @@
 Use python dummy server to test the robustness of unrealcv.Client, Pass the test of DevServer first
 """
 
-import unittest, threading, random, logging, time, sys
+import random, logging, time, sys
 import unrealcv
-from dev_server import EchoServer, MessageServer, NullServer
 
 # Configure the logging level of this test script
 logger = logging.getLogger(__name__)

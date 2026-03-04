@@ -52,7 +52,10 @@ def test_batch_cmd_returns_raw_when_decoder_list_is_none(
 ):
     client = dummy_client_factory([["ok", "ok"]])
     api = api_factory(client)
-    assert api.batch_cmd(cmds=["vset /foo", "vset /bar"], decoders=None) == ["ok", "ok"]
+    assert api.batch_cmd(cmds=["vset /foo", "vset /bar"], decoders=None) == [
+        "ok",
+        "ok",
+    ]
 
 
 @pytest.mark.parametrize(
@@ -143,10 +146,7 @@ def test_get_cam_location_retries_until_response_and_syncs_cache(
 
     assert result == [10.0, 20.0, 30.0]
     assert api.cam[0]["location"] == [10.0, 20.0, 30.0]
-    assert [call[0] for call in client.calls] == [
-        "vget /camera/0/location",
-        "vget /camera/0/location",
-    ]
+    assert [call[0] for call in client.calls] == ["vget /camera/0/location"] * 2
 
 
 @pytest.mark.parametrize(
