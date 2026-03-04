@@ -1,4 +1,7 @@
 import pytest
+import numpy as np
+from io import BytesIO
+import PIL.Image
 
 from dev_server import MessageServer, NullServer
 from unrealcv.api import MsgDecoder, UnrealCv_API
@@ -119,3 +122,29 @@ def null_server_factory(localhost):
 
     for null_server in servers_to_cleanup:
         null_server.shutdown()
+
+
+# Binary payload fixtures
+@pytest.fixture
+def make_png_rgba_bytes():
+    """Create in-memory RGBA PNG payloads for decoder tests."""
+
+    def _factory(rgba_pixel=(10, 20, 30, 255)):
+        image = PIL.Image.new("RGBA", (1, 1), rgba_pixel)
+        buffer = BytesIO()
+        image.save(buffer, format="PNG")
+        return buffer.getvalue()
+
+    return _factory
+
+
+@pytest.fixture
+def make_npy_bytes():
+    """Serialize numpy arrays to in-memory NPY payload bytes."""
+
+    def _factory(array):
+        buffer = BytesIO()
+        np.save(buffer, array)
+        return buffer.getvalue()
+
+    return _factory

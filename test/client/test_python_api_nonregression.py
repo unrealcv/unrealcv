@@ -36,6 +36,54 @@ def test_decode_bmp_raises_when_opencv_cannot_decode(monkeypatch):
         decoder.decode_bmp(b"invalid-image-bytes")
 
 
+def test_decode_png_drops_alpha_and_swaps_to_bgr(make_png_rgba_bytes):
+    decoder = MsgDecoder()
+    payload = make_png_rgba_bytes((10, 20, 30, 255))
+
+    image = decoder.decode_png(payload)
+
+    assert image.shape == (1, 1, 3)
+    np.testing.assert_array_equal(image[0, 0], np.array([30, 20, 10], dtype=np.uint8))
+
+
+@pytest.mark.parametrize(
+    "array,expected_shape",
+    [
+        (np.array([[1.0, 2.0]], dtype=np.float32), (1, 2, 1)),
+        (np.zeros((1, 2, 3), dtype=np.float32), (1, 2, 3)),
+    ],
+    ids=["2d-expands-channel", "3d-preserved"],
+)
+def test_decode_npy_shape_contract(make_npy_bytes, array, expected_shape):
+    decoder = MsgDecoder()
+    payload = make_npy_bytes(array)
+
+    decoded = decoder.decode_npy(payload)
+
+    assert decoded.shape == expected_shape
+
+
+def test_decode_bmp_strips_alpha_channel(monkeypatch):
+    decoder = MsgDecoder()
+    bgra = np.array([[[1, 2, 3, 255]]], dtype=np.uint8)
+    monkeypatch.setattr("unrealcv.api.cv2.imdecode", lambda *_args, **_kwargs: bgra)
+
+    decoded = decoder.decode_bmp(b"bmp-bytes")
+
+    assert decoded.shape == (1, 1, 3)
+    np.testing.assert_array_equal(decoded[0, 0], np.array([1, 2, 3], dtype=np.uint8))
+
+
+def test_decode_bmp_keeps_grayscale_shape(monkeypatch):
+    decoder = MsgDecoder()
+    gray = np.array([[7]], dtype=np.uint8)
+    monkeypatch.setattr("unrealcv.api.cv2.imdecode", lambda *_args, **_kwargs: gray)
+
+    decoded = decoder.decode_bmp(b"bmp-bytes")
+
+    assert decoded.shape == (1, 1)
+
+
 def test_decode_img_unknown_mode_keeps_current_unboundlocal_behavior():
     decoder = MsgDecoder()
     with pytest.raises(UnboundLocalError):
@@ -347,6 +395,16 @@ def test_client_request_sync_encodes_text_with_message_id(monkeypatch):
     assert sent_messages[0].endswith("héllo".encode("utf-8"))
 
 
+def test_client_request_sync_increments_send_message_id(monkeypatch):
+    client = Client(("localhost", 1))
+    monkeypatch.setattr(client, "send", lambda _message: True)
+    client.recv_data_q.put("ok")
+
+    _ = client.request("cmd")
+
+    assert client.send_message_id == 1
+
+
 def test_client_request_batch_queues_negative_batch_size(monkeypatch):
     client = Client(("localhost", 1))
     monkeypatch.setattr(client, "send", lambda _message: True)
@@ -498,6 +556,7 @@ def test_connect_success_sets_socket_and_starts_receive_thread(
     assert connected is True
     assert client.sock is fake_socket
     assert len(created_threads) == 1
+    assert created_threads[0].target == client.receive_loop_queue
     assert created_threads[0].started is True
 
 
@@ -539,6 +598,28 @@ def test_disconnect_joins_alive_receive_thread(monkeypatch):
 
     assert client.recv_num_q.get() is None
     assert thread.joined is True
+
+
+def test_disconnect_closes_socket_even_when_shutdown_raises(monkeypatch):
+    class _SocketWithShutdownError:
+        def __init__(self):
+            self.close_called = False
+
+        def shutdown(self, _mode):
+            raise OSError("shutdown failed")
+
+        def close(self):
+            self.close_called = True
+
+    client = Client(("localhost", 1))
+    sock = _SocketWithShutdownError()
+    client.sock = sock
+    monkeypatch.setattr("unrealcv.time.sleep", lambda _seconds: None)
+
+    client.disconnect()
+
+    assert sock.close_called is True
+    assert client.sock is None
 
 
 @pytest.mark.parametrize(
@@ -609,6 +690,14 @@ def test_socketmessage_receivepayload_zero_length_payload_returns_empty_bytes():
     result = SocketMessage.ReceivePayload(sock)
 
     assert result == b""
+
+
+def test_socketmessage_receivepayload_short_size_header_raises_struct_error():
+    magic = struct.pack("I", SocketMessage.magic)
+    sock = _ScriptedRecvSocket([magic, b"\x01\x00"])
+
+    with pytest.raises(struct.error):
+        SocketMessage.ReceivePayload(sock)
 
 
 def test_socketmessage_receivepayload_truncated_payload_returns_none():
