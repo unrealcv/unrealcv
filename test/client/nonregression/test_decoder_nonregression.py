@@ -6,6 +6,11 @@ import pytest
 from unrealcv.api import MsgDecoder
 
 
+@pytest.fixture
+def decoder():
+    return MsgDecoder()
+
+
 @pytest.mark.parametrize(
     "cmd,expected",
     [
@@ -15,26 +20,22 @@ from unrealcv.api import MsgDecoder
     ],
     ids=["object-color", "camera-depth-mode", "camera-location"],
 )
-def test_msgdecoder_cmd2key_variants(cmd, expected):
-    decoder = MsgDecoder()
+def test_msgdecoder_cmd2key_variants(decoder, cmd, expected):
     assert decoder.cmd2key(cmd) == expected
 
 
-def test_msgdecoder_decode_color():
-    decoder = MsgDecoder()
+def test_msgdecoder_decode_color(decoder):
     color = decoder.decode("vget /object/cube/color", "(R=255,G=128,B=64,A=255)")
     assert color == [255, 128, 64]
 
 
-def test_decode_bmp_raises_when_opencv_cannot_decode(monkeypatch):
-    decoder = MsgDecoder()
+def test_decode_bmp_raises_when_opencv_cannot_decode(monkeypatch, decoder):
     monkeypatch.setattr("unrealcv.api.cv2.imdecode", lambda *_args, **_kwargs: None)
     with pytest.raises(ValueError, match="Failed to decode image data"):
         decoder.decode_bmp(b"invalid-image-bytes")
 
 
-def test_decode_png_drops_alpha_and_swaps_to_bgr(make_png_rgba_bytes):
-    decoder = MsgDecoder()
+def test_decode_png_drops_alpha_and_swaps_to_bgr(make_png_rgba_bytes, decoder):
     payload = make_png_rgba_bytes((10, 20, 30, 255))
 
     image = decoder.decode_png(payload)
@@ -51,8 +52,7 @@ def test_decode_png_drops_alpha_and_swaps_to_bgr(make_png_rgba_bytes):
     ],
     ids=["2d-expands-channel", "3d-preserved"],
 )
-def test_decode_npy_shape_contract(make_npy_bytes, array, expected_shape):
-    decoder = MsgDecoder()
+def test_decode_npy_shape_contract(decoder, make_npy_bytes, array, expected_shape):
     payload = make_npy_bytes(array)
 
     decoded = decoder.decode_npy(payload)
@@ -60,8 +60,7 @@ def test_decode_npy_shape_contract(make_npy_bytes, array, expected_shape):
     assert decoded.shape == expected_shape
 
 
-def test_decode_bmp_strips_alpha_channel(monkeypatch):
-    decoder = MsgDecoder()
+def test_decode_bmp_strips_alpha_channel(monkeypatch, decoder):
     bgra = np.array([[[1, 2, 3, 255]]], dtype=np.uint8)
     monkeypatch.setattr("unrealcv.api.cv2.imdecode", lambda *_args, **_kwargs: bgra)
 
@@ -71,8 +70,7 @@ def test_decode_bmp_strips_alpha_channel(monkeypatch):
     np.testing.assert_array_equal(decoded[0, 0], np.array([1, 2, 3], dtype=np.uint8))
 
 
-def test_decode_bmp_keeps_grayscale_shape(monkeypatch):
-    decoder = MsgDecoder()
+def test_decode_bmp_keeps_grayscale_shape(monkeypatch, decoder):
     gray = np.array([[7]], dtype=np.uint8)
     monkeypatch.setattr("unrealcv.api.cv2.imdecode", lambda *_args, **_kwargs: gray)
 
@@ -81,8 +79,7 @@ def test_decode_bmp_keeps_grayscale_shape(monkeypatch):
     assert decoded.shape == (1, 1)
 
 
-def test_decode_img_unknown_mode_raises_value_error():
-    decoder = MsgDecoder()
+def test_decode_img_unknown_mode_raises_value_error(decoder):
     with pytest.raises(ValueError, match="Unknown image mode"):
         decoder.decode_img(b"data", mode="jpg")
 
@@ -97,13 +94,11 @@ def test_decode_img_unknown_mode_raises_value_error():
     ids=["png-invalid", "npy-invalid", "depth-invalid"],
 )
 def test_decoder_invalid_bytes_raise(decoder_fn, payload):
-    decoder = MsgDecoder()
     with pytest.raises(Exception):
         getattr(decoder, decoder_fn)(payload)
 
 
-def test_decode_depth_inverse_applies_and_expands_channel():
-    decoder = MsgDecoder()
+def test_decode_depth_inverse_applies_and_expands_channel(decoder):
     arr = np.array([[2.0, 4.0]], dtype=np.float32)
     buf = io.BytesIO()
     np.save(buf, arr)
