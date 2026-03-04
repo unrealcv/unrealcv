@@ -36,6 +36,7 @@ class FakeSocket:
 @pytest.fixture
 def dummy_client_factory():
     """Factory for scripted client responses used by API unit tests."""
+
     def _factory(responses=None):
         return DummyClient(responses)
 
@@ -45,6 +46,7 @@ def dummy_client_factory():
 @pytest.fixture
 def fake_socket_factory():
     """Factory for fake socket objects used in handshake failure tests."""
+
     def _factory():
         return FakeSocket()
 
@@ -54,6 +56,7 @@ def fake_socket_factory():
 @pytest.fixture
 def api_factory(dummy_client_factory):
     """Build UnrealCv_API instances without running network-heavy __init__."""
+
     def _factory(client=None):
         api = UnrealCv_API.__new__(UnrealCv_API)
         api.decoder = MsgDecoder()
