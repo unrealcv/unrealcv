@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 
 from unrealcv.api import MsgDecoder
 from unrealcv import Client
@@ -118,3 +119,106 @@ def test_client_request_returns_none_when_send_fails(monkeypatch):
     monkeypatch.setattr(client, "send", lambda _message: False)
 
     assert client.request("vget /camera/0/location") is None
+
+
+def test_msgdecoder_cmd2key_and_decode_color():
+    decoder = MsgDecoder()
+
+    key = decoder.cmd2key("vget /object/cube/color")
+    color = decoder.decode("vget /object/cube/color", "(R=255,G=128,B=64,A=255)")
+
+    assert key == "color"
+    assert color == [255, 128, 64]
+
+
+def test_get_image_multicam_uses_batch_with_expected_commands_and_kwargs(
+    monkeypatch, api_factory
+):
+    api = api_factory()
+    captured = {}
+
+    def fake_batch(cmds, decoders, **kwargs):
+        captured["cmds"] = cmds
+        captured["decoders"] = decoders
+        captured["kwargs"] = kwargs
+        return ["img0", "img1"]
+
+    monkeypatch.setattr(api, "batch_cmd", fake_batch)
+
+    result = api.get_image_multicam([0, 2], viewmode="lit", mode="png", inverse=False)
+
+    assert result == ["img0", "img1"]
+    assert captured["cmds"] == [
+        "vget /camera/0/lit png",
+        "vget /camera/2/lit png",
+    ]
+    assert len(captured["decoders"]) == 2
+    assert captured["kwargs"] == {"mode": "png", "inverse": False}
+
+
+def test_get_image_multimodal_concatenates_modalities_in_order(monkeypatch, api_factory):
+    api = api_factory()
+    rgb = np.zeros((2, 2, 3), dtype=np.uint8)
+    depth = np.ones((2, 2, 1), dtype=np.float32)
+
+    monkeypatch.setattr(api, "batch_cmd", lambda *_args, **_kwargs: [rgb, depth])
+
+    result = api.get_image_multimodal(0, viewmodes=["lit", "depth"], modes=["bmp", "npy"])
+
+    assert result.shape == (2, 2, 4)
+    np.testing.assert_array_equal(result[:, :, :3], rgb)
+    np.testing.assert_array_equal(result[:, :, 3:], depth)
+
+
+def test_save_image_issues_same_command_twice_and_returns_second_response(
+    dummy_client_factory, api_factory
+):
+    client = dummy_client_factory(["ignored", "/tmp/out.png"])
+    api = api_factory(client)
+
+    result = api.save_image(0, "lit", "frame.png")
+
+    assert result == "/tmp/out.png"
+    assert client.calls == [
+        ("vget /camera/0/lit frame.png", ()),
+        ("vget /camera/0/lit frame.png", ()),
+    ]
+
+
+def test_get_cam_pose_soft_mode_mutates_cached_location_list(api_factory):
+    api = api_factory()
+    api.cam[0]["location"] = [1.0, 2.0, 3.0]
+    api.cam[0]["rotation"] = [4.0, 5.0, 6.0]
+
+    pose = api.get_cam_pose(0, mode="soft")
+
+    assert pose == [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+    assert api.cam[0]["location"] == [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+
+
+def test_get_cam_pose_hard_mode_updates_cache_from_batch(monkeypatch, api_factory):
+    api = api_factory()
+
+    monkeypatch.setattr(api, "batch_cmd", lambda *_args, **_kwargs: [[10.0, 20.0, 30.0], [1.0, 2.0, 3.0]])
+
+    pose = api.get_cam_pose(0, mode="hard")
+
+    assert pose == [10.0, 20.0, 30.0, 1.0, 2.0, 3.0]
+    assert api.cam[0]["location"] == [10.0, 20.0, 30.0]
+    assert api.cam[0]["rotation"] == [1.0, 2.0, 3.0]
+
+
+def test_client_request_list_delegates_to_request_batch(monkeypatch):
+    client = Client(("localhost", 1))
+    calls = {}
+
+    def fake_request_batch(batch):
+        calls["batch"] = batch
+        return ["ok1", "ok2"]
+
+    monkeypatch.setattr(client, "request_batch", fake_request_batch)
+
+    result = client.request(["cmd1", "cmd2"])
+
+    assert result == ["ok1", "ok2"]
+    assert calls["batch"] == ["cmd1", "cmd2"]
