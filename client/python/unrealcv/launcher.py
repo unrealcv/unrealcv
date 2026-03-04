@@ -29,11 +29,12 @@ import getpass
 import subprocess
 import atexit
 import os
-import docker
 import time
 import sys
 import warnings
 from unrealcv.util import get_path2UnrealEnv
+
+__all__ = ['RunUnreal', 'RunDocker']
 
 
 class RunUnreal():
@@ -272,8 +273,7 @@ class RunUnreal():
             return 9000 # default port number
 
     def write_port(self, port):
-        self.write__ = """
-        Write the port number to unrealcv.ini.
+        """Write the port number to unrealcv.ini.
 
         Args:
             port (int): The port number to write.
@@ -341,11 +341,23 @@ class RunDocker():
             path2env (str): The path to the Unreal environment.
             image (str): The Docker image to use. Default is 'zfw1226/unreal:latest'.
         """
-        self.docker_client = docker.from_env()
+        self.docker_client = self._get_docker_client()
         self.check_image(target_images=image)
         os.system('xhost +')
         self.image = image
         self.path2env = path2env
+
+    @staticmethod
+    def _get_docker_client():
+        """Lazily import and return a Docker client."""
+        try:
+            import docker
+        except ImportError:
+            raise ImportError(
+                "RunDocker requires the 'docker' package. "
+                "Install it with: pip install docker"
+            )
+        return docker.from_env()
 
     def start(self,
               ENV_BIN = '/RealisticRendering_RL/RealisticRendering/Binaries/Linux/RealisticRendering',
@@ -371,7 +383,7 @@ class RunDocker():
             warnings.warn('Did not find unreal environment, Please move your binary file to env/UnrealEnv')
             sys.exit()
 
-        client = docker.from_env()
+        client = self.docker_client
         # network_settings = self.container.attrs['NetworkSettings']
         volumes = f'-v {self.path2env}:{ENV_DIR_DOCKER}:rw'
 

@@ -19,23 +19,54 @@ Example:
 """
 
 import unrealcv
-import cv2
-import numpy as np
 import math
 import time
 import os
 import re
 from io import BytesIO
-import PIL.Image
 import sys
 from unrealcv.util import ResChecker, time_it
 import warnings
+
+# Heavy dependencies are imported lazily to avoid forcing their installation
+# when users only need the core Client class from unrealcv.
+try:
+    import cv2
+    import numpy as np
+    import PIL.Image
+except ImportError as _e:
+    _missing_dep = _e
+    cv2 = None  # type: ignore[assignment]
+    np = None  # type: ignore[assignment]
+    PIL = None  # type: ignore[assignment]
+
+def _check_cv_deps() -> None:
+    """Raise a helpful error if heavy CV dependencies are missing."""
+    if cv2 is None or np is None or PIL is None:
+        raise ImportError(
+            "UnrealCv_API requires 'opencv-python', 'numpy', and 'pillow'. "
+            "Install them with: pip install unrealcv[full] "
+            "or: pip install opencv-python numpy pillow"
+        )
+
+__all__ = ['UnrealCv_API', 'MsgDecoder', 'UnrealCVTimeoutError']
+
+
+class UnrealCVTimeoutError(TimeoutError):
+    """Raised when an UnrealCV API request fails after all retries."""
+    pass
+
 
 class UnrealCv_API(object):
     """
     A class to interact with UnrealCV, a toolkit for using Unreal Engine (UE) in Python.
     """
-    def __init__(self, port, ip, resolution, mode='tcp'):
+    # Default maximum number of retries for requests that may return None
+    DEFAULT_MAX_RETRIES = 20
+    # Default timeout in seconds for the entire retry sequence
+    DEFAULT_REQUEST_TIMEOUT = 30.0
+
+    def __init__(self, port, ip, resolution, mode='tcp', max_retries=None, request_timeout=None):
         """
         Initialize the UnrealCV API.
 
@@ -44,9 +75,14 @@ class UnrealCv_API(object):
             ip (str): The IP address of the UnrealCV Server to connect to.
             resolution (tuple): The resolution of the images.
             mode (str): The connection mode, either 'tcp' or 'unix'. Default is 'tcp'. 'unix' is only for local machine in Linux.
+            max_retries (int, optional): Maximum retries for requests that may return None. Default is 20.
+            request_timeout (float, optional): Timeout in seconds for the retry sequence. Default is 30.0.
         """
+        _check_cv_deps()
         self.ip = ip
         self.resolution = resolution # the resolution is not used.
+        self.max_retries = self.DEFAULT_MAX_RETRIES if max_retries is None else max_retries
+        self.request_timeout = self.DEFAULT_REQUEST_TIMEOUT if request_timeout is None else request_timeout
         self.decoder = MsgDecoder()
         self.checker = ResChecker()
         self.obj_dict = dict()
@@ -91,6 +127,45 @@ class UnrealCv_API(object):
         """
         self.cam = self.get_camera_config()
         self.obj_dict = self.build_color_dict(self.get_objects())
+
+    def _request_with_retry(self, cmd):
+        """
+        Send a request to the server with retry logic. Retries up to
+        ``self.max_retries`` times (with exponential backoff) if the server
+        returns None. Raises ``UnrealCVTimeoutError`` if all retries are
+        exhausted or the total elapsed time exceeds ``self.request_timeout``.
+
+        Args:
+            cmd (str): The UnrealCV command to send.
+
+        Returns:
+            str: The server response.
+
+        Raises:
+            UnrealCVTimeoutError: If the server does not respond after all retries.
+        """
+        start_time = time.monotonic()
+        delay = 0.05  # initial backoff delay in seconds
+        for attempt in range(1, self.max_retries + 1):
+            if time.monotonic() - start_time > self.request_timeout:
+                break
+            res = self.client.request(cmd)
+            if res is not None:
+                return res
+            warnings.warn(
+                f'Request returned None (attempt {attempt}/{self.max_retries}): {cmd}',
+                RuntimeWarning,
+                stacklevel=3,
+            )
+            remaining = self.request_timeout - (time.monotonic() - start_time)
+            if remaining <= 0:
+                break
+            time.sleep(min(delay, remaining))
+            delay = min(delay * 2, 2.0)  # exponential backoff, capped at 2s
+        raise UnrealCVTimeoutError(
+            f'Request failed after {self.max_retries} retries '
+            f'(timeout={self.request_timeout}s): {cmd}'
+        )
 
     def camera_info(self):
         """
@@ -232,7 +307,6 @@ class UnrealCv_API(object):
             else:
                 path += '.png'
 
-        self.client.request(cmd)
         img_dirs = self.client.request(cmd)
 
         return img_dirs
@@ -461,9 +535,7 @@ class UnrealCv_API(object):
             cmd = f'vget /camera/{cam_id}/location'
             if return_cmd:
                 return cmd
-            res = None
-            while res is None:
-                res = self.client.request(cmd)
+            res = self._request_with_retry(cmd)
             res = self.decoder.string2floats(res)
             if syns:
                 self.cam[cam_id]['location'] = res
@@ -505,9 +577,7 @@ class UnrealCv_API(object):
             cmd = f'vget /camera/{cam_id}/rotation'
             if return_cmd:
                 return cmd
-            res = None
-            while res is None:
-                res = self.client.request(cmd)
+            res = self._request_with_retry(cmd)
             res = [float(i) for i in res.split()]
             if syns:
                 self.cam[cam_id]['rotation'] = res
@@ -562,9 +632,9 @@ class UnrealCv_API(object):
         error = self.get_distance(location_now, location_exp, 3)
 
         if error < 10:
-            return False
-        else:
             return True
+        else:
+            return False
 
     def get_distance(self, pos_now, pos_exp, n=2):  # get distance between two points, n is the dimension
         """
@@ -785,9 +855,7 @@ class UnrealCv_API(object):
         cmd = f'vget /object/{obj}/location'
         if return_cmd:
             return cmd
-        res = None
-        while res is None:
-            res = self.client.request(cmd)
+        res = self._request_with_retry(cmd)
         return self.decoder.string2floats(res)
 
     def get_obj_rotation(self, obj, return_cmd=False):  # get object rotation
@@ -804,9 +872,7 @@ class UnrealCv_API(object):
         cmd = f'vget /object/{obj}/rotation'
         if return_cmd:
             return cmd
-        res = None
-        while res is None:
-            res = self.client.request(cmd)
+        res = self._request_with_retry(cmd)
         return self.decoder.string2floats(res)
 
     def get_obj_pose(self, obj):
@@ -855,9 +921,7 @@ class UnrealCv_API(object):
         cmd = f'vget /object/{obj}/bounds'
         if return_cmd:
             return cmd
-        res = None
-        while res is None:
-            res = self.client.request(cmd)
+        res = self._request_with_retry(cmd)
         return self.decoder.string2floats(res)  # min x,y,z  max x,y,z
 
     def get_obj_size(self, obj, box=True):
@@ -895,10 +959,7 @@ class UnrealCv_API(object):
         cmd = f'vget /object/{obj}/scale'
         if return_cmd:
             return cmd
-        res = None
-        while res is None:
-            res = self.client.request(cmd)
-        print(obj, res)
+        res = self._request_with_retry(cmd)
         return self.decoder.string2floats(res)  # [scale_x, scale_y, scale_z]
 
     def set_obj_scale(self, obj, scale=[1, 1, 1], return_cmd=False):
@@ -1066,9 +1127,7 @@ class UnrealCv_API(object):
         cmd = f'vget /object/{obj}/vertex_location'
         if return_cmd:
             return cmd
-        res = None
-        while res is None:
-            res = self.client.request(cmd)
+        res = self._request_with_retry(cmd)
         return self.decoder.decode_vertex(res)
 
     def get_obj_uclass(self, obj, return_cmd=False):
@@ -1085,9 +1144,7 @@ class UnrealCv_API(object):
         cmd = f'vget /object/{obj}/uclass_name'
         if return_cmd:
             return cmd
-        res = None
-        while res is None:
-            res = self.client.request(cmd)
+        res = self._request_with_retry(cmd)
         return res
 
     def set_map(self, map_name, return_cmd=False):  # change to a new level map

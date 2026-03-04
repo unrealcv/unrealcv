@@ -5,22 +5,55 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "UnrealCV"
 dynamic = ["version"]
-description = "UnrealCV client for python. see http://unrealcv.org for more detail."
+description = "UnrealCV client for python. see https://unrealcv.org for more detail."
+readme = "README.md"
+license = "MIT"
 authors = [
     { name = "Weichao Qiu", email = "qiuwch@gmail.com" },
     { name = "Fangwei Zhong", email = "zfw1226@gmail.com" },
     { name = "Hai Ci" },
     { name = "Kui Wu" }
 ]
-requires-python = ">=3.7"
-dependencies = [
+requires-python = ">=3.8"
+dependencies = []
+keywords = ["computer vision", "unreal engine", "ue4/5", "synthetic", "simulator", "robotics"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://unrealcv.org"
+Documentation = "https://docs.unrealcv.org"
+Repository = "https://github.com/unrealcv/unrealcv"
+Issues = "https://github.com/unrealcv/unrealcv/issues"
+Download = "https://unrealcv.github.io"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+    "mypy",
+]
+full = [
     "docker",
     "opencv-python",
+    "numpy",
     "pillow",
-    "numpy"
 ]
-keywords = ["computer vision", "unreal engine", "ue4/5", "synthetic", "simulator", "robotics"]
-urls = { "Homepage" = "http://unrealcv.org", "Download" = "http://unrealcv.github.io" }
 
 [tool.setuptools.dynamic]
 version = {attr = "unrealcv.__version__"}
+
+[tool.setuptools.package-data]
+unrealcv = ["py.typed"]
