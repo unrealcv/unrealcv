@@ -1,9 +1,10 @@
 // Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #include "ExecStatus.h"
+#include "SocketUtils.h"
 
-FExecStatus FExecStatus::InvalidArgument = FExecStatus(EExecStatusType::Error, TEXT("Argument Invalid"));
-FExecStatus FExecStatus::NotImplemented  = FExecStatus(EExecStatusType::Error, TEXT("Not Implemented"));
-FExecStatus FExecStatus::InvalidPointer  = FExecStatus(EExecStatusType::Error, TEXT("Pointer to object invalid, check log for details"));
+const FExecStatus FExecStatus::InvalidArgument = FExecStatus(EExecStatusType::Error, TEXT("Argument Invalid"));
+const FExecStatus FExecStatus::NotImplemented  = FExecStatus(EExecStatusType::Error, TEXT("Not Implemented"));
+const FExecStatus FExecStatus::InvalidPointer  = FExecStatus(EExecStatusType::Error, TEXT("Pointer to object invalid, check log for details"));
 
 // ---------------------------------------------------------------------------
 // FPromise
@@ -89,17 +90,23 @@ FExecStatus::FExecStatus(EExecStatusType InExecStatusType, const TArray<uint8>& 
 // Serialisation
 // ---------------------------------------------------------------------------
 
+namespace
+{
+/** Format a status + message body into the wire-protocol string. */
+FString FormatStatusString(EExecStatusType StatusType, const FString& Body)
+{
+	switch (StatusType)
+	{
+	case EExecStatusType::OK:    return Body.IsEmpty() ? TEXT("ok") : Body;
+	case EExecStatusType::Error: return FString::Printf(TEXT("error %s"), *Body);
+	default:                     return FString::Printf(TEXT("unknown %s"), *Body);
+	}
+}
+} // anonymous namespace
+
 FString FExecStatus::GetMessage() const
 {
-	switch (ExecStatusType)
-	{
-	case EExecStatusType::OK:
-		return MessageBody.IsEmpty() ? TEXT("ok") : MessageBody;
-	case EExecStatusType::Error:
-		return FString::Printf(TEXT("error %s"), *MessageBody);
-	default:
-		return FString::Printf(TEXT("unknown %s"), *MessageBody);
-	}
+	return FormatStatusString(ExecStatusType, MessageBody);
 }
 
 TArray<uint8> FExecStatus::GetData() const
@@ -109,28 +116,12 @@ TArray<uint8> FExecStatus::GetData() const
 		return BinaryData;
 	}
 
-	FString Message;
-	switch (ExecStatusType)
-	{
-	case EExecStatusType::OK:
-		Message = MessageBody.IsEmpty() ? TEXT("ok") : MessageBody;
-		break;
-	case EExecStatusType::Error:
-		Message = FString::Printf(TEXT("error %s"), *MessageBody);
-		break;
-	default:
-		Message = FString::Printf(TEXT("unknown %s"), *MessageBody);
-		break;
-	}
-
 	TArray<uint8> FormattedBinaryData;
-	BinaryArrayFromString(Message, FormattedBinaryData);
+	BinaryArrayFromString(FormatStatusString(ExecStatusType, MessageBody), FormattedBinaryData);
 	return FormattedBinaryData;
 }
 
 void FExecStatus::BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray)
 {
-	const auto Converter = StringCast<UTF8CHAR>(*Message);
-	OutBinaryArray.Empty();
-	OutBinaryArray.Append(reinterpret_cast<const uint8*>(Converter.Get()), Converter.Length());
+	UCV::SocketUtils::BinaryArrayFromString(Message, OutBinaryArray);
 }

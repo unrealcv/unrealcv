@@ -45,12 +45,16 @@ void FActorController::Hide()
 
 void FActorController::GetAnnotationColor(FColor& AnnotationColor)
 {
-	FObjectAnnotator& Annotator = FUnrealcvServer::Get().WorldController->ObjectAnnotator;
+	const auto WorldCtrl = FUnrealcvServer::Get().GetWorldController();
+	if (!WorldCtrl.IsValid()) { return; }
+	FObjectAnnotator& Annotator = WorldCtrl->ObjectAnnotator;
 	Annotator.GetAnnotationColor(Actor, AnnotationColor);
 }
 
 void FActorController::SetAnnotationColor(const FColor& AnnotationColor)
 {
-	FObjectAnnotator& Annotator = FUnrealcvServer::Get().WorldController->ObjectAnnotator;
+	const auto WorldCtrl = FUnrealcvServer::Get().GetWorldController();
+	if (!WorldCtrl.IsValid()) { return; }
+	FObjectAnnotator& Annotator = WorldCtrl->ObjectAnnotator;
 	Annotator.SetAnnotationColor(Actor, AnnotationColor);
 }

@@ -7,13 +7,14 @@
 #include "UnrealcvShim.h"
 #include "UnrealcvStats.h"
 
-DECLARE_CYCLE_STAT(TEXT("FPluginHandler::GetUnrealCVStatus"), 
+DECLARE_CYCLE_STAT(TEXT("FPluginHandler::GetUnrealCVStatus"),
 	STAT_GetUnrealCVStatus, STATGROUP_UnrealCV);
 
 FExecStatus FPluginHandler::Echo(const TArray<FString>& Args)
 {
+	if (Args.Num() < 1) { return FExecStatus::InvalidArgument; }
 	// Async version
-	FString Msg = Args[0];
+	const FString Msg = Args[0];
 	// FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([Msg]()
 	// {
 	// 	return FExecStatus::OK(Msg);
@@ -48,7 +49,7 @@ FExecStatus FPluginHandler::GetCommands(const TArray<FString>& Args)
 	TMap<FString, FString> UriDescription = CommandDispatcher->GetUriDescription();
 	UriDescription.GetKeys(UriList);
 
-	for (auto Value : UriDescription)
+	for (const auto& Value : UriDescription)
 	{
 		Message += Value.Key + "\n";
 		Message += Value.Value + "\n";
@@ -64,14 +65,8 @@ FExecStatus FPluginHandler::GetVersion(const TArray<FString>& Args)
 	{
 		return FExecStatus::Error("The plugin is not correctly loaded");
 	}
-	else
-	{
-		FString PluginName = Plugin->GetName();
-		FPluginDescriptor PluginDescriptor = Plugin->GetDescriptor();
-		FString VersionName = PluginDescriptor.VersionName;
-		int32 VersionNumber = PluginDescriptor.Version;
-		return FExecStatus::OK(VersionName);
-	}
+	const FPluginDescriptor& Descriptor = Plugin->GetDescriptor();
+	return FExecStatus::OK(Descriptor.VersionName);
 }
 
 FExecStatus FPluginHandler::GetSceneName(const TArray<FString>& Args)
@@ -82,11 +77,15 @@ FExecStatus FPluginHandler::GetSceneName(const TArray<FString>& Args)
 
 FExecStatus FPluginHandler::GetLevelName(const TArray<FString>& Args)
 {
-	FUnrealcvServer& Server = FUnrealcvServer::Get();
-	FString PrefixedMapName = Server.GetWorld()->GetMapName();	
-	FString Prefix = Server.GetWorld()->StreamingLevelsPrefix;
-	FString MapName = PrefixedMapName.Mid(Prefix.Len());
-	return FExecStatus::OK(MapName);
+	const FUnrealcvServer& Server = FUnrealcvServer::Get();
+	const UWorld* World = Server.GetWorld();
+	if (!IsValid(World))
+	{
+		return FExecStatus::Error(TEXT("No valid world"));
+	}
+	const FString PrefixedMapName = World->GetMapName();
+	const FString Prefix = World->StreamingLevelsPrefix;
+	return FExecStatus::OK(PrefixedMapName.Mid(Prefix.Len()));
 }
 
 void FPluginHandler::RegisterCommands()

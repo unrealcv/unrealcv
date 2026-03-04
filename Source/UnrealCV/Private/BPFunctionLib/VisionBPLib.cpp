@@ -176,9 +176,9 @@ void UVisionBPLib::GetBoneTransformJson(
 {
 	TArray<FTransform> BoneTransforms;
 	GetBoneTransform(
-		SkeletalMeshComponent, 
-		IncludedBones, 
-		BoneNames, 
+		SkeletalMeshComponent,
+		IncludedBones,
+		BoneNames,
 		BoneTransforms,
 		bWorldSpace
 	);
@@ -242,7 +242,7 @@ void UVisionBPLib::GetActorList(TArray<AActor*>& ActorList)
 
 void UVisionBPLib::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor)
 {
-	AUnrealcvWorldController* WorldController = FUnrealcvServer::Get().WorldController.Get();
+	AUnrealcvWorldController* WorldController = FUnrealcvServer::Get().GetWorldController().Get();
 	if (IsValid(WorldController))
 	{
 		WorldController->ObjectAnnotator.GetAnnotationColor(Actor, AnnotationColor);
@@ -252,7 +252,7 @@ void UVisionBPLib::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor)
 /*
 void UVisionBPLib::AnnotateWorld()
 {
-	AUnrealcvWorldController* WorldController = FUnrealcvServer::Get().WorldController.Get();
+	AUnrealcvWorldController* WorldController = FUnrealcvServer::Get().GetWorldController().Get();
 	if (IsValid(WorldController))
 	{
 		WorldController->ObjectAnnotator.AnnotateWorld(FUnrealcvServer::Get().GetWorld());
@@ -365,7 +365,11 @@ UFusionCamSensor* UVisionBPLib::GetPlayerSensor()
 
 void UVisionBPLib::AnnotateWorld()
 {
-	FUnrealcvServer::Get().WorldController->ObjectAnnotator.AnnotateWorld(GWorld);
+	const auto WorldCtrl = FUnrealcvServer::Get().GetWorldController();
+	if (WorldCtrl.IsValid())
+	{
+		WorldCtrl->ObjectAnnotator.AnnotateWorld(GWorld);
+	}
 }
 
 //this is how you can make cpp only internal functions!

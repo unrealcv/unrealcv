@@ -15,11 +15,11 @@ void FActionHandler::RegisterCommands()
 	FString Help;
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionHandler::PauseGame);
-	Help = "Pause the game";
+	Help = TEXT("Pause the game");
 	CommandDispatcher->BindCommand("vset /action/game/pause", Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionHandler::ResumeGame);
-	Help = "Resume the game";
+	Help = TEXT("Resume the game");
 	CommandDispatcher->BindCommand("vset /action/game/resume", Cmd, Help);
 
 	CommandDispatcher->BindCommand(
@@ -29,82 +29,75 @@ void FActionHandler::RegisterCommands()
 	);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionHandler::OpenLevel);
-	Help = "Open level";
+	Help = TEXT("Open level");
 	CommandDispatcher->BindCommand("vset /action/game/level [str]", Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionHandler::EnableInput);
-	Help = "Enable input";
+	Help = TEXT("Enable input");
 	CommandDispatcher->BindCommand("vset /action/input/enable", Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionHandler::DisableInput);
-	Help = "Disable input";
+	Help = TEXT("Disable input");
 	CommandDispatcher->BindCommand("vset /action/input/disable", Cmd, Help);
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionHandler::SetStereoDistance);
-	Help = "Set the distance of binocular stereo camera";
+	Help = TEXT("Set the distance of binocular stereo camera");
 	CommandDispatcher->BindCommand("vset /action/eyes_distance [float]", Cmd, Help);
 
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FActionHandler::Keyboard);
-	Help = "Send a keyboard action to the game";
+	Help = TEXT("Send a keyboard action to the game");
 	CommandDispatcher->BindCommand("vset /action/keyboard [str] [float]", Cmd, Help);
 }
 
 FExecStatus FActionHandler::PauseGame(const TArray<FString>& Args)
 {
-	APlayerController* PlayerController = this->GetWorld()->GetFirstPlayerController();
-	// PlayerController->Pause();
-	PlayerController->SetPause(true);
+	const UWorld* World = this->GetWorld();
+	if (!IsValid(World)) { return FExecStatus::Error(TEXT("No valid world")); }
+	APlayerController* PC = World->GetFirstPlayerController();
+	if (!IsValid(PC)) { return FExecStatus::Error(TEXT("No player controller")); }
+	PC->SetPause(true);
 	return FExecStatus::OK();
 }
 
 FExecStatus FActionHandler::ResumeGame(const TArray<FString>& Args)
 {
-	APlayerController* PlayerController = this->GetWorld()->GetFirstPlayerController();
-	// PlayerController->Pause();
-	PlayerController->SetPause(false);
+	const UWorld* World = this->GetWorld();
+	if (!IsValid(World)) { return FExecStatus::Error(TEXT("No valid world")); }
+	APlayerController* PC = World->GetFirstPlayerController();
+	if (!IsValid(PC)) { return FExecStatus::Error(TEXT("No player controller")); }
+	PC->SetPause(false);
 	return FExecStatus::OK();
 }
 
 FExecStatus FActionHandler::GetIsPaused(const TArray<FString>& Args)
 {
-	APlayerController* PlayerController = this->GetWorld()->GetFirstPlayerController();
-	// PlayerController->Pause();
-	bool bIsPaused = PlayerController->IsPaused();
-	// PlayerController->SetPause(false);
+	const UWorld* World = this->GetWorld();
+	if (!IsValid(World)) { return FExecStatus::Error(TEXT("No valid world")); }
+	const APlayerController* PC = World->GetFirstPlayerController();
+	if (!IsValid(PC)) { return FExecStatus::Error(TEXT("No player controller")); }
+	const bool bIsPaused = PC->IsPaused();
 	return FExecStatus::OK(bIsPaused ? TEXT("true") : TEXT("false"));
 }
 
 
 FExecStatus FActionHandler::OpenLevel(const TArray<FString>& Args)
 {
-	if (Args.Num() == 1) // Level name
+	if (Args.Num() != 1)
 	{
-		FString LevelName = Args[0];
-		FUnrealcvServer::Get().WorldController->OpenLevel(FName(*LevelName));
-		return FExecStatus::OK();
+		return FExecStatus::Error(TEXT("Expect argument: level name"));
 	}
-	else
+	const FString LevelName = Args[0];
+	const auto WorldController = FUnrealcvServer::Get().GetWorldController();
+	if (!WorldController.IsValid())
 	{
-		return FExecStatus::Error("Expect argument: level name");
+		return FExecStatus::Error(TEXT("WorldController is not available"));
 	}
+	WorldController->OpenLevel(FName(*LevelName));
+	return FExecStatus::OK();
 }
 
 FExecStatus FActionHandler::EnableInput(const TArray<FString>& Args)
-{
-	APawn* Pawn = FUnrealcvServer::Get().GetPawn();
-	if (!IsValid(Pawn))
-	{
-		UVisionBPLib::UpdateInput(Pawn, true);
-		return FExecStatus::OK();
-	}
-	else
-	{
-		return FExecStatus::Error("The pawn is invalid");
-	}
-}
-
-FExecStatus FActionHandler::DisableInput(const TArray<FString>& Args)
 {
 	APawn* Pawn = FUnrealcvServer::Get().GetPawn();
 	if (IsValid(Pawn))
@@ -112,10 +105,18 @@ FExecStatus FActionHandler::DisableInput(const TArray<FString>& Args)
 		UVisionBPLib::UpdateInput(Pawn, true);
 		return FExecStatus::OK();
 	}
-	else
+	return FExecStatus::Error(TEXT("The pawn is invalid"));
+}
+
+FExecStatus FActionHandler::DisableInput(const TArray<FString>& Args)
+{
+	APawn* Pawn = FUnrealcvServer::Get().GetPawn();
+	if (IsValid(Pawn))
 	{
-		return FExecStatus::Error("The pawn is invalid");
+		UVisionBPLib::UpdateInput(Pawn, false);
+		return FExecStatus::OK();
 	}
+	return FExecStatus::Error(TEXT("The pawn is invalid"));
 }
 
 /** TODO: Update this with new API */
@@ -142,8 +143,11 @@ TFunction<void(void)> FActionHandler::GetReleaseKey(FKey Key)
 {
 	const UWorld* World = this->GetWorld();
 	return [=]() {
-		FInputKeyParams KeyParams(Key, EInputEvent::IE_Released, 0, false);
-		World->GetFirstPlayerController()->InputKey(KeyParams);
+		if (!IsValid(World)) { return; }
+		APlayerController* PC = World->GetFirstPlayerController();
+		if (!IsValid(PC)) { return; }
+		const FInputKeyParams KeyParams(Key, EInputEvent::IE_Released, 0, false);
+		PC->InputKey(KeyParams);
 	};
 }
 
@@ -153,10 +157,12 @@ FExecStatus FActionHandler::Keyboard(const TArray<FString>& Args)
 	{
 		return FExecStatus::InvalidArgument;
 	}
-	FString KeyName = Args[0];
+	const FString KeyName = Args[0];
 
 	UWorld* World = this->GetWorld();
-	FKey Key(*KeyName);
+	if (!IsValid(World)) { return FExecStatus::Error(TEXT("No valid world")); }
+	if (!World->GetFirstPlayerController()) { return FExecStatus::Error(TEXT("No player controller")); }
+	const FKey Key(*KeyName);
 	// The valid KeyName can be found in https://wiki.unrealengine.com/List_of_Key/Gamepad_Input_Names
 
 	// Not sure about the meaning of parameters: DeltaTime, NumSamples, bGamepad

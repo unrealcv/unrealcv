@@ -5,6 +5,7 @@
 #include "Runtime/Core/Public/Serialization/MemoryReader.h"
 #include "UnrealcvLog.h"
 #include "UnrealcvShim.h"
+#include <string>
 
 #if PLATFORM_LINUX
 #include <cstdlib>
@@ -125,8 +126,10 @@ bool FUnixSocketMessageHeader::WrapAndSendPayloadUDS(const TArray<uint8>& Payloa
 		TotalSent += Written;
 	}
 	check(Remaining == 0);
-#endif
 	return true;
+#else
+	return false;
+#endif
 }
 
 bool FUnixSocketMessageHeader::ReceivePayloadUDS(FArrayReader& OutPayload, int Fd)
@@ -165,8 +168,10 @@ bool FUnixSocketMessageHeader::ReceivePayloadUDS(FArrayReader& OutPayload, int F
 		UE_LOG(LogUnrealCV, Error, TEXT("Incomplete UDS payload — client disconnected."));
 		return false;
 	}
-#endif
 	return true;
+#else
+	return false;
+#endif
 }
 
 // ---------------------------------------------------------------------------
@@ -199,6 +204,12 @@ UUnixTcpServer::~UUnixTcpServer()
 #if PLATFORM_LINUX
 	if (UDS_ConnFd != -1)   { shutdown(UDS_ConnFd, SHUT_RDWR);   close(UDS_ConnFd);   UDS_ConnFd = -1; }
 	if (UDS_ListenFd != -1) { shutdown(UDS_ListenFd, SHUT_RDWR); close(UDS_ListenFd); UDS_ListenFd = -1; }
+	// Clean up the socket file to avoid stale sockets.
+	if (PortNum > 0)
+	{
+		const std::string SocketPath = "/tmp/unrealcv_" + std::to_string(PortNum) + ".socket";
+		unlink(SocketPath.c_str());
+	}
 #endif
 }
 

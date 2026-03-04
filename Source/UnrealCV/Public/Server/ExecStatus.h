@@ -56,10 +56,10 @@ public:
 	[[nodiscard]] static FExecStatus Error(const FString& ErrorMessage);
 	[[nodiscard]] static FExecStatus Binary(const TArray<uint8>& InBinaryData);
 
-	// -- Sentinel instances ---------------------------------------------------
-	static FExecStatus InvalidArgument;
-	static FExecStatus NotImplemented;
-	static FExecStatus InvalidPointer;
+	// -- Sentinel instances (const to prevent accidental mutation) ------------
+	static const FExecStatus InvalidArgument;
+	static const FExecStatus NotImplemented;
+	static const FExecStatus InvalidPointer;
 
 	// -- Accessors ------------------------------------------------------------
 	[[nodiscard]] FString GetMessage() const;

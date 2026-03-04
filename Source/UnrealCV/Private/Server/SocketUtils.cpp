@@ -27,7 +27,11 @@ void BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray
 
 bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
 {
-	check(Socket != nullptr);
+	if (Socket == nullptr)
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("SocketReceiveAll called with null socket"));
+		return false;
+	}
 	int32 Offset = 0;
 	while (ExpectedSize > 0)
 	{

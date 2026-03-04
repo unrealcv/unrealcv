@@ -80,13 +80,14 @@ public:
 
 	[[nodiscard]] UUnixTcpServer* GetTcpServer() const { return TcpServer; }
 
-	TWeakObjectPtr<AUnrealcvWorldController> WorldController;
+	[[nodiscard]] TWeakObjectPtr<AUnrealcvWorldController> GetWorldController() const { return WorldController; }
 
 	void InitWorldController();
 
 private:
 	FUnrealcvServer();
 
+	TWeakObjectPtr<AUnrealcvWorldController> WorldController;
 	FServerConfig Config;
 	TSharedPtr<FCommandDispatcher> CommandDispatcher;
 	UUnixTcpServer* TcpServer = nullptr;

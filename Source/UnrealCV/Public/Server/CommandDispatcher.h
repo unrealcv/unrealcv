@@ -20,13 +20,13 @@ public:
 	~FCommandDispatcher() = default;
 
 	/** Register a command handler for the given URI template. */
-	[[nodiscard]] bool BindCommand(const FString& UriTemplate, const FDispatcherDelegate& Command, const FString& Description);
+	bool BindCommand(const FString& UriTemplate, const FDispatcherDelegate& Command, const FString& Description);
 
 	/** Register an alias that expands to a single command. */
-	[[nodiscard]] bool Alias(const FString& AliasName, const FString& Command, const FString& Description);
+	bool Alias(const FString& AliasName, const FString& Command, const FString& Description);
 
 	/** Register an alias that expands to multiple commands. */
-	[[nodiscard]] bool Alias(const FString& AliasName, const TArray<FString>& Commands, const FString& Description);
+	bool Alias(const FString& AliasName, const TArray<FString>& Commands, const FString& Description);
 
 	/** Execute a command URI. Must be called on the game thread. */
 	[[nodiscard]] FExecStatus Exec(const FString& Uri);

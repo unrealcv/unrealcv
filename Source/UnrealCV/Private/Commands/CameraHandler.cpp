@@ -18,6 +18,7 @@
 #include "FusionCameraActor.h"
 
 #include "UnrealcvStats.h"
+#include "UnrealcvLog.h"
 #include "UnrealClient.h"
 
 DECLARE_CYCLE_STAT(TEXT("FCameraHandler::GetCameraLit"), STAT_GetCameraLit, STATGROUP_UnrealCV);
@@ -28,7 +29,7 @@ UFusionCamSensor* FCameraHandler::GetCamera(const TArray<FString>& Args, FExecSt
 	if (Args.Num() < 1)
 	{
 		FString Msg = TEXT("No sensor id is available");
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *Msg);
+		UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *Msg);
 		Status = FExecStatus::Error(Msg);
 		return nullptr;
 	}
@@ -37,7 +38,7 @@ UFusionCamSensor* FCameraHandler::GetCamera(const TArray<FString>& Args, FExecSt
 	if (!IsValid(FusionSensor)) 
 	{
 		FString Msg = TEXT("Invalid sensor id");
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *Msg);
+		UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *Msg);
 		Status = FExecStatus::Error(Msg);
 		return nullptr;
 	}
@@ -94,7 +95,7 @@ FExecStatus FCameraHandler::SetCameraLocation(const TArray<FString>& Args)
 		APawn* Pawn = FUnrealcvServer::Get().GetPawn();
 		if (!IsValid(Pawn))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("The Pawn of the scene is invalid."));
+			UE_LOG(LogUnrealCV, Warning, TEXT("The Pawn of the scene is invalid."));
 			return FExecStatus::InvalidArgument;
 		}
 		Pawn->SetActorLocation(Location, Sweep, NULL, ETeleportType::TeleportPhysics);
@@ -136,13 +137,13 @@ FExecStatus FCameraHandler::SetCameraRotation(const TArray<FString>& Args)
 		APawn* Pawn = FUnrealcvServer::Get().GetPawn();
 		if (!IsValid(Pawn))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("The Pawn of the scene is invalid."));
+			UE_LOG(LogUnrealCV, Warning, TEXT("The Pawn of the scene is invalid."));
 			return FExecStatus::InvalidArgument;
 		}
 		AController* Controller = Pawn->GetController();
 		if (!IsValid(Controller))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("The Controller of the Pawn is invalid."));
+			UE_LOG(LogUnrealCV, Warning, TEXT("The Controller of the Pawn is invalid."));
 			return FExecStatus::InvalidArgument;
 		}
 		Controller->ClientSetRotation(Rotator); // Teleport action
@@ -159,7 +160,6 @@ FExecStatus FCameraHandler::SetCameraRotation(const TArray<FString>& Args)
 // TODO: Move this to utility library
 EFilenameType FCameraHandler::ParseFilenameType(const FString& Filename)
 {
-	bool bIncludeDot = false;
 	FString FileExtension = FPaths::GetExtension(Filename);
 	FileExtension.ToLowerInline();
 
@@ -317,14 +317,13 @@ FExecStatus FCameraHandler::GetCameraFlow(const TArray<FString>& Args)
 	FExecStatus ExecStatus = FExecStatus::OK();
 	UFusionCamSensor* FusionCamSensor = GetCamera(Args, ExecStatus);
 	if (!IsValid(FusionCamSensor)) return ExecStatus;
-	// FusionCamSensor->checkFusionSensors();
 
 	TArray<FColor> Data;
 	int Width, Height;
 	FusionCamSensor->GetFlow(Data, Width, Height);
 	if (Data.Num() == 0)
 	{
-		UE_LOG(LogTemp, Error, TEXT("%s: Flow data is empty (if you are using old character/drone blueprints, you have to rebuild this project, because the flow sensor in FusionCamSensor is a component of the blueprint.)"), *FString(__FUNCTION__));
+		UE_LOG(LogUnrealCV, Error, TEXT("%s: Flow data is empty (if you are using old character/drone blueprints, you have to rebuild this project, because the flow sensor in FusionCamSensor is a component of the blueprint.)"), *FString(__FUNCTION__));
 	}
 	SaveData(Data, Width, Height, Args, ExecStatus);
 	return ExecStatus;
@@ -363,10 +362,14 @@ FExecStatus FCameraHandler::MoveTo(const TArray<FString>& Args)
 	float X = FCString::Atof(*Args[1]), Y = FCString::Atof(*Args[2]), Z = FCString::Atof(*Args[3]);
 	FVector Location = FVector(X, Y, Z);
 
-	bool Sweep = true;
-	// if sweep is true, the object can not move through another object
-	// Check invalid location and move back a bit.
-	bool Success = FUnrealcvServer::Get().GetPawn()->SetActorLocation(Location, Sweep, NULL, ETeleportType::TeleportPhysics);
+	constexpr bool bSweep = true;
+	// If sweep is true, the object cannot move through another object.
+	APawn* Pawn = FUnrealcvServer::Get().GetPawn();
+	if (!IsValid(Pawn))
+	{
+		return FExecStatus::Error(TEXT("The pawn is invalid"));
+	}
+	Pawn->SetActorLocation(Location, bSweep, nullptr, ETeleportType::TeleportPhysics);
 
 	return FExecStatus::OK();
 }
@@ -375,7 +378,8 @@ FExecStatus FCameraHandler::MoveTo(const TArray<FString>& Args)
 /** vget /screenshot [filename] */
 FExecStatus FCameraHandler::GetScreenshot(const TArray<FString>& Args)
 {
-	FString Filename = Args[0];
+	if (Args.Num() < 1) { return FExecStatus::InvalidArgument; }
+	const FString Filename = Args[0];
 
 	UWorld* World = FUnrealcvServer::Get().GetWorld();
 	UGameViewportClient* ViewportClient = World->GetGameViewport();
@@ -402,13 +406,21 @@ FExecStatus FCameraHandler::GetScreenshot(const TArray<FString>& Args)
 
 FExecStatus FCameraHandler::SetPlayerViewMode(const TArray<FString>& Args)
 {
-	TWeakObjectPtr<AUnrealcvWorldController> WorldController = FUnrealcvServer::Get().WorldController;
+	const auto WorldController = FUnrealcvServer::Get().GetWorldController();
+	if (!WorldController.IsValid() || !WorldController->PlayerViewMode)
+	{
+		return FExecStatus::Error(TEXT("WorldController or PlayerViewMode is not available"));
+	}
 	return WorldController->PlayerViewMode->SetMode(Args);
 }
 
 FExecStatus FCameraHandler::GetPlayerViewMode(const TArray<FString>& Args)
 {
-	TWeakObjectPtr<AUnrealcvWorldController> WorldController = FUnrealcvServer::Get().WorldController;
+	const auto WorldController = FUnrealcvServer::Get().GetWorldController();
+	if (!WorldController.IsValid() || !WorldController->PlayerViewMode)
+	{
+		return FExecStatus::Error(TEXT("WorldController or PlayerViewMode is not available"));
+	}
 	return WorldController->PlayerViewMode->GetMode(Args);
 }
 
@@ -474,8 +486,8 @@ FExecStatus FCameraHandler::SetSize(const TArray<FString>& Args)
 
 	if (Args.Num() != 3) return FExecStatus::InvalidArgument; // ID, Width, Height
 
-	int Width = FCString::Atof(*Args[1]);
-	int Height = FCString::Atof(*Args[2]);
+	const int32 Width = FCString::Atoi(*Args[1]);
+	const int32 Height = FCString::Atoi(*Args[2]);
 	FusionCamSensor->SetFilmSize(Width, Height);
 	return FExecStatus::OK();
 }
@@ -486,7 +498,8 @@ FExecStatus FCameraHandler::SetProjectionType(const TArray<FString>& Args)
 
 	FExecStatus Status = FExecStatus::InvalidArgument;
 	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
-	FString ProjectionType = Args[1];
+	if (!IsValid(FusionCamSensor)) return Status;
+	const FString ProjectionType = Args[1];
 	if (ProjectionType.ToLower() == "perspective")
 	{
 		FusionCamSensor->SetProjectionType(ECameraProjectionMode::Type::Perspective);
@@ -510,8 +523,9 @@ FExecStatus FCameraHandler::SetOrthoWidth(const TArray<FString>& Args)
 
 	FExecStatus Status = FExecStatus::InvalidArgument;
 	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
+	if (!IsValid(FusionCamSensor)) return Status;
 
-	int OrthoWidth = FCString::Atof(*Args[1]);
+	const float OrthoWidth = FCString::Atof(*Args[1]);
 	FusionCamSensor->SetOrthoWidth(OrthoWidth);
 	return FExecStatus::OK();
 }
