@@ -1,2 +1,7 @@
 pytest
+pytest-cov
 docker
+numpy
+pillow
+opencv-python
+ruff
