@@ -29,7 +29,7 @@ def test_client_connect_without_valid_confirm_does_not_leave_connected_socket(
     assert fake_socket.closed is True
 
 
-def test_client_request_returns_none_when_send_fails(monkeypatch):
+def test_client_request_raises_connection_error_when_send_fails(monkeypatch):
     client = Client(("localhost", 1))
     monkeypatch.setattr(client, "send", lambda _message: False)
     with pytest.raises(ConnectionError, match="socket is closed"):
@@ -424,10 +424,15 @@ class _ScriptedRecvSocket:
         return read_size
 
 
-def test_socketmessage_receivepayload_handles_partial_reads():
-    payload = b"abc"
+def _framed_payload_chunks(payload):
     magic = struct.pack("I", SocketMessage.magic)
     size = struct.pack("I", len(payload))
+    return magic, size, payload
+
+
+def test_socketmessage_receivepayload_handles_partial_reads():
+    payload = b"abc"
+    magic, size, payload = _framed_payload_chunks(payload)
     sock = _ScriptedRecvSocket([magic[:2], magic[2:], size, payload[:1], payload[1:]])
 
     result = SocketMessage.ReceivePayload(sock)
@@ -446,8 +451,7 @@ def test_socketmessage_receivepayload_rejects_invalid_magic():
 
 
 def test_socketmessage_receivepayload_zero_length_payload_returns_empty_bytes():
-    magic = struct.pack("I", SocketMessage.magic)
-    size = struct.pack("I", 0)
+    magic, size, _ = _framed_payload_chunks(b"")
     sock = _ScriptedRecvSocket([magic, size])
 
     result = SocketMessage.ReceivePayload(sock)
@@ -456,16 +460,14 @@ def test_socketmessage_receivepayload_zero_length_payload_returns_empty_bytes():
 
 
 def test_socketmessage_receivepayload_short_size_header_raises_struct_error():
-    magic = struct.pack("I", SocketMessage.magic)
+    magic, _, _ = _framed_payload_chunks(b"")
     sock = _ScriptedRecvSocket([magic, b"\x01\x00"])
 
     assert SocketMessage.ReceivePayload(sock) is None
 
 
 def test_socketmessage_receivepayload_truncated_payload_returns_none():
-    payload = b"abc"
-    magic = struct.pack("I", SocketMessage.magic)
-    size = struct.pack("I", len(payload))
+    magic, size, _ = _framed_payload_chunks(b"abc")
     sock = _ScriptedRecvSocket([magic, size, b"a", b""])
 
     result = SocketMessage.ReceivePayload(sock)
