@@ -13,6 +13,13 @@ def _new_client():
     return Client(LOCAL_ENDPOINT)
 
 
+def _patch_socket_and_handshake(monkeypatch, fake_socket, handshake_payload):
+    monkeypatch.setattr("unrealcv.socket.socket", lambda *_args, **_kwargs: fake_socket)
+    monkeypatch.setattr(
+        "unrealcv.SocketMessage.ReceivePayload", lambda _sock: handshake_payload
+    )
+
+
 @pytest.mark.parametrize(
     "handshake_payload",
     [None, b"rejected"],
@@ -22,11 +29,7 @@ def test_client_connect_without_valid_confirm_does_not_leave_connected_socket(
     monkeypatch, fake_socket_factory, handshake_payload
 ):
     fake_socket = fake_socket_factory()
-
-    monkeypatch.setattr("unrealcv.socket.socket", lambda *_args, **_kwargs: fake_socket)
-    monkeypatch.setattr(
-        "unrealcv.SocketMessage.ReceivePayload", lambda _sock: handshake_payload
-    )
+    _patch_socket_and_handshake(monkeypatch, fake_socket, handshake_payload)
 
     client = _new_client()
     connected = client.connect(timeout=0.1)
@@ -301,11 +304,7 @@ def test_connect_success_sets_socket_and_starts_receive_thread(
 
     fake_socket = fake_socket_factory()
     created_threads = []
-
-    monkeypatch.setattr("unrealcv.socket.socket", lambda *_args, **_kwargs: fake_socket)
-    monkeypatch.setattr(
-        "unrealcv.SocketMessage.ReceivePayload", lambda _sock: b"connected to test"
-    )
+    _patch_socket_and_handshake(monkeypatch, fake_socket, b"connected to test")
 
     def fake_thread_factory(*args, **kwargs):
         thread = _FakeThread(*args, **kwargs)
@@ -333,11 +332,7 @@ def test_connect_with_alive_receive_thread_does_not_spawn_another(
 
     fake_socket = fake_socket_factory()
     created_threads = []
-
-    monkeypatch.setattr("unrealcv.socket.socket", lambda *_args, **_kwargs: fake_socket)
-    monkeypatch.setattr(
-        "unrealcv.SocketMessage.ReceivePayload", lambda _sock: b"connected to test"
-    )
+    _patch_socket_and_handshake(monkeypatch, fake_socket, b"connected to test")
     monkeypatch.setattr(
         "unrealcv.threading.Thread",
         lambda *args, **kwargs: created_threads.append((args, kwargs)),
