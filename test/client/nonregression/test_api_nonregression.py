@@ -11,16 +11,17 @@ def _assert_cam_pose_cache(api, location, rotation):
     assert api.cam[0]["rotation"] == rotation
 
 
+def _decode_float_list_with_offset(response, offset):
+    return [float(value) + offset for value in response.split()]
+
+
 def test_batch_cmd_decodes_each_response_with_kwargs(dummy_client_factory, api_factory):
     client = dummy_client_factory([["1 2 3", "4 5 6"]])
     api = api_factory(client)
 
-    def decode_with_offset(res, offset):
-        return [float(value) + offset for value in res.split()]
-
     result = api.batch_cmd(
         cmds=["vget /camera/0/location", "vget /camera/0/rotation"],
-        decoders=[decode_with_offset, decode_with_offset],
+        decoders=[_decode_float_list_with_offset, _decode_float_list_with_offset],
         offset=0.5,
     )
 
