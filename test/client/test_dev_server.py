@@ -37,6 +37,7 @@ def is_port_open(host, port):
 # @pytest.mark.skip(reason = 'No useful')
 def test_server_close(localhost, free_port_factory):
     """Test whether resources are correctly released"""
+    # Use an ephemeral port to avoid cross-run or local conflicts.
     port = free_port_factory()
     assert is_port_open(localhost, port) == True
     server = MessageServer((localhost, port))  # This wil bind to this endpoint
