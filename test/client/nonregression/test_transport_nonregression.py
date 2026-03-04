@@ -6,6 +6,13 @@ import pytest
 from unrealcv import Client, SocketMessage
 
 
+LOCAL_ENDPOINT = ("localhost", 1)
+
+
+def _new_client():
+    return Client(LOCAL_ENDPOINT)
+
+
 @pytest.mark.parametrize(
     "handshake_payload",
     [None, b"rejected"],
@@ -21,7 +28,7 @@ def test_client_connect_without_valid_confirm_does_not_leave_connected_socket(
         "unrealcv.SocketMessage.ReceivePayload", lambda _sock: handshake_payload
     )
 
-    client = Client(("localhost", 1))
+    client = _new_client()
     connected = client.connect(timeout=0.1)
 
     assert connected is False
@@ -30,14 +37,14 @@ def test_client_connect_without_valid_confirm_does_not_leave_connected_socket(
 
 
 def test_client_request_raises_connection_error_when_send_fails(monkeypatch):
-    client = Client(("localhost", 1))
+    client = _new_client()
     monkeypatch.setattr(client, "send", lambda _message: False)
     with pytest.raises(ConnectionError, match="socket is closed"):
         client.request("vget /camera/0/location")
 
 
 def test_client_request_list_delegates_to_request_batch(monkeypatch):
-    client = Client(("localhost", 1))
+    client = _new_client()
     calls = {}
 
     def fake_request_batch(batch):
@@ -58,7 +65,7 @@ def test_client_request_list_delegates_to_request_batch(monkeypatch):
 def test_client_request_async_routes_to_expected_path(
     monkeypatch, message, expected_attr
 ):
-    client = Client(("localhost", 1))
+    client = _new_client()
     calls = {"single": 0, "batch": 0}
 
     monkeypatch.setattr(
@@ -80,7 +87,7 @@ def test_client_request_async_routes_to_expected_path(
 
 @pytest.mark.parametrize("method_name", ["request_async", "request_batch_async"])
 def test_client_async_methods_raise_when_send_fails(monkeypatch, method_name):
-    client = Client(("localhost", 1))
+    client = _new_client()
     monkeypatch.setattr(client, "send", lambda _message: False)
 
     with pytest.raises(ConnectionError, match="socket is closed"):
@@ -91,7 +98,7 @@ def test_client_async_methods_raise_when_send_fails(monkeypatch, method_name):
 
 
 def test_client_request_batch_raises_when_send_fails(monkeypatch):
-    client = Client(("localhost", 1))
+    client = _new_client()
     monkeypatch.setattr(client, "send", lambda _message: False)
 
     with pytest.raises(ConnectionError, match="socket is closed"):
@@ -99,7 +106,7 @@ def test_client_request_batch_raises_when_send_fails(monkeypatch):
 
 
 def test_client_request_sync_queues_single_result_request(monkeypatch):
-    client = Client(("localhost", 1))
+    client = _new_client()
     monkeypatch.setattr(client, "send", lambda _message: True)
     client.recv_data_q.put("ok")
 
@@ -110,7 +117,7 @@ def test_client_request_sync_queues_single_result_request(monkeypatch):
 
 
 def test_client_request_sync_encodes_text_with_message_id(monkeypatch):
-    client = Client(("localhost", 1))
+    client = _new_client()
     sent_messages = []
 
     def fake_send(message):
@@ -128,7 +135,7 @@ def test_client_request_sync_encodes_text_with_message_id(monkeypatch):
 
 
 def test_client_request_sync_increments_send_message_id(monkeypatch):
-    client = Client(("localhost", 1))
+    client = _new_client()
     monkeypatch.setattr(client, "send", lambda _message: True)
     client.recv_data_q.put("ok")
 
@@ -142,7 +149,7 @@ def test_client_request_raises_timeout_error_when_response_queue_times_out(monke
         def get(self, timeout=None):
             raise queue.Empty
 
-    client = Client(("localhost", 1))
+    client = _new_client()
     monkeypatch.setattr(client, "send", lambda _message: True)
     client.recv_data_q = _TimeoutQueue()
 
@@ -151,7 +158,7 @@ def test_client_request_raises_timeout_error_when_response_queue_times_out(monke
 
 
 def test_client_request_batch_queues_negative_batch_size(monkeypatch):
-    client = Client(("localhost", 1))
+    client = _new_client()
     monkeypatch.setattr(client, "send", lambda _message: True)
     client.recv_data_q.put("r1")
     client.recv_data_q.put("r2")
@@ -165,7 +172,7 @@ def test_client_request_batch_queues_negative_batch_size(monkeypatch):
 def test_client_request_batch_raises_when_response_queue_contains_exception(
     monkeypatch,
 ):
-    client = Client(("localhost", 1))
+    client = _new_client()
     monkeypatch.setattr(client, "send", lambda _message: True)
     client.recv_data_q.put(ConnectionError("server error"))
 
