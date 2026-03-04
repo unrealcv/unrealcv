@@ -184,7 +184,7 @@ def test_client_request_batch_raises_when_response_queue_contains_exception(
 
 
 def test_receive_loop_queue_sync_path_decodes_and_enqueues(monkeypatch):
-    client = Client(("localhost", 1))
+    client = _new_client()
     raw_messages = [b"0:ok"]
     monkeypatch.setattr(client, "receive", lambda: raw_messages.pop(0))
 
@@ -197,7 +197,7 @@ def test_receive_loop_queue_sync_path_decodes_and_enqueues(monkeypatch):
 
 
 def test_receive_loop_queue_async_path_does_not_enqueue_data(monkeypatch):
-    client = Client(("localhost", 1))
+    client = _new_client()
     raw_messages = [b"0:ok"]
     monkeypatch.setattr(client, "receive", lambda: raw_messages.pop(0))
 
@@ -210,7 +210,7 @@ def test_receive_loop_queue_async_path_does_not_enqueue_data(monkeypatch):
 
 
 def test_receive_abnormal_disconnect_retries_then_asserts(monkeypatch):
-    client = Client(("localhost", 1))
+    client = _new_client()
     client.sock = object()
     reconnect_attempts = {"count": 0}
     disconnect_calls = {"count": 0}
@@ -239,32 +239,32 @@ def test_receive_abnormal_disconnect_retries_then_asserts(monkeypatch):
 
 
 def test_raw_message_handler_malformed_payload_returns_none():
-    client = Client(("localhost", 1))
+    client = _new_client()
     assert client.raw_message_handler(b"malformed") is None
 
 
 def test_raw_message_handler_message_id_mismatch_asserts():
-    client = Client(("localhost", 1))
+    client = _new_client()
     client.recv_message_id = 1
     with pytest.raises(AssertionError):
         client.raw_message_handler(b"0:ok")
 
 
 def test_raw_message_handler_decodes_utf8_payload():
-    client = Client(("localhost", 1))
+    client = _new_client()
     client.recv_message_id = 0
     assert client.raw_message_handler("0:héllo".encode("utf-8")) == "héllo"
 
 
 def test_raw_message_handler_keeps_binary_payload_when_not_utf8():
-    client = Client(("localhost", 1))
+    client = _new_client()
     client.recv_message_id = 0
     payload = b"\x89PNG\x00"
     assert client.raw_message_handler(b"0:" + payload) == payload
 
 
 def test_send_connected_wraps_payload(monkeypatch):
-    client = Client(("localhost", 1))
+    client = _new_client()
     client.sock = object()
     sent = {}
 
@@ -280,7 +280,7 @@ def test_send_connected_wraps_payload(monkeypatch):
 
 
 def test_send_disconnected_returns_false():
-    client = Client(("localhost", 1))
+    client = _new_client()
     assert client.send(b"payload") is False
 
 
@@ -313,7 +313,7 @@ def test_connect_success_sets_socket_and_starts_receive_thread(
 
     monkeypatch.setattr("unrealcv.threading.Thread", fake_thread_factory)
 
-    client = Client(("localhost", 1))
+    client = _new_client()
     connected = client.connect()
 
     assert connected is True
@@ -338,7 +338,7 @@ def test_connect_with_alive_receive_thread_does_not_spawn_another(
         lambda *args, **kwargs: created_threads.append((args, kwargs)),
     )
 
-    client = Client(("localhost", 1))
+    client = _new_client()
     client.t = _AliveThread()
 
     connected = client.connect()
@@ -348,7 +348,7 @@ def test_connect_with_alive_receive_thread_does_not_spawn_another(
 
 
 def test_connect_with_unsupported_socket_type_returns_false():
-    client = Client(("localhost", 1), type="invalid")
+    client = Client(LOCAL_ENDPOINT, type="invalid")
     assert client.connect() is False
 
 
@@ -361,7 +361,7 @@ def test_connect_closes_socket_when_connect_raises(monkeypatch, fake_socket_fact
     fake_socket.connect = fail_connect
     monkeypatch.setattr("unrealcv.socket.socket", lambda *_args, **_kwargs: fake_socket)
 
-    client = Client(("localhost", 1))
+    client = _new_client()
     assert client.connect() is False
     assert fake_socket.closed is True
 
@@ -377,7 +377,7 @@ def test_disconnect_joins_alive_receive_thread(monkeypatch):
         def join(self, timeout=None):
             self.joined = True
 
-    client = Client(("localhost", 1))
+    client = _new_client()
     thread = _AliveThread()
     client.t = thread
 
@@ -398,7 +398,7 @@ def test_disconnect_closes_socket_even_when_shutdown_raises(monkeypatch):
         def close(self):
             self.close_called = True
 
-    client = Client(("localhost", 1))
+    client = _new_client()
     sock = _SocketWithShutdownError()
     client.sock = sock
     monkeypatch.setattr("unrealcv.time.sleep", lambda _seconds: None)
