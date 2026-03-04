@@ -1,6 +1,6 @@
 // Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #include "Misc/AutomationTest.h"
-#include "SocketUtils.h"
+#include "Server/SocketUtils.h"
 
 #if WITH_AUTOMATION_WORKER
 

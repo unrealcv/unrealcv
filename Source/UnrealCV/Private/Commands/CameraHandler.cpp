@@ -8,6 +8,7 @@
 #include "Misc/Paths.h"
 
 #include "CommandDispatcher.h"
+#include "UnrealcvServer.h"
 #include "FusionCamSensor.h"
 #include "Serialization.h"
 #include "Utils/StrFormatter.h"

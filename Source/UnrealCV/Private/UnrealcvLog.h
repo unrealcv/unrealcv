@@ -3,6 +3,7 @@
 
 #include "Runtime/Core/Public/Logging/LogMacros.h"
 #include "Runtime/Core/Public/HAL/CriticalSection.h"
+#include "Containers/Set.h"
 
 DECLARE_LOG_CATEGORY_EXTERN(LogUnrealCV, Log, All);
 

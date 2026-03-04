@@ -4,6 +4,7 @@
 #include "Tickable.h"
 #include "Containers/Queue.h"
 #include "Internationalization/Regex.h"
+#include "GameFramework/Pawn.h"
 #include "ServerConfig.h"
 #include "CommandDispatcher.h"
 

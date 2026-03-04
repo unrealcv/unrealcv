@@ -6,6 +6,7 @@
 
 #include "UnrealcvServer.h"
 #include "UnrealcvLog.h"
+#include "UnixTcpServer.h"
 
 class FUnrealCVPlugin : public IModuleInterface
 {

@@ -6,6 +6,7 @@
 #include "TimerManager.h"
 #include "GameFramework/Pawn.h"
 
+#include "UnrealcvServer.h"
 #include "WorldController.h"
 #include "VisionBPLib.h"
 

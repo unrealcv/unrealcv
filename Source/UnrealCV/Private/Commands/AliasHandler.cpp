@@ -7,6 +7,7 @@
 #include "Utils/UObjectUtils.h"
 #include "SerializeBPLib.h"
 #include "UnrealcvLog.h"
+#include "UnrealcvServer.h"
 
 
 void FAliasHandler::RegisterCommands()

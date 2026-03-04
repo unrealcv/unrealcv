@@ -9,6 +9,7 @@
 #include "Sensor/CameraSensor/PawnCamSensor.h"
 #include "VisionBPLib.h"
 #include "UnrealcvServer.h"
+#include "UnixTcpServer.h"
 #include "PlayerViewMode.h"
 #include "UnrealcvLog.h"
 

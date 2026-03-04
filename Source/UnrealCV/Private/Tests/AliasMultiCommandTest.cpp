@@ -1,7 +1,7 @@
 // Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #include "Misc/AutomationTest.h"
 #include "CommandDispatcher.h"
-#include "AliasHandler.h"
+#include "Commands/AliasHandler.h"
 
 #if WITH_AUTOMATION_WORKER
 

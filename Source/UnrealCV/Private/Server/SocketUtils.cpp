@@ -1,6 +1,7 @@
 // Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #include "SocketUtils.h"
 #include "UnrealcvLog.h"
+#include "SocketSubsystem.h"
 #include <string>
 
 #if PLATFORM_LINUX

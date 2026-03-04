@@ -25,12 +25,12 @@ UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer
 	PrimitiveRenderMode = ESceneCapturePrimitiveRenderMode::PRM_RenderScenePrimitives;
 	CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 	bUseRayTracingIfEnabled = true;
-	bAlwaysPersistRenderingState = true; 
+	bAlwaysPersistRenderingState = true;
 
-	FServerConfig& Config = FUnrealcvServer::Get().Config;
+	const FServerConfig& Config = FUnrealcvServer::Get().GetConfig();
 	FilmWidth = Config.Width == 0 ? 640 : Config.Width;
 	FilmHeight = Config.Height == 0 ? 480 : Config.Height;
-	FOVAngle = Config.FOV == 0 ? 90 : Config.FOV; 
+	FOVAngle = Config.FOV == 0 ? 90 : Config.FOV;
 	// Avoid calling virtual function in a constructor
 }
 
@@ -49,7 +49,7 @@ void UBaseCameraSensor::InitTextureTarget(int filmWidth, int filmHeight)
 	// bool bUseLinearGamma = false;
 	EPixelFormat PixelFormat = EPixelFormat::PF_B8G8R8A8;
 	bool bUseLinearGamma = false;
-	TextureTarget = NewObject<UTextureRenderTarget2D>(this); 
+	TextureTarget = NewObject<UTextureRenderTarget2D>(this);
 	TextureTarget->InitCustomFormat(filmWidth, filmHeight, PixelFormat, bUseLinearGamma);
 }
 
@@ -59,11 +59,11 @@ void UBaseCameraSensor::SetFilmSize(int Width, int Height)
 	this->FilmHeight = Height;
 	if (!IsValid(TextureTarget))
 	{
-		TextureTarget = NewObject<UTextureRenderTarget2D>(this); 
+		TextureTarget = NewObject<UTextureRenderTarget2D>(this);
 		// TextureTarget = CreateDefaultSubobject<UTextureRenderTarget2D>(TEXT("CamSensorRenderTarget"));
 	}
 
-	if (TextureTarget->SizeX != Width || TextureTarget->SizeY != Height) 
+	if (TextureTarget->SizeX != Width || TextureTarget->SizeY != Height)
 	{
 		InitTextureTarget(Width, Height);
 	}
