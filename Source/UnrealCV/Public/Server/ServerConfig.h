@@ -26,15 +26,15 @@ public:
 	FServerConfig();
 
 	/** Human-readable dump of all settings. */
-	FString ToString() const;
+	[[nodiscard]] FString ToString() const;
 
-	/** Persist current values to the config file. */
-	bool Save();
+	/** Persist current values to the config file. Returns false if GConfig is null. */
+	[[nodiscard]] bool Save();
 
 	/** Reload values from the config file (missing keys keep defaults). */
-	bool Load();
+	[[nodiscard]] bool Load();
 
-	/** Override settings from command-line arguments. */
+	/** Override settings from command-line arguments (-cvport, -cvls). */
 	void ParseCmdArgs();
 
 	/** List assets under a folder and request exit (diagnostic tool). */

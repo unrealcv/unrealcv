@@ -44,6 +44,7 @@ public class UnrealcvBuildConfig
 			"Projects",
 			"RHI",
 			"Json",
+			"AssetRegistry",
 		});
 
 		EditorPrivateDependencyModuleNames.AddRange(new string[]

@@ -7,23 +7,12 @@
 #include "Runtime/Networking/Public/Interfaces/IPv4/IPv4Endpoint.h"
 #include "Runtime/Core/Public/Serialization/ArrayReader.h"
 
-#if PLATFORM_LINUX
-#include <cstdlib>
-#include <cstdio>
-#include <cstddef>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <cstring>
-#include <unistd.h>
-#include <cctype>
-#endif
-
 #include "UnixTcpServer.generated.h"
 
 /**
  * Message framing header with TCP and UDS transport helpers.
  */
-class FUnixSocketMessageHeader
+class UNREALCV_API FUnixSocketMessageHeader
 {
 public:
 	explicit FUnixSocketMessageHeader(const TArray<uint8>& Payload)
@@ -32,10 +21,10 @@ public:
 	{
 	}
 
-	static bool WrapAndSendPayload(const TArray<uint8>& Payload, FSocket* Socket);
-	static bool ReceivePayload(FArrayReader& OutPayload, FSocket* Socket);
-	static bool WrapAndSendPayloadUDS(const TArray<uint8>& Payload, int Fd);
-	static bool ReceivePayloadUDS(FArrayReader& OutPayload, int Fd);
+	[[nodiscard]] static bool WrapAndSendPayload(const TArray<uint8>& Payload, FSocket* Socket);
+	[[nodiscard]] static bool ReceivePayload(FArrayReader& OutPayload, FSocket* Socket);
+	[[nodiscard]] static bool WrapAndSendPayloadUDS(const TArray<uint8>& Payload, int Fd);
+	[[nodiscard]] static bool ReceivePayloadUDS(FArrayReader& OutPayload, int Fd);
 
 	static uint32 DefaultMagic;
 
@@ -50,6 +39,9 @@ DECLARE_EVENT_OneParam (UUnixTcpServer, FConnectedEvent,const FString&);
 
 /**
  * Single-client server supporting both Internet TCP and Linux UDS transports.
+ *
+ * On Linux, after the first TCP client disconnects the server transitions
+ * to a Unix Domain Socket listener (for lower-latency local communication).
  */
 UCLASS()
 class UNREALCV_API UUnixTcpServer : public UObject
@@ -57,32 +49,36 @@ class UNREALCV_API UUnixTcpServer : public UObject
 	GENERATED_BODY()
 
 public:
-	int32 PortNum = -1;
+	[[nodiscard]] int32 GetPortNum() const { return PortNum; }
 
-	bool IsConnected() const;
-	bool IsListening() const { return bIsListening; }
+	[[nodiscard]] bool IsConnected() const;
+	[[nodiscard]] bool IsListening() const { return bIsListening; }
 
-	bool Start(int32 InPortNum);
+	[[nodiscard]] bool Start(int32 InPortNum);
 
-	bool SendMessage(const FString& Message);
-	bool SendData(const TArray<uint8>& Payload);
-	bool SendMessageINet(const FString& Message);
-	bool SendDataINet(const TArray<uint8>& Payload);
-	bool SendMessageUDS(const FString& Message);
-	bool SendDataUDS(const TArray<uint8>& Payload);
+	[[nodiscard]] bool SendMessage(const FString& Message);
+	[[nodiscard]] bool SendData(const TArray<uint8>& Payload);
+	[[nodiscard]] bool SendMessageINet(const FString& Message);
+	[[nodiscard]] bool SendDataINet(const TArray<uint8>& Payload);
+	[[nodiscard]] bool SendMessageUDS(const FString& Message);
+	[[nodiscard]] bool SendDataUDS(const TArray<uint8>& Payload);
 
 	FReceivedEvent&  OnReceived()  { return ReceivedEvent; }
 	FErrorEvent&     OnError()     { return ErrorEvent; }
 
 private:
+	int32 PortNum     = -1;
 	bool bIsListening = false;
 	bool bIsUDS       = false;
 
-	bool Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
+	bool OnClientConnected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
 
 	FSocket* ConnectionSocket = nullptr;
+
+#if PLATFORM_LINUX
 	int UDS_ConnFd   = -1;
 	int UDS_ListenFd = -1;
+#endif
 
 	TSharedPtr<FTcpListener> TcpListener;
 
@@ -92,16 +88,9 @@ private:
 	bool StartMessageServiceINet(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
 	bool StartMessageServiceUDS();
 
+	void CleanupConnection();
+
 	FReceivedEvent  ReceivedEvent;
 	FErrorEvent     ErrorEvent;
 	FConnectedEvent ConnectedEvent;
-
-	void BroadcastReceived(const FString& Endpoint, const FString& Message)
-	{
-		ReceivedEvent.Broadcast(Endpoint, Message);
-	}
-	void BroadcastConnected(const FString& Message)
-	{
-		ConnectedEvent.Broadcast(Message);
-	}
 };

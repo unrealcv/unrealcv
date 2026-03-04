@@ -6,8 +6,10 @@
 #include "Runtime/Core/Public/Internationalization/Regex.h"
 #include "ServerConfig.h"
 #include "CommandDispatcher.h"
-#include "WorldController.h"
-#include "UnixTcpServer.h"
+
+class UUnixTcpServer;
+class AUnrealcvWorldController;
+class FCommandHandler;
 
 /**
  * A single incoming command request from a connected client.
@@ -43,20 +45,22 @@ class UNREALCV_API FUnrealcvServer : public FTickableGameObject
 public:
 	~FUnrealcvServer();
 
+	// Non-copyable, non-movable singleton.
+	FUnrealcvServer(const FUnrealcvServer&) = delete;
+	FUnrealcvServer& operator=(const FUnrealcvServer&) = delete;
+
 	/** Singleton accessor. */
 	static FUnrealcvServer& Get();
 
-	TSharedPtr<FCommandDispatcher> CommandDispatcher;
-
 	/** Return the controlled Pawn (only valid during gameplay). */
-	APawn* GetPawn();
+	[[nodiscard]] APawn* GetPawn();
 
 	// -- FTickableGameObject interface ------------------------------------
 	virtual void Tick(float DeltaTime) override;
-	virtual bool IsTickable() const override            { return bIsTicking; }
-	virtual bool IsTickableWhenPaused() const override   { return true; }
-	virtual bool IsTickableInEditor() const override     { return true; }
-	virtual TStatId GetStatId() const override
+	[[nodiscard]] virtual bool IsTickable() const override            { return bIsTicking; }
+	[[nodiscard]] virtual bool IsTickableWhenPaused() const override  { return true; }
+	[[nodiscard]] virtual bool IsTickableInEditor() const override    { return true; }
+	[[nodiscard]] virtual TStatId GetStatId() const override
 	{
 		RETURN_QUICK_DECLARE_CYCLE_STAT(FUnrealcvServer, STATGROUP_Tickables);
 	}
@@ -64,31 +68,38 @@ public:
 	void RegisterCommandHandlers();
 
 	/** Return the best available UWorld for the current mode (editor / game). */
-	UWorld* GetWorld();
+	[[nodiscard]] UWorld* GetWorld() const;
 
 	/** Return the gameplay world (nullptr outside of PIE / standalone). */
-	UWorld* GetGameWorld();
+	[[nodiscard]] UWorld* GetGameWorld() const;
 
-	FServerConfig Config;
+	[[nodiscard]] const FServerConfig& GetConfig() const { return Config; }
+	FServerConfig& GetMutableConfig() { return Config; }
 
-	UUnixTcpServer* TcpServer = nullptr;
+	[[nodiscard]] TSharedPtr<FCommandDispatcher> GetCommandDispatcher() const { return CommandDispatcher; }
 
-	TWeakObjectPtr<class AUnrealcvWorldController> WorldController;
+	[[nodiscard]] UUnixTcpServer* GetTcpServer() const { return TcpServer; }
+
+	TWeakObjectPtr<AUnrealcvWorldController> WorldController;
 
 	void InitWorldController();
 
 private:
 	FUnrealcvServer();
 
-	TArray<class FCommandHandler*> CommandHandlers;
+	FServerConfig Config;
+	TSharedPtr<FCommandDispatcher> CommandDispatcher;
+	UUnixTcpServer* TcpServer = nullptr;
+
+	TArray<TUniquePtr<FCommandHandler>> CommandHandlers;
 
 	void ProcessPendingRequest();
-	void ProcessRequest(FRequest& Request);
+	void ProcessRequest(const FRequest& Request);
 
 	int32 BatchNum = 0;
 	TArray<FRequest> Batch;
 
-	APawn* Pawn = nullptr;
+	TWeakObjectPtr<APawn> CachedPawn;
 	bool bIsTicking = true;
 
 	TQueue<FRequest, EQueueMode::Spsc> PendingRequest;

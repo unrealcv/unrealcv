@@ -1,3 +1,4 @@
+// Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #pragma once
 #include "CommandHandler.h"
 #include "Runtime/InputCore/Classes/InputCoreTypes.h"
@@ -5,7 +6,7 @@
 class FActionHandler : public FCommandHandler
 {
 public:
-	void RegisterCommands();
+	void RegisterCommands() override;
 
 private:
 	/** vset /action/game/pause */
@@ -15,7 +16,7 @@ private:
 	FExecStatus ResumeGame(const TArray<FString>& Args);
 
 	/** vget /action/game/is_paused */
-	FExecStatus GetIsPaused(const TArray<FString>& Args); 
+	FExecStatus GetIsPaused(const TArray<FString>& Args);
 
 	/** vset /action/game/level */
 	FExecStatus OpenLevel(const TArray<FString>& Args);

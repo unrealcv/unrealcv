@@ -1,88 +1,21 @@
 // Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #include "UnixTcpServer.h"
+#include "SocketUtils.h"
 #include "Runtime/Core/Public/Serialization/BufferArchive.h"
 #include "Runtime/Core/Public/Serialization/MemoryReader.h"
-#include <string>
 #include "UnrealcvLog.h"
 #include "UnrealcvShim.h"
 
-uint32 FUnixSocketMessageHeader::DefaultMagic = 0x9E2B83C1;
-
-namespace
-{
-
-FString StringFromBinaryArray(const TArray<uint8>& BinaryArray)
-{
-	const std::string Utf8(reinterpret_cast<const char*>(BinaryArray.GetData()), BinaryArray.Num());
-	return FString(UTF8_TO_TCHAR(Utf8.c_str()));
-}
-
-void BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray)
-{
-	auto Converter = StringCast<UTF8CHAR>(*Message);
-	OutBinaryArray.Empty();
-	OutBinaryArray.Append(reinterpret_cast<const uint8*>(Converter.Get()), Converter.Length());
-}
-
-bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
-{
-	int32 Offset = 0;
-	while (ExpectedSize > 0)
-	{
-		int32 NumRead = 0;
-		Socket->Recv(Result + Offset, ExpectedSize, NumRead);
-		check(NumRead <= ExpectedSize);
-
-		const ESocketErrors LastError = ISocketSubsystem::Get()->GetLastErrorCode();
-		if (NumRead > 0) { Offset += NumRead; ExpectedSize -= NumRead; continue; }
-		if (LastError == ESocketErrors::SE_EWOULDBLOCK) { continue; }
-		if (LastError == ESocketErrors::SE_NO_ERROR)
-		{
-			UE_LOG(LogUnrealCV, Log, TEXT("Connection gracefully closed by the client."));
-			return false;
-		}
-		if (LastError == ESocketErrors::SE_ECONNABORTED)
-		{
-			UE_LOG(LogUnrealCV, Error, TEXT("Connection aborted unexpectedly."));
-			return false;
-		}
-		if (LastError == ESocketErrors::SE_ENOTCONN)
-		{
-			UE_LOG(LogUnrealCV, Error, TEXT("Socket is not connected."));
-			return false;
-		}
-		const TCHAR* ErrorMsg = ISocketSubsystem::Get()->GetSocketError(LastError);
-		UE_LOG(LogUnrealCV, Error, TEXT("Unexpected socket error: %s"), ErrorMsg);
-		return false;
-	}
-	return true;
-}
-
 #if PLATFORM_LINUX
-bool UDSReceiveAll(int Fd, uint8* Result, int32 ExpectedSize)
-{
-	int32 Offset = 0;
-	while (ExpectedSize > 0)
-	{
-		const int32 NumRead = static_cast<int32>(read(Fd, Result + Offset, ExpectedSize));
-		check(NumRead <= ExpectedSize);
-
-		if (NumRead > 0) { Offset += NumRead; ExpectedSize -= NumRead; continue; }
-		if (NumRead == 0)
-		{
-			UE_LOG(LogUnrealCV, Log, TEXT("UDS connection gracefully closed."));
-			close(Fd);
-			return false;
-		}
-		UE_LOG(LogUnrealCV, Error, TEXT("UDS read error: %hs"), strerror(errno));
-		close(Fd);
-		return false;
-	}
-	return true;
-}
+#include <cstdlib>
+#include <cstddef>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <cstring>
+#include <unistd.h>
 #endif
 
-} // anonymous namespace
+uint32 FUnixSocketMessageHeader::DefaultMagic = 0x9E2B83C1;
 
 // ---------------------------------------------------------------------------
 // TCP transport
@@ -123,12 +56,13 @@ bool FUnixSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket*
 	if (Socket->GetConnectionState() != ESocketConnectionState::SCS_Connected)
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("Attempting to read from a disconnected socket."));
+		return false;
 	}
 
 	TArray<uint8> HeaderBytes;
 	const int32 HeaderSize = sizeof(FUnixSocketMessageHeader);
 	HeaderBytes.AddZeroed(HeaderSize);
-	if (!SocketReceiveAll(Socket, HeaderBytes.GetData(), HeaderSize))
+	if (!UCV::SocketUtils::SocketReceiveAll(Socket, HeaderBytes.GetData(), HeaderSize))
 	{
 		UE_LOG(LogUnrealCV, Log, TEXT("Client disconnected."));
 		return false;
@@ -153,7 +87,7 @@ bool FUnixSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket*
 
 	const int32 PayloadOffset = OutPayload.AddUninitialized(PayloadSize);
 	OutPayload.Seek(PayloadOffset);
-	if (!SocketReceiveAll(Socket, OutPayload.GetData() + PayloadOffset, PayloadSize))
+	if (!UCV::SocketUtils::SocketReceiveAll(Socket, OutPayload.GetData() + PayloadOffset, PayloadSize))
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("Incomplete payload — socket disconnected."));
 		return false;
@@ -180,15 +114,12 @@ bool FUnixSocketMessageHeader::WrapAndSendPayloadUDS(const TArray<uint8>& Payloa
 		const int32 Written = static_cast<int32>(write(Fd, Ar.GetData() + TotalSent, Remaining));
 		if (Written == -1)
 		{
-			UE_LOG(LogUnrealCV, Error, TEXT("UDS write error: %hs"), strerror(errno));
-			close(Fd);
-			return false;
-		}
-		if (--RetriesLeft < 0)
-		{
-			UE_LOG(LogUnrealCV, Error, TEXT("UDS send exhausted retries. Expected %d, sent %d."), Ar.Num(), TotalSent);
-			close(Fd);
-			return false;
+			if (--RetriesLeft < 0)
+			{
+				UE_LOG(LogUnrealCV, Error, TEXT("UDS send exhausted retries. Expected %d, sent %d."), Ar.Num(), TotalSent);
+				return false;
+			}
+			continue;
 		}
 		Remaining -= Written;
 		TotalSent += Written;
@@ -204,7 +135,7 @@ bool FUnixSocketMessageHeader::ReceivePayloadUDS(FArrayReader& OutPayload, int F
 	TArray<uint8> HeaderBytes;
 	const int32 HeaderSize = sizeof(FUnixSocketMessageHeader);
 	HeaderBytes.AddZeroed(HeaderSize);
-	if (!UDSReceiveAll(Fd, HeaderBytes.GetData(), HeaderSize))
+	if (!UCV::SocketUtils::UDSReceiveAll(Fd, HeaderBytes.GetData(), HeaderSize))
 	{
 		UE_LOG(LogUnrealCV, Log, TEXT("UDS client disconnected (header read failed)."));
 		return false;
@@ -229,7 +160,7 @@ bool FUnixSocketMessageHeader::ReceivePayloadUDS(FArrayReader& OutPayload, int F
 
 	const int32 PayloadOffset = OutPayload.AddUninitialized(PayloadSize);
 	OutPayload.Seek(PayloadOffset);
-	if (!UDSReceiveAll(Fd, OutPayload.GetData() + PayloadOffset, PayloadSize))
+	if (!UCV::SocketUtils::UDSReceiveAll(Fd, OutPayload.GetData() + PayloadOffset, PayloadSize))
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("Incomplete UDS payload — client disconnected."));
 		return false;
@@ -247,6 +178,30 @@ bool UUnixTcpServer::IsConnected() const
 	return ConnectionSocket != nullptr;
 }
 
+void UUnixTcpServer::CleanupConnection()
+{
+	if (ConnectionSocket)
+	{
+		ConnectionSocket->Shutdown(ESocketShutdownMode::ReadWrite);
+		ConnectionSocket->Close();
+		ConnectionSocket = nullptr;
+	}
+}
+
+UUnixTcpServer::~UUnixTcpServer()
+{
+	CleanupConnection();
+	if (TcpListener.IsValid())
+	{
+		TcpListener->Stop();
+		TcpListener.Reset();
+	}
+#if PLATFORM_LINUX
+	if (UDS_ConnFd != -1)   { shutdown(UDS_ConnFd, SHUT_RDWR);   close(UDS_ConnFd);   UDS_ConnFd = -1; }
+	if (UDS_ListenFd != -1) { shutdown(UDS_ListenFd, SHUT_RDWR); close(UDS_ListenFd); UDS_ListenFd = -1; }
+#endif
+}
+
 bool UUnixTcpServer::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
 	if (ConnectionSocket) { return false; }
@@ -260,7 +215,7 @@ bool UUnixTcpServer::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoint
 	{
 		int32 BytesRead = 0;
 		ClientSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), BytesRead);
-		if (BytesRead == 0) { ConnectionSocket = nullptr; return false; }
+		if (BytesRead <= 0) { ConnectionSocket = nullptr; return false; }
 		int32 BytesSent = 0;
 		ClientSocket->Send(ReceivedData.GetData(), BytesRead, BytesSent);
 		check(BytesRead == BytesSent);
@@ -270,12 +225,6 @@ bool UUnixTcpServer::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoint
 bool UUnixTcpServer::StartMessageServiceUDS()
 {
 #if PLATFORM_LINUX
-	if (UDS_ConnFd != -1)
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("UDS: only one client allowed."));
-		return false;
-	}
-
 	const std::string SocketPath = "/tmp/unrealcv_" + std::to_string(PortNum) + ".socket";
 	UE_LOG(LogUnrealCV, Log, TEXT("UDS server socket: %hs"), SocketPath.c_str());
 
@@ -299,7 +248,7 @@ bool UUnixTcpServer::StartMessageServiceUDS()
 		close(ListenFd);
 		return false;
 	}
-	if (listen(ListenFd, 5) < 0)
+	if (listen(ListenFd, 1) < 0)
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("UDS listen() failed: %hs"), strerror(errno));
 		close(ListenFd);
@@ -336,7 +285,7 @@ bool UUnixTcpServer::StartMessageServiceUDS()
 				UDS_ConnFd = -1;
 				break;
 			}
-			BroadcastReceived(TEXT("UDS client"), StringFromBinaryArray(ArrayReader));
+			ReceivedEvent.Broadcast(TEXT("UDS client"), UCV::SocketUtils::StringFromBinaryArray(ArrayReader));
 		}
 		UE_LOG(LogUnrealCV, Display, TEXT("UDS client disconnected — waiting for new connections."));
 	}
@@ -376,22 +325,24 @@ bool UUnixTcpServer::StartMessageServiceINet(FSocket* ClientSocket, const FIPv4E
 		FArrayReader ArrayReader;
 		if (!FUnixSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket))
 		{
-			ConnectionSocket->Shutdown(ESocketShutdownMode::ReadWrite);
-			ConnectionSocket->Close();
-			ConnectionSocket = nullptr;
+			CleanupConnection();
 			return false;
 		}
 
 		TSharedRef<FInternetAddr> EndpointAddr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr();
 		ConnectionSocket->GetPeerAddress(EndpointAddr.Get());
-		BroadcastReceived(EndpointAddr->ToString(true), StringFromBinaryArray(ArrayReader));
+		ReceivedEvent.Broadcast(EndpointAddr->ToString(true), UCV::SocketUtils::StringFromBinaryArray(ArrayReader));
 	}
 	return false;
 }
 
-bool UUnixTcpServer::Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
+/**
+ * Connection callback from the TCP listener.
+ * Handles the TCP phase first, then transitions to UDS on Linux.
+ */
+bool UUnixTcpServer::OnClientConnected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
-	BroadcastConnected(*ClientEndpoint.ToString());
+	ConnectedEvent.Broadcast(*ClientEndpoint.ToString());
 	const bool Status = StartMessageServiceINet(ClientSocket, ClientEndpoint);
 	bIsUDS = true;
 	StartMessageServiceUDS();
@@ -402,7 +353,7 @@ bool UUnixTcpServer::Start(int32 InPortNum)
 {
 	if (InPortNum == PortNum && bIsListening) { return true; }
 
-	if (ConnectionSocket) { ConnectionSocket->Close(); ConnectionSocket = nullptr; }
+	CleanupConnection();
 	if (TcpListener.IsValid())
 	{
 		UE_LOG(LogUnrealCV, Warning, TEXT("Stopping previous listener."));
@@ -428,7 +379,7 @@ bool UUnixTcpServer::Start(int32 InPortNum)
 	ServerSocket->SetReceiveBufferSize(2 * 1024 * 1024, NewBufferSize);
 
 	TcpListener = MakeShared<FTcpListener>(*ServerSocket);
-	TcpListener->OnConnectionAccepted().BindUObject(this, &UUnixTcpServer::Connected);
+	TcpListener->OnConnectionAccepted().BindUObject(this, &UUnixTcpServer::OnClientConnected);
 	if (!TcpListener->Init())
 	{
 		bIsListening = false;
@@ -461,40 +412,48 @@ bool UUnixTcpServer::SendData(const TArray<uint8>& Payload)
 
 bool UUnixTcpServer::SendMessageINet(const FString& Message)
 {
-	if (!ConnectionSocket) { return false; }
+	if (!ConnectionSocket)
+	{
+		UE_LOG(LogUnrealCV, Verbose, TEXT("SendMessageINet: no client connected."));
+		return false;
+	}
 	TArray<uint8> Payload;
-	BinaryArrayFromString(Message, Payload);
+	UCV::SocketUtils::BinaryArrayFromString(Message, Payload);
 	UE_LOG(LogUnrealCV, Verbose, TEXT("TCP sending string (%d bytes)."), Payload.Num());
 	return FUnixSocketMessageHeader::WrapAndSendPayload(Payload, ConnectionSocket);
 }
 
 bool UUnixTcpServer::SendDataINet(const TArray<uint8>& Payload)
 {
-	if (!ConnectionSocket) { return false; }
+	if (!ConnectionSocket)
+	{
+		UE_LOG(LogUnrealCV, Verbose, TEXT("SendDataINet: no client connected."));
+		return false;
+	}
 	UE_LOG(LogUnrealCV, Verbose, TEXT("TCP sending binary (%d bytes)."), Payload.Num());
 	return FUnixSocketMessageHeader::WrapAndSendPayload(Payload, ConnectionSocket);
 }
 
 bool UUnixTcpServer::SendMessageUDS(const FString& Message)
 {
+#if PLATFORM_LINUX
 	if (UDS_ConnFd == -1) { UE_LOG(LogUnrealCV, Error, TEXT("UDS fd invalid.")); return false; }
 	TArray<uint8> Payload;
-	BinaryArrayFromString(Message, Payload);
+	UCV::SocketUtils::BinaryArrayFromString(Message, Payload);
 	UE_LOG(LogUnrealCV, Verbose, TEXT("UDS sending string (%d bytes)."), Payload.Num());
 	return FUnixSocketMessageHeader::WrapAndSendPayloadUDS(Payload, UDS_ConnFd);
+#else
+	return false;
+#endif
 }
 
 bool UUnixTcpServer::SendDataUDS(const TArray<uint8>& Payload)
 {
+#if PLATFORM_LINUX
 	if (UDS_ConnFd == -1) { UE_LOG(LogUnrealCV, Error, TEXT("UDS fd invalid.")); return false; }
 	UE_LOG(LogUnrealCV, Verbose, TEXT("UDS sending binary (%d bytes)."), Payload.Num());
 	return FUnixSocketMessageHeader::WrapAndSendPayloadUDS(Payload, UDS_ConnFd);
-}
-
-UUnixTcpServer::~UUnixTcpServer()
-{
-#if PLATFORM_LINUX
-	if (UDS_ConnFd != -1) { shutdown(UDS_ConnFd, SHUT_RDWR); close(UDS_ConnFd); UDS_ConnFd = -1; }
-	if (UDS_ListenFd != -1) { shutdown(UDS_ListenFd, SHUT_RDWR); close(UDS_ListenFd); UDS_ListenFd = -1; }
+#else
+	return false;
 #endif
 }

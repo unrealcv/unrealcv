@@ -1,72 +1,12 @@
 // Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #include "TcpServer.h"
+#include "SocketUtils.h"
 #include "Runtime/Core/Public/Serialization/BufferArchive.h"
 #include "Runtime/Core/Public/Serialization/MemoryReader.h"
-#include <string>
 #include "UnrealcvLog.h"
 #include "UnrealcvShim.h"
 
 uint32 FSocketMessageHeader::DefaultMagic = 0x9E2B83C1;
-
-namespace
-{
-
-FString StringFromBinaryArray(const TArray<uint8>& BinaryArray)
-{
-	const std::string Utf8(reinterpret_cast<const char*>(BinaryArray.GetData()), BinaryArray.Num());
-	return FString(UTF8_TO_TCHAR(Utf8.c_str()));
-}
-
-void BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray)
-{
-	auto Converter = StringCast<UTF8CHAR>(*Message);
-	OutBinaryArray.Empty();
-	OutBinaryArray.Append(reinterpret_cast<const uint8*>(Converter.Get()), Converter.Length());
-}
-
-bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
-{
-	int32 Offset = 0;
-	while (ExpectedSize > 0)
-	{
-		int32 NumRead = 0;
-		Socket->Recv(Result + Offset, ExpectedSize, NumRead);
-		check(NumRead <= ExpectedSize);
-
-		const ESocketErrors LastError = ISocketSubsystem::Get()->GetLastErrorCode();
-
-		if (NumRead > 0)
-		{
-			Offset       += NumRead;
-			ExpectedSize -= NumRead;
-			continue;
-		}
-
-		if (LastError == ESocketErrors::SE_EWOULDBLOCK) { continue; }
-		if (LastError == ESocketErrors::SE_NO_ERROR)
-		{
-			UE_LOG(LogUnrealCV, Log, TEXT("Connection gracefully closed by the client."));
-			return false;
-		}
-		if (LastError == ESocketErrors::SE_ECONNABORTED)
-		{
-			UE_LOG(LogUnrealCV, Error, TEXT("Connection aborted unexpectedly."));
-			return false;
-		}
-		if (LastError == ESocketErrors::SE_ENOTCONN)
-		{
-			UE_LOG(LogUnrealCV, Error, TEXT("Socket is not connected."));
-			return false;
-		}
-
-		const TCHAR* ErrorMsg = ISocketSubsystem::Get()->GetSocketError(LastError);
-		UE_LOG(LogUnrealCV, Error, TEXT("Unexpected socket error: %s"), ErrorMsg);
-		return false;
-	}
-	return true;
-}
-
-} // anonymous namespace
 
 // ---------------------------------------------------------------------------
 // FSocketMessageHeader
@@ -113,13 +53,14 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 	if (Socket->GetConnectionState() != ESocketConnectionState::SCS_Connected)
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("Attempting to read from a disconnected socket."));
+		return false;
 	}
 
 	TArray<uint8> HeaderBytes;
 	const int32 HeaderSize = sizeof(FSocketMessageHeader);
 	HeaderBytes.AddZeroed(HeaderSize);
 
-	if (!SocketReceiveAll(Socket, HeaderBytes.GetData(), HeaderSize))
+	if (!UCV::SocketUtils::SocketReceiveAll(Socket, HeaderBytes.GetData(), HeaderSize))
 	{
 		UE_LOG(LogUnrealCV, Log, TEXT("Client disconnected."));
 		return false;
@@ -145,7 +86,7 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 
 	const int32 PayloadOffset = OutPayload.AddUninitialized(PayloadSize);
 	OutPayload.Seek(PayloadOffset);
-	if (!SocketReceiveAll(Socket, OutPayload.GetData() + PayloadOffset, PayloadSize))
+	if (!UCV::SocketUtils::SocketReceiveAll(Socket, OutPayload.GetData() + PayloadOffset, PayloadSize))
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("Incomplete payload read — socket disconnected."));
 		return false;
@@ -160,6 +101,26 @@ bool FSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket* Soc
 bool UTcpServer::IsConnected() const
 {
 	return ConnectionSocket != nullptr;
+}
+
+void UTcpServer::CleanupConnection()
+{
+	if (ConnectionSocket)
+	{
+		ConnectionSocket->Shutdown(ESocketShutdownMode::ReadWrite);
+		ConnectionSocket->Close();
+		ConnectionSocket = nullptr;
+	}
+}
+
+UTcpServer::~UTcpServer()
+{
+	CleanupConnection();
+	if (TcpListener.IsValid())
+	{
+		TcpListener->Stop();
+		TcpListener.Reset();
+	}
 }
 
 bool UTcpServer::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
@@ -177,7 +138,7 @@ bool UTcpServer::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoint& Cl
 	{
 		int32 BytesRead = 0;
 		ClientSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), BytesRead);
-		if (BytesRead == 0) { ConnectionSocket = nullptr; return false; }
+		if (BytesRead <= 0) { ConnectionSocket = nullptr; return false; }
 
 		int32 BytesSent = 0;
 		ClientSocket->Send(ReceivedData.GetData(), BytesRead, BytesSent);
@@ -212,25 +173,23 @@ bool UTcpServer::StartMessageService(FSocket* ClientSocket, const FIPv4Endpoint&
 		FArrayReader ArrayReader;
 		if (!FSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket))
 		{
-			ConnectionSocket->Shutdown(ESocketShutdownMode::ReadWrite);
-			ConnectionSocket->Close();
-			ConnectionSocket = nullptr;
+			CleanupConnection();
 			return false;
 		}
 
-		const FString Message = StringFromBinaryArray(ArrayReader);
+		const FString Message = UCV::SocketUtils::StringFromBinaryArray(ArrayReader);
 
 		TSharedRef<FInternetAddr> EndpointAddr = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->CreateInternetAddr();
 		ConnectionSocket->GetPeerAddress(EndpointAddr.Get());
 		const FString Endpoint = EndpointAddr->ToString(true);
-		BroadcastReceived(Endpoint, Message);
+		ReceivedEvent.Broadcast(Endpoint, Message);
 	}
 	return false;
 }
 
-bool UTcpServer::Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
+bool UTcpServer::OnClientConnected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint)
 {
-	BroadcastConnected(*ClientEndpoint.ToString());
+	ConnectedEvent.Broadcast(*ClientEndpoint.ToString());
 	return StartMessageService(ClientSocket, ClientEndpoint);
 }
 
@@ -238,7 +197,7 @@ bool UTcpServer::Start(int32 InPortNum)
 {
 	if (InPortNum == PortNum && bIsListening) { return true; }
 
-	if (ConnectionSocket) { ConnectionSocket->Close(); ConnectionSocket = nullptr; }
+	CleanupConnection();
 	if (TcpListener.IsValid())
 	{
 		UE_LOG(LogUnrealCV, Warning, TEXT("Stopping previous TCP listener."));
@@ -264,7 +223,7 @@ bool UTcpServer::Start(int32 InPortNum)
 	ServerSocket->SetReceiveBufferSize(2 * 1024 * 1024, NewBufferSize);
 
 	TcpListener = MakeShared<FTcpListener>(*ServerSocket);
-	TcpListener->OnConnectionAccepted().BindUObject(this, &UTcpServer::Connected);
+	TcpListener->OnConnectionAccepted().BindUObject(this, &UTcpServer::OnClientConnected);
 
 	if (!TcpListener->Init())
 	{
@@ -280,20 +239,26 @@ bool UTcpServer::Start(int32 InPortNum)
 
 bool UTcpServer::SendMessage(const FString& Message)
 {
-	if (!ConnectionSocket) { return false; }
+	if (!ConnectionSocket)
+	{
+		UE_LOG(LogUnrealCV, Verbose, TEXT("SendMessage: no client connected."));
+		return false;
+	}
 
 	TArray<uint8> Payload;
-	BinaryArrayFromString(Message, Payload);
+	UCV::SocketUtils::BinaryArrayFromString(Message, Payload);
 	UE_LOG(LogUnrealCV, Verbose, TEXT("Sending string message (%d bytes)."), Payload.Num());
 	return FSocketMessageHeader::WrapAndSendPayload(Payload, ConnectionSocket);
 }
 
 bool UTcpServer::SendData(const TArray<uint8>& Payload)
 {
-	if (!ConnectionSocket) { return false; }
+	if (!ConnectionSocket)
+	{
+		UE_LOG(LogUnrealCV, Verbose, TEXT("SendData: no client connected."));
+		return false;
+	}
 
 	UE_LOG(LogUnrealCV, Verbose, TEXT("Sending binary payload (%d bytes)."), Payload.Num());
 	return FSocketMessageHeader::WrapAndSendPayload(Payload, ConnectionSocket);
 }
-
-UTcpServer::~UTcpServer() = default;

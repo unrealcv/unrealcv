@@ -13,7 +13,7 @@ class UNREALCV_API FPromise
 {
 public:
 	bool bIsValid = false;
-	FDateTime InitTime;
+	FDateTime InitTime = FDateTime::MinValue();
 
 	FPromise() = default;
 
@@ -24,9 +24,9 @@ public:
 	{
 	}
 
-	FExecStatus CheckStatus();
+	[[nodiscard]] FExecStatus CheckStatus();
 
-	float GetRunningTime() const
+	[[nodiscard]] float GetRunningTime() const
 	{
 		const FTimespan Elapsed = FDateTime::Now() - InitTime;
 		return static_cast<float>(Elapsed.GetTotalSeconds());
@@ -51,17 +51,24 @@ enum class EExecStatusType : uint8
 class UNREALCV_API FExecStatus
 {
 public:
-	static FExecStatus OK(const FString& Message = TEXT(""));
-	static FExecStatus Error(const FString& ErrorMessage);
-	static FExecStatus Binary(TArray<uint8>& InBinaryData);
+	// -- Factory methods (prefer these over raw construction) -----------------
+	[[nodiscard]] static FExecStatus OK(const FString& Message = TEXT(""));
+	[[nodiscard]] static FExecStatus Error(const FString& ErrorMessage);
+	[[nodiscard]] static FExecStatus Binary(const TArray<uint8>& InBinaryData);
 
+	// -- Sentinel instances ---------------------------------------------------
 	static FExecStatus InvalidArgument;
 	static FExecStatus NotImplemented;
 	static FExecStatus InvalidPointer;
 
-	FString GetMessage() const;
-	TArray<uint8> GetData() const;
-	FPromise& GetPromise() { return Promise; }
+	// -- Accessors ------------------------------------------------------------
+	[[nodiscard]] FString GetMessage() const;
+	[[nodiscard]] TArray<uint8> GetData() const;
+	[[nodiscard]] FPromise& GetPromise() { return Promise; }
+	[[nodiscard]] const FPromise& GetPromise() const { return Promise; }
+
+	[[nodiscard]] EExecStatusType GetStatusType() const { return ExecStatusType; }
+	[[nodiscard]] const FString& GetMessageBody() const { return MessageBody; }
 
 	FExecStatus& operator+=(const FExecStatus& InExecStatus);
 
@@ -69,17 +76,16 @@ public:
 
 	~FExecStatus() = default;
 
-	FString MessageBody;
-	EExecStatusType ExecStatusType = EExecStatusType::OK;
-
 private:
 	FExecStatus(EExecStatusType InExecStatusType, const FString& Message);
 	FExecStatus(EExecStatusType InExecStatusType, FPromise InPromise);
-	FExecStatus(EExecStatusType InExecStatusType, TArray<uint8>& InBinaryData);
+	FExecStatus(EExecStatusType InExecStatusType, const TArray<uint8>& InBinaryData);
 
+	FString MessageBody;
+	EExecStatusType ExecStatusType = EExecStatusType::OK;
 	FPromise Promise;
 	TArray<uint8> BinaryData;
 };
 
-bool operator==(const FExecStatus& ExecStatus, EExecStatusType ExecStatusEnum);
-bool operator!=(const FExecStatus& ExecStatus, EExecStatusType ExecStatusEnum);
+[[nodiscard]] bool operator==(const FExecStatus& ExecStatus, EExecStatusType ExecStatusEnum);
+[[nodiscard]] bool operator!=(const FExecStatus& ExecStatus, EExecStatusType ExecStatusEnum);

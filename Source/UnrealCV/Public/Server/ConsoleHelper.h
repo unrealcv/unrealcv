@@ -2,7 +2,8 @@
 #pragma once
 
 #include "CommandDispatcher.h"
-#include "Runtime/Engine/Public/EngineUtils.h"
+
+class FConsoleOutputDevice;
 
 /**
  * Bridges UnrealCV commands to the Unreal Engine console.
@@ -17,8 +18,12 @@ public:
 
 	void SetCommandDispatcher(TSharedPtr<FCommandDispatcher> InCommandDispatcher);
 
-	/** Obtain a console output device for the current viewport. */
-	TSharedPtr<FConsoleOutputDevice> GetConsole();
+	/** Obtain a console output device for the current viewport. May return null. */
+	[[nodiscard]] TSharedPtr<FConsoleOutputDevice> GetConsole() const;
+
+	// Non-copyable singleton.
+	FConsoleHelper(const FConsoleHelper&) = delete;
+	FConsoleHelper& operator=(const FConsoleHelper&) = delete;
 
 private:
 	FConsoleHelper();

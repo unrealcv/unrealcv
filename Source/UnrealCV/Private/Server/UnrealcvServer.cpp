@@ -1,5 +1,6 @@
 // Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #include "UnrealcvServer.h"
+#include "UnixTcpServer.h"
 #include "Runtime/Engine/Classes/Engine/GameEngine.h"
 #include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
 #if WITH_EDITOR
@@ -60,17 +61,23 @@ void FUnrealcvServer::InitWorldController()
 
 APawn* FUnrealcvServer::GetPawn()
 {
+	// Re-fetch each call; the cached weak pointer is used to detect staleness.
+	if (CachedPawn.IsValid())
+	{
+		return CachedPawn.Get();
+	}
+
 	UWorld* World = GetWorld();
 	if (!IsValid(World)) { return nullptr; }
 
 	APlayerController* PC = World->GetFirstPlayerController();
 	if (!IsValid(PC)) { return nullptr; }
 
-	Pawn = PC->GetPawn();
-	return Pawn;
+	CachedPawn = PC->GetPawn();
+	return CachedPawn.Get();
 }
 
-UWorld* FUnrealcvServer::GetWorld()
+UWorld* FUnrealcvServer::GetWorld() const
 {
 	UWorld* WorldPtr = nullptr;
 
@@ -103,7 +110,7 @@ UWorld* FUnrealcvServer::GetWorld()
 	return WorldPtr;
 }
 
-UWorld* FUnrealcvServer::GetGameWorld()
+UWorld* FUnrealcvServer::GetGameWorld() const
 {
 #if WITH_EDITOR
 	if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
@@ -134,15 +141,21 @@ FUnrealcvServer& FUnrealcvServer::Get()
 
 void FUnrealcvServer::RegisterCommandHandlers()
 {
-	CommandHandlers.Add(new FObjectHandler());
-	CommandHandlers.Add(new FPluginHandler());
-	CommandHandlers.Add(new FActionHandler());
-	CommandHandlers.Add(new FAliasHandler());
-	CommandHandlers.Add(new FCameraHandler());
-
-	for (FCommandHandler* Handler : CommandHandlers)
+	if (CommandHandlers.Num() > 0)
 	{
-		Handler->CommandDispatcher = CommandDispatcher;
+		UE_LOG(LogUnrealCV, Warning, TEXT("Command handlers already registered — skipping."));
+		return;
+	}
+
+	CommandHandlers.Emplace(MakeUnique<FObjectHandler>());
+	CommandHandlers.Emplace(MakeUnique<FPluginHandler>());
+	CommandHandlers.Emplace(MakeUnique<FActionHandler>());
+	CommandHandlers.Emplace(MakeUnique<FAliasHandler>());
+	CommandHandlers.Emplace(MakeUnique<FCameraHandler>());
+
+	for (const TUniquePtr<FCommandHandler>& Handler : CommandHandlers)
+	{
+		Handler->SetCommandDispatcher(CommandDispatcher);
 		Handler->RegisterCommands();
 	}
 }
@@ -161,18 +174,20 @@ FUnrealcvServer::FUnrealcvServer()
 
 FUnrealcvServer::~FUnrealcvServer()
 {
-	for (FCommandHandler* Handler : CommandHandlers)
+	CommandHandlers.Empty(); // TUniquePtr handles cleanup
+
+	if (TcpServer)
 	{
-		delete Handler;
+		TcpServer->RemoveFromRoot();
+		TcpServer = nullptr;
 	}
-	CommandHandlers.Empty();
 }
 
 // ---------------------------------------------------------------------------
 // Request processing
 // ---------------------------------------------------------------------------
 
-void FUnrealcvServer::ProcessRequest(FRequest& Request)
+void FUnrealcvServer::ProcessRequest(const FRequest& Request)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ProcessRequest);
 
@@ -228,7 +243,7 @@ void FUnrealcvServer::ProcessPendingRequest()
 
 		if (BatchNum == 0)
 		{
-			for (FRequest& BatchRequest : Batch)
+			for (const FRequest& BatchRequest : Batch)
 			{
 				ProcessRequest(BatchRequest);
 			}
@@ -248,7 +263,8 @@ void FUnrealcvServer::HandleRawMessage(const FString& Endpoint, const FString& I
 	FRegexMatcher Matcher(MessageRegexPattern, InRawMessage);
 	if (Matcher.FindNext())
 	{
-		const uint32 RequestId = FCString::Atoi(*Matcher.GetCaptureGroup(1));
+		const int32 ParsedId  = FCString::Atoi(*Matcher.GetCaptureGroup(1));
+		const uint32 RequestId = (ParsedId >= 0) ? static_cast<uint32>(ParsedId) : 0u;
 		const FString Message  = Matcher.GetCaptureGroup(2);
 		PendingRequest.Enqueue(FRequest(Endpoint, Message, RequestId));
 	}

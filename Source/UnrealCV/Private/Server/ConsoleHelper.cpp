@@ -1,6 +1,7 @@
 // Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #include "ConsoleHelper.h"
 #include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
+#include "Runtime/Engine/Public/EngineUtils.h"
 #include "UnrealcvServer.h"
 #include "UnrealcvLog.h"
 
@@ -50,9 +51,14 @@ void FConsoleHelper::SetCommandDispatcher(TSharedPtr<FCommandDispatcher> InComma
 	CommandDispatcher = InCommandDispatcher;
 }
 
-TSharedPtr<FConsoleOutputDevice> FConsoleHelper::GetConsole()
+TSharedPtr<FConsoleOutputDevice> FConsoleHelper::GetConsole() const
 {
-	UGameViewportClient* Viewport = FUnrealcvServer::Get().GetWorld()->GetGameViewport();
+	UWorld* World = FUnrealcvServer::Get().GetWorld();
+	if (!World) { return nullptr; }
+
+	UGameViewportClient* Viewport = World->GetGameViewport();
+	if (!Viewport || !Viewport->ViewportConsole) { return nullptr; }
+
 	return MakeShared<FConsoleOutputDevice>(Viewport->ViewportConsole);
 }
 
@@ -70,6 +76,7 @@ void FConsoleHelper::DispatchConsoleCommand(const TCHAR* Prefix, const TArray<FS
 
 	if (Args.Num() == 0)
 	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Console command '%s' called with no arguments."), Prefix);
 		return;
 	}
 
@@ -80,7 +87,12 @@ void FConsoleHelper::DispatchConsoleCommand(const TCHAR* Prefix, const TArray<FS
 	const FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
 
 	UE_LOG(LogUnrealCV, Display, TEXT("[%s] %s -> %s"), Prefix, *Cmd, *ExecStatus.GetMessage());
-	GetConsole()->Log(ExecStatus.GetMessage());
+
+	TSharedPtr<FConsoleOutputDevice> Console = GetConsole();
+	if (Console.IsValid())
+	{
+		Console->Log(ExecStatus.GetMessage());
+	}
 }
 
 // ---------------------------------------------------------------------------

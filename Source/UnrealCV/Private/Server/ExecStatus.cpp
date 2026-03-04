@@ -11,8 +11,7 @@ FExecStatus FExecStatus::InvalidPointer  = FExecStatus(EExecStatusType::Error, T
 
 FExecStatus FPromise::CheckStatus()
 {
-	check(this);
-	check(PromiseDelegate.IsBound());
+	checkf(PromiseDelegate.IsBound(), TEXT("Promise delegate is not bound"));
 	return PromiseDelegate.Execute();
 }
 
@@ -22,12 +21,12 @@ FExecStatus FPromise::CheckStatus()
 
 bool operator==(const FExecStatus& ExecStatus, EExecStatusType ExecStatusType)
 {
-	return ExecStatus.ExecStatusType == ExecStatusType;
+	return ExecStatus.GetStatusType() == ExecStatusType;
 }
 
 bool operator!=(const FExecStatus& ExecStatus, EExecStatusType ExecStatusType)
 {
-	return ExecStatus.ExecStatusType != ExecStatusType;
+	return ExecStatus.GetStatusType() != ExecStatusType;
 }
 
 // ---------------------------------------------------------------------------
@@ -37,7 +36,11 @@ bool operator!=(const FExecStatus& ExecStatus, EExecStatusType ExecStatusType)
 FExecStatus& FExecStatus::operator+=(const FExecStatus& Src)
 {
 	BinaryData += Src.BinaryData;
-	MessageBody += TEXT("\n") + Src.MessageBody;
+	if (!MessageBody.IsEmpty())
+	{
+		MessageBody += TEXT("\n");
+	}
+	MessageBody += Src.MessageBody;
 	return *this;
 }
 
@@ -55,7 +58,7 @@ FExecStatus FExecStatus::Error(const FString& ErrorMessage)
 	return FExecStatus(EExecStatusType::Error, ErrorMessage);
 }
 
-FExecStatus FExecStatus::Binary(TArray<uint8>& InBinaryData)
+FExecStatus FExecStatus::Binary(const TArray<uint8>& InBinaryData)
 {
 	return FExecStatus(EExecStatusType::OK, InBinaryData);
 }
@@ -76,7 +79,7 @@ FExecStatus::FExecStatus(EExecStatusType InExecStatusType, FPromise InPromise)
 {
 }
 
-FExecStatus::FExecStatus(EExecStatusType InExecStatusType, TArray<uint8>& InBinaryData)
+FExecStatus::FExecStatus(EExecStatusType InExecStatusType, const TArray<uint8>& InBinaryData)
 	: ExecStatusType(InExecStatusType)
 	, BinaryData(InBinaryData)
 {
@@ -127,7 +130,7 @@ TArray<uint8> FExecStatus::GetData() const
 
 void FExecStatus::BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray)
 {
-	auto Converter = StringCast<UTF8CHAR>(*Message);
+	const auto Converter = StringCast<UTF8CHAR>(*Message);
 	OutBinaryArray.Empty();
 	OutBinaryArray.Append(reinterpret_cast<const uint8*>(Converter.Get()), Converter.Length());
 }

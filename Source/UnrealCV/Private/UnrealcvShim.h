@@ -6,7 +6,7 @@
 #include "Runtime/Core/Public/Misc/App.h"
 
 /** Return the project name for the currently running application. */
-inline FString GetProjectName()
+[[nodiscard]] inline FString GetProjectName()
 {
 	return FApp::GetProjectName();
 }

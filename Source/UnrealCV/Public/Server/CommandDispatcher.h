@@ -5,7 +5,6 @@
 #include "ExecStatus.h"
 #include "Runtime/Core/Public/Internationalization/Regex.h"
 
-DECLARE_DELEGATE_OneParam(FCallbackDelegate, FExecStatus);
 DECLARE_DELEGATE_RetVal_OneParam(FExecStatus, FDispatcherDelegate, const TArray<FString>&);
 
 /**
@@ -20,17 +19,24 @@ public:
 	FCommandDispatcher();
 	~FCommandDispatcher() = default;
 
-	bool BindCommand(const FString& UriTemplate, const FDispatcherDelegate& Command, const FString& Description);
-	bool Alias(const FString& AliasName, const FString& Command, const FString& Description);
-	bool Alias(const FString& AliasName, const TArray<FString>& Commands, const FString& Description);
+	/** Register a command handler for the given URI template. */
+	[[nodiscard]] bool BindCommand(const FString& UriTemplate, const FDispatcherDelegate& Command, const FString& Description);
 
-	FExecStatus Exec(const FString& Uri);
+	/** Register an alias that expands to a single command. */
+	[[nodiscard]] bool Alias(const FString& AliasName, const FString& Command, const FString& Description);
 
-	const TMap<FString, FString>& GetUriDescription() const;
+	/** Register an alias that expands to multiple commands. */
+	[[nodiscard]] bool Alias(const FString& AliasName, const TArray<FString>& Commands, const FString& Description);
+
+	/** Execute a command URI. Must be called on the game thread. */
+	[[nodiscard]] FExecStatus Exec(const FString& Uri);
+
+	/** Return a map of URI template -> description for all registered commands. */
+	[[nodiscard]] const TMap<FString, FString>& GetUriDescription() const;
 
 private:
 	FExecStatus AliasHelper(const TArray<FString>& Args);
-	bool FormatUri(const FString& RawUri, FString& OutRegex) const;
+	[[nodiscard]] bool FormatUri(const FString& RawUri, FString& OutRegex) const;
 
 	TMap<FString, FDispatcherDelegate> UriMapping;
 	TArray<FString> UriList;

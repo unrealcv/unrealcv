@@ -14,10 +14,25 @@ void FUnrealcvLogger::ScreenLog(const FString& Message)
 
 void FUnrealcvLogger::LogOnce(const FString& LogMessage)
 {
+	FScopeLock ScopeLock(&Lock);
+
 	if (SeenMessages.Contains(LogMessage))
 	{
 		return;
 	}
+
+	if (SeenMessages.Num() >= MaxSeenMessages)
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("LogOnce cache full (%d entries) — clearing."), MaxSeenMessages);
+		SeenMessages.Empty();
+	}
+
 	SeenMessages.Add(LogMessage);
 	UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *LogMessage);
+}
+
+void FUnrealcvLogger::ResetSeenMessages()
+{
+	FScopeLock ScopeLock(&Lock);
+	SeenMessages.Empty();
 }

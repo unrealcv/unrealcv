@@ -2,7 +2,8 @@
 #pragma once
 
 #include "CommandDispatcher.h"
-#include "UnrealcvServer.h"
+
+class FUnrealcvServer;
 
 /**
  * Abstract base class for command handler groups.
@@ -16,10 +17,13 @@ public:
 	virtual ~FCommandHandler() = default;
 	virtual void RegisterCommands() = 0;
 
-	UWorld* GetWorld() const
+	[[nodiscard]] UWorld* GetWorld() const;
+
+	void SetCommandDispatcher(TSharedPtr<FCommandDispatcher> InDispatcher)
 	{
-		return FUnrealcvServer::Get().GetWorld();
+		CommandDispatcher = InDispatcher;
 	}
 
+protected:
 	TSharedPtr<FCommandDispatcher> CommandDispatcher;
 };

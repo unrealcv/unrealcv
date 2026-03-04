@@ -3,6 +3,7 @@
 #include "Runtime/Projects/Public/Interfaces/IPluginManager.h"
 
 #include "UnrealcvServer.h"
+#include "UnixTcpServer.h"
 #include "UnrealcvShim.h"
 #include "UnrealcvStats.h"
 
@@ -26,28 +27,15 @@ FExecStatus FPluginHandler::Echo(const TArray<FString>& Args)
 FExecStatus FPluginHandler::GetUnrealCVStatus(const TArray<FString>& Args)
 {
 	SCOPE_CYCLE_COUNTER(STAT_GetUnrealCVStatus);
-	FString Msg;
-	FUnrealcvServer& Server = FUnrealcvServer::Get(); // TODO: Can not use a copy constructor, need to disable copy constructor
+	const FUnrealcvServer& Server = FUnrealcvServer::Get();
+	const UUnixTcpServer* Tcp = Server.GetTcpServer();
 
-	if (Server.TcpServer->IsListening())
-	{
-		Msg += "Is Listening\n";
-	}
-	else
-	{
-		Msg += "Not Listening\n";
-	}
-	if (Server.TcpServer->IsConnected())
-	{
-		Msg += "Client Connected\n";
-	}
-	else
-	{
-		Msg += "No Client Connected\n";
-	}
-	Msg += FString::Printf(TEXT("%d\n"), Server.TcpServer->PortNum);
-	Msg += "Configuration\n";
-	Msg += FUnrealcvServer::Get().Config.ToString();
+	FString Msg;
+	Msg += Tcp->IsListening()  ? TEXT("Is Listening\n")      : TEXT("Not Listening\n");
+	Msg += Tcp->IsConnected()  ? TEXT("Client Connected\n")  : TEXT("No Client Connected\n");
+	Msg += FString::Printf(TEXT("%d\n"), Tcp->GetPortNum());
+	Msg += TEXT("Configuration\n");
+	Msg += Server.GetConfig().ToString();
 	return FExecStatus::OK(Msg);
 }
 
