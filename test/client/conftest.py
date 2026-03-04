@@ -35,6 +35,7 @@ class FakeSocket:
 # API fixtures
 @pytest.fixture
 def dummy_client_factory():
+    """Factory for scripted client responses used by API unit tests."""
     def _factory(responses=None):
         return DummyClient(responses)
 
@@ -43,6 +44,7 @@ def dummy_client_factory():
 
 @pytest.fixture
 def fake_socket_factory():
+    """Factory for fake socket objects used in handshake failure tests."""
     def _factory():
         return FakeSocket()
 
@@ -51,6 +53,7 @@ def fake_socket_factory():
 
 @pytest.fixture
 def api_factory(dummy_client_factory):
+    """Build UnrealCv_API instances without running network-heavy __init__."""
     def _factory(client=None):
         api = UnrealCv_API.__new__(UnrealCv_API)
         api.decoder = MsgDecoder()
@@ -73,6 +76,7 @@ def localhost():
 
 @pytest.fixture(scope="session")
 def free_port_factory(localhost):
+    """Allocate an ephemeral localhost TCP port for tests."""
     import socket
 
     def _factory():
@@ -90,6 +94,7 @@ def echo_port(free_port_factory):
 
 @pytest.fixture(scope="module")
 def server(localhost, echo_port):
+    """Start and tear down a shared MessageServer for module tests."""
     message_server = MessageServer((localhost, echo_port))
     message_server.start()
     yield message_server
@@ -98,6 +103,7 @@ def server(localhost, echo_port):
 
 @pytest.fixture
 def null_server_factory(localhost):
+    """Create NullServer instances and guarantee cleanup after each test."""
     created_servers = []
 
     def _factory(port):

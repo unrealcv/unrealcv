@@ -5,6 +5,7 @@ from unrealcv import Client
 from unrealcv.api import MsgDecoder
 
 
+# MsgDecoder behavior locks
 @pytest.mark.parametrize(
     "cmd,expected",
     [
@@ -12,6 +13,7 @@ from unrealcv.api import MsgDecoder
         ("vget /camera/0/depth npy", "npy"),
         ("vget /camera/0/location", "location"),
     ],
+    ids=["object-color", "camera-depth-mode", "camera-location"],
 )
 def test_msgdecoder_cmd2key_variants(cmd, expected):
     decoder = MsgDecoder()
@@ -31,6 +33,7 @@ def test_decode_bmp_raises_when_opencv_cannot_decode(monkeypatch):
         decoder.decode_bmp(b"invalid-image-bytes")
 
 
+    # UnrealCv_API behavior locks
 def test_batch_cmd_decodes_each_response_with_kwargs(dummy_client_factory, api_factory):
     client = dummy_client_factory([["1 2 3", "4 5 6"]])
     api = api_factory(client)
@@ -65,6 +68,7 @@ def test_batch_cmd_returns_raw_when_decoder_list_is_none(
         (1, "lit", "png", "vget /camera/1/lit png"),
         (2, "normal", "bmp", "vget /camera/2/normal bmp"),
     ],
+    ids=["depth-always-npy", "lit-png", "normal-bmp"],
 )
 def test_get_image_return_cmd_routing(api_factory, cam_id, viewmode, mode, expected):
     api = api_factory()
@@ -155,6 +159,7 @@ def test_get_cam_location_retries_until_response_and_syncs_cache(
         (90, 90, []),
         (90, 120, [("vset /camera/0/fov 120", (-1,))]),
     ],
+    ids=["unchanged-fov", "changed-fov"],
 )
 def test_set_cam_fov_behavior(
     dummy_client_factory, api_factory, initial_fov, target_fov, expected_calls
@@ -210,7 +215,12 @@ def test_get_cam_pose_hard_mode_updates_cache_from_batch(monkeypatch, api_factor
     assert api.cam[0]["rotation"] == [1.0, 2.0, 3.0]
 
 
-@pytest.mark.parametrize("handshake_payload", [None, b"rejected"])
+# Client transport behavior locks
+@pytest.mark.parametrize(
+    "handshake_payload",
+    [None, b"rejected"],
+    ids=["no-handshake", "non-connected-handshake"],
+)
 def test_client_connect_without_valid_confirm_does_not_leave_connected_socket(
     monkeypatch, fake_socket_factory, handshake_payload
 ):
@@ -251,6 +261,7 @@ def test_client_request_list_delegates_to_request_batch(monkeypatch):
 
 @pytest.mark.parametrize(
     "message,expected_attr", [("cmd", "single"), (["cmd1", "cmd2"], "batch")]
+    ,ids=["single-async", "batch-async"]
 )
 def test_client_request_async_routes_to_expected_path(
     monkeypatch, message, expected_attr
