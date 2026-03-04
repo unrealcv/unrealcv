@@ -16,8 +16,8 @@ logging.getLogger("dev_server").setLevel(logging.DEBUG)
 
 
 def random_payload():
-    len = random.randrange(1024)
-    random_str = "".join([chr(random.randrange(100)) for v in range(len)])
+    payload_len = random.randrange(1024)
+    random_str = "".join([chr(random.randrange(100)) for _ in range(payload_len)])
     return random_str
 
 
