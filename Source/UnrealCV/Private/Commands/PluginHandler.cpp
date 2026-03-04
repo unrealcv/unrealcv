@@ -1,6 +1,6 @@
 #include "PluginHandler.h"
-#include "Runtime/Engine/Classes/Engine/World.h"
-#include "Runtime/Projects/Public/Interfaces/IPluginManager.h"
+#include "Engine/World.h"
+#include "Interfaces/IPluginManager.h"
 
 #include "UnrealcvServer.h"
 #include "UnixTcpServer.h"

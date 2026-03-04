@@ -274,7 +274,7 @@ void FCameraHandler::SaveData(const TArray<T>& Data, int Width, int Height,
 		Status = FExecStatus::Error("Filename can not be empty");
 		return;
 	}
-	FString Filename = Args[1];
+	const FString& Filename = Args[1];
 	if (Data.Num() == 0)
 	{
 		Status = FExecStatus::Error("Captured data is empty");

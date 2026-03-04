@@ -3,7 +3,7 @@
 
 #include "CoreMinimal.h"
 #include "ExecStatus.h"
-#include "Runtime/Core/Public/Internationalization/Regex.h"
+#include "Internationalization/Regex.h"
 
 DECLARE_DELEGATE_RetVal_OneParam(FExecStatus, FDispatcherDelegate, const TArray<FString>&);
 

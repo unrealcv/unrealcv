@@ -1,10 +1,10 @@
 #include "ActionHandler.h"
-#include "Runtime/Engine/Classes/Engine/World.h"
-#include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
-#include "Runtime/Engine/Classes/GameFramework/PlayerInput.h"
-#include "Runtime/Engine/Public/EngineUtils.h"
-#include "Runtime/Engine/Public/TimerManager.h"
-#include "Runtime/Engine/Classes/GameFramework/Pawn.h"
+#include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerInput.h"
+#include "EngineUtils.h"
+#include "TimerManager.h"
+#include "GameFramework/Pawn.h"
 
 #include "WorldController.h"
 #include "VisionBPLib.h"
@@ -87,7 +87,7 @@ FExecStatus FActionHandler::OpenLevel(const TArray<FString>& Args)
 	{
 		return FExecStatus::Error(TEXT("Expect argument: level name"));
 	}
-	const FString LevelName = Args[0];
+	const FString& LevelName = Args[0];
 	const auto WorldController = FUnrealcvServer::Get().GetWorldController();
 	if (!WorldController.IsValid())
 	{
@@ -158,7 +158,7 @@ FExecStatus FActionHandler::Keyboard(const TArray<FString>& Args)
 	{
 		return FExecStatus::InvalidArgument;
 	}
-	const FString KeyName = Args[0];
+	const FString& KeyName = Args[0];
 
 	UWorld* World = this->GetWorld();
 	if (!IsValid(World)) { return FExecStatus::Error(TEXT("No valid world")); }

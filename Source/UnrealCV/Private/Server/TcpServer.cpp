@@ -1,8 +1,8 @@
 // Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #include "TcpServer.h"
 #include "SocketUtils.h"
-#include "Runtime/Core/Public/Serialization/BufferArchive.h"
-#include "Runtime/Core/Public/Serialization/MemoryReader.h"
+#include "Serialization/BufferArchive.h"
+#include "Serialization/MemoryReader.h"
 #include "HAL/PlatformProcess.h"
 #include "UnrealcvLog.h"
 #include "UnrealcvShim.h"

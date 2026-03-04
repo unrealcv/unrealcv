@@ -2,10 +2,10 @@
 // Original TCP: Weichao Qiu, 2016. UDS extension: Hai Ci, 2022.
 #pragma once
 
-#include "Runtime/Sockets/Public/Sockets.h"
-#include "Runtime/Networking/Public/Common/TcpListener.h"
-#include "Runtime/Networking/Public/Interfaces/IPv4/IPv4Endpoint.h"
-#include "Runtime/Core/Public/Serialization/ArrayReader.h"
+#include "Sockets.h"
+#include "Common/TcpListener.h"
+#include "Interfaces/IPv4/IPv4Endpoint.h"
+#include "Serialization/ArrayReader.h"
 #include "Templates/Atomic.h"
 
 #include "UnixTcpServer.generated.h"

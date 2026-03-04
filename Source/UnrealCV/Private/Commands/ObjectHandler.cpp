@@ -1,9 +1,9 @@
 // Weichao Qiu @ 2017
 #include "ObjectHandler.h"
 
-#include "Runtime/Engine/Classes/Engine/World.h"
-#include "Runtime/CoreUObject/Public/UObject/UObjectGlobals.h"
-#include "Runtime/CoreUObject/Public/UObject/Package.h"
+#include "Engine/World.h"
+#include "UObject/UObjectGlobals.h"
+#include "UObject/Package.h"
 
 #include "UnrealcvServer.h"
 #include "Controller/ActorController.h"
@@ -372,7 +372,7 @@ FExecStatus FObjectHandler::Spawn(const TArray<FString>& Args)
 {
 	if (Args.Num() == 2)
 	{
-		FString ActorId = Args[1];
+		const FString& ActorId = Args[1];
 		AActor* Actor = GetActorById(FUnrealcvServer::Get().GetWorld(), ActorId);
 		if (IsValid(Actor))
 		{
@@ -409,7 +409,7 @@ FExecStatus FObjectHandler::Spawn(const TArray<FString>& Args)
 
 	if (Args.Num() == 2)
 	{
-		FString ActorName = Args[1];
+		const FString& ActorName = Args[1];
 		SetActorName(Actor, ActorName);
 	}
 	return FExecStatus::OK(Actor->GetName());
@@ -462,7 +462,7 @@ FExecStatus FObjectHandler::SetName(const TArray<FString>& Args)
 	AActor* Actor = GetActor(Args);
 	if (!Actor) return FExecStatus::Error(TEXT("Cannot find object"));
 
-	FString NewName = Args[1];
+	const FString& NewName = Args[1];
 	// Check whether the object name already exists, otherwise it will crash in
 	// File:/home/qiuwch/UnrealEngine/Engine/Source/Runtime/CoreUObject/Private/UObject/Obj.cpp] [Line: 198]
 	FExecStatus Status = SetActorName(Actor, NewName);

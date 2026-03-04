@@ -1,9 +1,9 @@
 // Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #pragma once
 
-#include "Runtime/Engine/Public/Tickable.h"
-#include "Runtime/Core/Public/Containers/Queue.h"
-#include "Runtime/Core/Public/Internationalization/Regex.h"
+#include "Tickable.h"
+#include "Containers/Queue.h"
+#include "Internationalization/Regex.h"
 #include "ServerConfig.h"
 #include "CommandDispatcher.h"
 
