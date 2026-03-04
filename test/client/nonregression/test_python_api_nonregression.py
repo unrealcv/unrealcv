@@ -1,4 +1,5 @@
 import io
+import queue
 import struct
 
 import numpy as np
@@ -406,6 +407,19 @@ def test_client_request_sync_increments_send_message_id(monkeypatch):
     assert client.send_message_id == 1
 
 
+def test_client_request_raises_timeout_error_when_response_queue_times_out(monkeypatch):
+    class _TimeoutQueue:
+        def get(self, timeout=None):
+            raise queue.Empty
+
+    client = Client(("localhost", 1))
+    monkeypatch.setattr(client, "send", lambda _message: True)
+    client.recv_data_q = _TimeoutQueue()
+
+    with pytest.raises(TimeoutError, match="Request timed out"):
+        client.request("vget /camera/0/location", timeout=0.01)
+
+
 def test_client_request_batch_queues_negative_batch_size(monkeypatch):
     client = Client(("localhost", 1))
     monkeypatch.setattr(client, "send", lambda _message: True)
@@ -416,6 +430,15 @@ def test_client_request_batch_queues_negative_batch_size(monkeypatch):
 
     assert result == ["r1", "r2"]
     assert client.recv_num_q.get() == -2
+
+
+def test_client_request_batch_raises_when_response_queue_contains_exception(monkeypatch):
+    client = Client(("localhost", 1))
+    monkeypatch.setattr(client, "send", lambda _message: True)
+    client.recv_data_q.put(ConnectionError("server error"))
+
+    with pytest.raises(ConnectionError, match="server error"):
+        client.request_batch(["cmd1"])
 
 
 def test_receive_loop_queue_sync_path_decodes_and_enqueues(monkeypatch):
@@ -560,6 +583,34 @@ def test_connect_success_sets_socket_and_starts_receive_thread(
     assert len(created_threads) == 1
     assert created_threads[0].target == client.receive_loop_queue
     assert created_threads[0].started is True
+
+
+def test_connect_with_alive_receive_thread_does_not_spawn_another(
+    monkeypatch, fake_socket_factory
+):
+    class _AliveThread:
+        def is_alive(self):
+            return True
+
+    fake_socket = fake_socket_factory()
+    created_threads = []
+
+    monkeypatch.setattr("unrealcv.socket.socket", lambda *_args, **_kwargs: fake_socket)
+    monkeypatch.setattr(
+        "unrealcv.SocketMessage.ReceivePayload", lambda _sock: b"connected to test"
+    )
+    monkeypatch.setattr(
+        "unrealcv.threading.Thread",
+        lambda *args, **kwargs: created_threads.append((args, kwargs)),
+    )
+
+    client = Client(("localhost", 1))
+    client.t = _AliveThread()
+
+    connected = client.connect()
+
+    assert connected is True
+    assert created_threads == []
 
 
 def test_connect_with_unsupported_socket_type_returns_false():
