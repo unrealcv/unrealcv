@@ -115,14 +115,22 @@ FString FExecStatus::GetMessage() const
 
 TArray<uint8> FExecStatus::GetData() const
 {
+	TArray<uint8> FormattedBinaryData;
+	AppendDataTo(FormattedBinaryData);
+	return FormattedBinaryData;
+}
+
+void FExecStatus::AppendDataTo(TArray<uint8>& OutData) const
+{
 	if (BinaryData.Num() != 0)
 	{
-		return BinaryData;
+		OutData.Append(BinaryData);
+		return;
 	}
 
 	TArray<uint8> FormattedBinaryData;
 	BinaryArrayFromString(FormatStatusString(ExecStatusType, MessageBody), FormattedBinaryData);
-	return FormattedBinaryData;
+	OutData.Append(FormattedBinaryData);
 }
 
 void FExecStatus::BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray)

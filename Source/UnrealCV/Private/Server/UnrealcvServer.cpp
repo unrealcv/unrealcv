@@ -198,7 +198,7 @@ void FUnrealcvServer::ProcessRequest(const FRequest& Request)
 	const FString Header = FString::Printf(TEXT("%d:"), Request.RequestId);
 	TArray<uint8> ReplyData;
 	FExecStatus::BinaryArrayFromString(Header, ReplyData);
-	ReplyData += ExecStatus.GetData();
+	ExecStatus.AppendDataTo(ReplyData);
 	TcpServer->SendData(ReplyData);
 }
 
@@ -233,7 +233,7 @@ void FUnrealcvServer::ProcessPendingRequest()
 			const FString Header = FString::Printf(TEXT("%d:"), Request.RequestId);
 			TArray<uint8> ReplyData;
 			FExecStatus::BinaryArrayFromString(Header, ReplyData);
-			ReplyData += FExecStatus::OK().GetData();
+			FExecStatus::OK().AppendDataTo(ReplyData);
 			TcpServer->SendData(ReplyData);
 			continue;
 		}

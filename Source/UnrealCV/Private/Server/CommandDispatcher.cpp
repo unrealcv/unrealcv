@@ -152,8 +152,9 @@ FExecStatus FCommandDispatcher::Exec(const FString& Uri)
 	for (int32 UriIndex = UriList.Num() - 1; UriIndex >= 0; --UriIndex)
 	{
 		const FString& Key = UriList[UriIndex];
-		const FRegexPattern& Pattern = UriRegexPattern[Key];
-		FRegexMatcher Matcher(Pattern, Uri);
+		const FRegexPattern* Pattern = UriRegexPattern.Find(Key);
+		if (!Pattern) { continue; }
+		FRegexMatcher Matcher(*Pattern, Uri);
 
 		if (!Matcher.FindNext()) { continue; }
 
@@ -165,8 +166,8 @@ FExecStatus FCommandDispatcher::Exec(const FString& Uri)
 			Args.Add(Matcher.GetCaptureGroup(GroupIndex));
 		}
 
-		FDispatcherDelegate& Cmd = UriMapping[Key];
-		if (Cmd.IsBound()) { return Cmd.Execute(Args); }
+		FDispatcherDelegate* Cmd = UriMapping.Find(Key);
+		if (Cmd && Cmd->IsBound()) { return Cmd->Execute(Args); }
 
 		const FString ErrorMsg = TEXT("Command delegate is not bound.");
 		UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *ErrorMsg);

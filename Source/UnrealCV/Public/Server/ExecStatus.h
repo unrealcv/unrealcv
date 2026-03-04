@@ -64,6 +64,7 @@ public:
 	// -- Accessors ------------------------------------------------------------
 	[[nodiscard]] FString GetMessage() const;
 	[[nodiscard]] TArray<uint8> GetData() const;
+	void AppendDataTo(TArray<uint8>& OutData) const;
 	[[nodiscard]] FPromise& GetPromise() { return Promise; }
 	[[nodiscard]] const FPromise& GetPromise() const { return Promise; }
 
