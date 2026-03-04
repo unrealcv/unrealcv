@@ -11,6 +11,11 @@ def decoder():
     return MsgDecoder()
 
 
+def _assert_single_pixel(image, expected):
+    assert image.shape == (1, 1, 3)
+    np.testing.assert_array_equal(image[0, 0], np.array(expected, dtype=np.uint8))
+
+
 @pytest.mark.parametrize(
     "cmd,expected",
     [
@@ -40,8 +45,7 @@ def test_decode_png_drops_alpha_and_swaps_to_bgr(make_png_rgba_bytes, decoder):
 
     image = decoder.decode_png(payload)
 
-    assert image.shape == (1, 1, 3)
-    np.testing.assert_array_equal(image[0, 0], np.array([30, 20, 10], dtype=np.uint8))
+    _assert_single_pixel(image, [30, 20, 10])
 
 
 @pytest.mark.parametrize(
@@ -66,8 +70,7 @@ def test_decode_bmp_strips_alpha_channel(monkeypatch, decoder):
 
     decoded = decoder.decode_bmp(b"bmp-bytes")
 
-    assert decoded.shape == (1, 1, 3)
-    np.testing.assert_array_equal(decoded[0, 0], np.array([1, 2, 3], dtype=np.uint8))
+    _assert_single_pixel(decoded, [1, 2, 3])
 
 
 def test_decode_bmp_keeps_grayscale_shape(monkeypatch, decoder):
@@ -93,7 +96,7 @@ def test_decode_img_unknown_mode_raises_value_error(decoder):
     ],
     ids=["png-invalid", "npy-invalid", "depth-invalid"],
 )
-def test_decoder_invalid_bytes_raise(decoder_fn, payload):
+def test_decoder_invalid_bytes_raise(decoder, decoder_fn, payload):
     with pytest.raises(Exception):
         getattr(decoder, decoder_fn)(payload)
 
