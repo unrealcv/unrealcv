@@ -20,6 +20,13 @@ def _patch_socket_and_handshake(monkeypatch, fake_socket, handshake_payload):
     )
 
 
+def _run_receive_loop(client, num, raw_messages, monkeypatch):
+    monkeypatch.setattr(client, "receive", lambda: raw_messages.pop(0))
+    client.recv_num_q.put(num)
+    client.recv_num_q.put(None)
+    client.receive_loop_queue()
+
+
 @pytest.mark.parametrize(
     "handshake_payload",
     [None, b"rejected"],
@@ -185,12 +192,7 @@ def test_client_request_batch_raises_when_response_queue_contains_exception(
 
 def test_receive_loop_queue_sync_path_decodes_and_enqueues(monkeypatch):
     client = _new_client()
-    raw_messages = [b"0:ok"]
-    monkeypatch.setattr(client, "receive", lambda: raw_messages.pop(0))
-
-    client.recv_num_q.put(-1)
-    client.recv_num_q.put(None)
-    client.receive_loop_queue()
+    _run_receive_loop(client, -1, [b"0:ok"], monkeypatch)
 
     assert client.recv_message_id == 1
     assert client.recv_data_q.get() == "ok"
@@ -198,12 +200,7 @@ def test_receive_loop_queue_sync_path_decodes_and_enqueues(monkeypatch):
 
 def test_receive_loop_queue_async_path_does_not_enqueue_data(monkeypatch):
     client = _new_client()
-    raw_messages = [b"0:ok"]
-    monkeypatch.setattr(client, "receive", lambda: raw_messages.pop(0))
-
-    client.recv_num_q.put(1)
-    client.recv_num_q.put(None)
-    client.receive_loop_queue()
+    _run_receive_loop(client, 1, [b"0:ok"], monkeypatch)
 
     assert client.recv_message_id == 1
     assert client.recv_data_q.empty() is True
