@@ -138,14 +138,13 @@ FExecStatus FCommandDispatcher::AliasHelper(const TArray<FString>& Args)
 		return FExecStatus::Error(FString::Printf(TEXT("Unrecognised alias '%s'"), *AliasName));
 	}
 
-	FString CombinedMessage;
+	FExecStatus CombinedStatus = FExecStatus::OK();
 	for (const FString& Command : *Commands)
 	{
 		const FExecStatus Status = Exec(Command);
-		if (!CombinedMessage.IsEmpty()) { CombinedMessage += TEXT("\n"); }
-		CombinedMessage += Status.GetMessage();
+		CombinedStatus += Status;
 	}
-	return FExecStatus::OK(CombinedMessage);
+	return CombinedStatus;
 }
 
 const TMap<FString, FString>& FCommandDispatcher::GetUriDescription() const

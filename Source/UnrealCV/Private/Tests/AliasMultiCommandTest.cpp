@@ -68,4 +68,38 @@ bool FAliasVRunCompatibilityTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FAliasErrorPropagationTest,
+    "UnrealCV.Server.CommandDispatcher.AliasErrorPropagation",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAliasErrorPropagationTest::RunTest(const FString& Parameters)
+{
+    FCommandDispatcher Dispatcher;
+
+    FDispatcherDelegate OkCmd;
+    OkCmd.BindLambda([](const TArray<FString>&) {
+        return FExecStatus::OK(TEXT("ok_step"));
+    });
+
+    FDispatcherDelegate FailCmd;
+    FailCmd.BindLambda([](const TArray<FString>&) {
+        return FExecStatus::Error(TEXT("failing_step"));
+    });
+
+    Dispatcher.BindCommand(TEXT("vget /aliaserr/ok"), OkCmd, TEXT("ok"));
+    Dispatcher.BindCommand(TEXT("vget /aliaserr/fail"), FailCmd, TEXT("fail"));
+
+    TArray<FString> Commands;
+    Commands.Add(TEXT("vget /aliaserr/ok"));
+    Commands.Add(TEXT("vget /aliaserr/fail"));
+    Dispatcher.Alias(TEXT("mixed"), Commands, TEXT("mixed"));
+
+    const FExecStatus Result = Dispatcher.Exec(TEXT("vrun mixed"));
+    TestTrue(TEXT("Alias with one failing subcommand returns error"), Result == EExecStatusType::Error);
+    TestTrue(TEXT("Combined message keeps both sub-results"),
+        Result.GetMessage().Contains(TEXT("ok_step")) && Result.GetMessage().Contains(TEXT("failing_step")));
+    return true;
+}
+
 #endif // WITH_AUTOMATION_WORKER
