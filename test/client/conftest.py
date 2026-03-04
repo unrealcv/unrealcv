@@ -26,10 +26,18 @@ class FakeSocket:
         self.connected = False
         self.closed = False
         self.connected_endpoint = None
+        self.timeout = None
+        self.shutdown_called = False
+
+    def settimeout(self, timeout):
+        self.timeout = timeout
 
     def connect(self, endpoint):
         self.connected = True
         self.connected_endpoint = endpoint
+
+    def shutdown(self, _how):
+        self.shutdown_called = True
 
     def close(self):
         self.closed = True

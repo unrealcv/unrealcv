@@ -2,13 +2,16 @@
 Use python dummy server to test the robustness of unrealcv.Client, Pass the test of DevServer first
 """
 
-import random, logging, time, sys
+import unittest, threading, random, logging, time, sys, socket
 import unrealcv
+from dev_server import EchoServer, MessageServer, NullServer
+import pytest
 
 # Configure the logging level of this test script
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+# Use NullHandler to avoid logging issues when pytest closes stdout during teardown
+logger.addHandler(logging.NullHandler())
 
 # Configure unrealcv logging verbose level
 logging.getLogger("unrealcv").setLevel(logging.CRITICAL)
@@ -16,13 +19,34 @@ logging.getLogger("dev_server").setLevel(logging.DEBUG)
 
 
 def random_payload():
-    payload_len = random.randrange(1024)
-    random_str = "".join([chr(random.randrange(100)) for _ in range(payload_len)])
+    len = random.randrange(1024)
+    random_str = "".join([chr(random.randrange(100)) for v in range(len)])
     return random_str
 
 
-# End-to-end client/server behavior checks
-def test_request(server, echo_port, localhost):
+localhost = "localhost"
+
+
+def _find_free_port(host=localhost):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind((host, 0))
+        return sock.getsockname()[1]
+
+
+@pytest.fixture(scope="function")
+def echo_port():
+    return _find_free_port()
+
+
+@pytest.fixture(scope="function")
+def server(echo_port):
+    server = MessageServer((localhost, echo_port))
+    server.start()  # Wait until the server is started
+    yield server
+    server.shutdown()
+
+
+def test_request(server, echo_port):
     """Simple test for basic functions"""
     client = unrealcv.Client((localhost, echo_port))
     cmds = ["hi", "hello", "asdf" * 70]
@@ -35,7 +59,7 @@ def test_request(server, echo_port, localhost):
     # server.shutdown()
 
 
-def test_multi_connection(server, echo_port, localhost):
+def test_multi_connection(server, echo_port):
     """
     Only one client is allowed for the server
     Make a second connection to the server, when one connection exists
@@ -57,7 +81,7 @@ def test_multi_connection(server, echo_port, localhost):
 
 
 # @pytest.mark.skip(reason = 'This test will fail in windows for an unknown reason.')
-def test_client_release(server, echo_port, localhost):
+def test_client_release(server, echo_port):
     """
     If the previous client release the connection, further connection should be accepted. This will also test the server code
     """
@@ -93,14 +117,14 @@ def test_client_release(server, echo_port, localhost):
     # server.shutdown()
 
 
-def test_random_operation(server, echo_port, localhost):
+def test_random_operation(server, echo_port):
     """Randomly connect and disconnect the client, this is very likely to fail"""
     # server = MessageServer((localhost, echo_port))
     # server.start()
     client = unrealcv.Client((localhost, echo_port))
 
     num_random_trial = 3
-    print("Try random operation %d times" % num_random_trial)
+    logger.info("Try random operation %d times", num_random_trial)
     for i in range(num_random_trial):
         msg = "Trial %d" % i
         choice = random.randrange(2)
@@ -120,34 +144,99 @@ def test_random_operation(server, echo_port, localhost):
     # server.shutdown()
 
 
-def test_request_timeout(localhost, free_port_factory, null_server_factory):
+def test_request_timeout():
     """What if the server did not respond with a correct reply."""
 
-    null_port = free_port_factory()
-    null_server_factory(null_port)
+    null_port = _find_free_port()
+    null_server = NullServer((localhost, null_port))
+    null_server.start()
 
     client = unrealcv.Client((localhost, null_port))
     client.connect()
     assert client.isconnected() == True
-    response = client.request("hi", timeout=1)
-    assert response == None
-    client.disconnect()
+    with pytest.raises(TimeoutError):
+        client.request("hi", timeout=1)
+    null_server.shutdown()
 
 
-def test_no_server(localhost, free_port_factory):
+def test_no_server():
     """What if server is not started yet?"""
 
-    no_port = free_port_factory()
+    no_port = _find_free_port()
     client = unrealcv.Client((localhost, no_port), None)
     client.connect()
     assert client.isconnected() == False
     cmds = ["hi", "hello"]
     for cmd in cmds:
-        try:
-            res = client.request(cmd)
-        except ConnectionError:
-            res = None
-        assert res == None
+        with pytest.raises(ConnectionError):
+            client.request(cmd)
+
+
+def test_disconnect_from_receive_thread_no_self_join(echo_port):
+    """disconnect() should not try joining the current receive thread."""
+    client = unrealcv.Client((localhost, echo_port))
+    client.t = threading.current_thread()
+    client.disconnect()
+
+
+def test_receive_reconnect_does_not_spawn_extra_thread(monkeypatch, echo_port):
+    """receive() reconnect path should call connect() without spawning another receive thread."""
+    client = unrealcv.Client((localhost, echo_port))
+    client.sock = object()
+
+    sentinel_thread = object()
+    client.t = sentinel_thread
+    connect_calls = []
+    payloads = [None, b"0:ok"]
+
+    def fake_receive_payload(_sock):
+        return payloads.pop(0)
+
+    def fake_disconnect():
+        client.sock = None
+
+    def fake_connect(timeout=1, start_receive_thread=True):
+        connect_calls.append((timeout, start_receive_thread))
+        client.sock = object()
+        return True
+
+    monkeypatch.setattr(
+        unrealcv.SocketMessage, "ReceivePayload", staticmethod(fake_receive_payload)
+    )
+    monkeypatch.setattr(client, "disconnect", fake_disconnect)
+    monkeypatch.setattr(client, "connect", fake_connect)
+
+    raw = client.receive()
+
+    assert raw == b"0:ok"
+    assert connect_calls
+    assert connect_calls[0][1] is False
+    assert client.t is sentinel_thread
+
+
+def test_receive_reconnect_failure_propagates_error(monkeypatch, echo_port):
+    """On reconnect exhaustion, receive() should raise and also publish an error for waiters."""
+    client = unrealcv.Client((localhost, echo_port))
+    client.sock = object()
+    client.RECONNECT_ATTEMPTS = 2
+    client.RECONNECT_BASE_DELAY = 0
+    client.RECONNECT_MAX_DELAY = 0
+
+    monkeypatch.setattr(
+        unrealcv.SocketMessage,
+        "ReceivePayload",
+        staticmethod(lambda _sock: None),
+    )
+    monkeypatch.setattr(client, "disconnect", lambda: setattr(client, "sock", None))
+    monkeypatch.setattr(
+        client, "connect", lambda timeout=1, start_receive_thread=True: False
+    )
+
+    with pytest.raises(ConnectionError):
+        client.receive()
+
+    queued_error = client.recv_data_q.get(timeout=0.2)
+    assert isinstance(queued_error, ConnectionError)
 
 
 def test_server_shutdown():
@@ -160,7 +249,7 @@ def test_stress():
     pass
 
 
-def test_message_handler(server, echo_port, localhost):
+def test_message_handler(server, echo_port):
     """Check message handler can correctly handle events from the server.
     And the thread is correctly handled that we can do something in the message_handler"""
     # echo_server = MessageServer((localhost, echo_port))
@@ -168,10 +257,10 @@ def test_message_handler(server, echo_port, localhost):
     client = unrealcv.Client((localhost, echo_port))
 
     def handle_message(msg):
-        print("Got server message %s" % repr(msg))
+        logger.info("Got server message %s", repr(msg))
         res = unrealcv.client.request("ok", 1)
         assert res == "ok"
-        print("Server response %s" % res)
+        logger.info("Server response %s", res)
 
     client.connect()
     assert client.isconnected() == True
@@ -181,7 +270,6 @@ def test_message_handler(server, echo_port, localhost):
     assert res == "ok"
 
     server.send("Hello from server")
-    client.disconnect()
     # echo_server.shutdown()
 
 

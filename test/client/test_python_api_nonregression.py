@@ -84,9 +84,9 @@ def test_decode_bmp_keeps_grayscale_shape(monkeypatch):
     assert decoded.shape == (1, 1)
 
 
-def test_decode_img_unknown_mode_keeps_current_unboundlocal_behavior():
+def test_decode_img_unknown_mode_raises_value_error():
     decoder = MsgDecoder()
-    with pytest.raises(UnboundLocalError):
+    with pytest.raises(ValueError, match="Unknown image mode"):
         decoder.decode_img(b"data", mode="jpg")
 
 
@@ -301,7 +301,8 @@ def test_client_connect_without_valid_confirm_does_not_leave_connected_socket(
 def test_client_request_returns_none_when_send_fails(monkeypatch):
     client = Client(("localhost", 1))
     monkeypatch.setattr(client, "send", lambda _message: False)
-    assert client.request("vget /camera/0/location") is None
+    with pytest.raises(ConnectionError, match="socket is closed"):
+        client.request("vget /camera/0/location")
 
 
 def test_client_request_list_delegates_to_request_batch(monkeypatch):
@@ -351,7 +352,7 @@ def test_client_async_methods_raise_when_send_fails(monkeypatch, method_name):
     client = Client(("localhost", 1))
     monkeypatch.setattr(client, "send", lambda _message: False)
 
-    with pytest.raises(AssertionError, match="failed send because of socket is closed"):
+    with pytest.raises(ConnectionError, match="socket is closed"):
         if method_name == "request_async":
             client.request_async("vget /camera/0/location")
         else:
@@ -362,7 +363,7 @@ def test_client_request_batch_raises_when_send_fails(monkeypatch):
     client = Client(("localhost", 1))
     monkeypatch.setattr(client, "send", lambda _message: False)
 
-    with pytest.raises(AssertionError, match="failed send because of socket is closed"):
+    with pytest.raises(ConnectionError, match="socket is closed"):
         client.request_batch(["cmd1"])
 
 
@@ -458,18 +459,18 @@ def test_receive_abnormal_disconnect_retries_then_asserts(monkeypatch):
     monkeypatch.setattr(
         client,
         "connect",
-        lambda: (
+        lambda *args, **kwargs: (
             reconnect_attempts.__setitem__("count", reconnect_attempts["count"] + 1)
             or False
         ),
     )
     monkeypatch.setattr("unrealcv.time.sleep", lambda _seconds: None)
 
-    with pytest.raises(AssertionError, match="abnormal disconnection"):
+    with pytest.raises(ConnectionError, match="Failed to reconnect"):
         client.receive()
 
-    assert reconnect_attempts["count"] == 5
-    assert disconnect_calls["count"] == 2
+    assert reconnect_attempts["count"] == client.RECONNECT_ATTEMPTS
+    assert disconnect_calls["count"] == 1
 
 
 def test_raw_message_handler_malformed_payload_returns_none():
@@ -522,8 +523,9 @@ def test_connect_success_sets_socket_and_starts_receive_thread(
     monkeypatch, fake_socket_factory
 ):
     class _FakeThread:
-        def __init__(self, target):
+        def __init__(self, target, daemon=False):
             self.target = target
+            self.daemon = daemon
             self.started = False
 
         def start(self):
@@ -543,8 +545,8 @@ def test_connect_success_sets_socket_and_starts_receive_thread(
         "unrealcv.SocketMessage.ReceivePayload", lambda _sock: b"connected to test"
     )
 
-    def fake_thread_factory(target):
-        thread = _FakeThread(target)
+    def fake_thread_factory(*args, **kwargs):
+        thread = _FakeThread(*args, **kwargs)
         created_threads.append(thread)
         return thread
 
@@ -587,7 +589,7 @@ def test_disconnect_joins_alive_receive_thread(monkeypatch):
         def is_alive(self):
             return True
 
-        def join(self):
+        def join(self, timeout=None):
             self.joined = True
 
     client = Client(("localhost", 1))
@@ -660,6 +662,13 @@ class _ScriptedRecvSocket:
             return self._chunks.pop(0)
         return b""
 
+    def recv_into(self, buffer, nbytes=0):
+        size = nbytes or len(buffer)
+        chunk = self.recv(size)
+        read_size = len(chunk)
+        buffer[:read_size] = chunk
+        return read_size
+
 
 def test_socketmessage_receivepayload_handles_partial_reads():
     payload = b"abc"
@@ -696,8 +705,7 @@ def test_socketmessage_receivepayload_short_size_header_raises_struct_error():
     magic = struct.pack("I", SocketMessage.magic)
     sock = _ScriptedRecvSocket([magic, b"\x01\x00"])
 
-    with pytest.raises(struct.error):
-        SocketMessage.ReceivePayload(sock)
+    assert SocketMessage.ReceivePayload(sock) is None
 
 
 def test_socketmessage_receivepayload_truncated_payload_returns_none():
@@ -712,7 +720,7 @@ def test_socketmessage_receivepayload_truncated_payload_returns_none():
 
 
 class _FailingWriteSocket:
-    def makefile(self, *_args, **_kwargs):
+    def sendall(self, _data):
         raise RuntimeError("boom")
 
 
@@ -724,24 +732,17 @@ def test_socketmessage_wrap_send_payload_returns_false_on_write_error():
 class _RecordingFile:
     def __init__(self):
         self.buffer = b""
-        self.closed = False
 
     def write(self, data):
         self.buffer += data
-
-    def flush(self):
-        return None
-
-    def close(self):
-        self.closed = True
 
 
 class _RecordingWriteSocket:
     def __init__(self):
         self.file = _RecordingFile()
 
-    def makefile(self, *_args, **_kwargs):
-        return self.file
+    def sendall(self, data):
+        self.file.write(data)
 
 
 def test_socketmessage_wrap_send_payload_writes_magic_size_and_payload():
@@ -751,7 +752,6 @@ def test_socketmessage_wrap_send_payload_writes_magic_size_and_payload():
     ok = SocketMessage.WrapAndSendPayload(sock, payload)
 
     assert ok is True
-    assert sock.file.closed is True
     assert sock.file.buffer[:4] == struct.pack("I", SocketMessage.magic)
     assert sock.file.buffer[4:8] == struct.pack("I", len(payload))
     assert sock.file.buffer[8:] == payload
@@ -759,7 +759,7 @@ def test_socketmessage_wrap_send_payload_writes_magic_size_and_payload():
 
 def test_socketmessage_receivepayload_returns_none_on_recv_exception():
     class _ExceptionSocket:
-        def recv(self, _size):
+        def recv_into(self, _buffer, _nbytes=0):
             raise RuntimeError("boom")
 
     assert SocketMessage.ReceivePayload(_ExceptionSocket()) is None

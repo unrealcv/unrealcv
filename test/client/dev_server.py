@@ -27,13 +27,8 @@ SocketServer.TCPServer.allow_reuse_address = (
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
-
-
-def _to_bytes(payload):
-    if isinstance(payload, bytes):
-        return payload
-    return payload.encode("utf-8")
+# Use NullHandler by default to avoid issues during shutdown when handlers may be closed
+logger.addHandler(logging.NullHandler())
 
 
 class RejectionHandler(SocketServer.BaseRequestHandler):
@@ -143,7 +138,7 @@ class ThreadedServer(SocketServer.ThreadingTCPServer, object):
             logger.debug("Accept, new connection")
             self._client_socket = request
             unrealcv.SocketMessage.WrapAndSendPayload(
-                self._client_socket, _to_bytes("connected to Python Message Server")
+                self._client_socket, b"connected to Python Message Server"
             )
             accepted = True
 
@@ -165,9 +160,6 @@ class NULLTCPHandler(SocketServer.BaseRequestHandler):
     """Request handler that do nothing"""
 
     def handle(self):
-        unrealcv.SocketMessage.WrapAndSendPayload(
-            self.request, _to_bytes("connected to Python Null Server")
-        )
         while 1:
             message = unrealcv.SocketMessage.ReceivePayload(self.request)
             if not message:
@@ -179,6 +171,25 @@ class NullServer(ThreadedServer):
 
     def __init__(self, endpoint):
         ThreadedServer.__init__(self, endpoint, NULLTCPHandler)
+
+    def shutdown(self):
+        """Gracefully shutdown the server"""
+        try:
+            if self.socket:
+                self.socket.close()
+        except Exception:
+            pass
+
+        self.timeout = 0.5
+        try:
+            ThreadedServer.shutdown(self)
+        except Exception:
+            pass
+
+        try:
+            self.server_close()
+        except Exception:
+            pass
 
 
 class EchoTCPHandler(SocketServer.BaseRequestHandler):
@@ -204,6 +215,25 @@ class EchoServer(ThreadedServer):
 
     def __init__(self, endpoint):
         ThreadedServer.__init__(self, endpoint, EchoTCPHandler)
+
+    def shutdown(self):
+        """Gracefully shutdown the server"""
+        try:
+            if self.socket:
+                self.socket.close()
+        except Exception:
+            pass
+
+        self.timeout = 0.5
+        try:
+            ThreadedServer.shutdown(self)
+        except Exception:
+            pass
+
+        try:
+            self.server_close()
+        except Exception:
+            pass
 
 
 class MessageTCPHandler(SocketServer.BaseRequestHandler):
@@ -246,39 +276,53 @@ class MessageServer(ThreadedServer):
 
     def send(self, message):
         if self.client_socket:
-            unrealcv.SocketMessage.WrapAndSendPayload(
-                self.client_socket, _to_bytes(message)
-            )
+            unrealcv.SocketMessage.WrapAndSendPayload(self.client_socket, message)
 
     def shutdown(self):
-        # # TODO: Stop the message handler and do not accept any new connection during the shutdown connection
-        # self.socket.close() # Make sure no new connection is coming during shutdown
-        # print('Close client socket')
-        # if self.client_socket:
-        #     self.client_socket.shutdown(socket.SHUT_RDWR)
-        #     self.client_socket.close()
-        #
-        # print('Close server socket')
-        # self.socket.close()
-        # Shutdown will wait until the handle function returns
-        ThreadedServer.shutdown(self)
+        # Close server socket early to prevent new connections during shutdown
+        try:
+            if self.socket:
+                self.socket.close()
+        except Exception:
+            pass
+
+        # Close client socket if exists
+        try:
+            if self.client_socket:
+                self.client_socket.shutdown(socket.SHUT_RDWR)
+                self.client_socket.close()
+        except Exception:
+            pass
+
+        # Set a timeout for shutdown to prevent hanging
+        self.timeout = 0.5
+        try:
+            ThreadedServer.shutdown(self)
+        except Exception:
+            pass
+
+        # Try to close the server-side socket binding
+        try:
+            self.server_close()
+        except Exception:
+            pass
 
     def client_socket(self):
         pass
 
 
 if __name__ == "__main__":
-    print("Run a null dev server for 2s for testing")
+    logger.info("Run a null dev server for 2s for testing")
     server = NullServer(("localhost", 9000))
     server.start()
     server.stop()
 
-    print("Run a Echo dev server for 2s for testing")
+    logger.info("Run a Echo dev server for 2s for testing")
     server = EchoServer(("localhost", 9000))
     server.start()
     server.stop()
 
-    print("Run a message server")
+    logger.info("Run a message server")
     server = MessageServer(("localhost", 9000))
     server.start()
     server.stop()
