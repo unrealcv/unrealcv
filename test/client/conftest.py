@@ -1,0 +1,112 @@
+import pytest
+
+from dev_server import MessageServer, NullServer
+from unrealcv.api import MsgDecoder, UnrealCv_API
+from unrealcv.util import ResChecker
+
+
+# API test doubles
+class DummyClient:
+    def __init__(self, responses=None):
+        self._responses = list(responses or [])
+        self.calls = []
+
+    def request(self, cmd, *args):
+        self.calls.append((cmd, args))
+        if self._responses:
+            return self._responses.pop(0)
+        return None
+
+
+class FakeSocket:
+    def __init__(self):
+        self.connected = False
+        self.closed = False
+        self.connected_endpoint = None
+
+    def connect(self, endpoint):
+        self.connected = True
+        self.connected_endpoint = endpoint
+
+    def close(self):
+        self.closed = True
+
+
+# API fixtures
+@pytest.fixture
+def dummy_client_factory():
+    def _factory(responses=None):
+        return DummyClient(responses)
+
+    return _factory
+
+
+@pytest.fixture
+def fake_socket_factory():
+    def _factory():
+        return FakeSocket()
+
+    return _factory
+
+
+@pytest.fixture
+def api_factory(dummy_client_factory):
+    def _factory(client=None):
+        api = UnrealCv_API.__new__(UnrealCv_API)
+        api.decoder = MsgDecoder()
+        api.checker = ResChecker()
+        api.obj_dict = {}
+        api.cam = {
+            0: {"location": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "fov": 90}
+        }
+        api.client = client or dummy_client_factory()
+        return api
+
+    return _factory
+
+
+# Network fixtures
+@pytest.fixture(scope="session")
+def localhost():
+    return "localhost"
+
+
+@pytest.fixture(scope="session")
+def free_port_factory(localhost):
+    import socket
+
+    def _factory():
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.bind((localhost, 0))
+            return sock.getsockname()[1]
+
+    return _factory
+
+
+@pytest.fixture(scope="module")
+def echo_port(free_port_factory):
+    return free_port_factory()
+
+
+@pytest.fixture(scope="module")
+def server(localhost, echo_port):
+    message_server = MessageServer((localhost, echo_port))
+    message_server.start()
+    yield message_server
+    message_server.shutdown()
+
+
+@pytest.fixture
+def null_server_factory(localhost):
+    created_servers = []
+
+    def _factory(port):
+        null_server = NullServer((localhost, port))
+        null_server.start()
+        created_servers.append(null_server)
+        return null_server
+
+    yield _factory
+
+    for null_server in created_servers:
+        null_server.shutdown()
