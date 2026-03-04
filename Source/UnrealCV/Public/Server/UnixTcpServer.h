@@ -6,6 +6,7 @@
 #include "Runtime/Networking/Public/Common/TcpListener.h"
 #include "Runtime/Networking/Public/Interfaces/IPv4/IPv4Endpoint.h"
 #include "Runtime/Core/Public/Serialization/ArrayReader.h"
+#include "Templates/Atomic.h"
 
 #include "UnixTcpServer.generated.h"
 
@@ -69,7 +70,7 @@ public:
 private:
 	int32 PortNum     = -1;
 	bool bIsListening = false;
-	bool bIsUDS       = false;
+	TAtomic<bool> bIsUDS { false };
 
 	bool OnClientConnected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
 

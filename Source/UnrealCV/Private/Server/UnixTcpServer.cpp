@@ -3,6 +3,7 @@
 #include "SocketUtils.h"
 #include "Runtime/Core/Public/Serialization/BufferArchive.h"
 #include "Runtime/Core/Public/Serialization/MemoryReader.h"
+#include "HAL/PlatformProcess.h"
 #include "UnrealcvLog.h"
 #include "UnrealcvShim.h"
 #include <string>
@@ -17,6 +18,11 @@
 #endif
 
 uint32 FUnixSocketMessageHeader::DefaultMagic = 0x9E2B83C1;
+
+namespace
+{
+constexpr uint32 MaxPayloadSizeBytes = 256u * 1024u * 1024u;
+}
 
 // ---------------------------------------------------------------------------
 // TCP transport
@@ -42,6 +48,7 @@ bool FUnixSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, 
 				UE_LOG(LogUnrealCV, Error, TEXT("Send failed after retries. Expected %d, sent %d."), Ar.Num(), TotalSent);
 				return false;
 			}
+			FPlatformProcess::Sleep(0.001f);
 			continue;
 		}
 		UE_LOG(LogUnrealCV, Verbose, TEXT("Sending %d/%d bytes (chunk %d)"), TotalSent, Ar.Num(), AmountSent);
@@ -85,6 +92,11 @@ bool FUnixSocketMessageHeader::ReceivePayload(FArrayReader& OutPayload, FSocket*
 		UE_LOG(LogUnrealCV, Error, TEXT("Received empty payload."));
 		return false;
 	}
+	if (PayloadSize > MaxPayloadSizeBytes)
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("Payload too large: %u bytes."), PayloadSize);
+		return false;
+	}
 
 	const int32 PayloadOffset = OutPayload.AddUninitialized(PayloadSize);
 	OutPayload.Seek(PayloadOffset);
@@ -120,6 +132,7 @@ bool FUnixSocketMessageHeader::WrapAndSendPayloadUDS(const TArray<uint8>& Payloa
 				UE_LOG(LogUnrealCV, Error, TEXT("UDS send exhausted retries. Expected %d, sent %d."), Ar.Num(), TotalSent);
 				return false;
 			}
+			FPlatformProcess::Sleep(0.001f);
 			continue;
 		}
 		Remaining -= Written;
@@ -160,6 +173,11 @@ bool FUnixSocketMessageHeader::ReceivePayloadUDS(FArrayReader& OutPayload, int F
 		UE_LOG(LogUnrealCV, Error, TEXT("UDS empty payload."));
 		return false;
 	}
+	if (PayloadSize > MaxPayloadSizeBytes)
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("UDS payload too large: %u bytes."), PayloadSize);
+		return false;
+	}
 
 	const int32 PayloadOffset = OutPayload.AddUninitialized(PayloadSize);
 	OutPayload.Seek(PayloadOffset);
@@ -189,6 +207,7 @@ void UUnixTcpServer::CleanupConnection()
 	{
 		ConnectionSocket->Shutdown(ESocketShutdownMode::ReadWrite);
 		ConnectionSocket->Close();
+		ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM)->DestroySocket(ConnectionSocket);
 		ConnectionSocket = nullptr;
 	}
 }
@@ -227,9 +246,18 @@ bool UUnixTcpServer::StartEchoService(FSocket* ClientSocket, const FIPv4Endpoint
 		int32 BytesRead = 0;
 		ClientSocket->Recv(ReceivedData.GetData(), ReceivedData.Num(), BytesRead);
 		if (BytesRead <= 0) { ConnectionSocket = nullptr; return false; }
-		int32 BytesSent = 0;
-		ClientSocket->Send(ReceivedData.GetData(), BytesRead, BytesSent);
-		check(BytesRead == BytesSent);
+		int32 TotalSent = 0;
+		while (TotalSent < BytesRead)
+		{
+			int32 BytesSent = 0;
+			ClientSocket->Send(ReceivedData.GetData() + TotalSent, BytesRead - TotalSent, BytesSent);
+			if (BytesSent <= 0)
+			{
+				ConnectionSocket = nullptr;
+				return false;
+			}
+			TotalSent += BytesSent;
+		}
 	}
 }
 
@@ -355,7 +383,7 @@ bool UUnixTcpServer::OnClientConnected(FSocket* ClientSocket, const FIPv4Endpoin
 {
 	ConnectedEvent.Broadcast(*ClientEndpoint.ToString());
 	const bool Status = StartMessageServiceINet(ClientSocket, ClientEndpoint);
-	bIsUDS = true;
+	bIsUDS.Store(true);
 	StartMessageServiceUDS();
 	return Status;
 }
@@ -406,7 +434,7 @@ bool UUnixTcpServer::Start(int32 InPortNum)
 bool UUnixTcpServer::SendMessage(const FString& Message)
 {
 #if PLATFORM_LINUX
-	return bIsUDS ? SendMessageUDS(Message) : SendMessageINet(Message);
+	return bIsUDS.Load() ? SendMessageUDS(Message) : SendMessageINet(Message);
 #else
 	return SendMessageINet(Message);
 #endif
@@ -415,7 +443,7 @@ bool UUnixTcpServer::SendMessage(const FString& Message)
 bool UUnixTcpServer::SendData(const TArray<uint8>& Payload)
 {
 #if PLATFORM_LINUX
-	return bIsUDS ? SendDataUDS(Payload) : SendDataINet(Payload);
+	return bIsUDS.Load() ? SendDataUDS(Payload) : SendDataINet(Payload);
 #else
 	return SendDataINet(Payload);
 #endif

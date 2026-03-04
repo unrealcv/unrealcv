@@ -2,6 +2,8 @@
 #include "Misc/AutomationTest.h"
 #include "CommandDispatcher.h"
 
+#if WITH_AUTOMATION_WORKER
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FCommandDispatcherMalformedUriTest,
     "UnrealCV.Server.CommandDispatcher.MalformedUri",
@@ -69,3 +71,5 @@ bool FCommandDispatcherOverwriteTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("Second binding wins"), Result.GetMessage(), TEXT("second"));
     return true;
 }
+
+#endif // WITH_AUTOMATION_WORKER

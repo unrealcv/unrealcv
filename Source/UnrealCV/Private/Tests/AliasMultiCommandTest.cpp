@@ -1,6 +1,9 @@
 // Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #include "Misc/AutomationTest.h"
 #include "CommandDispatcher.h"
+#include "AliasHandler.h"
+
+#if WITH_AUTOMATION_WORKER
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FAliasMultiCommandTest,
@@ -34,3 +37,35 @@ bool FAliasMultiCommandTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Result contains call2"), Result.GetMessage().Contains(TEXT("call2")));
     return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+    FAliasVRunCompatibilityTest,
+    "UnrealCV.Server.CommandDispatcher.AliasVRunCompatibility",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FAliasVRunCompatibilityTest::RunTest(const FString& Parameters)
+{
+    TSharedPtr<FCommandDispatcher> Dispatcher = MakeShared<FCommandDispatcher>();
+
+    // Register the command group that used to overwrite "vrun [str]".
+    FAliasHandler AliasHandler;
+    AliasHandler.SetCommandDispatcher(Dispatcher);
+    AliasHandler.RegisterCommands();
+
+    int32 CallCount = 0;
+    FDispatcherDelegate Cmd;
+    Cmd.BindLambda([&CallCount](const TArray<FString>&) {
+        ++CallCount;
+        return FExecStatus::OK(TEXT("ok"));
+    });
+    Dispatcher->BindCommand(TEXT("vget /compat/a"), Cmd, TEXT("a"));
+    Dispatcher->Alias(TEXT("compat_alias"), TEXT("vget /compat/a"), TEXT("compat"));
+
+    // If vrun dispatch is intact, this should execute AliasHelper and run /compat/a once.
+    const FExecStatus Result = Dispatcher->Exec(TEXT("vrun compat_alias"));
+    TestEqual(TEXT("Alias command executed once"), CallCount, 1);
+    TestTrue(TEXT("vrun alias returns success"), Result == EExecStatusType::OK);
+    return true;
+}
+
+#endif // WITH_AUTOMATION_WORKER

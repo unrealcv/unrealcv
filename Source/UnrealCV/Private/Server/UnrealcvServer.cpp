@@ -204,13 +204,22 @@ void FUnrealcvServer::ProcessRequest(const FRequest& Request)
 
 void FUnrealcvServer::ProcessPendingRequest()
 {
+	constexpr int32 MaxRequestsPerTick = 32;
+	int32 ProcessedCount = 0;
+
 	while (!PendingRequest.IsEmpty())
 	{
+		if (ProcessedCount >= MaxRequestsPerTick)
+		{
+			break;
+		}
+
 		FRequest Request;
 		if (!PendingRequest.Dequeue(Request))
 		{
 			break;
 		}
+		++ProcessedCount;
 
 		// Batch mode: "vbatch <N>" collects subsequent requests into one frame.
 		if (Request.Message.StartsWith(TEXT("vbatch")))
@@ -276,6 +285,9 @@ void FUnrealcvServer::HandleRawMessage(const FString& Endpoint, const FString& I
 
 void FUnrealcvServer::HandleError(const FString& InErrorMessage)
 {
+	BatchNum = 0;
+	Batch.Empty();
+
 	if (Config.bExitOnFailure)
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("Server error (exit-on-failure enabled): %s"), *InErrorMessage);

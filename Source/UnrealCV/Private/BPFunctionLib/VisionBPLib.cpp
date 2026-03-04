@@ -7,6 +7,7 @@
 #include "Runtime/Launch/Resources/Version.h"
 #include "Runtime/Core/Public/Misc/FileHelper.h"
 #include "Runtime/Engine/Classes/GameFramework/Pawn.h"
+#include "Runtime/Engine/Public/EngineUtils.h"
 
 #include "ImageUtil.h"
 #include "UnrealcvServer.h"
@@ -206,7 +207,11 @@ void UVisionBPLib::UpdateInput(APawn* Pawn, bool Enable)
 	if (!World) return;
 
 	APlayerController* PlayerController = World->GetFirstPlayerController();
-	check(PlayerController);
+	if (!IsValid(PlayerController))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Can not update Pawn input, invalid player controller"));
+		return;
+	}
 	if (Enable)
 	{
 		UE_LOG(LogUnrealCV, Log, TEXT("Enabling input"));
@@ -221,21 +226,13 @@ void UVisionBPLib::UpdateInput(APawn* Pawn, bool Enable)
 
 void UVisionBPLib::GetActorList(TArray<AActor*>& ActorList)
 {
-	TArray<UObject*> UObjectList;
-	bool bIncludeDerivedClasses = true;
-	EObjectFlags ExclusionFlags = EObjectFlags::RF_ClassDefaultObject;
-	#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 4
-        EInternalObjectFlags ExclusionInternalFlags = EInternalObjectFlags_AllFlags;
-    #else
-        EInternalObjectFlags ExclusionInternalFlags = EInternalObjectFlags::AllFlags;
-    #endif
-	// EInternalObjectFlags ExclusionInternalFlags = EInternalObjectFlags::AllFlags;
-	GetObjectsOfClass(AActor::StaticClass(), UObjectList, bIncludeDerivedClasses, ExclusionFlags);
+	UWorld* World = FUnrealcvServer::Get().GetWorld();
+	if (!IsValid(World)) { return; }
 
-	for (UObject* ActorObject : UObjectList)
+	for (TActorIterator<AActor> It(World); It; ++It)
 	{
-		AActor* Actor = Cast<AActor>(ActorObject);
-		if (Actor->GetWorld() != FUnrealcvServer::Get().GetWorld()) continue;
+		AActor* Actor = *It;
+		if (!IsValid(Actor)) { continue; }
 		ActorList.AddUnique(Actor);
 	}
 }
@@ -366,9 +363,10 @@ UFusionCamSensor* UVisionBPLib::GetPlayerSensor()
 void UVisionBPLib::AnnotateWorld()
 {
 	const auto WorldCtrl = FUnrealcvServer::Get().GetWorldController();
-	if (WorldCtrl.IsValid())
+	UWorld* World = FUnrealcvServer::Get().GetWorld();
+	if (WorldCtrl.IsValid() && IsValid(World))
 	{
-		WorldCtrl->ObjectAnnotator.AnnotateWorld(GWorld);
+		WorldCtrl->ObjectAnnotator.AnnotateWorld(World);
 	}
 }
 
@@ -423,10 +421,9 @@ UTexture2D* UVisionBPLib::LoadTexture2D_FromFile(const FString& FullFilePath, EJ
 
 			//Update!
 			LoadedT2D->UpdateResource();
+			IsValid = true;
 		}
 	}
 
-	// Success!
-	IsValid = true;
 	return LoadedT2D;
 }

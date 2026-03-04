@@ -16,7 +16,7 @@ void FAliasHandler::RegisterCommands()
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasHandler::VRun);
 	Help = TEXT("Run UE5 built-in commands");
-	CommandDispatcher->BindCommand("vrun [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vcmd [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vrun [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vrun [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vrun [str] [str] [str] [str]", Cmd, Help);
@@ -331,7 +331,7 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 			{
 				UE_LOG(LogUnrealCV, Warning, TEXT("Unrecognized type for parameter %s"), *Key);
 			}
-			
+
 			Dict.Emplace(Key, Value);
 		}
 	}
@@ -445,7 +445,7 @@ FExecStatus FAliasHandler::VExec(const TArray<FString>& Args)
 FExecStatus FAliasHandler::GetPersistentLevelId(const TArray<FString>& Args)
 {
 	UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
-	
+
 	if (IsValid(GameWorld) && IsValid(GameWorld->PersistentLevel))
 	{
 		return FExecStatus::OK(GameWorld->PersistentLevel->GetName());

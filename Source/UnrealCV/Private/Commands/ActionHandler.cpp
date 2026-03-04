@@ -141,8 +141,9 @@ FExecStatus FActionHandler::SetStereoDistance(const TArray<FString>& Args)
 /** Return a TFunction to Release the Keyboard */
 TFunction<void(void)> FActionHandler::GetReleaseKey(FKey Key)
 {
-	const UWorld* World = this->GetWorld();
-	return [=]() {
+	const TWeakObjectPtr<UWorld> WeakWorld = this->GetWorld();
+	return [WeakWorld, Key]() {
+		UWorld* World = WeakWorld.Get();
 		if (!IsValid(World)) { return; }
 		APlayerController* PC = World->GetFirstPlayerController();
 		if (!IsValid(PC)) { return; }

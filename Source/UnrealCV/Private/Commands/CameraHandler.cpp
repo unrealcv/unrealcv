@@ -24,6 +24,21 @@
 DECLARE_CYCLE_STAT(TEXT("FCameraHandler::GetCameraLit"), STAT_GetCameraLit, STATGROUP_UnrealCV);
 DECLARE_CYCLE_STAT(TEXT("FCameraHandler::SaveData"), STAT_SaveData, STATGROUP_UnrealCV);
 
+namespace
+{
+template <typename TEnum>
+bool ResolveOption(const TMap<FString, TEnum>& Options, const FString& Input, TEnum& OutValue)
+{
+	const FString Key = Input.ToLower();
+	if (const TEnum* Found = Options.Find(Key))
+	{
+		OutValue = *Found;
+		return true;
+	}
+	return false;
+}
+} // anonymous namespace
+
 UFusionCamSensor* FCameraHandler::GetCamera(const TArray<FString>& Args, FExecStatus& Status)
 {
 	if (Args.Num() < 1)
@@ -35,7 +50,7 @@ UFusionCamSensor* FCameraHandler::GetCamera(const TArray<FString>& Args, FExecSt
 	}
 	int SensorId = FCString::Atoi(*Args[0]);
 	UFusionCamSensor* FusionSensor = USensorBPLib::GetSensorById(SensorId);
-	if (!IsValid(FusionSensor)) 
+	if (!IsValid(FusionSensor))
 	{
 		FString Msg = TEXT("Invalid sensor id");
 		UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *Msg);
@@ -64,7 +79,7 @@ FExecStatus FCameraHandler::GetCameraLocation(const TArray<FString>& Args)
 {
 	FExecStatus Status = FExecStatus::OK();
 	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
-	if (!IsValid(FusionCamSensor)) return Status; 
+	if (!IsValid(FusionCamSensor)) return Status;
 
 	FStrFormatter Ar;
 	FVector Location = FusionCamSensor->GetSensorLocation();
@@ -77,7 +92,7 @@ FExecStatus FCameraHandler::SetCameraLocation(const TArray<FString>& Args)
 {
 	FExecStatus Status = FExecStatus::OK();
 	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
-	if (!IsValid(FusionCamSensor)) return Status; 
+	if (!IsValid(FusionCamSensor)) return Status;
 
 	// Should I set the component loction or the actor location?
 	if (Args.Num() != 4) return FExecStatus::InvalidArgument; // ID, X, Y, Z
@@ -112,7 +127,7 @@ FExecStatus FCameraHandler::GetCameraRotation(const TArray<FString>& Args)
 {
 	FExecStatus Status = FExecStatus::OK();
 	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
-	if (!IsValid(FusionCamSensor)) return Status; 
+	if (!IsValid(FusionCamSensor)) return Status;
 
 	FRotator Rotation = FusionCamSensor->GetSensorRotation();
 	FStrFormatter Ar;
@@ -125,7 +140,7 @@ FExecStatus FCameraHandler::SetCameraRotation(const TArray<FString>& Args)
 {
 	FExecStatus Status = FExecStatus::OK();
 	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
-	if (!IsValid(FusionCamSensor)) return Status; 
+	if (!IsValid(FusionCamSensor)) return Status;
 
 	if (Args.Num() != 4) return FExecStatus::InvalidArgument; // ID, X, Y, Z
 	float Pitch = FCString::Atof(*Args[1]), Yaw = FCString::Atof(*Args[2]), Roll = FCString::Atof(*Args[3]);
@@ -276,7 +291,7 @@ FExecStatus FCameraHandler::GetCameraLit(const TArray<FString>& Args)
 
 	FExecStatus ExecStatus = FExecStatus::OK();
 	UFusionCamSensor* FusionCamSensor = GetCamera(Args, ExecStatus);
-	if (!IsValid(FusionCamSensor)) return ExecStatus; 
+	if (!IsValid(FusionCamSensor)) return ExecStatus;
 
 	TArray<FColor> Data;
 	int Width, Height;
@@ -289,7 +304,7 @@ FExecStatus FCameraHandler::GetCameraDepth(const TArray<FString>& Args)
 {
 	FExecStatus ExecStatus = FExecStatus::OK();
 	UFusionCamSensor* FusionCamSensor = GetCamera(Args, ExecStatus);
-	if (!IsValid(FusionCamSensor)) return ExecStatus; 
+	if (!IsValid(FusionCamSensor)) return ExecStatus;
 
 	TArray<float> Data;
 	int Width, Height;
@@ -303,7 +318,7 @@ FExecStatus FCameraHandler::GetCameraNormal(const TArray<FString>& Args)
 {
 	FExecStatus ExecStatus = FExecStatus::OK();
 	UFusionCamSensor* FusionCamSensor = GetCamera(Args, ExecStatus);
-	if (!IsValid(FusionCamSensor)) return ExecStatus; 
+	if (!IsValid(FusionCamSensor)) return ExecStatus;
 
 	TArray<FColor> Data;
 	int Width, Height;
@@ -333,7 +348,7 @@ FExecStatus FCameraHandler::GetCameraObjMask(const TArray<FString>& Args)
 {
 	FExecStatus ExecStatus = FExecStatus::OK();
 	UFusionCamSensor* FusionCamSensor = GetCamera(Args, ExecStatus);
-	if (!IsValid(FusionCamSensor)) return ExecStatus; 
+	if (!IsValid(FusionCamSensor)) return ExecStatus;
 
 	TArray<FColor> Data;
 	int Width, Height;
@@ -347,7 +362,7 @@ FExecStatus FCameraHandler::MoveTo(const TArray<FString>& Args)
 {
 	// FExecStatus ExecStatus = FExecStatus::OK();
 	// UFusionCamSensor* FusionCamSensor = GetCamera(Args, ExecStatus);
-	// if (!IsValid(FusionCamSensor)) return ExecStatus; 
+	// if (!IsValid(FusionCamSensor)) return ExecStatus;
 
 	/** The API for Character, Pawn and Actor are different */
 	if (Args.Num() != 4) // ID, X, Y, Z
@@ -382,7 +397,15 @@ FExecStatus FCameraHandler::GetScreenshot(const TArray<FString>& Args)
 	const FString Filename = Args[0];
 
 	UWorld* World = FUnrealcvServer::Get().GetWorld();
+	if (!IsValid(World))
+	{
+		return FExecStatus::Error(TEXT("No valid world"));
+	}
 	UGameViewportClient* ViewportClient = World->GetGameViewport();
+	if (!IsValid(ViewportClient) || !ViewportClient->Viewport)
+	{
+		return FExecStatus::Error(TEXT("No valid game viewport"));
+	}
 
 	bool bScreenshotSuccessful = false;
 	FViewport* InViewport = ViewportClient->Viewport;
@@ -499,22 +522,20 @@ FExecStatus FCameraHandler::SetProjectionType(const TArray<FString>& Args)
 	FExecStatus Status = FExecStatus::InvalidArgument;
 	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
 	if (!IsValid(FusionCamSensor)) return Status;
-	const FString ProjectionType = Args[1];
-	if (ProjectionType.ToLower() == "perspective")
+	static const TMap<FString, ECameraProjectionMode::Type> ProjectionOptions = {
+		{ TEXT("perspective"), ECameraProjectionMode::Type::Perspective },
+		{ TEXT("orthographic"), ECameraProjectionMode::Type::Orthographic },
+	};
+
+	ECameraProjectionMode::Type ProjectionMode;
+	if (!ResolveOption(ProjectionOptions, Args[1], ProjectionMode))
 	{
-		FusionCamSensor->SetProjectionType(ECameraProjectionMode::Type::Perspective);
-		return FExecStatus::OK();
+		return FExecStatus::Error(FString::Printf(
+			TEXT("Can not support camera mode %s, available options are perspective and orthographic"),
+			*Args[1]));
 	}
-	else if (ProjectionType.ToLower() == "orthographic")
-	{
-		FusionCamSensor->SetProjectionType(ECameraProjectionMode::Type::Orthographic);
-		return FExecStatus::OK();
-	}
-	else
-	{
-		FString ErrorMsg = FString::Printf(TEXT("Can not support camera mode %s, available options are perspective and orthographic"), *ProjectionType);
-		return FExecStatus::Error(ErrorMsg);
-	}
+	FusionCamSensor->SetProjectionType(ProjectionMode);
+	return FExecStatus::OK();
 }
 
 FExecStatus FCameraHandler::SetOrthoWidth(const TArray<FString>& Args)
@@ -532,158 +553,105 @@ FExecStatus FCameraHandler::SetOrthoWidth(const TArray<FString>& Args)
 
 FExecStatus FCameraHandler::SetExposureMethod(const TArray<FString>& Args)
 {
-    FExecStatus Status = FExecStatus::InvalidArgument;
+	FExecStatus Status = FExecStatus::InvalidArgument;
 	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
 	if (!IsValid(FusionCamSensor)) return FExecStatus::InvalidArgument;
 	if (Args.Num() != 2) return FExecStatus::InvalidArgument; // exposure value
-	FString ExposureType = Args[1];
-	if (ExposureType.ToLower() == "histogram")
-    {
-        FusionCamSensor->SetExposureMethod(EAutoExposureMethod::AEM_Histogram);
-        return FExecStatus::OK();
-    }
-    else if  (ExposureType.ToLower() == "basic")
-    {
-        FusionCamSensor->SetExposureMethod(EAutoExposureMethod::AEM_Basic);
-        return FExecStatus::OK();
-    }
-    else if  (ExposureType.ToLower() == "manual")
-    {
-        FusionCamSensor->SetExposureMethod(EAutoExposureMethod::AEM_Manual);
-        return FExecStatus::OK();
-    }
-    else
-    {
-        FString ErrorMsg = FString::Printf(TEXT("Can not support auto exposure mode %s, available options are true and false"), *ExposureType);
-        return FExecStatus::Error(ErrorMsg);
-    }
+	static const TMap<FString, EAutoExposureMethod> ExposureOptions = {
+		{ TEXT("histogram"), EAutoExposureMethod::AEM_Histogram },
+		{ TEXT("basic"), EAutoExposureMethod::AEM_Basic },
+		{ TEXT("manual"), EAutoExposureMethod::AEM_Manual },
+	};
+
+	EAutoExposureMethod ExposureMethod;
+	if (!ResolveOption(ExposureOptions, Args[1], ExposureMethod))
+	{
+		return FExecStatus::Error(FString::Printf(
+			TEXT("Can not support auto exposure mode %s, available options are histogram, basic and manual"),
+			*Args[1]));
+	}
+	FusionCamSensor->SetExposureMethod(ExposureMethod);
+	return FExecStatus::OK();
 }
 
 FExecStatus FCameraHandler::SetLitSource(const TArray<FString>& Args)
 {
-    FExecStatus Status = FExecStatus::InvalidArgument;
-    UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
-    if (!IsValid(FusionCamSensor)) return FExecStatus::InvalidArgument;
-    if (Args.Num() != 2) return FExecStatus::InvalidArgument;
-    FString LitSource = Args[1];
-    if (LitSource.ToLower() == "ftc_hdr")
-    {
-        FusionCamSensor->SetLitCaptureSource(ESceneCaptureSource::SCS_FinalToneCurveHDR);
-        return FExecStatus::OK();
-    }
-    else if (LitSource.ToLower() == "fc_hdr")
-    {
-        FusionCamSensor->SetLitCaptureSource(ESceneCaptureSource::SCS_FinalColorHDR);
-        return FExecStatus::OK();
-    }
-    else if (LitSource.ToLower() == "sc_hdr")
-    {
-        FusionCamSensor->SetLitCaptureSource(ESceneCaptureSource::SCS_SceneColorHDR);
-        return FExecStatus::OK();
-    }
-    else if (LitSource.ToLower() == "scna_hdr")
-    {
-        FusionCamSensor->SetLitCaptureSource(ESceneCaptureSource::SCS_SceneColorHDRNoAlpha);
-        return FExecStatus::OK();
-    }
-    else if (LitSource.ToLower() == "ldr")
-    {
-        FusionCamSensor->SetLitCaptureSource(ESceneCaptureSource::SCS_FinalColorLDR);
-        return FExecStatus::OK();
-    }
-    else if (LitSource.ToLower() == "base")
-    {
-        FusionCamSensor->SetLitCaptureSource(ESceneCaptureSource::SCS_BaseColor);
-        return FExecStatus::OK();
-    }
-    else if (LitSource.ToLower() == "color_depth")
-    {
-        FusionCamSensor->SetLitCaptureSource(ESceneCaptureSource::SCS_SceneDepth);
-        return FExecStatus::OK();
-    }
-    else if (LitSource.ToLower() == "scene_depth")
-    {
-        FusionCamSensor->SetLitCaptureSource(ESceneCaptureSource::SCS_SceneDepth);
-        return FExecStatus::OK();
-    }
-    else if (LitSource.ToLower() == "device_depth")
-    {
-        FusionCamSensor->SetLitCaptureSource(ESceneCaptureSource::SCS_DeviceDepth);
-        return FExecStatus::OK();
-    }
-    else if (LitSource.ToLower() == "normal")
-    {
-        FusionCamSensor->SetLitCaptureSource(ESceneCaptureSource::SCS_Normal);
-        return FExecStatus::OK();
-    }
-    else
-    {
-        FString ErrorMsg = FString::Printf(TEXT("Can not support lit source %s, available options are ftc_hdr, fc_hdr, sc_hdr, scna_hdr, ldr, base, color_depth, scene_depth, device_depth, normal"), *LitSource);
-        return FExecStatus::Error(ErrorMsg);
-    }
+	FExecStatus Status = FExecStatus::InvalidArgument;
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
+	if (!IsValid(FusionCamSensor)) return FExecStatus::InvalidArgument;
+	if (Args.Num() != 2) return FExecStatus::InvalidArgument;
+
+	static const TMap<FString, ESceneCaptureSource> LitSourceOptions = {
+		{ TEXT("ftc_hdr"), ESceneCaptureSource::SCS_FinalToneCurveHDR },
+		{ TEXT("fc_hdr"), ESceneCaptureSource::SCS_FinalColorHDR },
+		{ TEXT("sc_hdr"), ESceneCaptureSource::SCS_SceneColorHDR },
+		{ TEXT("scna_hdr"), ESceneCaptureSource::SCS_SceneColorHDRNoAlpha },
+		{ TEXT("ldr"), ESceneCaptureSource::SCS_FinalColorLDR },
+		{ TEXT("base"), ESceneCaptureSource::SCS_BaseColor },
+		{ TEXT("color_depth"), ESceneCaptureSource::SCS_SceneDepth },
+		{ TEXT("scene_depth"), ESceneCaptureSource::SCS_SceneDepth },
+		{ TEXT("device_depth"), ESceneCaptureSource::SCS_DeviceDepth },
+		{ TEXT("normal"), ESceneCaptureSource::SCS_Normal },
+	};
+
+	ESceneCaptureSource CaptureSource;
+	if (!ResolveOption(LitSourceOptions, Args[1], CaptureSource))
+	{
+		return FExecStatus::Error(FString::Printf(
+			TEXT("Can not support lit source %s, available options are ftc_hdr, fc_hdr, sc_hdr, scna_hdr, ldr, base, color_depth, scene_depth, device_depth, normal"),
+			*Args[1]));
+	}
+	FusionCamSensor->SetLitCaptureSource(CaptureSource);
+	return FExecStatus::OK();
 }
 
 FExecStatus FCameraHandler::SetReflectionMethod(const TArray<FString>& Args)
 {
-    FExecStatus Status = FExecStatus::InvalidArgument;
-    UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
-    if (!IsValid(FusionCamSensor)) return FExecStatus::InvalidArgument;
-    if (Args.Num() != 2) return FExecStatus::InvalidArgument;
-    FString ReflectionMethod = Args[1];
-    if (ReflectionMethod.ToLower() == "none")
-    {
-        FusionCamSensor->SetReflectionMethod(EReflectionMethod::Type::None);
-        return FExecStatus::OK();
-    }
-    else if (ReflectionMethod.ToLower() == "lumen")
-    {
-        FusionCamSensor->SetReflectionMethod(EReflectionMethod::Type::Lumen);
-        return FExecStatus::OK();
-    }
-    else if (ReflectionMethod.ToLower() == "screen_space")
-    {
-        FusionCamSensor->SetReflectionMethod(EReflectionMethod::Type::ScreenSpace);
-        return FExecStatus::OK();
-    }
-    else
-    {
-        FString ErrorMsg = FString::Printf(TEXT("Can not support reflection method %s, available options are none, lumen, screen_space."), *ReflectionMethod);
-        return FExecStatus::Error(ErrorMsg);
-    }
+	FExecStatus Status = FExecStatus::InvalidArgument;
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
+	if (!IsValid(FusionCamSensor)) return FExecStatus::InvalidArgument;
+	if (Args.Num() != 2) return FExecStatus::InvalidArgument;
+
+	static const TMap<FString, EReflectionMethod::Type> ReflectionOptions = {
+		{ TEXT("none"), EReflectionMethod::Type::None },
+		{ TEXT("lumen"), EReflectionMethod::Type::Lumen },
+		{ TEXT("screen_space"), EReflectionMethod::Type::ScreenSpace },
+	};
+
+	EReflectionMethod::Type ReflectionMethod;
+	if (!ResolveOption(ReflectionOptions, Args[1], ReflectionMethod))
+	{
+		return FExecStatus::Error(FString::Printf(
+			TEXT("Can not support reflection method %s, available options are none, lumen, screen_space."),
+			*Args[1]));
+	}
+	FusionCamSensor->SetReflectionMethod(ReflectionMethod);
+	return FExecStatus::OK();
 }
 
 FExecStatus FCameraHandler::SetGlobalIlluminationMethod(const TArray<FString>& Args)
 {
-    FExecStatus Status = FExecStatus::InvalidArgument;
-    UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
-    if (!IsValid(FusionCamSensor)) return FExecStatus::InvalidArgument;
-    if (Args.Num() != 2) return FExecStatus::InvalidArgument;
-    FString IlluminationMethod = Args[1];
-    if (IlluminationMethod.ToLower() == "none")
-    {
-        FusionCamSensor->SetGlobalIlluminationMethod(EDynamicGlobalIlluminationMethod::Type::None);
-        return FExecStatus::OK();
-    }
-    else if (IlluminationMethod.ToLower() == "lumen")
-    {
-        FusionCamSensor->SetGlobalIlluminationMethod(EDynamicGlobalIlluminationMethod::Type::Lumen);
-        return FExecStatus::OK();
-    }
-    else if (IlluminationMethod.ToLower() == "screen_space")
-    {
-        FusionCamSensor->SetGlobalIlluminationMethod(EDynamicGlobalIlluminationMethod::Type::ScreenSpace);
-        return FExecStatus::OK();
-    }
-    else if (IlluminationMethod.ToLower() == "plugin")
-    {
-        FusionCamSensor->SetGlobalIlluminationMethod(EDynamicGlobalIlluminationMethod::Type::Plugin);
-        return FExecStatus::OK();
-    }
-    else
-    {
-        FString ErrorMsg = FString::Printf(TEXT("Can not support global illumination method %s, available options are none, lumen, screen_space, plugin."), *IlluminationMethod);
-        return FExecStatus::Error(ErrorMsg);
-    }
+	FExecStatus Status = FExecStatus::InvalidArgument;
+	UFusionCamSensor* FusionCamSensor = GetCamera(Args, Status);
+	if (!IsValid(FusionCamSensor)) return FExecStatus::InvalidArgument;
+	if (Args.Num() != 2) return FExecStatus::InvalidArgument;
+
+	static const TMap<FString, EDynamicGlobalIlluminationMethod::Type> IlluminationOptions = {
+		{ TEXT("none"), EDynamicGlobalIlluminationMethod::Type::None },
+		{ TEXT("lumen"), EDynamicGlobalIlluminationMethod::Type::Lumen },
+		{ TEXT("screen_space"), EDynamicGlobalIlluminationMethod::Type::ScreenSpace },
+		{ TEXT("plugin"), EDynamicGlobalIlluminationMethod::Type::Plugin },
+	};
+
+	EDynamicGlobalIlluminationMethod::Type IlluminationMethod;
+	if (!ResolveOption(IlluminationOptions, Args[1], IlluminationMethod))
+	{
+		return FExecStatus::Error(FString::Printf(
+			TEXT("Can not support global illumination method %s, available options are none, lumen, screen_space, plugin."),
+			*Args[1]));
+	}
+	FusionCamSensor->SetGlobalIlluminationMethod(IlluminationMethod);
+	return FExecStatus::OK();
 }
 
 FExecStatus FCameraHandler::SetExposureBias(const TArray<FString>& Args)

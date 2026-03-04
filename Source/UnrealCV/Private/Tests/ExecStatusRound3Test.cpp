@@ -1,6 +1,9 @@
 // Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #include "Misc/AutomationTest.h"
 #include "ExecStatus.h"
+#include <string>
+
+#if WITH_AUTOMATION_WORKER
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
     FExecStatusSentinelCopyTest,
@@ -60,3 +63,5 @@ bool FExecStatusGetDataOKTest::RunTest(const FString& Parameters)
     TestEqual(TEXT("OK with message serialises correctly"), Str2, TEXT("hello"));
     return true;
 }
+
+#endif // WITH_AUTOMATION_WORKER

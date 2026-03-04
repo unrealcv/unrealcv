@@ -36,6 +36,10 @@ bool operator!=(const FExecStatus& ExecStatus, EExecStatusType ExecStatusType)
 
 FExecStatus& FExecStatus::operator+=(const FExecStatus& Src)
 {
+	if (Src.GetStatusType() == EExecStatusType::Error)
+	{
+		ExecStatusType = EExecStatusType::Error;
+	}
 	BinaryData += Src.BinaryData;
 	if (!MessageBody.IsEmpty())
 	{
