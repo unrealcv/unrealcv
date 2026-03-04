@@ -32,8 +32,9 @@ def test_decode_bmp_raises_when_opencv_cannot_decode(monkeypatch):
     with pytest.raises(ValueError, match="Failed to decode image data"):
         decoder.decode_bmp(b"invalid-image-bytes")
 
-
     # UnrealCv_API behavior locks
+
+
 def test_batch_cmd_decodes_each_response_with_kwargs(dummy_client_factory, api_factory):
     client = dummy_client_factory([["1 2 3", "4 5 6"]])
     api = api_factory(client)
@@ -260,8 +261,9 @@ def test_client_request_list_delegates_to_request_batch(monkeypatch):
 
 
 @pytest.mark.parametrize(
-    "message,expected_attr", [("cmd", "single"), (["cmd1", "cmd2"], "batch")]
-    ,ids=["single-async", "batch-async"]
+    "message,expected_attr",
+    [("cmd", "single"), (["cmd1", "cmd2"], "batch")],
+    ids=["single-async", "batch-async"],
 )
 def test_client_request_async_routes_to_expected_path(
     monkeypatch, message, expected_attr
