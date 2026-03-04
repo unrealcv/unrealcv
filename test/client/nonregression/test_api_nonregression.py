@@ -2,6 +2,10 @@ import numpy as np
 import pytest
 
 
+def _assert_plain_request_calls(client, commands):
+    assert client.calls == [(command, ()) for command in commands]
+
+
 def test_batch_cmd_decodes_each_response_with_kwargs(dummy_client_factory, api_factory):
     client = dummy_client_factory([["1 2 3", "4 5 6"]])
     api = api_factory(client)
@@ -64,7 +68,7 @@ def test_get_image_non_depth_requests_and_decodes(
     result = api.get_image(cam_id=1, viewmode="lit", mode="png", inverse=True)
 
     assert result == "decoded-image"
-    assert client.calls == [("vget /camera/1/lit png", ())]
+    _assert_plain_request_calls(client, ["vget /camera/1/lit png"])
     assert captured == {"res": b"raw-image", "mode": "png", "inverse": True}
 
 
@@ -151,10 +155,10 @@ def test_save_image_issues_same_command_twice_and_returns_second_response(
     result = api.save_image(0, "lit", "frame.png")
 
     assert result == "/tmp/out.png"
-    assert client.calls == [
-        ("vget /camera/0/lit frame.png", ()),
-        ("vget /camera/0/lit frame.png", ()),
-    ]
+    _assert_plain_request_calls(
+        client,
+        ["vget /camera/0/lit frame.png", "vget /camera/0/lit frame.png"],
+    )
 
 
 def test_get_cam_pose_soft_mode_mutates_cached_location_list(api_factory):
