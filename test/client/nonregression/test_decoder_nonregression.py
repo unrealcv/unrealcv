@@ -16,6 +16,10 @@ def _assert_single_pixel(image, expected):
     np.testing.assert_array_equal(image[0, 0], np.array(expected, dtype=np.uint8))
 
 
+def _patch_imdecode(monkeypatch, array):
+    monkeypatch.setattr("unrealcv.api.cv2.imdecode", lambda *_args, **_kwargs: array)
+
+
 @pytest.mark.parametrize(
     "cmd,expected",
     [
@@ -66,7 +70,7 @@ def test_decode_npy_shape_contract(decoder, make_npy_bytes, array, expected_shap
 
 def test_decode_bmp_strips_alpha_channel(monkeypatch, decoder):
     bgra = np.array([[[1, 2, 3, 255]]], dtype=np.uint8)
-    monkeypatch.setattr("unrealcv.api.cv2.imdecode", lambda *_args, **_kwargs: bgra)
+    _patch_imdecode(monkeypatch, bgra)
 
     decoded = decoder.decode_bmp(b"bmp-bytes")
 
@@ -75,7 +79,7 @@ def test_decode_bmp_strips_alpha_channel(monkeypatch, decoder):
 
 def test_decode_bmp_keeps_grayscale_shape(monkeypatch, decoder):
     gray = np.array([[7]], dtype=np.uint8)
-    monkeypatch.setattr("unrealcv.api.cv2.imdecode", lambda *_args, **_kwargs: gray)
+    _patch_imdecode(monkeypatch, gray)
 
     decoded = decoder.decode_bmp(b"bmp-bytes")
 
