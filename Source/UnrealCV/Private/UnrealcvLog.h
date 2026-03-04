@@ -1,24 +1,33 @@
-// Weichao Qiu @ 2018
+// Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #pragma once
+
 #include "Runtime/Core/Public/Logging/LogMacros.h"
+
 DECLARE_LOG_CATEGORY_EXTERN(LogUnrealCV, Log, All);
 
-/** Log the message to the screen */
-void ScreenLog(const FString& Message);
-
+/**
+ * Utility logger that suppresses duplicate messages
+ * and optionally renders to the player viewport.
+ */
 class FUnrealcvLogger
 {
-	TArray<FString> ErrorList;
-
 public:
-	/** Once print log in the console once
-	 * Avoid flooding the console output */
+	/** Print a warning only once per unique message. */
 	void LogOnce(const FString& LogMessage);
 
-	/** Log the message to the player viewport to make it more verbose */
+	/** Display a message on the player viewport. */
 	void ScreenLog(const FString& LogMessage);
+
+private:
+	TSet<FString> SeenMessages;
 };
 
-static FUnrealcvLogger GLogger;
-#define LOG1(x) GLogger.LogOnce(x)
-#define LOGV(x) GLogger.ScreenLog(x)
+/** Global logger instance (header-only singletons are fine for a plugin). */
+inline FUnrealcvLogger& GetUnrealcvLogger()
+{
+	static FUnrealcvLogger Instance;
+	return Instance;
+}
+
+#define UCV_LOG_ONCE(Msg) GetUnrealcvLogger().LogOnce(Msg)
+#define UCV_SCREEN_LOG(Msg) GetUnrealcvLogger().ScreenLog(Msg)

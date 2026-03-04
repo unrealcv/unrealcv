@@ -1,93 +1,85 @@
+// Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #pragma once
 
 #include "CoreMinimal.h"
 
 class FExecStatus;
-DECLARE_DELEGATE_RetVal(FExecStatus, FPromiseDelegate); // Check task status
+DECLARE_DELEGATE_RetVal(FExecStatus, FPromiseDelegate);
 
 /**
- * Return by async task, used to check status to see whether the task is finished.
+ * Returned by async tasks. Call CheckStatus() to poll whether the task has completed.
  */
 class UNREALCV_API FPromise
 {
-private:
-	/** The method to check whether this promise is alreay completed */
-	FPromiseDelegate PromiseDelegate;
 public:
-	bool bIsValid;
+	bool bIsValid = false;
 	FDateTime InitTime;
-	FPromise() { bIsValid = false; }
-	FPromise(FPromiseDelegate InPromiseDelegate) : PromiseDelegate(InPromiseDelegate)
-	{
-		bIsValid = true;
-		InitTime = FDateTime::Now();
-	}
-	/** Use PromiseDelegate to check whether the task already completed */
-	FExecStatus CheckStatus();
-	float GetRunningTime()
-	{
-		FTimespan Elapsed = FDateTime::Now() - InitTime;
-		return Elapsed.GetTotalSeconds();
-	}
-};
 
-enum FExecStatusType
-{
-	OK,
-	ErrorMsg,
+	FPromise() = default;
+
+	explicit FPromise(FPromiseDelegate InPromiseDelegate)
+		: bIsValid(true)
+		, InitTime(FDateTime::Now())
+		, PromiseDelegate(MoveTemp(InPromiseDelegate))
+	{
+	}
+
+	FExecStatus CheckStatus();
+
+	float GetRunningTime() const
+	{
+		const FTimespan Elapsed = FDateTime::Now() - InitTime;
+		return static_cast<float>(Elapsed.GetTotalSeconds());
+	}
+
+private:
+	FPromiseDelegate PromiseDelegate;
 };
 
 /**
- * Present the return value of a command. If the FExecStatusType is pending, check the promise value.
+ * Strongly-typed status codes for command execution results.
+ */
+enum class EExecStatusType : uint8
+{
+	OK,
+	Error,
+};
+
+/**
+ * Represents the return value of a command execution.
  */
 class UNREALCV_API FExecStatus
 {
 public:
-	// Define some typical FExecStatus for convinience
-	/** OK : Message */
-	static FExecStatus OK(FString Message="");
-	/** Error : ErrorMessage */
-	static FExecStatus Error(FString ErrorMessage);
-	/** Error : Argument Invalid */
-	static FExecStatus InvalidArgument;
-	/** Error : Not implemented */
-	static FExecStatus NotImplemented;
-	/** Error : Invalid Pointer */
-	static FExecStatus InvalidPointer;
-	/** Binary : A binary array */
+	static FExecStatus OK(const FString& Message = TEXT(""));
+	static FExecStatus Error(const FString& ErrorMessage);
 	static FExecStatus Binary(TArray<uint8>& InBinaryData);
 
-	/** The message body of this ExecStatus, the full message will also include the ExecStatusType */
-	FString MessageBody;
-	/** An enum type to show the ExecStatus */
-	FExecStatusType ExecStatusType;
+	static FExecStatus InvalidArgument;
+	static FExecStatus NotImplemented;
+	static FExecStatus InvalidPointer;
 
-	~FExecStatus();
-	/** Convert this ExecStatus to String */
 	FString GetMessage() const;
-
-	/** Convert this ExecStatus to a binary array */
 	TArray<uint8> GetData() const;
+	FPromise& GetPromise() { return Promise; }
 
-	/** Add this FExecStatus with other FExecStatus, useful for executing a few commands at the same time */
 	FExecStatus& operator+=(const FExecStatus& InExecStatus);
 
-	/** Return the promise of this FExecStatus, will only be set if the status is pending */
-	FPromise& GetPromise();
-
-	/** Convert string to binary array */
 	static void BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray);
+
+	~FExecStatus() = default;
+
+	FString MessageBody;
+	EExecStatusType ExecStatusType = EExecStatusType::OK;
+
 private:
-	/** The promise to check result, only useful for async tasks */
+	FExecStatus(EExecStatusType InExecStatusType, const FString& Message);
+	FExecStatus(EExecStatusType InExecStatusType, FPromise InPromise);
+	FExecStatus(EExecStatusType InExecStatusType, TArray<uint8>& InBinaryData);
+
 	FPromise Promise;
-	FExecStatus(FExecStatusType InExecStatusType, FString Message);
-	// For query
-	FExecStatus(FExecStatusType InExecStatusType, FPromise Promise);
-	/** Construct from binary data */
-	FExecStatus(FExecStatusType InExecStatusType, TArray<uint8>& InBinaryData);
-	/** Binary data */
 	TArray<uint8> BinaryData;
 };
 
-bool operator==(const FExecStatus& ExecStatus, const FExecStatusType& ExecStatusEnum);
-bool operator!=(const FExecStatus& ExecStatus, const FExecStatusType& ExecStatusEnum);
+bool operator==(const FExecStatus& ExecStatus, EExecStatusType ExecStatusEnum);
+bool operator!=(const FExecStatus& ExecStatus, EExecStatusType ExecStatusEnum);
