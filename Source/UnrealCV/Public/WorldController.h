@@ -32,5 +32,5 @@ public:
 
 	void AttachPawnSensor();
 
-	void Tick(float DeltaTime);
+	virtual void Tick(float DeltaTime) override;
 };

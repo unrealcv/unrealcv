@@ -46,10 +46,10 @@ UFusionCamSensor::UFusionCamSensor(const FObjectInitializer& ObjectInitializer)
 	FusionSensors.Add(FlowCamSensor);
 
 	// The config loading code should not be placed into the ctor, otherwise it will break the copy behavior
-	FServerConfig& Config = FUnrealcvServer::Get().Config;
+	const FServerConfig& Config = FUnrealcvServer::Get().GetConfig();
 	FilmWidth = Config.Width == 0 ? 640 : Config.Width;
 	FilmHeight = Config.Height == 0 ? 480 : Config.Height;
-	FOV = Config.FOV == 0 ? 90 : Config.FOV; 
+	FOV = Config.FOV == 0 ? 90 : Config.FOV;
 	// Note: If FOV == 0, the render will give FMod assert error.
 	// Need to call update functions after copy operator (in BeginPlay), here just sets value
 
@@ -85,14 +85,14 @@ void UFusionCamSensor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// LogOutputDevice: Error: Ensure condition failed: false  [File:D:\build\++UE5\Sync\Engine\Source\Runtime\Engine\Private\Components\SceneComponent.cpp] [Line: 2104] 
+	// LogOutputDevice: Error: Ensure condition failed: false  [File:D:\build\++UE5\Sync\Engine\Source\Runtime\Engine\Private\Components\SceneComponent.cpp] [Line: 2104]
 	// LogOutputDevice: Error: Template Mismatch during attachment. Attaching instanced component to template component. Parent 'FusionCamSensor_GEN_VARIABLE' (Owner 'None') Self 'FusionCamSensor_GEN_VARIABLE_FlowCamSensor' (Owner 'BP_Drone01_C_1').
 	// So we have to attach FlowCamSensor after the actor is spawned, in BeginPlay.
 	// If we put this in the ctor, I think all the blueprints have to be rebuild to fix this bug.
 	// Howerver, because we put the AttachToComponent here, we can no longger use editor to adjust the FlowCam transform in blueprint.
 	if (IsValid(FlowCamSensor))
 	{
-		// Ensure condition failed: !bRegistered  [File:D:\build\++UE5\Sync\Engine\Source\Runtime\Engine\Private\Components\SceneComponent.cpp] [Line: 1958] 
+		// Ensure condition failed: !bRegistered  [File:D:\build\++UE5\Sync\Engine\Source\Runtime\Engine\Private\Components\SceneComponent.cpp] [Line: 1958]
 		// SetupAttachment should only be used to initialize AttachParent and AttachSocketName for a future AttachToComponent. Once a component is registered you must use AttachToComponent. Owner [/Game/SuburbNeighborhoodHousePack/Maps/SuburbNeighborhood_Day.SuburbNeighborhood_Day:PersistentLevel.BP_Character_C_1], InParent [FusionCamSensor], InSocketName [None]
 		// FlowCamSensor->SetupAttachment(this);
 
@@ -102,7 +102,7 @@ void UFusionCamSensor::BeginPlay()
 		// const FTransform LitRelativeTransform = LitCamSensor->GetRelativeTransform();
 		// FlowCamSensor->SetRelativeTransform(LitRelativeTransform);
 	}
-	else 
+	else
 	{
 		UE_LOG(LogUnrealCV, Error, TEXT("FlowCamSensor is not initialized. Flow data will be empty."));
 	}
@@ -239,7 +239,7 @@ void UFusionCamSensor::SetFilmSize(int Width, int Height)
 
 float UFusionCamSensor::GetSensorFOV()
 {
-	return this->LitCamSensor->GetFOV(); 
+	return this->LitCamSensor->GetFOV();
 }
 
 void UFusionCamSensor::SetSensorFOV(float fov)

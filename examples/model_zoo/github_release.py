@@ -4,9 +4,9 @@ import os, json, zipfile
 def main():
     platform_name = get_platform_name()
 
-    ue4_win = r"C:\Program Files\Epic Games\UE_4.16"
-    ue4_linux = "/home/qiuwch/workspace/UE416"
-    ue4_mac = '/Users/Shared/Epic Games/UE_4.16'
+    ue4_win = os.getenv('UE4_WIN', r"C:\Program Files\Epic Games\UE_4.16")
+    ue4_linux = os.getenv('UE4_LINUX', "/home/qiuwch/workspace/UE416")
+    ue4_mac = os.getenv('UE4_MAC', '/Users/Shared/Epic Games/UE_4.16')
 
     ue4 = dict(Win64 = ue4_win, Linux = ue4_linux, Mac = ue4_mac)
     ue4_path = ue4.get(platform_name)

@@ -1,15 +1,16 @@
 // Weichao Qiu @ 2017
 #include "VisionBPLib.h"
-#include "Runtime/Engine/Public/Rendering/SkeletalMeshLODRenderData.h"
-#include "Runtime/Engine/Public/Rendering/SkeletalMeshRenderData.h"
-#include "Runtime/Engine/Classes/Engine/StaticMesh.h"
-#include "Runtime/Engine/Public/SkeletalRenderPublic.h"
-#include "Runtime/Launch/Resources/Version.h"
-#include "Runtime/Core/Public/Misc/FileHelper.h"
-#include "Runtime/Engine/Classes/GameFramework/Pawn.h"
+#include "Rendering/SkeletalMeshLODRenderData.h"
+#include "Rendering/SkeletalMeshRenderData.h"
+#include "Engine/StaticMesh.h"
+#include "SkeletalRenderPublic.h"
+#include "Misc/FileHelper.h"
+#include "GameFramework/Pawn.h"
+#include "EngineUtils.h"
 
 #include "ImageUtil.h"
 #include "UnrealcvServer.h"
+#include "UnixTcpServer.h"
 #include "Serialization.h"
 #include "VertexSensor.h"
 #include "BoneSensor.h"
@@ -103,7 +104,7 @@ bool UVisionBPLib::AppendData(const FString& Data, const FString& Filename)
 
 bool UVisionBPLib::SendMessageBP(const FString& Message)
 {
-	FUnrealcvServer::Get().TcpServer->SendMessage(Message);
+	FUnrealcvServer::Get().GetTcpServer()->SendMessage(Message);
 	return true;
 }
 
@@ -176,9 +177,9 @@ void UVisionBPLib::GetBoneTransformJson(
 {
 	TArray<FTransform> BoneTransforms;
 	GetBoneTransform(
-		SkeletalMeshComponent, 
-		IncludedBones, 
-		BoneNames, 
+		SkeletalMeshComponent,
+		IncludedBones,
+		BoneNames,
 		BoneTransforms,
 		bWorldSpace
 	);
@@ -206,7 +207,11 @@ void UVisionBPLib::UpdateInput(APawn* Pawn, bool Enable)
 	if (!World) return;
 
 	APlayerController* PlayerController = World->GetFirstPlayerController();
-	check(PlayerController);
+	if (!IsValid(PlayerController))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Can not update Pawn input, invalid player controller"));
+		return;
+	}
 	if (Enable)
 	{
 		UE_LOG(LogUnrealCV, Log, TEXT("Enabling input"));
@@ -221,28 +226,20 @@ void UVisionBPLib::UpdateInput(APawn* Pawn, bool Enable)
 
 void UVisionBPLib::GetActorList(TArray<AActor*>& ActorList)
 {
-	TArray<UObject*> UObjectList;
-	bool bIncludeDerivedClasses = true;
-	EObjectFlags ExclusionFlags = EObjectFlags::RF_ClassDefaultObject;
-	#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 4
-        EInternalObjectFlags ExclusionInternalFlags = EInternalObjectFlags_AllFlags;
-    #else
-        EInternalObjectFlags ExclusionInternalFlags = EInternalObjectFlags::AllFlags;
-    #endif
-	// EInternalObjectFlags ExclusionInternalFlags = EInternalObjectFlags::AllFlags;
-	GetObjectsOfClass(AActor::StaticClass(), UObjectList, bIncludeDerivedClasses, ExclusionFlags);
+	UWorld* World = FUnrealcvServer::Get().GetWorld();
+	if (!IsValid(World)) { return; }
 
-	for (UObject* ActorObject : UObjectList)
+	for (TActorIterator<AActor> It(World); It; ++It)
 	{
-		AActor* Actor = Cast<AActor>(ActorObject);
-		if (Actor->GetWorld() != FUnrealcvServer::Get().GetWorld()) continue;
+		AActor* Actor = *It;
+		if (!IsValid(Actor)) { continue; }
 		ActorList.AddUnique(Actor);
 	}
 }
 
 void UVisionBPLib::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor)
 {
-	AUnrealcvWorldController* WorldController = FUnrealcvServer::Get().WorldController.Get();
+	AUnrealcvWorldController* WorldController = FUnrealcvServer::Get().GetWorldController().Get();
 	if (IsValid(WorldController))
 	{
 		WorldController->ObjectAnnotator.GetAnnotationColor(Actor, AnnotationColor);
@@ -252,7 +249,7 @@ void UVisionBPLib::GetAnnotationColor(AActor* Actor, FColor& AnnotationColor)
 /*
 void UVisionBPLib::AnnotateWorld()
 {
-	AUnrealcvWorldController* WorldController = FUnrealcvServer::Get().WorldController.Get();
+	AUnrealcvWorldController* WorldController = FUnrealcvServer::Get().GetWorldController().Get();
 	if (IsValid(WorldController))
 	{
 		WorldController->ObjectAnnotator.AnnotateWorld(FUnrealcvServer::Get().GetWorld());
@@ -365,7 +362,12 @@ UFusionCamSensor* UVisionBPLib::GetPlayerSensor()
 
 void UVisionBPLib::AnnotateWorld()
 {
-	FUnrealcvServer::Get().WorldController->ObjectAnnotator.AnnotateWorld(GWorld);
+	const auto WorldCtrl = FUnrealcvServer::Get().GetWorldController();
+	UWorld* World = FUnrealcvServer::Get().GetWorld();
+	if (WorldCtrl.IsValid() && IsValid(World))
+	{
+		WorldCtrl->ObjectAnnotator.AnnotateWorld(World);
+	}
 }
 
 //this is how you can make cpp only internal functions!
@@ -419,10 +421,9 @@ UTexture2D* UVisionBPLib::LoadTexture2D_FromFile(const FString& FullFilePath, EJ
 
 			//Update!
 			LoadedT2D->UpdateResource();
+			IsValid = true;
 		}
 	}
 
-	// Success!
-	IsValid = true;
 	return LoadedT2D;
 }

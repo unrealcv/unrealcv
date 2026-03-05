@@ -111,7 +111,7 @@ class UE4Automation:
         Parameters
         ----------
         project_descriptor : str
-            UE4 project file name ends with *.uproject
+            UE4 project file name ending with ``.uproject``.
         overwrite : bool
             Overwrite existing files
         '''
@@ -203,14 +203,18 @@ import time, os
 # The environment runner
 class UE4BinaryBase(object):
     '''
-    UE4BinaryBase is the base class for all platform-dependent classes, it is different from UE4Binary which serves as a factory to create a platform-dependent binary wrapper. User should use UE4Binary instead of UE4BinaryBase
+    Base class for platform-dependent UE4 binary wrappers.
 
-    Binary is a python wrapper to control the start and stop of a UE4 binary.
-    The wrapper provides simple features to start and stop the binary, mainly useful for automate the testing.
+    Use ``UE4Binary`` as the public factory instead of instantiating this class directly.
 
-    Usage:
-        bin = UE4Binary('/tmp/RealisticRendering/RealisticRendering')
-        with bin:
+    Binary is a Python wrapper to control the start and stop of a UE4 binary.
+    The wrapper provides simple features to start and stop the binary, mainly useful
+    for automated testing.
+
+    Usage::
+
+        binary = UE4Binary('/tmp/RealisticRendering/RealisticRendering')
+        with binary:
             client.request('vget /camera/0/lit test.png')
     '''
     def __init__(self, binary_path):

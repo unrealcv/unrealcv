@@ -119,8 +119,9 @@ vget /object/[obj_name]/mobility
 
 vset /objects/spawn [class_name] [obj_name]
     (v0.4.0) Spawn an object with class name and object name. It can also be used to create a new camera, for example:
-- :code:`vset /objects/spawn FusionCameraActor Cam_1` - create a new camera named Cam_1
-- :code:`vset /objects/spawn StereoCameraActor StereoCam_1` - create a new stereo camera named StereoCam_1
+
+    - :code:`vset /objects/spawn FusionCameraActor Cam_1` - create a new camera named Cam_1
+    - :code:`vset /objects/spawn StereoCameraActor StereoCam_1` - create a new stereo camera named StereoCam_1
 
 vset /object/[obj_name]/destroy
     (v0.4.0) Destroy object

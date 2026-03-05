@@ -28,12 +28,12 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.extlinks',
     # support markdown
-    'recommonmark',
+    'myst_parser',
 ]
 
 extlinks = {
-    'bin': ('http://cs.jhu.edu/~qiuwch/release/unrealcv/%s', None),
-    'gitcode': ('https://github.com/unrealcv/unrealcv/blob/master/%s', "%s")
+    'bin': ('http://cs.jhu.edu/~qiuwch/release/unrealcv/%s', '%s'),
+    'gitcode': ('https://github.com/unrealcv/unrealcv/blob/master/%s', '%s')
 }
 
 # Github repo
@@ -42,9 +42,7 @@ issues_github_path = 'unrealcv/unrealcv'
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
-source_parsers = {
-   '.md': 'recommonmark.parser.CommonMarkParser',
-} # Markdown support
+# Markdown support via myst-parser (no source_parsers needed)
 
 source_suffix = ['.rst', '.md']
 # source_suffix = '.rst'
@@ -56,7 +54,7 @@ master_doc = 'contents'
 
 # General information about the project.
 project = 'UnrealCV'
-copyright = '2017, UnrealCV team'
+copyright = '2017-2026, UnrealCV team'
 author = 'UnrealCV contributors'
 
 def parse_unrealcv_version(unrealcv_folder):

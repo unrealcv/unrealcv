@@ -9,11 +9,16 @@
 #include "Runtime/Launch/Resources/Version.h"
 #include "Runtime/Engine/Public/MaterialShared.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
+#include "SceneView.h"
 
 #if ENGINE_MAJOR_VERSION >= 5
 //different header files in UE
 #include "Runtime/Engine/Public/StaticMeshSceneProxy.h"
 #include "Runtime/Engine/Public/SkeletalMeshSceneProxy.h"
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7
+// Required for UE 5.7+ where SceneView is no longer implicitly included
+#include "Runtime/Engine/Public/SceneView.h"
+#endif
 
 #endif
 #include "Runtime/Engine/Public/Rendering/SkeletalMeshRenderData.h"
@@ -42,7 +47,7 @@ public:
 		ParentMeshType = EParentMeshType::None;
 
 		if (!IsValid(ParentComponent))
-		{ 
+		{
 			UE_LOG(LogTemp, Warning, TEXT("ParentComponent is invalid."));
 			return;
 		}
@@ -165,7 +170,7 @@ FPrimitiveViewRelevance FStaticAnnotationSceneProxy::GetViewRelevance(const FSce
 	if (View->Family->EngineShowFlags.Materials)
 	{
 		FPrimitiveViewRelevance ViewRelevance;
-		ViewRelevance.bDrawRelevance = 0; 
+		ViewRelevance.bDrawRelevance = 0;
 		// This will make the AnnotationComponent gets ignored if the Materials flag is on
 		// Which means it won't affect regulary rendering.
 		return ViewRelevance;
@@ -306,7 +311,7 @@ void UAnnotationComponent::OnRegister()
 	// ParentMeshInfo = MakeShareable(new FParentMeshInfo(this->GetAttachParent()));
 }
 
-/** 
+/**
  * Note: The "exposure compensation" in "PostProcessVolume3" in the RR map will destroy the color
  * Saturate the color to 1. This is a mysterious behavior after tedious debug.
  */
@@ -379,7 +384,7 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy(USkeletalMeshCompon
 	}
 	else
 	{
-		LOG1(FString::Printf(TEXT("The data of SkeletalMeshComponent %s is invalid."), *SkeletalMeshComponent->GetName()));
+		UE_LOG(LogTemp, Warning, TEXT("The data of SkeletalMeshComponent %s is invalid."), *SkeletalMeshComponent->GetName());
 		return nullptr;
 	}
 }
@@ -420,7 +425,7 @@ FPrimitiveSceneProxy* UAnnotationComponent::CreateSceneProxy()
 	// }
 	else
 	{
-		LOG1(FString::Printf(TEXT("The type of ParentMeshComponent : %s can not be supported."), *ParentComponent->GetClass()->GetName()));
+		UE_LOG(LogTemp, Warning, TEXT("The type of ParentMeshComponent : %s can not be supported."), *ParentComponent->GetClass()->GetName());
 		return nullptr;
 	}
 	// return nullptr;
@@ -462,14 +467,14 @@ void UAnnotationComponent::TickComponent(
 	enum ELevelTick TickType,
 	FActorComponentTickFunction * ThisTickFunction)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction); 
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	if (bSkeletalMesh)
 	{
 		MarkRenderStateDirty(); // Without it will break the SkeletalMeshComponent
 	}
 	/*
-	// if (ParentMeshInfo->RequiresUpdate()) 
+	// if (ParentMeshInfo->RequiresUpdate())
 	// TODO: This sometimes miss a required update, see OWIMap. Not sure why.
 	// TODO: Per-frame update is certainly wasted.
 	{

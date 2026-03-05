@@ -10,47 +10,72 @@ FActorController::FActorController(AActor* InActor)
 
 FVector FActorController::GetLocation()
 {
-	return Actor->GetActorLocation();
+	AActor* ResolvedActor = Actor.Get();
+	if (!IsValid(ResolvedActor)) { return FVector::ZeroVector; }
+	return ResolvedActor->GetActorLocation();
 }
 
 void FActorController::SetLocation(FVector Location)
 {
-	Actor->SetActorLocation(Location, false, nullptr, ETeleportType::TeleportPhysics);
+	AActor* ResolvedActor = Actor.Get();
+	if (!IsValid(ResolvedActor)) { return; }
+	ResolvedActor->SetActorLocation(Location, false, nullptr, ETeleportType::TeleportPhysics);
 }
 
 FRotator FActorController::GetRotation()
 {
-	return Actor->GetActorRotation();
+	AActor* ResolvedActor = Actor.Get();
+	if (!IsValid(ResolvedActor)) { return FRotator::ZeroRotator; }
+	return ResolvedActor->GetActorRotation();
 }
 
 void FActorController::SetRotation(FRotator Rotator)
 {
-	Actor->SetActorRotation(Rotator);
+	AActor* ResolvedActor = Actor.Get();
+	if (!IsValid(ResolvedActor)) { return; }
+	ResolvedActor->SetActorRotation(Rotator);
 }
 
 EComponentMobility::Type FActorController::GetMobility()
 {
-	return Actor->GetRootComponent()->Mobility.GetValue();
+	AActor* ResolvedActor = Actor.Get();
+	if (!IsValid(ResolvedActor) || !IsValid(ResolvedActor->GetRootComponent()))
+	{
+		return EComponentMobility::Static;
+	}
+	return ResolvedActor->GetRootComponent()->Mobility.GetValue();
 }
 
 void FActorController::Show()
 {
-	Actor->SetActorHiddenInGame(false);
+	AActor* ResolvedActor = Actor.Get();
+	if (!IsValid(ResolvedActor)) { return; }
+	ResolvedActor->SetActorHiddenInGame(false);
 }
 
 void FActorController::Hide()
 {
-	Actor->SetActorHiddenInGame(true);
+	AActor* ResolvedActor = Actor.Get();
+	if (!IsValid(ResolvedActor)) { return; }
+	ResolvedActor->SetActorHiddenInGame(true);
 }
 
 void FActorController::GetAnnotationColor(FColor& AnnotationColor)
 {
-	FObjectAnnotator& Annotator = FUnrealcvServer::Get().WorldController->ObjectAnnotator;
-	Annotator.GetAnnotationColor(Actor, AnnotationColor);
+	AActor* ResolvedActor = Actor.Get();
+	if (!IsValid(ResolvedActor)) { return; }
+	const auto WorldCtrl = FUnrealcvServer::Get().GetWorldController();
+	if (!WorldCtrl.IsValid()) { return; }
+	FObjectAnnotator& Annotator = WorldCtrl->ObjectAnnotator;
+	Annotator.GetAnnotationColor(ResolvedActor, AnnotationColor);
 }
 
 void FActorController::SetAnnotationColor(const FColor& AnnotationColor)
 {
-	FObjectAnnotator& Annotator = FUnrealcvServer::Get().WorldController->ObjectAnnotator;
-	Annotator.SetAnnotationColor(Actor, AnnotationColor);
+	AActor* ResolvedActor = Actor.Get();
+	if (!IsValid(ResolvedActor)) { return; }
+	const auto WorldCtrl = FUnrealcvServer::Get().GetWorldController();
+	if (!WorldCtrl.IsValid()) { return; }
+	FObjectAnnotator& Annotator = WorldCtrl->ObjectAnnotator;
+	Annotator.SetAnnotationColor(ResolvedActor, AnnotationColor);
 }

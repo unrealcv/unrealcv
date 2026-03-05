@@ -11,21 +11,24 @@ The module supports both local and containerized environments across Windows, Li
 Example:
     >>> from unrealcv.launcher import RunUnreal
     >>> from unrealcv.api import UnrealCv_API
-    >>> 
+    >>>
     >>> # Launch local environment
     >>> launcher = RunUnreal('path/to/UnrealBinary')
     >>> ip, port = launcher.start()
-    >>> 
+    >>>
     >>> # Connect API
     >>> api = UnrealCv_API(port, ip, resolution=(640, 480))
-    >>> 
+    >>>
     >>> # Use environment...
-    >>> 
+    >>>
     >>> # Cleanup when finished
     >>> api.client.disconnect()
     >>> launcher.close()
 """
+
 import getpass
+import logging
+import shlex
 import subprocess
 import atexit
 import os
@@ -35,8 +38,10 @@ import sys
 import warnings
 from unrealcv.util import get_path2UnrealEnv
 
+_L = logging.getLogger(__name__)
 
-class RunUnreal():
+
+class RunUnreal:
     """
     Launches and manages Unreal Engine environments with UnrealCV support.
 
@@ -54,54 +59,89 @@ class RunUnreal():
     Example:
         >>> from unrealcv.launcher import RunUnreal
         >>> from unrealcv.api import UnrealCv_API
-        >>> 
+        >>>
         >>> # Launch a local Unreal environment
         >>> launcher = RunUnreal('path/to/UnrealBinary')
         >>> ip, port = launcher.start()  # Launch with default settings
-        >>> 
+        >>>
         >>> # Launch headless on GPU 1 with custom resolution
-        >>> ip, port = launcher.start(offscreen=True, 
+        >>> ip, port = launcher.start(offscreen=True,
         ...                          gpu_id=1,
         ...                          resolution=(640, 480))
-        >>> 
+        >>>
         >>> # Connect to environment with UnrealCV API
         >>> unrealcv = UnrealCv_API(port, ip, resolution=(640, 480))
-        >>> 
+        >>>
         >>> # Use the UnrealCV API...
-        >>> 
+        >>>
         >>> # Cleanup
         >>> unrealcv.client.disconnect()
         >>> launcher.close()
     """
+
     def __init__(self, ENV_BIN, ENV_MAP=None):
 
-
         if os.path.isabs(ENV_BIN):
-
             self.path2binary = os.path.abspath(ENV_BIN)
             self.path2env, self.env_bin = self.parse_path(ENV_BIN)
         else:
-            self.path2env = get_path2UnrealEnv()  # get the path to UnrealEnv in gym-unrealcv
+            self.path2env = (
+                get_path2UnrealEnv()
+            )  # get the path to UnrealEnv in gym-unrealcv
             self.env_bin = ENV_BIN
-            self.path2binary = os.path.abspath(os.path.join(self.path2env, self.env_bin))
+            self.path2binary = os.path.abspath(
+                os.path.join(self.path2env, self.env_bin)
+            )
         self.env_map = ENV_MAP
 
-        if 'darwin' in sys.platform:
-            env_bin_name = self.env_bin.split('/')[1].split('.')[0]
-            if os.path.exists(os.path.join(self.path2binary, 'Contents/UE4')): #for mac UE4 binary
-                self.path2unrealcv = os.path.join(self.path2binary, 'Contents/UE4', env_bin_name, 'Binaries/Mac/unrealcv.ini')
-                self.path2binary = os.path.join(self.path2binary, 'Contents/MacOS', env_bin_name)
-            elif os.path.exists(os.path.join(self.path2binary, 'Contents/UE')): #for mac UE5 binary
-                self.path2unrealcv = os.path.join(self.path2binary, 'Contents/UE', env_bin_name,'Binaries/Mac/unrealcv.ini')
-                self.path2binary = os.path.join(self.path2binary, 'Contents/MacOS', env_bin_name)
+        if "darwin" in sys.platform:
+            env_bin_name = self.env_bin.split("/")[1].split(".")[0]
+            if os.path.exists(
+                os.path.join(self.path2binary, "Contents/UE4")
+            ):  # for mac UE4 binary
+                self.path2unrealcv = os.path.join(
+                    self.path2binary,
+                    "Contents/UE4",
+                    env_bin_name,
+                    "Binaries/Mac/unrealcv.ini",
+                )
+                self.path2binary = os.path.join(
+                    self.path2binary, "Contents/MacOS", env_bin_name
+                )
+            elif os.path.exists(
+                os.path.join(self.path2binary, "Contents/UE")
+            ):  # for mac UE5 binary
+                self.path2unrealcv = os.path.join(
+                    self.path2binary,
+                    "Contents/UE",
+                    env_bin_name,
+                    "Binaries/Mac/unrealcv.ini",
+                )
+                self.path2binary = os.path.join(
+                    self.path2binary, "Contents/MacOS", env_bin_name
+                )
         else:
-            self.path2unrealcv = os.path.join(os.path.split(self.path2binary)[0], 'unrealcv.ini')
-        assert os.path.exists(self.path2binary), \
-            'Please load env binary in UnrealEnv and Check the env_bin in setting file!'
+            self.path2unrealcv = os.path.join(
+                os.path.split(self.path2binary)[0], "unrealcv.ini"
+            )
+        assert os.path.exists(self.path2binary), (
+            "Please load env binary in UnrealEnv and Check the env_bin in setting file!"
+        )
         self.ue_pid = None
 
-    def start(self, docker=False, resolution=(640, 480), display=None, opengl=False, offscreen=False,
-              nullrhi=False, gpu_id=None, local_host=True, sleep_time=8, log_file_path=None):
+    def start(
+        self,
+        docker=False,
+        resolution=(640, 480),
+        display=None,
+        opengl=False,
+        offscreen=False,
+        nullrhi=False,
+        gpu_id=None,
+        local_host=True,
+        sleep_time=8,
+        log_file_path=None,
+    ):
         """
         Start the Unreal Engine environment.
 
@@ -125,12 +165,13 @@ class RunUnreal():
 
         if display is not None:
             display = {
-                "DISPLAY": display}  # specify display "hostname:displaynumber.screennumber", E.G. "localhost:1.0"
+                "DISPLAY": display
+            }  # specify display "hostname:displaynumber.screennumber", E.G. "localhost:1.0"
         else:
             display = None  # use default display
 
         if local_host:
-            env_ip = '127.0.0.1'
+            env_ip = "127.0.0.1"
             while not self.isPortFree(env_ip, port):
                 port += 1
                 self.write_port(port)
@@ -138,36 +179,50 @@ class RunUnreal():
         if self.use_docker:
             self.docker = RunDocker(self.path2env)
             options = self.set_ue_options([], opengl, offscreen, nullrhi, gpu_id)
-            env_ip = self.docker.start(ENV_BIN=self.env_bin, options=' '.join(options), host_net=local_host)  # use local host ip
-            print('Running nvidia-docker env')
+            env_ip = self.docker.start(
+                ENV_BIN=self.env_bin, options=" ".join(options), host_net=local_host
+            )  # use local host ip
+            _L.info("Running nvidia-docker env")
         else:
-            #self.modify_permission(self.path2env)
+            # self.modify_permission(self.path2env)
             cmd_exe = [os.path.abspath(self.path2binary)]
             self.set_ue_options(cmd_exe, opengl, offscreen, nullrhi, gpu_id)
-            if 'darwin' in sys.platform:
+            if "darwin" in sys.platform:
                 # self.env = subprocess.Popen(['open', cmd_exe[0]])
                 # Redirect stdout and stderr to log file
                 if log_file_path is not None:
-                    log_name = time.strftime("%Y%m%d-%H%M%S") + '_ue_log.log'
+                    log_name = time.strftime("%Y%m%d-%H%M%S") + "_ue_log.log"
                     log_file_path = os.path.join(log_file_path, log_name)
                     with open(log_file_path, "w") as log_file:
-                        self.env = subprocess.Popen(cmd_exe, stdout=log_file, stderr=log_file)
+                        self.env = subprocess.Popen(
+                            cmd_exe, stdout=log_file, stderr=log_file
+                        )
                 else:
-                    self.env = subprocess.Popen(cmd_exe, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    self.env = subprocess.Popen(
+                        cmd_exe, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                    )
             else:
-                self.env = subprocess.Popen( cmd_exe, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
-                                            stderr=subprocess.DEVNULL, start_new_session=True, env=display)
+                self.env = subprocess.Popen(
+                    cmd_exe,
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    start_new_session=True,
+                    env=display,
+                )
             atexit.register(self.close)
             # signal.signal(signal.SIGTERM, self.signal_handler)
             # signal.signal(signal.SIGINT, self.signal_handler)
-            print('Running docker-free env, pid:{}'.format(self.env.pid))
+            _L.info("Running docker-free env, pid:%d", self.env.pid)
             # get the pid of the unreal engine process
             self.ue_pid = self.env.pid
-        print('Please wait for a while to launch env......')
+        _L.info("Please wait for a while to launch env...")
         time.sleep(sleep_time)
         return env_ip, port
 
-    def set_ue_options(self, cmd_exe=[], opengl=False, offscreen=False, nullrhi=False, gpu_id=None):
+    def set_ue_options(
+        self, cmd_exe=None, opengl=False, offscreen=False, nullrhi=False, gpu_id=None
+    ):
         """
         Set options for running the Unreal Engine environment.
 
@@ -181,27 +236,39 @@ class RunUnreal():
         Returns:
             list: The command with options.
         """
+        if cmd_exe is None:
+            cmd_exe = []
         if self.env_map is not None:
             cmd_exe.append(self.env_map)
         if opengl:
-            cmd_exe.append('-opengl')  # use opengl rendering
+            cmd_exe.append("-opengl")  # use opengl rendering
         if offscreen:
-            cmd_exe.append('-RenderOffScreen')
+            cmd_exe.append("-RenderOffScreen")
         if nullrhi:
-            cmd_exe.append('-nullrhi')  # the rendering process is not launched, so we can not get the image
-        if gpu_id is not None and 'darwin' not in sys.platform:  # specify which gpu to use, if you have multiple gpus
-            cmd_exe.append(f'-graphicsadapter={gpu_id}')
+            cmd_exe.append(
+                "-nullrhi"
+            )  # the rendering process is not launched, so we can not get the image
+        if (
+            gpu_id is not None and "darwin" not in sys.platform
+        ):  # specify which gpu to use, if you have multiple gpus
+            cmd_exe.append(f"-graphicsadapter={gpu_id}")
         return cmd_exe
 
     def get_path2UnrealEnv(self):  # get path to UnrealEnv
-        warnings.warn('This function is deprecated, please use get_path2UnrealEnv from unrealcv.util')
-        env_path = os.getenv('UnrealEnv')
+        warnings.warn(
+            "This function is deprecated, please use get_path2UnrealEnv from unrealcv.util"
+        )
+        env_path = os.getenv("UnrealEnv")
         if env_path is None:
             # If environment variable not set, create default path in user home directory
-            default_path = os.path.join(os.path.expanduser('~'), '.unrealcv', 'UnrealEnv')
+            default_path = os.path.join(
+                os.path.expanduser("~"), ".unrealcv", "UnrealEnv"
+            )
             if not os.path.exists(default_path):
                 os.makedirs(default_path)
-            warnings.warn(f'UnrealEnv environment variable not set. Using default path at {default_path}')
+            warnings.warn(
+                f"UnrealEnv environment variable not set. Using default path at {default_path}"
+            )
             return default_path
         return env_path
 
@@ -216,12 +283,12 @@ class RunUnreal():
             tuple: The root path and the binary path.
         """
         part_path = path.split(os.sep)
-        print(part_path)
-        id_binaries = part_path.index('Binaries')
-        if not part_path[0].startswith('/'):
-            part_path[0] = '/' + part_path[0]
-        root_path = os.path.join(*part_path[:id_binaries-2])
-        binary_path = os.path.join(*part_path[id_binaries-2:])
+        _L.debug("Parsed path parts: %s", part_path)
+        id_binaries = part_path.index("Binaries")
+        if not part_path[0].startswith("/"):
+            part_path[0] = "/" + part_path[0]
+        root_path = os.path.join(*part_path[: id_binaries - 2])
+        binary_path = os.path.join(*part_path[id_binaries - 2 :])
         return root_path, binary_path
 
     def close(self):
@@ -231,8 +298,10 @@ class RunUnreal():
         if self.use_docker:
             self.docker.close()
         else:
-            self.env.kill()
-            # self.env.terminate()
+            try:
+                self.env.kill()
+            except OSError:
+                pass
             self.env.wait()
 
     def signal_handler(self, signum, frame):
@@ -252,9 +321,8 @@ class RunUnreal():
         Args:
             path (str): The path to modify.
         """
-        cmd = 'sudo chown {USER} {ENV_PATH} -R'
         username = getpass.getuser()
-        os.system(cmd.format(USER=username, ENV_PATH=path))
+        subprocess.run(["sudo", "chown", username, "-R", path], check=False)
 
     def read_port(self):
         """
@@ -264,27 +332,38 @@ class RunUnreal():
             int: The port number.
         """
         if os.path.exists(self.path2unrealcv):  # check unrealcv.ini exist
-            with open(self.path2unrealcv, 'r') as f:
+            with open(self.path2unrealcv, "r") as f:
                 s = f.read()  # read unrealcv.ini
                 ss = s.split()
             return int(ss[1][-4:])  # return port number
         else:
-            return 9000 # default port number
+            return 9000  # default port number
 
     def write_port(self, port):
-        self.write__ = """
+        """
         Write the port number to unrealcv.ini.
 
         Args:
             port (int): The port number to write.
         """
-        with open(self.path2unrealcv, 'r') as f:
+        with open(self.path2unrealcv, "r") as f:
             s = f.read()
-            ss = s.split('\n')
-        with open(self.path2unrealcv, 'w') as f:
-            print(ss[1])
-            ss[1] = 'Port={port}'.format(port=port)
-            d = '\n'
+            ss = s.split("\n")
+
+        updated = False
+        for index, line in enumerate(ss):
+            if line.strip().startswith("Port="):
+                _L.debug("Current port line: %s", line)
+                ss[index] = f"Port={port}"
+                updated = True
+                break
+
+        if not updated:
+            _L.warning("No Port= line found in %s, appending one", self.path2unrealcv)
+            ss.append(f"Port={port}")
+
+        with open(self.path2unrealcv, "w") as f:
+            d = "\n"
             s_new = d.join(ss)
             f.write(s_new)
 
@@ -296,13 +375,13 @@ class RunUnreal():
             resolution (tuple): The resolution to set.
         """
         if os.path.exists(self.path2unrealcv):
-            with open(self.path2unrealcv, 'r') as f:
+            with open(self.path2unrealcv, "r") as f:
                 s = f.read()
-                ss = s.split('\n')
-            with open(self.path2unrealcv, 'w') as f:
-                ss[2] = 'Width={width}'.format(width=resolution[0])
-                ss[3] = 'Height={height}'.format(height=resolution[1])
-                d = '\n'
+                ss = s.split("\n")
+            with open(self.path2unrealcv, "w") as f:
+                ss[2] = "Width={width}".format(width=resolution[0])
+                ss[3] = "Height={height}".format(height=resolution[1])
+                d = "\n"
                 s_new = d.join(ss)
                 f.write(s_new)
 
@@ -318,22 +397,18 @@ class RunUnreal():
             bool: True if the port is free, False otherwise.
         """
         import socket
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            if 'linux' in sys.platform or 'darwin' in sys.platform:
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            try:
                 sock.bind((ip, port))
-            elif 'win' in sys.platform:
-                sock.bind((ip, port))
-                sock.connect((ip, port))
-        except Exception as e:
-            sock.close()
-            return False
-        sock.close()
+            except Exception:
+                return False
         return True
 
+
 # run binary in docker
-class RunDocker():
-    def __init__(self, path2env, image='zfw1226/unreal:latest'):
+class RunDocker:
+    def __init__(self, path2env, image="zfw1226/unreal:latest"):
         """
         Initialize the RunDocker class.
 
@@ -343,16 +418,17 @@ class RunDocker():
         """
         self.docker_client = docker.from_env()
         self.check_image(target_images=image)
-        os.system('xhost +')
+        subprocess.run(["xhost", "+"], check=False)
         self.image = image
         self.path2env = path2env
 
-    def start(self,
-              ENV_BIN = '/RealisticRendering_RL/RealisticRendering/Binaries/Linux/RealisticRendering',
-              ENV_DIR_DOCKER='/UnrealEnv', # the path to the Unreal environment in Docker
-              options='',
-              host_net=False # whether to use host networking
-              ):
+    def start(
+        self,
+        ENV_BIN="/RealisticRendering_RL/RealisticRendering/Binaries/Linux/RealisticRendering",
+        ENV_DIR_DOCKER="/UnrealEnv",  # the path to the Unreal environment in Docker
+        options="",
+        host_net=False,  # whether to use host networking
+    ):
         """
         Start the Unreal Engine environment in Docker.
 
@@ -366,62 +442,104 @@ class RunDocker():
             str: The IP address of the Docker container.
         """
         path2binary = os.path.join(self.path2env, ENV_BIN)
-        print(path2binary)
+        _L.debug("Docker binary path: %s", path2binary)
         if not os.path.exists(path2binary):
-            warnings.warn('Did not find unreal environment, Please move your binary file to env/UnrealEnv')
+            warnings.warn(
+                "Did not find unreal environment, Please move your binary file to env/UnrealEnv"
+            )
             sys.exit()
 
-        client = docker.from_env()
-        # network_settings = self.container.attrs['NetworkSettings']
-        volumes = f'-v {self.path2env}:{ENV_DIR_DOCKER}:rw'
-
         ENV_DIR_BIN_DOCKER = os.path.join(ENV_DIR_DOCKER, ENV_BIN)
-        exe_cmd = ENV_DIR_BIN_DOCKER + ' ' + options
-        run_cmd = f'/bin/bash -c \"su user -c \'{exe_cmd}\'\"'
+        exe_cmd = ENV_DIR_BIN_DOCKER + " " + options
+        run_cmd = "su user -c " + shlex.quote(exe_cmd)
 
-        docker_cmd = 'docker run --gpus all  -e DISPLAY=$DISPLAY -e SDL_VIDEODRIVER=x11' \
-                     ' -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v /usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d ' \
-                     '-e QT_X11_NO_MITSHM=1 -e NVIDIA_DRIVER_CAPABILITIES=all --privileged -d -it'
+        docker_args = [
+            "docker",
+            "run",
+            "--gpus",
+            "all",
+            "-e",
+            f"DISPLAY={os.environ.get('DISPLAY', ':0')}",
+            "-e",
+            "SDL_VIDEODRIVER=x11",
+            "-v",
+            "/tmp/.X11-unix:/tmp/.X11-unix:rw",
+            "-v",
+            "/usr/share/vulkan/icd.d:/usr/share/vulkan/icd.d",
+            "-e",
+            "QT_X11_NO_MITSHM=1",
+            "-e",
+            "NVIDIA_DRIVER_CAPABILITIES=all",
+            "--privileged",
+            "-d",
+            "-it",
+        ]
         if host_net:
-            docker_cmd += ' --net=host'
-        cmd = docker_cmd + ' ' + volumes + ' ' + self.image + ' ' + run_cmd
+            docker_args += ["--net=host"]
 
-        print(cmd)
-        os.system(cmd)
-        self.container = self.docker_client.containers.list()[0]
+        docker_args += [
+            "-v",
+            f"{self.path2env}:{ENV_DIR_DOCKER}:rw",
+            self.image,
+            "/bin/bash",
+            "-lc",
+            run_cmd,
+        ]
+
+        _L.info("Docker command: %s", " ".join(docker_args))
+        process = subprocess.run(
+            docker_args,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+
+        container_id = process.stdout.strip()
+        if container_id:
+            self.container = self.docker_client.containers.get(container_id)
+        else:
+            self.container = self.docker_client.containers.list()[0]
 
         return self.get_ip()
 
     def get_ip(self):
         # return '127.0.0.1'
-        print(self.container.attrs['NetworkSettings']['IPAddress'])
-        return self.container.attrs['NetworkSettings']['IPAddress']
+        _L.info(
+            "Container IP: %s", self.container.attrs["NetworkSettings"]["IPAddress"]
+        )
+        return self.container.attrs["NetworkSettings"]["IPAddress"]
 
     def get_path2UnrealEnv(self):
         # get path to UnrealEnv
         """
-            Get the path to the Unreal environment.
-            Default path to UnrealEnv is in user home directory under .unrealcv
-                Windows: C:\\Users\\<username>\\.unrealcv\\UnrealEnv
-                Linux: /home/<username>/.unrealcv/UnrealEnv
-                Mac: /Users/<username>/.unrealcv/UnrealEnv
-            Custom path can be set using the environment variable UnrealEnv.
+        Get the path to the Unreal environment.
+        Default path to UnrealEnv is in user home directory under .unrealcv
+            Windows: C:\\Users\\<username>\\.unrealcv\\UnrealEnv
+            Linux: /home/<username>/.unrealcv/UnrealEnv
+            Mac: /Users/<username>/.unrealcv/UnrealEnv
+        Custom path can be set using the environment variable UnrealEnv.
         """
-        warnings.warn('This function is deprecated, please use get_path2UnrealEnv from unrealcv.util')
-        env_path = os.getenv('UnrealEnv')
+        warnings.warn(
+            "This function is deprecated, please use get_path2UnrealEnv from unrealcv.util"
+        )
+        env_path = os.getenv("UnrealEnv")
         if env_path is None:
             # If environment variable not set, create default path in user home directory
-            default_path = os.path.join(os.path.expanduser('~'), '.unrealcv', 'UnrealEnv')
+            default_path = os.path.join(
+                os.path.expanduser("~"), ".unrealcv", "UnrealEnv"
+            )
             if not os.path.exists(default_path):
                 os.makedirs(default_path)
-            warnings.warn(f'UnrealEnv environment variable not set. Using default path at {default_path}')
+            warnings.warn(
+                f"UnrealEnv environment variable not set. Using default path at {default_path}"
+            )
             return default_path
         return env_path
 
     def close(self):
         self.container.remove(force=True)
 
-    def check_image(self, target_images='zfw1226/unreal:latest'):
+    def check_image(self, target_images="zfw1226/unreal:latest"):
         # Check the existence of image
         images = self.docker_client.images.list()
         found_img = False
@@ -430,12 +548,7 @@ class RunDocker():
                 found_img = True
         # Download image
         if found_img == False:
-            warnings.warn('Do not found images, Downloading')
+            warnings.warn("Do not found images, Downloading")
             self.docker_client.images.pull(target_images)
         else:
-            print('Found images')
-
-
-
-
-
+            _L.info("Found images")

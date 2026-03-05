@@ -1,7 +1,7 @@
 // Weichao Qiu @ 2017
 #pragma once
 
-#include "Runtime/Engine/Classes/GameFramework/Actor.h"
+#include "GameFramework/Actor.h"
 
 class UNREALCV_API FActorController
 {
@@ -25,6 +25,6 @@ public:
 	// FColor GetAnnotaionColor();
 
 private:
-	AActor* Actor;
+	TWeakObjectPtr<AActor> Actor;
 
 };

@@ -1,36 +1,44 @@
-// Weichao Qiu @ 2017
+// Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #pragma once
 
 #include "CommandDispatcher.h"
-#include "Runtime/Engine/Public/EngineUtils.h"
+
+class FConsoleOutputDevice;
 
 /**
- * Helper class to bind UnrealCV commands to Unreal Engine console
+ * Bridges UnrealCV commands to the Unreal Engine console.
+ *
+ * Registers vget / vset / vrun / vexec / vbp as console commands and
+ * forwards them to FCommandDispatcher for execution.
  */
 class FConsoleHelper
 {
 public:
-	// FConsoleHelper(FCommandDispatcher* CommandDispatcher);
 	static FConsoleHelper& Get();
-	void SetCommandDispatcher(TSharedPtr<FCommandDispatcher> CommandDispatcher);
 
-	/** The exec result of CommandDispatcher will be written to FConsoleOutputDevice */
-	TSharedPtr<FConsoleOutputDevice> GetConsole();
+	void SetCommandDispatcher(TSharedPtr<FCommandDispatcher> InCommandDispatcher);
+
+	/** Obtain a console output device for the current viewport. May return null. */
+	[[nodiscard]] TSharedPtr<FConsoleOutputDevice> GetConsole() const;
+
+	// Non-copyable singleton.
+	FConsoleHelper(const FConsoleHelper&) = delete;
+	FConsoleHelper& operator=(const FConsoleHelper&) = delete;
 
 private:
 	FConsoleHelper();
 
-	/** The command from UE4 console will be sent to CommandDispatcher for execution */
 	TSharedPtr<FCommandDispatcher> CommandDispatcher;
 
-	/** Register vget command to UE4 console */
-	void VGet(const TArray<FString>& Args);
-	/** Register vset command to UE4 console */
-	void VSet(const TArray<FString>& Args);
-	/** Register vrun command to UE4 console */
-	void VRun(const TArray<FString>& Args);
-	/** Register vexec command */
-	void VExec(const TArray<FString>& Args);
+	/**
+	 * Common implementation for all console verbs.
+	 * Joins Args with the given Prefix and dispatches via CommandDispatcher.
+	 */
+	void DispatchConsoleCommand(const TCHAR* Prefix, const TArray<FString>& Args);
 
-	void VBp(const TArray<FString>& Args);
+	void VGet (const TArray<FString>& Args);
+	void VSet (const TArray<FString>& Args);
+	void VRun (const TArray<FString>& Args);
+	void VExec(const TArray<FString>& Args);
+	void VBp  (const TArray<FString>& Args);
 };

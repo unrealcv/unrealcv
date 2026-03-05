@@ -6,8 +6,7 @@
 
 #include "UnrealcvServer.h"
 #include "UnrealcvLog.h"
-
-DEFINE_LOG_CATEGORY(LogUnrealCV);
+#include "UnixTcpServer.h"
 
 class FUnrealCVPlugin : public IModuleInterface
 {
@@ -19,80 +18,72 @@ IMPLEMENT_MODULE(FUnrealCVPlugin, UnrealCV)
 
 void FUnrealCVPlugin::StartupModule()
 {
-	FString Commandline = FCommandLine::Get();
+	const FString Commandline = FCommandLine::Get();
 	if (IsRunningDedicatedServer() ||
 		Commandline.Contains(TEXT("cookcommandlet")) ||
 		Commandline.Contains(TEXT("run=cook")))
 	{
-		// Do no start unrealcv module if running in the commandlet mode.
+		// Do not start unrealcv module if running in commandlet mode.
 		return;
 	}
 
-	FUnrealcvServer &Server = FUnrealcvServer::Get();
+	FUnrealcvServer& Server = FUnrealcvServer::Get();
 	Server.RegisterCommandHandlers();
 
-	int OverridePort = Server.Config.Port;
-	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVPort"), OverridePort)) {
-	UE_LOG(LogUnrealCV, Warning, TEXT("Overriding listening port to %d"), OverridePort);
-		Server.Config.Port = OverridePort;
+	FServerConfig& Config = Server.GetMutableConfig();
+
+	int32 OverridePort = Config.Port;
+	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVPort"), OverridePort))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Overriding listening port to %d"), OverridePort);
+		Config.Port = OverridePort;
 	}
 
-	int OverrideWidth = Server.Config.Width;
-	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVWidth"), OverrideWidth)) {
-	UE_LOG(LogUnrealCV, Warning, TEXT("Overriding width to %d"), OverrideWidth);
-		Server.Config.Width = OverrideWidth;
+	int32 OverrideWidth = Config.Width;
+	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVWidth"), OverrideWidth))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Overriding width to %d"), OverrideWidth);
+		Config.Width = OverrideWidth;
 	}
 
-	int OverrideHeight = Server.Config.Height;
-	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVHeight"), OverrideHeight)) {
-	UE_LOG(LogUnrealCV, Warning, TEXT("Overriding height to %d"), OverrideHeight);
-		Server.Config.Height = OverrideHeight;
+	int32 OverrideHeight = Config.Height;
+	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVHeight"), OverrideHeight))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Overriding height to %d"), OverrideHeight);
+		Config.Height = OverrideHeight;
 	}
 
-	float OverrideFOV = Server.Config.FOV;
-	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVFOV"), OverrideFOV)) {
-	UE_LOG(LogUnrealCV, Warning, TEXT("Overriding FOV to %f"), OverrideFOV);
-		Server.Config.FOV = OverrideFOV;
+	float OverrideFOV = Config.FOV;
+	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVFOV"), OverrideFOV))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Overriding FOV to %f"), OverrideFOV);
+		Config.FOV = OverrideFOV;
 	}
 
-	bool OverrideEnableInput = Server.Config.EnableInput;
-	if (FParse::Bool(FCommandLine::Get(), TEXT("UnrealCVEnableInput"), OverrideEnableInput)) {
-		if (OverrideEnableInput)
-		{
-			UE_LOG(LogUnrealCV, Warning, TEXT("Overriding EnableInput to true"));
-		}
-		else
-		{
-			UE_LOG(LogUnrealCV, Warning, TEXT("Overriding EnableInput to false"));
-		}
-		Server.Config.EnableInput = OverrideEnableInput;
+	bool bOverrideEnableInput = Config.bEnableInput;
+	if (FParse::Bool(FCommandLine::Get(), TEXT("UnrealCVEnableInput"), bOverrideEnableInput))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Overriding EnableInput to %s"), bOverrideEnableInput ? TEXT("true") : TEXT("false"));
+		Config.bEnableInput = bOverrideEnableInput;
 	}
 
-	bool OverrideExitOnFailure = Server.Config.ExitOnFailure;
-	if (FParse::Bool(FCommandLine::Get(), TEXT("UnrealCVExitOnFailure"), OverrideExitOnFailure)) {
-		if (OverrideExitOnFailure)
-		{
-			UE_LOG(LogUnrealCV, Warning, TEXT("Overriding ExitOnFailure to true"));
-		}
-		else
-		{
-			UE_LOG(LogUnrealCV, Warning, TEXT("Overriding ExitOnFailure to false"));
-		}
-		Server.Config.ExitOnFailure = OverrideExitOnFailure;
+	bool bOverrideExitOnFailure = Config.bExitOnFailure;
+	if (FParse::Bool(FCommandLine::Get(), TEXT("UnrealCVExitOnFailure"), bOverrideExitOnFailure))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Overriding ExitOnFailure to %s"), bOverrideExitOnFailure ? TEXT("true") : TEXT("false"));
+		Config.bExitOnFailure = bOverrideExitOnFailure;
 	}
 
-	bool StartSuccess = Server.TcpServer->Start(Server.Config.Port);
-	if (!StartSuccess)
+	const bool bStartSuccess = Server.GetTcpServer()->Start(Config.Port);
+	if (!bStartSuccess)
 	{
 		UE_LOG(LogUnrealCV, Warning, TEXT("Failed to start network server"));
-		if (Server.Config.ExitOnFailure)
+		if (Config.bExitOnFailure)
 		{
 			UE_LOG(LogUnrealCV, Warning, TEXT("Requesting exit"));
 			FGenericPlatformMisc::RequestExit(false);
 		}
 	}
-
-	// Inject a UObject into the world to listen for world event
 }
 
 void FUnrealCVPlugin::ShutdownModule()

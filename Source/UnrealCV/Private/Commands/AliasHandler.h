@@ -1,17 +1,17 @@
+// Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #pragma once
 #include "CommandHandler.h"
 
 class FAliasHandler : public FCommandHandler
 {
 public:
-	void RegisterCommands();
+	void RegisterCommands() override;
 
-	/** vrun : run UE4 built-in commands */
+private:
+	/** vrun : run UE built-in commands */
 	FExecStatus VRun(const TArray<FString>& Args);
 
-	/** vexec : run UE4 blueprint
-		Can support arguments, but can not support return value
-	*/
+	/** vexec : run Blueprint function (no return value) */
 	FExecStatus VExec(const TArray<FString>& Args);
 
 	FExecStatus VExecWithOutput(const TArray<FString>& Args);
