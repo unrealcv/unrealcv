@@ -127,6 +127,16 @@ suppress_warnings = ['image.nonlocal_uri']
 
 nitpicky = True
 nitpick_ignore = [('py:obj', 'str'), ('py:obj', 'bool')]
+nitpick_ignore_regex = [
+    (r'py:class', r'^collections\.abc\.[A-Za-z_][A-Za-z0-9_]*$'),
+    (r'py:class', r'^numpy\.ndarray$'),
+    (r'py:class', r'^np\.ndarray$'),
+    (r'py:class', r'^PathLike$'),
+    (r'py:class', r'^optional$'),
+    (r'py:class', r'^frame$'),
+    (r'py:class', r'^function$'),
+    (r'py:class', r'^unrealcv\.api\.[A-Z][A-Za-z0-9_]*$'),
+]
 
 # Fix lexer issue for anaconda ipython
 # from https://github.com/tomoh1r/symfony-docs-trans-env/issues/6

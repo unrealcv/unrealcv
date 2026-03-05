@@ -52,7 +52,7 @@ Use python client to execute commands
 
 If we want to generate a large-scale synthetic dataset, or do active tasks, such as reinforcement learning, in this virtual world. We need to allow an intelligent agent to perceive, navigate and interact in the scene. We provide UnrealCV client to enable other programs to communicate with this virtual world. The client will use a :doc:`plain-text protocol </reference/architecture>` to exchange information with the game.
 
-Here we use the python client for illustration. If you are looking for a MATLAB client, please see the MATLAB examples in the `client/matlab` folder.
+Here we use the python client for illustration. If you are looking for a MATLAB client, please see the MATLAB examples in the ``client/matlab`` folder.
 
 First, we need to install the python client library.
 
