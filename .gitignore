@@ -42,3 +42,8 @@ docs/doxygen/
 !*.uplugin
 !*.bat
 # !*.ipynb  Add ipython notebook and png, jpg by force
+
+!.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json

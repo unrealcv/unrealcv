@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Bootstrap: Dev Workspace",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "python3 tools/bootstrap_dev.py"
+      ],
+      "group": "build"
+    },
+    {
+      "label": "Python: Client Unit Tests",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "pytest test/client"
+      ],
+      "group": "test"
+    },
+    {
+      "label": "Docs: Build HTML",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "python3 docs/build_doc.py sphinx"
+      ]
+    }
+  ]
+}

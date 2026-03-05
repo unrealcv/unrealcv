@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-vscode.cpptools",
+    "ms-vscode.cmake-tools",
+    "ms-azuretools.vscode-docker",
+    "yzhang.markdown-all-in-one"
+  ]
+}
