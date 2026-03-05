@@ -90,8 +90,11 @@ void AUnrealcvPawn::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 	// FUnrealcvServer::Get().ProcessPendingRequest();
-	FRotator ControlRotation = this->Controller->GetControlRotation();
-	this->SetActorRotation(ControlRotation);
+	if (this->Controller)
+	{
+		FRotator ControlRotation = this->Controller->GetControlRotation();
+		this->SetActorRotation(ControlRotation);
+	}
 }
 
 void AUnrealcvPawn::SetupPlayerInputComponent(class UInputComponent* InInputComponent)
