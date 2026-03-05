@@ -77,6 +77,18 @@ public:
 
 	UWorld* GetWorld();
 
+	/** Get server config (read-only) */
+	[[nodiscard]] const FServerConfig& GetConfig() const { return Config; }
+	
+	/** Get mutable server config */
+	FServerConfig& GetMutableConfig() { return Config; }
+
+	/** Get TCP server */
+	[[nodiscard]] UUnixTcpServer* GetTcpServer() const { return TcpServer; }
+
+	/** Get world controller */
+	[[nodiscard]] TWeakObjectPtr<AUnrealcvWorldController> GetWorldController() const { return WorldController; }
+
 	/** Update input mode */
 	// void UpdateInput(bool Enable);
 

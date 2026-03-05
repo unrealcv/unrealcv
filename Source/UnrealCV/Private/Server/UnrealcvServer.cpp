@@ -85,7 +85,7 @@ void FUnrealcvServer::RegisterCommandHandlers()
 	CommandHandlers.Add(new FCameraHandler());
 	for (FCommandHandler* Handler : CommandHandlers)
 	{
-		Handler->CommandDispatcher = CommandDispatcher;
+		Handler->SetCommandDispatcher(CommandDispatcher);
 		Handler->RegisterCommands();
 	}
 }
