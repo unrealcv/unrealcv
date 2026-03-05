@@ -195,7 +195,12 @@ bool UTcpServer::StartMessageService(FSocket* ClientSocket, const FIPv4Endpoint&
 		FArrayReader ArrayReader;
 		if (!FSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket))
 		{
-			CleanupConnection();
+			if (ConnectionSocket)
+			{
+				ConnectionSocket->Shutdown(ESocketShutdownMode::ReadWrite);
+				ConnectionSocket->Close();
+				ConnectionSocket = nullptr;
+			}
 			return false;
 		}
 

@@ -364,7 +364,12 @@ bool UUnixTcpServer::StartMessageServiceINet(FSocket* ClientSocket, const FIPv4E
 		FArrayReader ArrayReader;
 		if (!FUnixSocketMessageHeader::ReceivePayload(ArrayReader, ConnectionSocket))
 		{
-			CleanupConnection();
+			if (ConnectionSocket)
+			{
+				ConnectionSocket->Shutdown(ESocketShutdownMode::ReadWrite);
+				ConnectionSocket->Close();
+				ConnectionSocket = nullptr;
+			}
 			return false;
 		}
 

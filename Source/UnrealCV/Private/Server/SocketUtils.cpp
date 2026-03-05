@@ -59,6 +59,11 @@ bool SocketReceiveAll(FSocket* Socket, uint8* Result, int32 ExpectedSize)
 			UE_LOG(LogUnrealCV, Error, TEXT("Connection aborted unexpectedly."));
 			return false;
 		}
+		if (LastError == ESocketErrors::SE_ECONNRESET)
+		{
+			UE_LOG(LogUnrealCV, Log, TEXT("Connection reset by peer."));
+			return false;
+		}
 		if (LastError == ESocketErrors::SE_ENOTCONN)
 		{
 			UE_LOG(LogUnrealCV, Error, TEXT("Socket is not connected."));
