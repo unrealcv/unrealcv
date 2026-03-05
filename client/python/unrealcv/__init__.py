@@ -10,19 +10,17 @@ import os
 from .api import *
 from .automation import *
 from .launcher import *
-from queue import SimpleQueue
+from queue import Empty, SimpleQueue
 
 
 _L = logging.getLogger(__name__)
-# _L.addHandler(logging.NullHandler()) # Let client to decide how to do logging
-_L.handlers = []
-h = logging.StreamHandler()
-h.setFormatter(logging.Formatter('%(levelname)s:%(module)s:%(lineno)d:%(message)s'))
-_L.addHandler(h)
-_L.propagate = False
-_L.setLevel(logging.INFO)
+if not any(isinstance(handler, logging.NullHandler) for handler in _L.handlers):
+    _L.addHandler(
+        logging.NullHandler()
+    )  # Library best practice: let consumers configure logging
 
-__version__ = '1.1.7'  # add async request, IPC on linux >= 1.0.0
+__version__ = "1.1.7"  # add async request, IPC on linux >= 1.0.0
+
 
 class SocketMessage:
     """
@@ -32,10 +30,28 @@ class SocketMessage:
     """
 
     magic = ctypes.c_uint32(0x9E2B83C1).value
-    fmt = 'I'
+    fmt = "I"
 
     def __init__(self, payload):
         self.payload_size = ctypes.c_uint32(len(payload)).value
+
+    @classmethod
+    def _recv_exact(cls, sock, nbytes):
+        """
+        Read exactly nbytes from sock.
+
+        Returns bytes on success, None on clean disconnect (recv returns 0);
+        raises on socket error.
+        """
+        buf = bytearray(nbytes)
+        view = memoryview(buf)
+        offset = 0
+        while offset < nbytes:
+            read_size = sock.recv_into(view[offset:], nbytes - offset)
+            if read_size == 0:
+                return None
+            offset += read_size
+        return bytes(buf)
 
     @classmethod
     def ReceivePayload(cls, sock):
@@ -43,22 +59,9 @@ class SocketMessage:
         Return only payload, not the raw message, None if failed.
         sock: a blocking socket for read data.
         """
-        # print(sock.gettimeout())
-        # rbufsize = -1 # From SocketServer.py
-        # rbufsize = 0
-        # rfile = sock.makefile('rb', rbufsize)
         try:
-            # raw_magic = rfile.read(4) # socket is disconnected or invalid
-            raw_magic = b''
-            while len(raw_magic) < 4:
-                recv_data = sock.recv(4)
-                if not recv_data:
-                    # socket closed by server
-                    print('Warning: socket disconnected by server')
-                    break
-                raw_magic += recv_data
+            raw_magic = cls._recv_exact(sock, 4)
         except Exception as e:
-            print(f'fail to read raw_magic, exception: {e}')
             _L.debug('Fail to read raw_magic, exception: "%s"', e)
             raw_magic = None
 
@@ -68,41 +71,24 @@ class SocketMessage:
 
         magic = struct.unpack(cls.fmt, raw_magic)[0]  # 'I' means unsigned int
         if magic != cls.magic:
-            print(
-                'Error: receive a malformat message, the message should start from a four bytes uint32 magic number'
-            )
             _L.error(
-                'Error: receive a malformat message, the message should start from a four bytes uint32 magic number'
+                "Received malformed message: expected magic 0x%08X, got 0x%08X",
+                cls.magic,
+                magic,
             )
-            print('Actually received magic message: %s', repr(magic))
             return None
             # The next time it will read four bytes again
 
-        # _L.debug('read payload')
-        # raw_payload_size = rfile.read(4)
-        raw_payload_size = sock.recv(4)
-        if not raw_payload_size:
-            print('Warning: socket disconnected by server')
+        raw_payload_size = cls._recv_exact(sock, 4)
+        if raw_payload_size is None:
+            _L.warning("Socket disconnected by server (payload size)")
             return None
-        # print 'Receive raw payload size: %d, %s' % (len(raw_payload_size), raw_payload_size)
-        payload_size = struct.unpack('I', raw_payload_size)[0]
-        # _L.debug('Receive payload size %d', payload_size)
+        payload_size = struct.unpack("I", raw_payload_size)[0]
 
-        # if the message is incomplete, should wait until all the data received
-        payload = b''
-        remain_size = payload_size
-        while remain_size > 0:
-            # data = rfile.read(remain_size)
-            data = sock.recv(remain_size)
-            if not data:
-                print('recv data is None!')
-                return None
-
-            payload += data
-            bytes_read = len(data)  # len(data) is its string length, but we want length of bytes
-            # print 'bytes_read %d, remain_size %d, read_str %s' % (bytes_read, remain_size, data)
-            assert bytes_read <= remain_size
-            remain_size -= bytes_read
+        payload = cls._recv_exact(sock, payload_size)
+        if payload is None:
+            _L.warning("Socket disconnected by server (payload body)")
+            return None
 
         return payload
 
@@ -112,28 +98,12 @@ class SocketMessage:
         Send payload, true if success, false if failed
         """
         try:
-            # From SocketServer.py
-            # wbufsize = 0, flush immediately
-            wbufsize = -1
-            # Convert
-            socket_message = SocketMessage(payload)
-            wfile = sock.makefile('wb', wbufsize)
-            # Write the message
-            wfile.write(struct.pack(cls.fmt, socket_message.magic))
-            # Need to send the packed version
-            # print 'Sent ', socket_message.magic
-
-            wfile.write(struct.pack(cls.fmt, socket_message.payload_size))
-            # print 'Sent ', socket_message.payload_size
-
-            wfile.write(payload)
-            # print 'Sent ', payload
-            wfile.flush()
-            wfile.close()  # Close file object, not close the socket
+            header = struct.pack(cls.fmt + cls.fmt, cls.magic, len(payload))
+            sock.sendall(header)
+            sock.sendall(payload)
             return True
         except Exception as e:
-            print(f'Fail to send message {e}')
-            _L.error('Fail to send message %s', e)
+            _L.error("Fail to send message %s", e)
             return False
 
 
@@ -153,7 +123,12 @@ class Client:
     More clients will be rejected
     """
 
-    def __init__(self, endpoint, type='inet'):
+    SOCKET_TIMEOUT = 60
+    RECONNECT_ATTEMPTS = 5
+    RECONNECT_BASE_DELAY = 0.5
+    RECONNECT_MAX_DELAY = 8.0
+
+    def __init__(self, endpoint, type="inet"):
         """
         Parameters:
         endpoint: a tuple (ip, port)
@@ -161,7 +136,7 @@ class Client:
         """
         self.endpoint = endpoint
         self.sock = None  # if socket == None, means client is not connected
-        self.raw_message_regexp = re.compile(rb'(\d{1,}):(.*)')  # A binary regexp
+        self.raw_message_regexp = re.compile(rb"(\d{1,}):(.*)")  # A binary regexp
         # self.message_id = 0
         self.wait_response = threading.Event()
         self.send_message_id = 0
@@ -169,16 +144,24 @@ class Client:
         self.recv_num_q = SimpleQueue()  # inf
         self.recv_data_q = SimpleQueue()  # inf
         self.type = type
+        self._sock_lock = threading.Lock()
+        self.t = None
+
+    def _next_message_id(self):
+        with self._sock_lock:
+            message_id = self.send_message_id
+            self.send_message_id += 1
+            return message_id
 
     def send(self, message):
         """Send message out, return whether the message was successfully sent"""
-        if self.isconnected():
-            _L.debug('BaseClient: Send message %s', message)
-            SocketMessage.WrapAndSendPayload(self.sock, message)
-            return True
-        else:
-            _L.error('Fail to send message, client is not connected')
-            return False
+        with self._sock_lock:
+            if self.isconnected():
+                _L.debug("BaseClient: Send message %s", message)
+                return SocketMessage.WrapAndSendPayload(self.sock, message)
+            else:
+                _L.error("Fail to send message, client is not connected")
+                return False
 
     def raw_message_handler(self, raw_message):
         match = self.raw_message_regexp.match(raw_message)
@@ -191,54 +174,66 @@ class Client:
             message_body = raw_message[len(match.group(1)) + 1 :]
             # Convert to utf-8 if it's not a byte array (as is the case for images)
             try:
-                message_body = message_body.decode('utf-8')
+                message_body = message_body.decode("utf-8")
             except UnicodeDecodeError:
                 pass
             # print 'Received message id %s' % message_id
             if message_id == self.recv_message_id:
                 return message_body
             else:
-                assert False, f'this_msg_id: {message_id}; record_msg_id: {self.recv_message_id}'
+                assert False, (
+                    f"this_msg_id: {message_id}; record_msg_id: {self.recv_message_id}"
+                )
         else:
             # Instead of just dropping this message, give a verbose notice
-            _L.error('No message handler to handle message with length %d', len(raw_message))
+            _L.error(
+                "No message handler to handle message with length %d", len(raw_message)
+            )
 
-    def connect(self, timeout=1):
+    def connect(self, timeout=1, start_receive_thread=True):
         """
         Try to connect to server, return whether connection successful
         """
         if self.isconnected():
             return True
 
+        s = None
         try:
-            if self.type == 'unix':
-                print('=>Info: using uds socket')
+            if self.type == "unix":
+                _L.info("Using UDS socket")
                 s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-            elif self.type == 'inet':
-                print('=>Info: using ip-port socket')
+            elif self.type == "inet":
+                _L.info("Using ip-port socket")
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             else:
                 raise NotImplementedError
-            # Make the socket working in the blocking mode
+            s.settimeout(self.SOCKET_TIMEOUT if timeout is None else timeout)
             s.connect(self.endpoint)
-            self.sock = s
-            _L.debug('BaseClient: wait for connection confirm')
+            s.settimeout(self.SOCKET_TIMEOUT)
+            with self._sock_lock:
+                self.sock = s
+            _L.debug("BaseClient: wait for connection confirm")
 
             message = SocketMessage.ReceivePayload(self.sock)
             if message is not None:
-                if message.startswith(b'connected'):
-                    _L.info('Got connection confirm: %s', repr(message))
+                if message.startswith(b"connected"):
+                    _L.info("Got connection confirm: %s", repr(message))
 
-                    # start receive queue here
-                    self.t = threading.Thread(target=self.receive_loop_queue)
-                    self.t.start()
+                    if start_receive_thread and (
+                        self.t is None or not self.t.is_alive()
+                    ):
+                        self.t = threading.Thread(
+                            target=self.receive_loop_queue,
+                            daemon=True,
+                        )
+                        self.t.start()
 
                     return True
 
             # self.sock = None
             self.disconnect()
             _L.error(
-                'Socket is created, but can not get connection confirm from %s. Disconnect!',
+                "Socket is created, but can not get connection confirm from %s. Disconnect!",
                 self.endpoint,
             )
             return False
@@ -249,8 +244,13 @@ class Client:
             # Unless explicitly to tell the server to accept new socket
 
         except Exception as e:
-            _L.error('Can not connect to %s', str(self.endpoint))
-            _L.error('Error %s', e)
+            _L.error("Can not connect to %s", str(self.endpoint))
+            _L.error("Error %s", e)
+            if s is not None:
+                try:
+                    s.close()
+                except OSError:
+                    pass
             self.disconnect()
             # self.sock = None
             return False
@@ -261,23 +261,26 @@ class Client:
 
     def disconnect(self):
         """Disconnect from server"""
-        if self.isconnected():
-            _L.debug(
-                'BaseClient, request disconnect from server in %s',
-                threading.current_thread().name,
-            )
-
-            self.sock.shutdown(socket.SHUT_RD)
-            # Because socket is on read in __receiving thread, need to call shutdown to force it to close
-            if self.sock:  # This may also be set to None in the __receiving thread
-                self.sock.close()
+        with self._sock_lock:
+            if self.sock is not None:
+                _L.debug(
+                    "BaseClient, request disconnect from server in %s",
+                    threading.current_thread().name,
+                )
+                try:
+                    self.sock.shutdown(socket.SHUT_RD)
+                except OSError:
+                    pass
+                try:
+                    self.sock.close()
+                except OSError:
+                    pass
                 self.sock = None
-            time.sleep(0.1)
 
-        if getattr(self, 't', None):
-            if self.t.is_alive():
-                self.recv_num_q.put(None)
-                self.t.join()
+        if self.t is not None and self.t.is_alive():
+            self.recv_num_q.put(None)
+            if threading.current_thread() is not self.t:
+                self.t.join(timeout=5)
 
     def receive(self):
         """
@@ -285,32 +288,41 @@ class Client:
         Call self.message_handler if got a message
         Also check whether client is still connected
         """
-        if self.isconnected():
-            # Only this thread is allowed to read from socket, otherwise need lock to avoid competing
-            message = SocketMessage.ReceivePayload(self.sock)
+        with self._sock_lock:
+            sock = self.sock
+
+        if sock is not None:
+            message = SocketMessage.ReceivePayload(sock)
 
             # message may be None here
             # _L.debug('Got server raw message with length %d', len(message))
 
             if not message:
-                print('BaseClient: remote disconnected, no more message')
-                _L.debug('BaseClient: remote disconnected, no more message')
-                # self.sock = None
+                _L.warning("BaseClient: remote disconnected, no more message")
                 self.disconnect()
 
-                # try reconnect
-                print('try reconnecting!')
-                for _ in range(5):
-                    flag = self.connect()
-                    if flag:
-                        print('reconnect succeed!')
-                        break
-                    else:
-                        print('reconnect fail! sleep 1s and retry...')
-                        time.sleep(1)
-                print('disconnecting...')
-                self.disconnect()
-                assert 0, 'exit because of abnormal disconnection'
+                delay = self.RECONNECT_BASE_DELAY
+                for attempt in range(1, self.RECONNECT_ATTEMPTS + 1):
+                    _L.info(
+                        "Reconnect attempt %d/%d (delay %.1fs)",
+                        attempt,
+                        self.RECONNECT_ATTEMPTS,
+                        delay,
+                    )
+                    if self.connect(
+                        timeout=self.SOCKET_TIMEOUT, start_receive_thread=False
+                    ):
+                        _L.info("Reconnect succeeded on attempt %d", attempt)
+                        return self.receive()
+                    time.sleep(delay)
+                    delay = min(delay * 2, self.RECONNECT_MAX_DELAY)
+
+                error = ConnectionError(
+                    f"Failed to reconnect to {self.endpoint} after "
+                    f"{self.RECONNECT_ATTEMPTS} attempts"
+                )
+                self.recv_data_q.put(error)
+                raise error
 
             return message
 
@@ -325,7 +337,16 @@ class Client:
             if num < 0:
                 # need results
                 for _ in range(-num):
-                    raw_message = self.receive()
+                    try:
+                        raw_message = self.receive()
+                    except Exception as exception:
+                        self.recv_data_q.put(exception)
+                        break
+                    if raw_message is None:
+                        self.recv_data_q.put(
+                            ConnectionError("Disconnected before receiving response")
+                        )
+                        break
                     message = self.raw_message_handler(raw_message)
                     self.recv_message_id += (
                         1  # Increment it only after the request/response cycle finished
@@ -334,7 +355,10 @@ class Client:
             else:
                 # do not need results
                 for _ in range(num):
-                    raw_message = self.receive()
+                    try:
+                        raw_message = self.receive()
+                    except Exception:
+                        break
                     self.recv_message_id += 1
 
     def request_async(self, message):
@@ -346,14 +370,12 @@ class Client:
 
         if sys.version_info[0] == 3:
             if not isinstance(message, bytes):
-                message = message.encode('utf-8')
+                message = message.encode("utf-8")
 
-        raw_message = b'%d:%s' % (self.send_message_id, message)
+        message_id = self._next_message_id()
+        raw_message = b"%d:%s" % (message_id, message)
         if not self.send(raw_message):
-            assert 0, 'failed send because of socket is closed'
-            # return None
-
-        self.send_message_id += 1
+            raise ConnectionError("Failed to send because socket is closed")
 
         self.recv_num_q.put(1)
         # self.message_id += 1
@@ -373,13 +395,12 @@ class Client:
         for message in batch:
             if sys.version_info[0] == 3:
                 if not isinstance(message, bytes):
-                    message = message.encode('utf-8')
+                    message = message.encode("utf-8")
 
-            raw_message = b'%d:%s' % (self.send_message_id, message)
+            message_id = self._next_message_id()
+            raw_message = b"%d:%s" % (message_id, message)
             if not self.send(raw_message):
-                assert 0, 'failed send because of socket is closed'
-            # self.send(raw_message)
-            self.send_message_id += 1
+                raise ConnectionError("Failed to send because socket is closed")
 
         self.recv_num_q.put(len(batch))
         return None
@@ -404,19 +425,20 @@ class Client:
         for message in batch:
             if sys.version_info[0] == 3:
                 if not isinstance(message, bytes):
-                    message = message.encode('utf-8')
+                    message = message.encode("utf-8")
 
-            raw_message = b'%d:%s' % (self.send_message_id, message)
+            message_id = self._next_message_id()
+            raw_message = b"%d:%s" % (message_id, message)
             if not self.send(raw_message):
-                assert 0, 'failed send because of socket is closed'
-                # return None
-            self.send_message_id += 1
+                raise ConnectionError("Failed to send because socket is closed")
 
         self.recv_num_q.put(-len(batch))  # negative number indicates need results
 
         batch_res = []
         for i in range(len(batch)):
             message = self.recv_data_q.get()
+            if isinstance(message, Exception):
+                raise message
             batch_res.append(message)
 
         return batch_res
@@ -428,7 +450,7 @@ class Client:
         Parameters
         ----------
         message : str or list
-            UnrealCV command to interact with the game. 
+            UnrealCV command to interact with the game.
             When message is a list of commands, the commands will be sent in batch.
             More info can be seen from http://docs.unrealcv.org/en/latest/reference/commands.html
 
@@ -450,7 +472,7 @@ class Client:
         >>> client.request('vset /camera/0/location 100 100 100', -1)
         """
 
-        if timeout < 0 : # async
+        if timeout < 0:  # async
             if type(message) is list:
                 self.request_batch_async(message)
             else:
@@ -462,20 +484,27 @@ class Client:
 
         if sys.version_info[0] == 3:
             if not isinstance(message, bytes):
-                message = message.encode('utf-8')
+                message = message.encode("utf-8")
 
-        raw_message = b'%d:%s' % (self.send_message_id, message)
+        message_id = self._next_message_id()
+        raw_message = b"%d:%s" % (message_id, message)
         # _L.debug('Request: %s', raw_message.decode("utf-8"))
         if not self.send(raw_message):
-            assert 0, 'failed send because of socket is closed'
-            # return None
-
-        self.send_message_id += 1
+            raise ConnectionError("Failed to send because socket is closed")
 
         self.recv_num_q.put(-1)  # negative number indicates need results
-        message = self.recv_data_q.get()
+        try:
+            message = self.recv_data_q.get(timeout=timeout)
+        except Empty as exception:
+            raise TimeoutError(
+                f"Request timed out after {timeout} seconds"
+            ) from exception
+
+        if isinstance(message, Exception):
+            raise message
 
         return message
+
 
 # To use IPC on Unix, set this path to: /tmp/unrealcv_{portnum}.socket
 # Your executable will create this file on startup.
@@ -488,4 +517,3 @@ class Client:
 # if 'linux' in sys.platform and unix_socket_path is not None and os.path.exists(unix_socket_path):
 #     print('=> Info: Use UDS client...')
 #     client = Client(unix_socket_path, 'unix')
-
