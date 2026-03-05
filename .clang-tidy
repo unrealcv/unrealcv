@@ -1,0 +1,14 @@
+Checks: >
+  -*,
+  bugprone-*,
+  modernize-*,
+  performance-*,
+  readability-*,
+  -readability-identifier-naming,
+  cppcoreguidelines-avoid-c-arrays,
+  cppcoreguidelines-pro-type-static-cast-downcast,
+  cppcoreguidelines-pro-bounds-array-to-pointer-decay
+WarningsAsErrors: ''
+HeaderFilterRegex: 'Source/UnrealCV/.*'
+FormatStyle: none
+AnalyzeTemporaryDtors: false
