@@ -75,10 +75,10 @@ public:
 
 	static void BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray);
 
+	FExecStatus() = default;
 	~FExecStatus() = default;
 
 private:
-	FExecStatus() = default;
 	FExecStatus(EExecStatusType InExecStatusType, const FString& Message);
 	FExecStatus(EExecStatusType InExecStatusType, FPromise InPromise);
 	FExecStatus(EExecStatusType InExecStatusType, const TArray<uint8>& InBinaryData);
