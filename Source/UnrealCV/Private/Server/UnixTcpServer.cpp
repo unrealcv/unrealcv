@@ -40,12 +40,13 @@ bool FUnixSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, 
 	while (Remaining > 0)
 	{
 		int32 AmountSent = 0;
-		Socket->Send(Ar.GetData() + TotalSent, Ar.Num() - TotalSent, AmountSent);
-		if (AmountSent == -1)
+		const bool bSendOk = Socket->Send(Ar.GetData() + TotalSent, Ar.Num() - TotalSent, AmountSent);
+		if (!bSendOk || AmountSent <= 0)
 		{
 			if (--RetriesLeft < 0)
 			{
-				UE_LOG(LogUnrealCV, Error, TEXT("Send failed after retries. Expected %d, sent %d."), Ar.Num(), TotalSent);
+				UE_LOG(LogUnrealCV, Error, TEXT("Send failed after retries. Expected %d, sent %d (last chunk=%d, ok=%s)."),
+					Ar.Num(), TotalSent, AmountSent, bSendOk ? TEXT("true") : TEXT("false"));
 				return false;
 			}
 			FPlatformProcess::Sleep(0.001f);
@@ -125,11 +126,12 @@ bool FUnixSocketMessageHeader::WrapAndSendPayloadUDS(const TArray<uint8>& Payloa
 	while (Remaining > 0)
 	{
 		const int32 Written = static_cast<int32>(write(Fd, Ar.GetData() + TotalSent, Remaining));
-		if (Written == -1)
+		if (Written <= 0)
 		{
 			if (--RetriesLeft < 0)
 			{
-				UE_LOG(LogUnrealCV, Error, TEXT("UDS send exhausted retries. Expected %d, sent %d."), Ar.Num(), TotalSent);
+				UE_LOG(LogUnrealCV, Error, TEXT("UDS send exhausted retries. Expected %d, sent %d (last chunk=%d)."),
+					Ar.Num(), TotalSent, Written);
 				return false;
 			}
 			FPlatformProcess::Sleep(0.001f);
@@ -198,6 +200,12 @@ bool FUnixSocketMessageHeader::ReceivePayloadUDS(FArrayReader& OutPayload, int F
 
 bool UUnixTcpServer::IsConnected() const
 {
+#if PLATFORM_LINUX
+	if (bIsUDS.Load() && UDS_ConnFd != -1)
+	{
+		return true;
+	}
+#endif
 	return ConnectionSocket != nullptr;
 }
 

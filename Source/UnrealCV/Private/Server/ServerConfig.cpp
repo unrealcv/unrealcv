@@ -8,7 +8,7 @@
 #include "AssetRegistry/AssetData.h"
 #include "UnrealcvLog.h"
 
-FServerConfig::FServerConfig()
+FServerConfig::FServerConfig(EServerConfigInitMode InitMode)
 {
 	ConfigFile  = TEXT("unrealcv.ini");
 	CoreSection = TEXT("UnrealCV.Core");
@@ -19,8 +19,11 @@ FServerConfig::FServerConfig()
 	SupportedModes.Add(TEXT("normal"));
 
 	Load();
-	Save(); // Flush defaults to disk if the file does not exist yet.
-	ParseCmdArgs();
+	if (InitMode == EServerConfigInitMode::WithSideEffects)
+	{
+		Save(); // Flush defaults to disk if the file does not exist yet.
+		ParseCmdArgs();
+	}
 
 	UE_LOG(LogUnrealCV, Display, TEXT("Config  Port=%d  Size=%dx%d  FOV=%.1f  Input=%s  RightEye=%s"),
 		Port, Width, Height, FOV,
