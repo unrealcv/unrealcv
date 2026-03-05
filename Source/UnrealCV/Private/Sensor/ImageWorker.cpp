@@ -1,6 +1,7 @@
 #include "ImageWorker.h"
 #include "Runtime/Core/Public/HAL/RunnableThread.h"
 #include "UnrealcvLog.h"
+#include "Utils/RuntimeConstants.h"
 
 FImageWorker::FImageWorker() : Thread(nullptr)
 {
@@ -30,12 +31,18 @@ uint32 FImageWorker::Run()
 {
 	while (!Stopping)
 	{
+		bool bProcessedFrame = false;
 		FFrameData Frame;
 		while (PendingData.Dequeue(Frame))
 		{
+			bProcessedFrame = true;
 			UE_LOG(LogUnrealCV, Log, TEXT("Saving frame number %d"), Frame.FrameNumber);
 			// ImageUtil.SavePngFile(Frame.ImageData, Frame.Width, Frame.Height, Frame.Filename);
 			ImageUtil.SaveBmpFile(Frame.ImageData, Frame.Width, Frame.Height, Frame.Filename);
+		}
+		if (!bProcessedFrame)
+		{
+			FPlatformProcess::Sleep(UnrealcvRuntimeConstants::BusyWaitSleepSeconds);
 		}
 	}
 	return 0;
