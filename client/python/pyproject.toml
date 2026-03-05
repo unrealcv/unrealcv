@@ -6,13 +6,15 @@ build-backend = "setuptools.build_meta"
 name = "UnrealCV"
 dynamic = ["version"]
 description = "UnrealCV client for python. see http://unrealcv.org for more detail."
+readme = "README.md"
+license = {text = "MIT"}
 authors = [
     { name = "Weichao Qiu", email = "qiuwch@gmail.com" },
     { name = "Fangwei Zhong", email = "zfw1226@gmail.com" },
     { name = "Hai Ci" },
     { name = "Kui Wu" }
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 dependencies = [
     "docker",
     "opencv-python",
@@ -20,7 +22,45 @@ dependencies = [
     "numpy"
 ]
 keywords = ["computer vision", "unreal engine", "ue4/5", "synthetic", "simulator", "robotics"]
-urls = { "Homepage" = "http://unrealcv.org", "Download" = "http://unrealcv.github.io" }
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.10",
+    "pre-commit>=3.7",
+    "pytest>=8.0",
+    "ruff>=0.5"
+]
+
+[project.urls]
+Homepage = "http://unrealcv.org"
+Documentation = "http://unrealcv.github.io"
+Repository = "https://github.com/unrealcv/unrealcv"
 
 [tool.setuptools.dynamic]
 version = {attr = "unrealcv.__version__"}
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "S", "SIM"]
+ignore = ["S101"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["../../test/client"]
+addopts = "--tb=short"
+
+[tool.coverage.run]
+branch = true
+source = ["unrealcv"]
+
+[tool.coverage.report]
+skip_empty = true
+show_missing = true
