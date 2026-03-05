@@ -78,6 +78,7 @@ public:
 	~FExecStatus() = default;
 
 private:
+	FExecStatus() = default;
 	FExecStatus(EExecStatusType InExecStatusType, const FString& Message);
 	FExecStatus(EExecStatusType InExecStatusType, FPromise InPromise);
 	FExecStatus(EExecStatusType InExecStatusType, const TArray<uint8>& InBinaryData);
