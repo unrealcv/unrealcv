@@ -1,115 +1,138 @@
-// Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
+// Weichao Qiu @ 2016
 #pragma once
 
-#include "Tickable.h"
-#include "Containers/Queue.h"
-#include "Internationalization/Regex.h"
-#include "GameFramework/Pawn.h"
+#include "Runtime/Engine/Public/Tickable.h"
+#include "Runtime/Core/Public/Containers/Queue.h"
+// #include "TcpServer.h"
+#include "Runtime/Core/Public/Internationalization/Regex.h"
 #include "ServerConfig.h"
 #include "CommandDispatcher.h"
+#include "WorldController.h"
+#include "UnixTcpServer.h"
 
-class UUnixTcpServer;
-class AUnrealcvWorldController;
-class FCommandHandler;
-
-/**
- * A single incoming command request from a connected client.
- */
-struct FRequest
+class FRequest
 {
+public:
 	FString Endpoint;
 	FString Message;
-	uint32  RequestId = 0;
+	uint32 RequestId;
 
-	FRequest() = default;
-
-	FRequest(const FString& InEndpoint, const FString& InMessage, uint32 InRequestId)
-		: Endpoint(InEndpoint)
-		, Message(InMessage)
-		, RequestId(InRequestId)
-	{
-	}
+	FRequest() {}
+	FRequest(FString InEndpoint, FString InMessage, uint32 InRequestId) 
+		: Endpoint(InEndpoint), Message(InMessage), RequestId(InRequestId) {}
 };
 
 /**
- * Central UnrealCV server — manages networking, command dispatch, and world state.
- *
- * Lifecycle:
- *  1. Start a TCP server.
- *  2. Create a FCommandDispatcher.
- *  3. Register FCommandHandler instances.
- *  4. Bind dispatcher to the TCP server and UE console.
- *  5. Each game-thread tick: process queued requests.
- */
+* UnrealCV server to interact with external programs.
+* For UnrealCV server, when a game start:
+* 1. Start a TCPserver.
+* 2. Create a command dispatcher
+* 3. Add command handler to command dispatcher, CameraHandler should be able to access camera
+* 4. Bind command dispatcher to TCPserver
+* 5. Bind command dispatcher to UE4 console
+*/
 class UNREALCV_API FUnrealcvServer : public FTickableGameObject
 {
 public:
 	~FUnrealcvServer();
 
-	// Non-copyable, non-movable singleton.
-	FUnrealcvServer(const FUnrealcvServer&) = delete;
-	FUnrealcvServer& operator=(const FUnrealcvServer&) = delete;
-
-	/** Singleton accessor. */
+	/** Get the singleton */
 	static FUnrealcvServer& Get();
 
-	/** Return the controlled Pawn (only valid during gameplay). */
-	[[nodiscard]] APawn* GetPawn();
+	/** The CommandDispatcher to handle a pending request */
+	TSharedPtr<class FCommandDispatcher> CommandDispatcher;
 
-	// -- FTickableGameObject interface ------------------------------------
+	/** Return the Pawn of this game */
+	APawn* GetPawn();
+
+	/** Implement ticking function of UnrealcvServer itself */
 	virtual void Tick(float DeltaTime) override;
-	[[nodiscard]] virtual bool IsTickable() const override            { return bIsTicking; }
-	[[nodiscard]] virtual bool IsTickableWhenPaused() const override  { return true; }
-	[[nodiscard]] virtual bool IsTickableInEditor() const override    { return true; }
-	[[nodiscard]] virtual TStatId GetStatId() const override
+
+	virtual bool IsTickable() const{
+		return bIsTicking;
+	}
+
+	virtual bool IsTickableWhenPaused() const
 	{
-		RETURN_QUICK_DECLARE_CYCLE_STAT(FUnrealcvServer, STATGROUP_Tickables);
+		return true;
+	}
+
+	virtual bool IsTickableInEditor() const
+	{
+		return true;
+	}
+
+	virtual TStatId GetStatId() const
+	{
+		RETURN_QUICK_DECLARE_CYCLE_STAT( FUnrealcvServer, STATGROUP_Tickables );
 	}
 
 	void RegisterCommandHandlers();
 
-	/** Return the best available UWorld for the current mode (editor / game). */
-	[[nodiscard]] UWorld* GetWorld() const;
+	/** Make sure UnrealcvServer correctly initialized itself in the GameWorld */
+	// bool InitWorld();
 
-	/** Return the gameplay world (nullptr outside of PIE / standalone). */
-	[[nodiscard]] UWorld* GetGameWorld() const;
+	/** Return the GameWorld of the editor or of the game */
+	UWorld* GetGameWorld();
 
-	[[nodiscard]] const FServerConfig& GetConfig() const { return Config; }
-	FServerConfig& GetMutableConfig() { return Config; }
+	UWorld* GetWorld();
 
-	[[nodiscard]] TSharedPtr<FCommandDispatcher> GetCommandDispatcher() const { return CommandDispatcher; }
+	/** Update input mode */
+	// void UpdateInput(bool Enable);
 
-	[[nodiscard]] UUnixTcpServer* GetTcpServer() const { return TcpServer; }
+	/** Open new level */
+	// void OpenLevel(FName LevelName);
 
-	[[nodiscard]] TWeakObjectPtr<AUnrealcvWorldController> GetWorldController() const { return WorldController; }
+	/** The config of UnrealcvServer */
+	FServerConfig Config;
 
+	/** The underlying class to handle network connection, ip and port are configured here */
+	//UTcpServer* TcpServer;
+	UUnixTcpServer* TcpServer;
+
+	/** A controller to control the UE4 world */
+	TWeakObjectPtr<class AUnrealcvWorldController> WorldController;
+
+	/** InitWorldController */
 	void InitWorldController();
 
 private:
-	FUnrealcvServer();
+	/** Handlers for UnrealCV commands */
+	TArray<class FCommandHandler*> CommandHandlers;
 
-	TWeakObjectPtr<AUnrealcvWorldController> WorldController;
-	FServerConfig Config;
-	TSharedPtr<FCommandDispatcher> CommandDispatcher;
-	UUnixTcpServer* TcpServer = nullptr;
-
-	TArray<TUniquePtr<FCommandHandler>> CommandHandlers;
-
+	/** Process pending requests in a tick */
 	void ProcessPendingRequest();
-	void ProcessRequest(const FRequest& Request);
 
-	int32 BatchNum = 0;
+	void ProcessRequest(FRequest& Request);
+
+	/** The number of incoming commands for the batch mode */
+	int BatchNum;
+
+	/** Array for batch commands */
 	TArray<FRequest> Batch;
 
-	TWeakObjectPtr<APawn> CachedPawn;
+	/** The Pawn of the Game */
+	APawn* Pawn;
+
 	bool bIsTicking = true;
 
-	TQueue<FRequest, EQueueMode::Spsc> PendingRequest;
+	/** Construct a server */
+	FUnrealcvServer();
 
+	/** Store pending requests, A new request will be stored here and be processed in the next tick of GameThread */
+	TQueue<FRequest, EQueueMode::Spsc> PendingRequest; // TQueue is a thread safe implementation
+
+	/** Handle the raw message from TcpServer and parse raw message to a FRequest */
 	void HandleRawMessage(const FString& Endpoint, const FString& RawMessage);
+
+	/** Handle errors from TcpServer */
 	void HandleError(const FString& ErrorMessage);
 
-	/** Regex pattern for parsing "<id>:<message>" wire format. */
-	static const FString MessageFormat;
-	FRegexPattern MessageRegexPattern;
+	/** Auth state for current endpoint when AuthToken is enabled */
+	bool bEndpointAuthenticated = false;
+	FString AuthEndpoint = TEXT("");
+
+	FString MessageFormat = "(\\d{1,}):(.*)";  // for inf message id
+	FRegexPattern myRegexPattern;
+
 };

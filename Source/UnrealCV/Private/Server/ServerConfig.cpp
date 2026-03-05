@@ -1,106 +1,184 @@
-// Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
+// Weichao Qiu @ 2016
 #include "ServerConfig.h"
-#include "Runtime/Core/Public/HAL/FileManager.h"
-#include "Runtime/Core/Public/Misc/ConfigCacheIni.h"
-#include "Runtime/Core/Public/Misc/CommandLine.h"
+#include "HAL/FileManager.h"
+#include "Misc/ConfigCacheIni.h"
+#include "Misc/CommandLine.h"
 #include "Modules/ModuleManager.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetRegistry/AssetData.h"
+
 #include "UnrealcvLog.h"
 
+// TODO: Try to simplify the implementation of this class
 FServerConfig::FServerConfig()
 {
-	ConfigFile  = TEXT("unrealcv.ini");
-	CoreSection = TEXT("UnrealCV.Core");
+	// Default configuration
+	// ConfigFile = GGameUserSettingsIni;
+	ConfigFile = "unrealcv.ini";
+	CoreSection = "UnrealCV.Core";
+
+	// Default value, will be unchanged if the config is missing.
+	Port = 9000; 
+	BindAddress = TEXT("127.0.0.1");
+	AuthToken = TEXT("");
+	Width = 640;
+	Height = 480;
+	FOV = 90.0f;
+	EnableInput = true;
+	ExitOnFailure = false;
+	EnableRightEye = false;
+#if WITH_EDITOR
+	AllowDangerousCommands = true;
+#else
+	AllowDangerousCommands = false;
+#endif
 
 	SupportedModes.Add(TEXT("lit"));
 	SupportedModes.Add(TEXT("depth"));
+//	SupportedModes.Add(TEXT("vis_depth"));
+//	SupportedModes.Add(TEXT("plane_depth"));
+	// SupportedModes.Add(TEXT("debug"));
 	SupportedModes.Add(TEXT("object_mask"));
 	SupportedModes.Add(TEXT("normal"));
+	// SupportedModes.Add(TEXT("wireframe"));
+//	SupportedModes.Add(TEXT("default"));
 
-	Load();
-	Save(); // Flush defaults to disk if the file does not exist yet.
-	ParseCmdArgs();
+	this->Load(); 
+	this->Save(); // Flush the default config to the disk if file not exist.
+	this->ParseCmdArgs();
 
-	UE_LOG(LogUnrealCV, Display, TEXT("Config  Port=%d  Size=%dx%d  FOV=%.1f  Input=%s  RightEye=%s"),
-		Port, Width, Height, FOV,
-		bEnableInput    ? TEXT("on") : TEXT("off"),
-		bEnableRightEye ? TEXT("on") : TEXT("off"));
+	UE_LOG(LogUnrealCV, Warning, TEXT("Port: %d"), this->Port);
+	UE_LOG(LogUnrealCV, Warning, TEXT("BindAddress: %s"), *this->BindAddress);
+	UE_LOG(LogUnrealCV, Warning, TEXT("Width: %d"), this->Width);
+	UE_LOG(LogUnrealCV, Warning, TEXT("Height: %d"), this->Height);
+	UE_LOG(LogUnrealCV, Warning, TEXT("FOV: %f"), this->FOV);
+	UE_LOG(LogUnrealCV, Warning, TEXT("EnableInput: %s"), *BoolToString(this->EnableInput));
+	UE_LOG(LogUnrealCV, Warning, TEXT("EnableRightEye: %s"), *BoolToString(this->EnableRightEye));
+	UE_LOG(LogUnrealCV, Warning, TEXT("AllowDangerousCommands: %s"), *BoolToString(this->AllowDangerousCommands));
 }
 
 void FServerConfig::ParseCmdArgs()
 {
-	int32 ArgPort = 0;
-	if (FParse::Value(FCommandLine::Get(), TEXT("cvport"), ArgPort))
+	// https://answers.unrealengine.com/questions/123559/can-we-make-command-line-arguments.html
+	// Use command line argument to overwrite config file.
+	int ArgPort;
+	// Use cvport to avoid conflict with UE4 default
+	if (FParse::Value(FCommandLine::Get(), TEXT("cvport"), ArgPort)) 
 	{
 		Port = ArgPort;
 	}
 
+	FString ArgBindAddress;
+	if (FParse::Value(FCommandLine::Get(), TEXT("cvip"), ArgBindAddress))
+	{
+		BindAddress = ArgBindAddress;
+	}
+
+	FString ArgAuthToken;
+	if (FParse::Value(FCommandLine::Get(), TEXT("cvauth"), ArgAuthToken))
+	{
+		AuthToken = ArgAuthToken;
+	}
+
 	FString LsFolder;
-	if (FParse::Value(FCommandLine::Get(), TEXT("cvls"), LsFolder))
+	if (FParse::Value(FCommandLine::Get(), TEXT("cvls"), LsFolder)) 
 	{
 		ListAsset(LsFolder);
 		FGenericPlatformMisc::RequestExit(false);
 	}
+
+	bool ArgAllowDangerousCommands = this->AllowDangerousCommands;
+	if (FParse::Bool(FCommandLine::Get(), TEXT("cvallowdangerous"), ArgAllowDangerousCommands))
+	{
+		this->AllowDangerousCommands = ArgAllowDangerousCommands;
+	}
 }
 
-void FServerConfig::ListAsset(const FString& Folder)
+void FServerConfig::ListAsset(FString LsFolder)
 {
-	FAssetRegistryModule& AssetRegistryModule =
-		FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry"));
+	// https://answers.unrealengine.com/questions/145345/how-to-get-a-list-of-assets-from-code.html
+	FAssetRegistryModule& AssetRegistryModule = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(FName("AssetRegistry"));
 	IAssetRegistry& AssetRegistry = AssetRegistryModule.Get();
 
+	// Need to do this if running in the editor with -game to make sure that the assets in the following path are available
 	TArray<FString> PathsToScan;
 	PathsToScan.Add(TEXT("/Game/"));
 	AssetRegistry.ScanPathsSynchronous(PathsToScan);
 
-	TArray<FAssetData> Assets;
-	AssetRegistry.GetAssetsByPath(FName(*Folder), Assets, /*bRecursive=*/true);
+	TArray<FAssetData> MeshAssetList;
+	bool bRecursive = true;
+	AssetRegistry.GetAssetsByPath(FName(*LsFolder), MeshAssetList, bRecursive);
 
-	for (const FAssetData& Asset : Assets)
+	for (FAssetData& AssetData : MeshAssetList)
 	{
-		UE_LOG(LogUnrealCV, Display, TEXT("%s"), *Asset.GetFullName());
+		UE_LOG(LogUnrealCV, Display, TEXT("%s"), *AssetData.GetFullName());
 	}
 }
 
-FString FServerConfig::ToString() const
+FString FServerConfig::BoolToString(bool Value) const
 {
-	const FString AbsPath = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*ConfigFile);
-	return FString::Printf(
-		TEXT("Config file: %s\nPort: %d\nWidth: %d\nHeight: %d\nFOV: %.1f\n"
-		     "EnableInput: %s\nEnableRightEye: %s"),
-		*AbsPath, Port, Width, Height, FOV,
-		bEnableInput    ? TEXT("true") : TEXT("false"),
-		bEnableRightEye ? TEXT("true") : TEXT("false"));
+	if (Value)
+	{
+		return FString::Printf(TEXT("true"));
+	}
+	else
+	{
+		return FString::Printf(TEXT("false"));
+	}
 }
 
-bool FServerConfig::Load()
-{
-	if (!GConfig) { return false; }
+FString FServerConfig::ToString() {
+	FString Msg = "";
+	FString AbsConfigFile = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*ConfigFile);
+	Msg += FString::Printf(TEXT("Config file: %s\n"), *AbsConfigFile);
+	Msg += FString::Printf(TEXT("Port: %d\n"), this->Port);
+	Msg += FString::Printf(TEXT("BindAddress: %s\n"), *this->BindAddress);
+	Msg += FString::Printf(TEXT("AuthTokenEnabled: %s\n"), this->AuthToken.IsEmpty() ? TEXT("false") : TEXT("true"));
+	Msg += FString::Printf(TEXT("Width: %d\n"), this->Width);
+	Msg += FString::Printf(TEXT("Height: %d\n"), this->Height);
+	Msg += FString::Printf(TEXT("FOV: %f\n"), this->FOV);
+	Msg += FString::Printf(TEXT("EnableInput: %s\n"), *BoolToString(this->EnableInput));
+	Msg += FString::Printf(TEXT("EnableRightEye: %s\n"), *BoolToString(this->EnableRightEye));
+	Msg += FString::Printf(TEXT("AllowDangerousCommands: %s\n"), *BoolToString(this->AllowDangerousCommands));
+	return Msg;
+}
 
-	UE_LOG(LogUnrealCV, Display, TEXT("Loading configuration from %s"), *ConfigFile);
+bool FServerConfig::Load() {
+	if (!GConfig) return false;
 
-	GConfig->GetInt   (*CoreSection, TEXT("Port"),           Port,            ConfigFile);
-	GConfig->GetInt   (*CoreSection, TEXT("Width"),          Width,           ConfigFile);
-	GConfig->GetInt   (*CoreSection, TEXT("Height"),         Height,          ConfigFile);
-	GConfig->GetFloat (*CoreSection, TEXT("FOV"),            FOV,             ConfigFile);
-	GConfig->GetBool  (*CoreSection, TEXT("EnableInput"),    bEnableInput,    ConfigFile);
-	GConfig->GetBool  (*CoreSection, TEXT("EnableRightEye"), bEnableRightEye, ConfigFile);
+	UE_LOG(LogUnrealCV, Warning, TEXT("Loading config"));
+
+	// Assume the value will not be overwrote if the read failed
+	GConfig->GetInt(*CoreSection, TEXT("Port"), this->Port, this->ConfigFile);
+	GConfig->GetString(*CoreSection, TEXT("BindAddress"), this->BindAddress, this->ConfigFile);
+	GConfig->GetString(*CoreSection, TEXT("AuthToken"), this->AuthToken, this->ConfigFile);
+	GConfig->GetInt(*CoreSection, TEXT("Width"), this->Width, this->ConfigFile);
+	GConfig->GetInt(*CoreSection, TEXT("Height"), this->Height, this->ConfigFile);
+	GConfig->GetFloat(*CoreSection, TEXT("FOV"), this->FOV, this->ConfigFile);
+	GConfig->GetBool(*CoreSection, TEXT("EnableInput"), this->EnableInput, this->ConfigFile);
+	GConfig->GetBool(*CoreSection, TEXT("EnableRightEye"), this->EnableRightEye, this->ConfigFile);
+	GConfig->GetBool(*CoreSection, TEXT("AllowDangerousCommands"), this->AllowDangerousCommands, this->ConfigFile);
+
 
 	return true;
 }
 
 bool FServerConfig::Save()
 {
-	if (!GConfig) { return false; }
+	// Reference: https://wiki.unrealengine.com/Config_Files,_Read_%26_Write_to_Config_Files
+	if (!GConfig) return false;
 
-	GConfig->SetInt   (*CoreSection, TEXT("Port"),           Port,            ConfigFile);
-	GConfig->SetInt   (*CoreSection, TEXT("Width"),          Width,           ConfigFile);
-	GConfig->SetInt   (*CoreSection, TEXT("Height"),         Height,          ConfigFile);
-	GConfig->SetFloat (*CoreSection, TEXT("FOV"),            FOV,             ConfigFile);
-	GConfig->SetBool  (*CoreSection, TEXT("EnableInput"),    bEnableInput,    ConfigFile);
-	GConfig->SetBool  (*CoreSection, TEXT("EnableRightEye"), bEnableRightEye, ConfigFile);
+	GConfig->SetInt(*CoreSection, TEXT("Port"), this->Port, this->ConfigFile);
+	GConfig->SetString(*CoreSection, TEXT("BindAddress"), *this->BindAddress, this->ConfigFile);
+	GConfig->SetString(*CoreSection, TEXT("AuthToken"), *this->AuthToken, this->ConfigFile);
+	GConfig->SetInt(*CoreSection, TEXT("Width"), this->Width, this->ConfigFile);
+	GConfig->SetInt(*CoreSection, TEXT("Height"), this->Height, this->ConfigFile);
+	GConfig->SetFloat(*CoreSection, TEXT("FOV"), this->FOV, this->ConfigFile);
+	GConfig->SetBool(*CoreSection, TEXT("EnableInput"), this->EnableInput, this->ConfigFile);
+	GConfig->SetBool(*CoreSection, TEXT("EnableRightEye"), this->EnableRightEye, this->ConfigFile);
+	GConfig->SetBool(*CoreSection, TEXT("AllowDangerousCommands"), this->AllowDangerousCommands, this->ConfigFile);
 
-	GConfig->Flush(false, ConfigFile);
+	bool Read = false;
+	GConfig->Flush(Read, this->ConfigFile);
 	return true;
 }

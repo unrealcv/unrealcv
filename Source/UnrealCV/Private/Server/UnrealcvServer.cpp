@@ -1,7 +1,7 @@
-// Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
+// Weichao Qiu @ 2016
 #include "UnrealcvServer.h"
-#include "UnixTcpServer.h"
 #include "Runtime/Engine/Classes/Engine/GameEngine.h"
+//#include "Runtime/Core/Public/Internationalization/Regex.h"
 #include "Runtime/Engine/Classes/GameFramework/PlayerController.h"
 #if WITH_EDITOR
 #include "Editor/EditorEngine.h"
@@ -17,17 +17,14 @@
 #include "UnrealcvLog.h"
 #include "UnrealcvStats.h"
 
-DECLARE_CYCLE_STAT(TEXT("FUnrealcvServer::Tick"),           STAT_Tick,           STATGROUP_UnrealCV);
+DECLARE_CYCLE_STAT(TEXT("FUnrealcvServer::Tick"), STAT_Tick, STATGROUP_UnrealCV);
 DECLARE_CYCLE_STAT(TEXT("FUnrealcvServer::ProcessRequest"), STAT_ProcessRequest, STATGROUP_UnrealCV);
 
-const FString FUnrealcvServer::MessageFormat = TEXT("(\\d{1,}):(.*)");
-
-// ---------------------------------------------------------------------------
-// Tick
-// ---------------------------------------------------------------------------
 
 void FUnrealcvServer::Tick(float DeltaTime)
 {
+	// Spawn a AUnrealcvWorldController, which is responsible for modifying the world to add UnrealCV functions.
+	// TODO: Check whether stopping the game will reset this ptr?
 	SCOPE_CYCLE_COUNTER(STAT_Tick);
 	InitWorldController();
 	ProcessPendingRequest();
@@ -36,102 +33,41 @@ void FUnrealcvServer::Tick(float DeltaTime)
 void FUnrealcvServer::InitWorldController()
 {
 	UWorld* GameWorld = GetGameWorld();
-	if (!IsValid(GameWorld) || WorldController.IsValid())
+	if (IsValid(GameWorld) && !WorldController.IsValid())
 	{
-		return;
-	}
-
-	UE_LOG(LogUnrealCV, Display, TEXT("Spawning WorldController."));
-	WorldController = Cast<AUnrealcvWorldController>(
-		GameWorld->SpawnActor(AUnrealcvWorldController::StaticClass()));
-
-	if (WorldController.IsValid())
-	{
-		WorldController->InitWorld();
-	}
-	else
-	{
-		UE_LOG(LogUnrealCV, Error, TEXT("Failed to spawn WorldController."));
-	}
-}
-
-// ---------------------------------------------------------------------------
-// World access
-// ---------------------------------------------------------------------------
-
-APawn* FUnrealcvServer::GetPawn()
-{
-	// Re-fetch each call; the cached weak pointer is used to detect staleness.
-	if (CachedPawn.IsValid())
-	{
-		return CachedPawn.Get();
-	}
-
-	UWorld* World = GetWorld();
-	if (!IsValid(World)) { return nullptr; }
-
-	APlayerController* PC = World->GetFirstPlayerController();
-	if (!IsValid(PC)) { return nullptr; }
-
-	CachedPawn = PC->GetPawn();
-	return CachedPawn.Get();
-}
-
-UWorld* FUnrealcvServer::GetWorld() const
-{
-	UWorld* WorldPtr = nullptr;
-
-#if WITH_EDITOR
-	if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
-	{
-		WorldPtr = EditorEngine->GetPIEWorldContext()
-			? EditorEngine->GetPIEWorldContext()->World()
-			: EditorEngine->GetEditorWorldContext().World();
-	}
-#endif
-
-	if (!IsValid(WorldPtr))
-	{
-		if (UGameEngine* GameEngine = Cast<UGameEngine>(GEngine))
+		UE_LOG(LogTemp, Display, TEXT("FUnrealcvServer::Tick Create WorldController"));
+		this->WorldController = Cast<AUnrealcvWorldController>(GameWorld->SpawnActor(AUnrealcvWorldController::StaticClass()));
+		// if (IsValid(this->WorldController))
+		if (this->WorldController != nullptr)
 		{
-			WorldPtr = GameEngine->GetGameWorld();
+			this->WorldController->InitWorld();
 		}
 		else
 		{
-			UE_LOG(LogUnrealCV, Error, TEXT("GEngine is neither EditorEngine nor GameEngine."));
+			UE_LOG(LogUnrealCV, Error, TEXT("Failed to spawn WorldController"));
 		}
+		// Its BeginPlay event will extend the GameWorld
 	}
+}
 
-	if (!IsValid(WorldPtr))
+/** Only available during game play */
+APawn* FUnrealcvServer::GetPawn()
+{
+	UWorld* World = GetWorld();
+	if (!IsValid(World))
 	{
-		UE_LOG(LogUnrealCV, Error, TEXT("UWorld pointer is invalid (%p)."), WorldPtr);
 		return nullptr;
 	}
-	return WorldPtr;
-}
 
-UWorld* FUnrealcvServer::GetGameWorld() const
-{
-#if WITH_EDITOR
-	if (UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine))
+	APlayerController* PlayerController = World->GetFirstPlayerController();
+
+	if (!IsValid(PlayerController))
 	{
-		UWorld* World = EditorEngine->PlayWorld;
-		return (IsValid(World) && World->IsGameWorld()) ? World : nullptr;
+		return nullptr;
 	}
-#endif
-
-	if (UGameEngine* GameEngine = Cast<UGameEngine>(GEngine))
-	{
-		UWorld* World = GameEngine->GetGameWorld();
-		return IsValid(World) ? World : nullptr;
-	}
-
-	return nullptr;
+	Pawn = PlayerController->GetPawn();
+	return Pawn;
 }
-
-// ---------------------------------------------------------------------------
-// Singleton & construction
-// ---------------------------------------------------------------------------
 
 FUnrealcvServer& FUnrealcvServer::Get()
 {
@@ -141,156 +77,340 @@ FUnrealcvServer& FUnrealcvServer::Get()
 
 void FUnrealcvServer::RegisterCommandHandlers()
 {
-	if (CommandHandlers.Num() > 0)
+	// Taken from ctor, because might cause loop-invoke.
+	CommandHandlers.Add(new FObjectHandler());
+	CommandHandlers.Add(new FPluginHandler());
+	CommandHandlers.Add(new FActionHandler());
+	CommandHandlers.Add(new FAliasHandler());
+	CommandHandlers.Add(new FCameraHandler());
+	for (FCommandHandler* Handler : CommandHandlers)
 	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("Command handlers already registered — skipping."));
-		return;
-	}
-
-	CommandHandlers.Emplace(MakeUnique<FObjectHandler>());
-	CommandHandlers.Emplace(MakeUnique<FPluginHandler>());
-	CommandHandlers.Emplace(MakeUnique<FActionHandler>());
-	CommandHandlers.Emplace(MakeUnique<FAliasHandler>());
-	CommandHandlers.Emplace(MakeUnique<FCameraHandler>());
-
-	for (const TUniquePtr<FCommandHandler>& Handler : CommandHandlers)
-	{
-		Handler->SetCommandDispatcher(CommandDispatcher);
+		Handler->CommandDispatcher = CommandDispatcher;
 		Handler->RegisterCommands();
 	}
 }
 
-FUnrealcvServer::FUnrealcvServer()
-	: MessageRegexPattern(MessageFormat)
+FUnrealcvServer::FUnrealcvServer() : myRegexPattern(MessageFormat)
 {
+	// Code defined here should not use FUnrealcvServer::Get();
+	//TcpServer = NewObject<UTcpServer>();
 	TcpServer = NewObject<UUnixTcpServer>();
-	CommandDispatcher = MakeShared<FCommandDispatcher>();
+	CommandDispatcher = TSharedPtr<FCommandDispatcher>(new FCommandDispatcher());
 	FConsoleHelper::Get().SetCommandDispatcher(CommandDispatcher);
 
-	TcpServer->AddToRoot(); // Prevent GC
+	TcpServer->AddToRoot(); // Avoid GC
 	TcpServer->OnReceived().AddRaw(this, &FUnrealcvServer::HandleRawMessage);
 	TcpServer->OnError().AddRaw(this, &FUnrealcvServer::HandleError);
 }
 
 FUnrealcvServer::~FUnrealcvServer()
 {
-	CommandHandlers.Empty(); // TUniquePtr handles cleanup
+	// this->TcpServer->FinishDestroy(); // TODO: Check is this usage correct?
+}
 
-	if (TcpServer)
+// TODO: Write an article to explain this.
+/** Select and return and most suitable world for current condition
+ * GWorld returns the EditorWorld in the Editor, which is usually not what we need. 
+ */
+UWorld* FUnrealcvServer::GetWorld()
+{
+	UWorld* WorldPtr = nullptr;
+#if WITH_EDITOR
+	UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+	if (IsValid(EditorEngine))
 	{
-		TcpServer->RemoveFromRoot();
-		TcpServer = nullptr;
+		if (EditorEngine->GetPIEWorldContext() != nullptr)
+		{
+			WorldPtr = EditorEngine->GetPIEWorldContext()->World();
+		}
+		else
+		{
+			WorldPtr = EditorEngine->GetEditorWorldContext().World();
+		}
+	} // else standalone game mode in editor
+#endif
+
+	if (!IsValid(WorldPtr))
+	{
+		UGameEngine* GameEngine = Cast<UGameEngine>(GEngine);
+		if (IsValid(GameEngine))
+		{
+			WorldPtr = GameEngine->GetGameWorld(); // Not GetWorld !
+		}
+		else
+		{
+			UE_LOG(LogUnrealCV, Error, TEXT("GameEngine is invalid"));
+		}
+
+	}
+
+	if (IsValid(WorldPtr))
+	{
+		return WorldPtr;
+	}
+	else
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("UWorld pointer is invalid: %p."), WorldPtr);
+		return nullptr;
 	}
 }
 
-// ---------------------------------------------------------------------------
-// Request processing
-// ---------------------------------------------------------------------------
+/** Should be avoided */
+UWorld* FUnrealcvServer::GetGameWorld()
+{
+	UWorld* World = nullptr;
+	// The correct way to get GameWorld;
+#if WITH_EDITOR
+	UEditorEngine* EditorEngine = Cast<UEditorEngine>(GEngine);
+	if (EditorEngine != nullptr)
+	{
+		World = EditorEngine->PlayWorld;
+		if (IsValid(World) && World->IsGameWorld())
+		{
+			return World;
+		}
+		else
+		{
+			// UE_LOG(LogUnrealCV, Error, TEXT("Can not get PlayWorld from EditorEngine"));
+			return nullptr;
+		}
+	}
+#endif
 
-void FUnrealcvServer::ProcessRequest(const FRequest& Request)
+	UGameEngine* GameEngine = Cast<UGameEngine>(GEngine);
+	if (GameEngine != nullptr)
+	{
+		World = GameEngine->GetGameWorld();
+		if (IsValid(World))
+		{
+			return World;
+		}
+		else
+		{
+			// UE_LOG(LogUnrealCV, Error, TEXT("Can not get GameWorld from GameEngine"));
+			return nullptr;
+		}
+	}
+
+	return nullptr;
+}
+
+
+/**
+ * Make sure the UnrealcvServer is correctly configured.
+ */
+/* TODO: Make sure the BeginPlay or UnrealcvWorldController did exactlly the same thing
+bool FUnrealcvServer::InitWorld()
+{
+	UWorld *World = GetWorld();
+	if (World == nullptr)
+	{
+		return false;
+	}
+	// Use this to replace BeginPlay()
+	static UWorld *CurrentWorld = nullptr;
+	if (CurrentWorld != World)
+	{
+		// Invoke this everytime when the World changes
+		// This will happen when the game is stopped and restart in the UE4Editor
+		APlayerController* PlayerController = World->GetFirstPlayerController();
+		check(PlayerController);
+
+		// Update camera FOV
+		PlayerController->PlayerCameraManager->SetFOV(Config.FOV);
+
+		FCaptureManager::Get().AttachGTCaptureComponentToCamera(GetPawn()); // TODO: Make this configurable in the editor
+
+		UpdateInput(Config.EnableInput);
+
+		FEngineShowFlags ShowFlags = World->GetGameViewport()->EngineShowFlags;
+		UPlayerViewMode::Get().SaveGameDefault(ShowFlags);
+
+		CurrentWorld = World;
+	}
+	return true;
+}
+*/
+
+// void FUnrealcvServer::UpdateInput(bool Enable)
+// {
+// 	APlayerController* PlayerController = GetWorld()->GetFirstPlayerController();
+// 	check(PlayerController);
+// 	if (Enable)
+// 	{
+// 		UE_LOG(LogUnrealCV, Warning, TEXT("Enabling input"));
+// 		PlayerController->GetPawn()->EnableInput(PlayerController);
+// 	}
+// 	else
+// 	{
+// 		UE_LOG(LogUnrealCV, Warning, TEXT("Disabling input"));
+// 		PlayerController->GetPawn()->DisableInput(PlayerController);
+// 	}
+// }
+
+// void FUnrealcvServer::OpenLevel(FName LevelName)
+// {
+// 	UGameplayStatics::OpenLevel(GetWorld(), LevelName);
+// 	UGameplayStatics::FlushLevelStreaming(GetWorld());
+// 	UE_LOG(LogUnrealCV, Warning, TEXT("Level loaded"));
+// }
+
+void FUnrealcvServer::ProcessRequest(FRequest& Request)
 {
 	SCOPE_CYCLE_COUNTER(STAT_ProcessRequest);
+	FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message);
 
-	const FExecStatus ExecStatus = CommandDispatcher->Exec(Request.Message);
+	// This can be removed for better performance
+	//UE_LOG(LogUnrealCV, Warning, TEXT("Response: %s"), *ExecStatus.GetMessage());
+	UE_LOG(LogUnrealCV, Warning, TEXT("Response id: %d"), Request.RequestId);
 
-	UE_LOG(LogUnrealCV, Verbose, TEXT("Response id=%d"), Request.RequestId);
-
-	const FString Header = FString::Printf(TEXT("%d:"), Request.RequestId);
+	FString Header = FString::Printf(TEXT("%d:"), Request.RequestId);
 	TArray<uint8> ReplyData;
 	FExecStatus::BinaryArrayFromString(Header, ReplyData);
-	ExecStatus.AppendDataTo(ReplyData);
+
+	ReplyData += ExecStatus.GetData();
 	TcpServer->SendData(ReplyData);
 }
 
+// Each tick of GameThread.
 void FUnrealcvServer::ProcessPendingRequest()
 {
-	constexpr int32 MaxRequestsPerTick = 32;
-	int32 ProcessedCount = 0;
-
-	while (!PendingRequest.IsEmpty())
+	// Process all requests collected in this frame
+	while (!PendingRequest.IsEmpty()) 
 	{
-		if (ProcessedCount >= MaxRequestsPerTick)
-		{
-			break;
-		}
+		// if (!InitWorld()) break;
 
 		FRequest Request;
-		if (!PendingRequest.Dequeue(Request))
-		{
-			break;
-		}
-		++ProcessedCount;
 
-		// Batch mode: "vbatch <N>" collects subsequent requests into one frame.
-		if (Request.Message.StartsWith(TEXT("vbatch")))
+		// Dequeue one request each time
+		bool DequeueStatus = PendingRequest.Dequeue(Request);
+		int32 RequestId = Request.RequestId;
+
+		// vbatch should not stall the execution of the game thread.
+		if (Request.Message.StartsWith(TEXT("vbatch"))) // vbatch should not be nested.
 		{
+			// Check whether it is a batch request. 
+			// Run all requests until all commands are received, 
+			// so that all commands can be run in the same frame
 			BatchNum = FCString::Atoi(*Request.Message.Replace(TEXT("vbatch"), TEXT("")));
 			if (BatchNum < 1)
 			{
-				UE_LOG(LogUnrealCV, Warning, TEXT("Batch size must be >= 1, got %d."), BatchNum);
+				UE_LOG(LogUnrealCV, Warning, TEXT("Can not handle batch smaller than 1"));
 			}
-
-			const FString Header = FString::Printf(TEXT("%d:"), Request.RequestId);
+			FString Header = FString::Printf(TEXT("%d:"), Request.RequestId);
 			TArray<uint8> ReplyData;
 			FExecStatus::BinaryArrayFromString(Header, ReplyData);
-			FExecStatus::OK().AppendDataTo(ReplyData);
-			TcpServer->SendData(ReplyData);
+			ReplyData += FExecStatus::OK().GetData();
+			TcpServer->SendData(ReplyData); // return a fake ok for vbatch
 			continue;
 		}
-
-		if (BatchNum <= 0)
+		else
 		{
-			// Normal (non-batch) mode.
 			BatchNum = 1;
 		}
 
-		if (BatchNum > 0)
+		if (BatchNum > 0) 
+		// Keep collecting commands until the batch is ready
+		// inside batch mode
 		{
 			Batch.Add(Request);
-			--BatchNum;
+			BatchNum -= 1;
 		}
-
-		if (BatchNum == 0)
+		
+		if (BatchNum == 0) // The batch is ready
 		{
-			for (const FRequest& BatchRequest : Batch)
+			// Otherwise hold the batch request until all commands are received.
+			for (FRequest RequestToRun : Batch)
 			{
-				ProcessRequest(BatchRequest);
+				ProcessRequest(RequestToRun);
 			}
 			Batch.Empty();
 		}
 	}
 }
 
-// ---------------------------------------------------------------------------
-// Network event handlers
-// ---------------------------------------------------------------------------
-
+/** Message handler for server */
 void FUnrealcvServer::HandleRawMessage(const FString& Endpoint, const FString& InRawMessage)
 {
-	UE_LOG(LogUnrealCV, Verbose, TEXT("Request: %s"), *InRawMessage);
+	UE_LOG(LogUnrealCV, Warning, TEXT("Request: %s"), *InRawMessage);
+	// Parse Raw Message
+	// FString MessageFormat = "(\\d{1,}):(.*)";
+	// TODO: 8 digits might not be enough if running for a very long time.
+	// FRegexPattern RegexPattern(MessageFormat);
+	// FRegexMatcher Matcher(RegexPattern, InRawMessage);
 
-	FRegexMatcher Matcher(MessageRegexPattern, InRawMessage);
+	FRegexMatcher Matcher(myRegexPattern, InRawMessage);
+
 	if (Matcher.FindNext())
 	{
-		const int32 ParsedId  = FCString::Atoi(*Matcher.GetCaptureGroup(1));
-		const uint32 RequestId = (ParsedId >= 0) ? static_cast<uint32>(ParsedId) : 0u;
-		const FString Message  = Matcher.GetCaptureGroup(2);
-		PendingRequest.Enqueue(FRequest(Endpoint, Message, RequestId));
+		// TODO: Handle malform request message
+		FString StrRequestId = Matcher.GetCaptureGroup(1);
+		FString Message = Matcher.GetCaptureGroup(2);
+
+		uint32 RequestId = FCString::Atoi(*StrRequestId);
+
+		if (!Config.AuthToken.IsEmpty())
+		{
+			if (AuthEndpoint != Endpoint)
+			{
+				AuthEndpoint = Endpoint;
+				bEndpointAuthenticated = false;
+			}
+
+			if (!bEndpointAuthenticated)
+			{
+				const FString AuthPrefix = TEXT("vset /unrealcv/auth ");
+				if (Message.StartsWith(AuthPrefix))
+				{
+					FString Token = Message.RightChop(AuthPrefix.Len()).TrimStartAndEnd();
+					FExecStatus AuthStatus;
+					if (Token == Config.AuthToken)
+					{
+						bEndpointAuthenticated = true;
+						AuthStatus = FExecStatus::OK(TEXT("Authentication succeeded"));
+					}
+					else
+					{
+						AuthStatus = FExecStatus::Error(TEXT("Authentication failed"));
+					}
+
+					FString Header = FString::Printf(TEXT("%d:"), RequestId);
+					TArray<uint8> ReplyData;
+					FExecStatus::BinaryArrayFromString(Header, ReplyData);
+					ReplyData += AuthStatus.GetData();
+					TcpServer->SendData(ReplyData);
+					return;
+				}
+
+				FExecStatus Required = FExecStatus::Error(TEXT("Authentication required, use: vset /unrealcv/auth <token>"));
+				FString Header = FString::Printf(TEXT("%d:"), RequestId);
+				TArray<uint8> ReplyData;
+				FExecStatus::BinaryArrayFromString(Header, ReplyData);
+				ReplyData += Required.GetData();
+				TcpServer->SendData(ReplyData);
+				return;
+			}
+		}
+
+		FRequest Request(Endpoint, Message, RequestId);
+		this->PendingRequest.Enqueue(Request);
 	}
 	else
 	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("Malformed raw message: '%s'"), *InRawMessage);
+		UE_LOG(LogUnrealCV, Warning, TEXT("error: Malformat raw message '%s'"), *InRawMessage);
 	}
 }
 
+/** Error handler for server */
 void FUnrealcvServer::HandleError(const FString& InErrorMessage)
 {
-	BatchNum = 0;
-	Batch.Empty();
+	bEndpointAuthenticated = false;
+	AuthEndpoint = TEXT("");
 
-	if (Config.bExitOnFailure)
+	if (Config.ExitOnFailure)
 	{
-		UE_LOG(LogUnrealCV, Error, TEXT("Server error (exit-on-failure enabled): %s"), *InErrorMessage);
+		UE_LOG(LogUnrealCV, Error, TEXT("Unexpected error from server. Requesting exit. Error message: %s"), *InErrorMessage);
 		FGenericPlatformMisc::RequestExit(false);
 	}
 }
+

@@ -1,46 +1,42 @@
-// Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
+// Weichao Qiu @ 2016
 #pragma once
 
 #include "CoreMinimal.h"
 
-/**
- * Runtime configuration for the UnrealCV server.
- *
- * Values are loaded from an INI file (unrealcv.ini), can be overridden via
- * command-line flags (-cvport, -cvls), and are flushed back to disk so that
- * the file always reflects the active defaults.
- */
 class FServerConfig
 {
+private:
+	FString BoolToString(bool Value) const;
+
+	FString ConfigFile;
+	FString CoreSection;
 public:
-	int32 Port            = 9000;
-	int32 Width           = 640;
-	int32 Height          = 480;
-	float FOV             = 90.0f;
-	bool  bEnableInput    = true;
-	bool  bExitOnFailure  = false;
-	bool  bEnableRightEye = false;
+	int Port;
+	FString BindAddress;
+	FString AuthToken;
+	int Width;
+	int Height;
+	float FOV;
+	bool EnableInput;
+	bool ExitOnFailure;
+	bool EnableRightEye;
+	bool AllowDangerousCommands;
 
 	TArray<FString> SupportedModes;
 
 	FServerConfig();
 
-	/** Human-readable dump of all settings. */
-	[[nodiscard]] FString ToString() const;
+	/** Serialize this configuration to a string for debugging */
+	FString ToString();
 
-	/** Persist current values to the config file. Returns false if GConfig is null. */
-	[[nodiscard]] bool Save();
+	/** Save FServerConfig to file */
+	bool Save();
 
-	/** Reload values from the config file (missing keys keep defaults). */
-	[[nodiscard]] bool Load();
+	/** Load FServerConfig from configuration file */
+	bool Load();
 
-	/** Override settings from command-line arguments (-cvport, -cvls). */
+	// Load config from command line argument
 	void ParseCmdArgs();
 
-	/** List assets under a folder and request exit (diagnostic tool). */
-	static void ListAsset(const FString& Folder);
-
-private:
-	FString ConfigFile;
-	FString CoreSection;
+	void ListAsset(FString LsFolder);
 };
