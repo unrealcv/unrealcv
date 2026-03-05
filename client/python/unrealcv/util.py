@@ -6,6 +6,17 @@ import time
 import warnings
 # StringIO module is removed in python3, use io module
 
+__all__ = [
+    'ResChecker',
+    'measure_fps',
+    'read_png',
+    'read_npy',
+    'convert2planedepth',
+    'time_it',
+    'parse_resolution',
+    'get_path2UnrealEnv',
+]
+
 class ResChecker:
     # Define some utility functions to check whether the response is as expected
     def is_error(self, res):
@@ -61,7 +72,7 @@ def read_png(res):
     try:
         PIL_img = PIL.Image.open(BytesIO(res))
         img = np.asarray(PIL_img)
-    except:
+    except Exception:
         print('Read png can not parse response %s' % str(res[:20]))
     return img
 
@@ -83,7 +94,7 @@ def read_npy(res):
     arr = None
     try:
         arr = np.load(BytesIO(res))
-    except:
+    except Exception:
         print('Read npy can not parse response %s' % str(res[:20]))
     return arr
 
@@ -101,8 +112,8 @@ def convert2planedepth(PointDepth, f=320): # convert point depth to plane depth
     """
     H = PointDepth.shape[0]
     W = PointDepth.shape[1]
-    i_c = np.float(H) / 2 - 1
-    j_c = np.float(W) / 2 - 1
+    i_c = float(H) / 2 - 1
+    j_c = float(W) / 2 - 1
     columns, rows = np.meshgrid(np.linspace(0, W - 1, num=W), np.linspace(0, H - 1, num=H))
     DistanceFromCenter = ((rows - i_c) ** 2 + (columns - j_c) ** 2) ** 0.5
     PlaneDepth = PointDepth / (1 + (DistanceFromCenter / f) ** 2) ** 0.5
@@ -142,11 +153,11 @@ def parse_resolution(res):
     """
     resolution = res.split('x')
     if len(resolution) != 2:
-        parser.error('Resolution must be specified as WIDTHxHEIGHT')
+        raise ValueError('Resolution must be specified as WIDTHxHEIGHT')
     try:
         return (int(resolution[0]), int(resolution[1]))
     except ValueError:
-        parser.error('WIDTH and HEIGHT must be integers')
+        raise ValueError('WIDTH and HEIGHT must be integers')
 
 def get_path2UnrealEnv():
     # get path to UnrealEnv

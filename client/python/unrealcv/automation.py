@@ -2,8 +2,18 @@
 # A single file library
 # Weichao Qiu @ 2017
 import subprocess, sys, os, argparse, platform, logging, glob, shutil, json
-try: input = raw_input # to support python3
-except NameError: pass
+
+__all__ = [
+    'UE4Automation',
+    'UE4Binary',
+    'UE4BinaryBase',
+    'WindowsBinary',
+    'LinuxBinary',
+    'MacBinary',
+    'DockerBinary',
+    'get_platform_name',
+    'get_plugin_version',
+]
 
 def get_platform_name():
     ''''
