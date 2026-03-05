@@ -36,5 +36,5 @@ private:
 	FImageUtil ImageUtil;
 	TQueue<FFrameData> PendingData;
 	FRunnableThread* Thread;
-	bool Stopping;
+	bool Stopping = false;
 };

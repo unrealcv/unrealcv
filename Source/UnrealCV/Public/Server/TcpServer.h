@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
+// Weichao Qiu @ 2016
 #pragma once
 
 #include "Runtime/Sockets/Public/Sockets.h"
@@ -9,70 +9,114 @@
 #include "TcpServer.generated.h"
 
 /**
- * Lightweight message framing header for socket communication.
- * Wire format: [uint32 Magic][uint32 PayloadSize][...Payload bytes...]
+ * a simplified version from FNFSMessageHeader of UnrealEngine4, without CRC check
  */
-class UNREALCV_API FSocketMessageHeader
+class FSocketMessageHeader
 {
-public:
-	explicit FSocketMessageHeader(const TArray<uint8>& Payload)
-		: Magic(DefaultMagic)
-		, PayloadSize(static_cast<uint32>(Payload.Num()))
-	{
-	}
+	/** Error checking */
+	uint32 Magic = 0;
 
-	[[nodiscard]] static bool WrapAndSendPayload(const TArray<uint8>& Payload, FSocket* Socket);
-	[[nodiscard]] static bool ReceivePayload(FArrayReader& OutPayload, FSocket* Socket);
+	/** Payload Size */
+	uint32 PayloadSize = 0;
 
 	static uint32 DefaultMagic;
+public:
+	FSocketMessageHeader(const TArray<uint8>& Payload)
+	{
+		PayloadSize = Payload.Num();  // What if PayloadSize is 0
+		Magic = FSocketMessageHeader::DefaultMagic;
+	}
 
-private:
-	uint32 Magic = 0;
-	uint32 PayloadSize = 0;
+	/** Add header to payload and send it out */
+	static bool WrapAndSendPayload(const TArray<uint8>& Payload, FSocket* Socket);
+	/** Receive packages and strip header */
+	static bool ReceivePayload(FArrayReader& OutPayload, FSocket* Socket);
 };
 
-DECLARE_EVENT_TwoParams(UTcpServer, FTcpReceivedEvent,  const FString&, const FString&);
-DECLARE_EVENT_OneParam (UTcpServer, FTcpErrorEvent,     const FString&);
-DECLARE_EVENT_OneParam (UTcpServer, FTcpConnectedEvent, const FString&);
+
+// The ; in the end is needed for doxygen.
+DECLARE_EVENT_TwoParams(UTcpServer, FTcpReceivedEvent, const FString&, const FString&);
+DECLARE_EVENT_OneParam(UTcpServer, FTcpErrorEvent, const FString&);
+DECLARE_EVENT_OneParam(UTcpServer, FTcpConnectedEvent, const FString&);
 
 /**
- * Single-client TCP message server.
+ * Server to send and receive message
  */
 UCLASS()
 class UNREALCV_API UTcpServer : public UObject
+// TcpServer needs to be an UObject, so that we can bind ip and port to UI.
 {
 	GENERATED_BODY()
 
 public:
-	[[nodiscard]] int32 GetPortNum() const { return PortNum; }
+	/** The port number this server is listening on */
+	int32 PortNum;
 
-	[[nodiscard]] bool IsConnected() const;
-	[[nodiscard]] bool IsListening() const { return bIsListening; }
+	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	// bool bIsConnected = false;
+	bool IsConnected();
 
-	[[nodiscard]] bool Start(int32 InPortNum);
-	[[nodiscard]] bool SendMessage(const FString& Message);
-	[[nodiscard]] bool SendData(const TArray<uint8>& Payload);
+	bool IsListening()
+	{
+		return bIsListening;
+	}
 
-	FTcpReceivedEvent&  OnReceived()  { return ReceivedEvent; }
-	FTcpErrorEvent&     OnError()     { return ErrorEvent; }
+	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	// FString ListenIP = "0.0.0.0"; // TODO: this is hard coded right now
+
+	/** Start the underlying TcpListener to listen for new connection */
+	// TODO: Handle port in use exception
+	bool Start(int32 InPortNum);
+
+	/** Send a string to connected client, return false if false to send. Will fail if no connection available */
+	bool SendMessage(const FString& Message);
+
+	/** Send a byte array to connected client, return false if failed to send. */
+	bool SendData(const TArray<uint8>& Payload);
+
+	FTcpReceivedEvent& OnReceived() { return ReceivedEvent;  } // The reference can not be changed
+
+	FTcpErrorEvent& OnError() { return ErrorEvent;  } // The reference can not be changed
 
 private:
-	int32 PortNum = 0;
+	/** Is the listening socket running */
 	bool bIsListening = false;
 
-	bool OnClientConnected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
+	/** Handle a new connected client, need to decide accept of reject */
+	bool Connected(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
 
-	FSocket* ConnectionSocket = nullptr;
+	/** The connected client socket, only maintain one client at a time */
+	FSocket* ConnectionSocket = nullptr; // FSimpleAbstractSocket's receive is hard to use for non-blocking mode
+
+	/** TcpListener used to listen new incoming connection */
 	TSharedPtr<FTcpListener> TcpListener;
 
-	virtual ~UTcpServer() override;
+	~UTcpServer();
 
+	/** (Debug) Start a service that echo whatever it got, for debug purpose */
 	bool StartEchoService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
+
+	/** Start a service to handle incoming message, ReceivedEvent will be fired when a new message arrive */
 	bool StartMessageService(FSocket* ClientSocket, const FIPv4Endpoint& ClientEndpoint);
 
-	void CleanupConnection();
+	/** Event handler for event `Received` */
+	FTcpReceivedEvent ReceivedEvent;
 
-	FTcpReceivedEvent  ReceivedEvent;
-	FTcpErrorEvent     ErrorEvent;
+	/** Event handler for event `Error` */
+	FTcpErrorEvent ErrorEvent;
+
+	/** Event handler for event `Connected` */
 	FTcpConnectedEvent ConnectedEvent;
+
+	/** Broadcast event `Received` */
+	void BroadcastReceived(const FString& Endpoint, const FString& Message)
+	{
+		ReceivedEvent.Broadcast(Endpoint, Message);
+	}
+
+	/** Broadcast event `Connected` */
+	void BroadcastConnected(const FString& Message)
+	{
+		ConnectedEvent.Broadcast(Message);
+	}
 };

@@ -1,93 +1,30 @@
-// Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
+// Weichao Qiu @ 2016
 #include "ConsoleHelper.h"
 #include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
-#include "Runtime/Engine/Public/EngineUtils.h"
 #include "UnrealcvServer.h"
 #include "UnrealcvLog.h"
 
-// ---------------------------------------------------------------------------
-// Singleton
-// ---------------------------------------------------------------------------
-
-FConsoleHelper& FConsoleHelper::Get()
-{
-	static FConsoleHelper Singleton;
-	return Singleton;
-}
-
-// ---------------------------------------------------------------------------
-// Constructor — register console commands
-// ---------------------------------------------------------------------------
-
-FConsoleHelper::FConsoleHelper()
-{
-	IConsoleManager::Get().RegisterConsoleCommand(
-		TEXT("vget"), TEXT("Get resource from Unreal Engine"),
-		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FConsoleHelper::VGet));
-
-	IConsoleManager::Get().RegisterConsoleCommand(
-		TEXT("vset"), TEXT("Set resource in Unreal Engine"),
-		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FConsoleHelper::VSet));
-
-	IConsoleManager::Get().RegisterConsoleCommand(
-		TEXT("vrun"), TEXT("Execute UnrealCV alias commands"),
-		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FConsoleHelper::VRun));
-
-	IConsoleManager::Get().RegisterConsoleCommand(
-		TEXT("vexec"), TEXT("Execute Blueprint function"),
-		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FConsoleHelper::VExec));
-
-	IConsoleManager::Get().RegisterConsoleCommand(
-		TEXT("vbp"), TEXT("Execute Blueprint function (legacy alias)"),
-		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FConsoleHelper::VBp));
-}
-
-// ---------------------------------------------------------------------------
-// Setters / Getters
-// ---------------------------------------------------------------------------
-
-void FConsoleHelper::SetCommandDispatcher(TSharedPtr<FCommandDispatcher> InCommandDispatcher)
-{
-	CommandDispatcher = InCommandDispatcher;
-}
-
-TSharedPtr<FConsoleOutputDevice> FConsoleHelper::GetConsole() const
-{
-	UWorld* World = FUnrealcvServer::Get().GetWorld();
-	if (!World) { return nullptr; }
-
-	UGameViewportClient* Viewport = World->GetGameViewport();
-	if (!Viewport || !Viewport->ViewportConsole) { return nullptr; }
-
-	return MakeShared<FConsoleOutputDevice>(Viewport->ViewportConsole);
-}
-
-// ---------------------------------------------------------------------------
-// Shared dispatch logic (eliminates per-verb duplication)
-// ---------------------------------------------------------------------------
-
-void FConsoleHelper::DispatchConsoleCommand(const TCHAR* Prefix, const TArray<FString>& Args)
+void FConsoleHelper::VBp(const TArray<FString>& Args)
 {
 	if (!CommandDispatcher.IsValid())
 	{
-		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set — cannot execute console command."));
+		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set"));
 		return;
 	}
+	FString Cmd = "vbp ";
+	uint32 NumArgs = Args.Num();
+	if (NumArgs == 0) return;
 
-	if (Args.Num() == 0)
+	for (uint32 ArgIndex = 0; ArgIndex < NumArgs-1; ArgIndex++)
 	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("Console command '%s' called with no arguments."), Prefix);
-		return;
+		Cmd += Args[ArgIndex] + " ";
 	}
-
-	FString Cmd = Prefix;
-	Cmd += TEXT(" ");
-	Cmd += FString::Join(Args, TEXT(" "));
-
-	const FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
-
-	UE_LOG(LogUnrealCV, Display, TEXT("[%s] %s -> %s"), Prefix, *Cmd, *ExecStatus.GetMessage());
-
+	Cmd += Args[NumArgs-1];
+	
+	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
+	UE_LOG(LogUnrealCV, Warning, TEXT("vbp helper function, the real command is %s"), *Cmd);
+	// In the console mode, output should be writen to the output log.
+	UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *ExecStatus.GetMessage());
 	TSharedPtr<FConsoleOutputDevice> Console = GetConsole();
 	if (Console.IsValid())
 	{
@@ -95,12 +32,172 @@ void FConsoleHelper::DispatchConsoleCommand(const TCHAR* Prefix, const TArray<FS
 	}
 }
 
-// ---------------------------------------------------------------------------
-// Console verb handlers
-// ---------------------------------------------------------------------------
+FConsoleHelper::FConsoleHelper()
+{
+	// Add Unreal Console Support
+	IConsoleObject* VGetCmd = IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("vget"),
+		TEXT("Get resource from Unreal Engine"),
+		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FConsoleHelper::VGet)
+		);
 
-void FConsoleHelper::VGet (const TArray<FString>& Args) { DispatchConsoleCommand(TEXT("vget"),  Args); }
-void FConsoleHelper::VSet (const TArray<FString>& Args) { DispatchConsoleCommand(TEXT("vset"),  Args); }
-void FConsoleHelper::VRun (const TArray<FString>& Args) { DispatchConsoleCommand(TEXT("vrun"),  Args); }
-void FConsoleHelper::VExec(const TArray<FString>& Args) { DispatchConsoleCommand(TEXT("vexec"), Args); }
-void FConsoleHelper::VBp  (const TArray<FString>& Args) { DispatchConsoleCommand(TEXT("vbp"),   Args); }
+	IConsoleObject* VSetCmd = IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("vset"),
+		TEXT("Set resource in Unreal Engine"),
+		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FConsoleHelper::VSet)
+		);
+
+	IConsoleObject* VRunCmd = IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("vrun"),
+		TEXT("Exec Unreal Engine commands"),
+		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FConsoleHelper::VRun)
+		);
+
+	IConsoleObject* VExecCmd = IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("vexec"),
+		TEXT("Exec Blueprint Function"),
+		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FConsoleHelper::VExec)
+		);
+
+	// TODO: Simplify this file
+	IConsoleObject* VBpCmd = IConsoleManager::Get().RegisterConsoleCommand(
+		TEXT("vbp"),
+		TEXT("Exec Blueprint Function"),
+		// FConsoleCommandWithArgsDelegate::CreateStatic(VBp)
+		FConsoleCommandWithArgsDelegate::CreateRaw(this, &FConsoleHelper::VBp)
+		);
+}
+
+FConsoleHelper& FConsoleHelper::Get()
+{
+	static FConsoleHelper Singleton;
+	return Singleton;
+}
+
+void FConsoleHelper::SetCommandDispatcher(TSharedPtr<FCommandDispatcher> InCommandDispatcher)
+{
+	CommandDispatcher = InCommandDispatcher;
+}
+
+TSharedPtr<FConsoleOutputDevice> FConsoleHelper::GetConsole() // The ConsoleOutputDevice will depend on the external world, so we need to use a get function
+{
+	UWorld* World = FUnrealcvServer::Get().GetWorld();
+	if (!World || !World->GetGameViewport() || !World->GetGameViewport()->ViewportConsole)
+	{
+		return nullptr;
+	}
+	TSharedPtr<FConsoleOutputDevice> ConsoleOutputDevice(new FConsoleOutputDevice(World->GetGameViewport()->ViewportConsole));
+	return ConsoleOutputDevice;
+}
+
+void FConsoleHelper::VRun(const TArray<FString>& Args)
+{
+	if (!CommandDispatcher.IsValid())
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set"));
+		return;
+	}
+	FString Cmd = "vrun ";
+	uint32 NumArgs = Args.Num();
+	if (NumArgs == 0) return;
+
+	for (uint32 ArgIndex = 0; ArgIndex < NumArgs-1; ArgIndex++)
+	{
+		Cmd += Args[ArgIndex] + " ";
+	}
+	Cmd += Args[NumArgs-1]; // Maybe a more elegant implementation for joining string
+	// FUnrealcvServer::Get().InitWorld();
+	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
+	UE_LOG(LogUnrealCV, Warning, TEXT("vrun helper function, the real command is %s"), *Cmd);
+	// In the console mode, output should be writen to the output log.
+	UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *ExecStatus.GetMessage());
+	TSharedPtr<FConsoleOutputDevice> Console = GetConsole();
+	if (Console.IsValid())
+	{
+		Console->Log(ExecStatus.GetMessage());
+	}
+}
+
+void FConsoleHelper::VGet(const TArray<FString>& Args)
+{
+	if (!CommandDispatcher.IsValid())
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set"));
+		return;
+	}
+	// TODO: Is there any way to know which command trigger this handler?
+	// Join string
+	FString Cmd = "vget ";
+	uint32 NumArgs = Args.Num();
+	if (NumArgs == 0) return;
+
+	for (uint32 ArgIndex = 0; ArgIndex < NumArgs-1; ArgIndex++)
+	{
+		Cmd += Args[ArgIndex] + " ";
+	}
+	Cmd += Args[NumArgs-1]; // Maybe a more elegant implementation for joining string
+	// FUnrealcvServer::Get().InitWorld();
+	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
+	UE_LOG(LogUnrealCV, Warning, TEXT("vget helper function, the real command is %s"), *Cmd);
+	// In the console mode, output should be writen to the output log.
+	UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *ExecStatus.GetMessage());
+	TSharedPtr<FConsoleOutputDevice> Console = GetConsole();
+	if (Console.IsValid())
+	{
+		Console->Log(ExecStatus.GetMessage());
+	}
+}
+
+void FConsoleHelper::VSet(const TArray<FString>& Args)
+{
+	if (!CommandDispatcher.IsValid())
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set"));
+		return;
+	}
+	FString Cmd = "vset ";
+	uint32 NumArgs = Args.Num();
+	if (NumArgs == 0) return;
+
+	for (uint32 ArgIndex = 0; ArgIndex < NumArgs-1; ArgIndex++)
+	{
+		Cmd += Args[ArgIndex] + " ";
+	}
+	Cmd += Args[NumArgs-1];
+	// FUnrealcvServer::Get().InitWorld();
+	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
+	// Output result to the console
+	UE_LOG(LogUnrealCV, Warning, TEXT("vset helper function, the real command is %s"), *Cmd);
+	UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *ExecStatus.GetMessage());
+	TSharedPtr<FConsoleOutputDevice> Console = GetConsole();
+	if (Console.IsValid())
+	{
+		Console->Log(ExecStatus.GetMessage());
+	}
+}
+
+void FConsoleHelper::VExec(const TArray<FString>& Args)
+{
+	if (!CommandDispatcher.IsValid())
+	{
+		UE_LOG(LogUnrealCV, Error, TEXT("CommandDispatcher not set"));
+		return;
+	}
+
+	FString Cmd = "vexec ";
+	uint32 NumArgs = Args.Num();
+	if (NumArgs == 0) return;
+
+	for (uint32 ArgIndex = 0; ArgIndex < NumArgs - 1; ArgIndex++)
+	{
+		Cmd += Args[ArgIndex] + " ";
+	}
+	Cmd += Args[NumArgs - 1];
+
+	FExecStatus ExecStatus = CommandDispatcher->Exec(Cmd);
+	TSharedPtr<FConsoleOutputDevice> Console = GetConsole();
+	if (Console.IsValid())
+	{
+		Console->Log(ExecStatus.GetMessage());
+	}
+}

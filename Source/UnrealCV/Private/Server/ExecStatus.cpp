@@ -1,139 +1,145 @@
-// Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
+// Weichao Qiu @ 2016
 #include "ExecStatus.h"
-#include "SocketUtils.h"
+#include "Runtime/Launch/Resources/Version.h"
+#if ENGINE_MAJOR_VERSION >= 5
+#include "Runtime/Core/Public/Containers/StringConv.h"
+#endif
+// DECLARE_DELEGATE_OneParam(FDispatcherDelegate, const TArray< FString >&);
+FExecStatus FExecStatus::InvalidArgument = FExecStatus(FExecStatusType::ErrorMsg, "Argument Invalid");
+FExecStatus FExecStatus::NotImplemented = FExecStatus(FExecStatusType::ErrorMsg, "Not Implemented");
+FExecStatus FExecStatus::InvalidPointer = FExecStatus(FExecStatusType::ErrorMsg, "Pointer to object invalid, check log for details");
 
-const FExecStatus FExecStatus::InvalidArgument = FExecStatus(EExecStatusType::Error, TEXT("Argument Invalid"));
-const FExecStatus FExecStatus::NotImplemented  = FExecStatus(EExecStatusType::Error, TEXT("Not Implemented"));
-const FExecStatus FExecStatus::InvalidPointer  = FExecStatus(EExecStatusType::Error, TEXT("Pointer to object invalid, check log for details"));
-
-// ---------------------------------------------------------------------------
-// FPromise
-// ---------------------------------------------------------------------------
+/** Begin of FPromise functions */
 
 FExecStatus FPromise::CheckStatus()
 {
-	checkf(PromiseDelegate.IsBound(), TEXT("Promise delegate is not bound"));
+	check(this);
+	check(PromiseDelegate.IsBound());
 	return PromiseDelegate.Execute();
 }
 
-// ---------------------------------------------------------------------------
-// Comparison operators
-// ---------------------------------------------------------------------------
-
-bool operator==(const FExecStatus& ExecStatus, EExecStatusType ExecStatusType)
+/** Begin of FExecStatus functions */
+bool operator==(const FExecStatus& ExecStatus, const FExecStatusType& ExecStatusType)
 {
-	return ExecStatus.GetStatusType() == ExecStatusType;
+	return (ExecStatus.ExecStatusType == ExecStatusType);
 }
 
-bool operator!=(const FExecStatus& ExecStatus, EExecStatusType ExecStatusType)
+bool operator!=(const FExecStatus& ExecStatus, const FExecStatusType& ExecStatusType)
 {
-	return ExecStatus.GetStatusType() != ExecStatusType;
+	return (ExecStatus.ExecStatusType != ExecStatusType);
 }
-
-// ---------------------------------------------------------------------------
-// Compound assignment
-// ---------------------------------------------------------------------------
 
 FExecStatus& FExecStatus::operator+=(const FExecStatus& Src)
 {
-	if (Src.GetStatusType() == EExecStatusType::Error)
-	{
-		ExecStatusType = EExecStatusType::Error;
-	}
-	BinaryData += Src.BinaryData;
-	if (!MessageBody.IsEmpty())
-	{
-		MessageBody += TEXT("\n");
-	}
-	MessageBody += Src.MessageBody;
+	this->BinaryData += Src.BinaryData;
+	this->MessageBody += "\n" + Src.MessageBody;
 	return *this;
 }
 
-// ---------------------------------------------------------------------------
-// Factory methods
-// ---------------------------------------------------------------------------
 
-FExecStatus FExecStatus::OK(const FString& InMessage)
+FExecStatus FExecStatus::OK(FString InMessage)
 {
-	return FExecStatus(EExecStatusType::OK, InMessage);
+	return FExecStatus(FExecStatusType::OK, InMessage);
 }
 
-FExecStatus FExecStatus::Error(const FString& ErrorMessage)
+
+FExecStatus FExecStatus::Error(FString ErrorMessage)
 {
-	return FExecStatus(EExecStatusType::Error, ErrorMessage);
+	return FExecStatus(FExecStatusType::ErrorMsg, ErrorMessage);
 }
 
-FExecStatus FExecStatus::Binary(const TArray<uint8>& InBinaryData)
+FString FExecStatus::GetMessage() const // Define how to format the reply string
 {
-	return FExecStatus(EExecStatusType::OK, InBinaryData);
-}
-
-// ---------------------------------------------------------------------------
-// Constructors
-// ---------------------------------------------------------------------------
-
-FExecStatus::FExecStatus(EExecStatusType InExecStatusType, const FString& InMessage)
-	: MessageBody(InMessage)
-	, ExecStatusType(InExecStatusType)
-{
-}
-
-FExecStatus::FExecStatus(EExecStatusType InExecStatusType, FPromise InPromise)
-	: ExecStatusType(InExecStatusType)
-	, Promise(MoveTemp(InPromise))
-{
-}
-
-FExecStatus::FExecStatus(EExecStatusType InExecStatusType, const TArray<uint8>& InBinaryData)
-	: ExecStatusType(InExecStatusType)
-	, BinaryData(InBinaryData)
-{
-}
-
-// ---------------------------------------------------------------------------
-// Serialisation
-// ---------------------------------------------------------------------------
-
-namespace
-{
-/** Format a status + message body into the wire-protocol string. */
-FString FormatStatusString(EExecStatusType StatusType, const FString& Body)
-{
-	switch (StatusType)
+	FString TypeName;
+	switch (ExecStatusType)
 	{
-	case EExecStatusType::OK:    return Body.IsEmpty() ? TEXT("ok") : Body;
-	case EExecStatusType::Error: return FString::Printf(TEXT("error %s"), *Body);
-	default:                     return FString::Printf(TEXT("unknown %s"), *Body);
+	case FExecStatusType::OK:
+		if (MessageBody == "")
+			return "ok";
+		else
+			return MessageBody;
+	case FExecStatusType::ErrorMsg:
+		TypeName = "error"; break;
+	default:
+		TypeName = "unknown FExecStatus Type";
 	}
-}
-} // anonymous namespace
-
-FString FExecStatus::GetMessage() const
-{
-	return FormatStatusString(ExecStatusType, MessageBody);
+	FString Message = FString::Printf(TEXT("%s %s"), *TypeName, *MessageBody);
+	return Message;
 }
 
-TArray<uint8> FExecStatus::GetData() const
+FExecStatus::FExecStatus(FExecStatusType InExecStatusType, FPromise InPromise)
 {
-	TArray<uint8> FormattedBinaryData;
-	AppendDataTo(FormattedBinaryData);
-	return FormattedBinaryData;
+	ExecStatusType = InExecStatusType;
+	Promise = InPromise;
 }
 
-void FExecStatus::AppendDataTo(TArray<uint8>& OutData) const
+FExecStatus::FExecStatus(FExecStatusType InExecStatusType, FString InMessage)
 {
-	if (BinaryData.Num() != 0)
+	ExecStatusType = InExecStatusType;
+	MessageBody = InMessage;
+}
+
+FExecStatus::~FExecStatus()
+{
+}
+
+FExecStatus FExecStatus::Binary(TArray<uint8>& BinaryData)
+{
+	return FExecStatus(FExecStatusType::OK, BinaryData);
+}
+
+FExecStatus::FExecStatus(FExecStatusType InExecStatusType, TArray<uint8>& InBinaryData)
+{
+	ExecStatusType = InExecStatusType;
+	BinaryData = InBinaryData;
+}
+
+TArray<uint8> FExecStatus::GetData() const // Define how to format the reply string
+{
+	if (this->BinaryData.Num() != 0)
 	{
-		OutData.Append(BinaryData);
-		return;
+		return BinaryData;
 	}
-
-	TArray<uint8> FormattedBinaryData;
-	BinaryArrayFromString(FormatStatusString(ExecStatusType, MessageBody), FormattedBinaryData);
-	OutData.Append(FormattedBinaryData);
+	FString TypeName;
+	FString Message;
+	switch (ExecStatusType)
+	{
+	case FExecStatusType::OK:
+		if (MessageBody == "")
+			Message = "ok";
+		else
+			Message = MessageBody;
+		break;
+	case FExecStatusType::ErrorMsg:
+		TypeName = "error"; break;
+	default:
+		TypeName = "unknown FExecStatus Type";
+	}
+	if (ExecStatusType != FExecStatusType::OK)
+	{
+		Message = FString::Printf(TEXT("%s %s"), *TypeName, *MessageBody);
+	}
+	TArray<uint8> FormatedBinaryData;
+	BinaryArrayFromString(Message, FormatedBinaryData);
+	
+	return FormatedBinaryData;
 }
+
 
 void FExecStatus::BinaryArrayFromString(const FString& Message, TArray<uint8>& OutBinaryArray)
 {
-	UCV::SocketUtils::BinaryArrayFromString(Message, OutBinaryArray);
+
+	//From: https://github.com/EpicGames/UnrealEngine/blob/5.3/Engine/Source/Runtime/Core/Public/Containers/StringConv.h#L339
+	/*UE_DEPRECATED(5.1, "FTCHARToUTF8_Convert has been deprecated in favor of FPlatformString::Convert and StringCast")*/
+#if ENGINE_MAJOR_VERSION <= 4
+	FTCHARToUTF8 Convert(*Message);
+	OutBinaryArray.Empty();
+	OutBinaryArray.Append((UTF8CHAR*)Convert.Get(), Convert.Length());
+#else 
+	//https://github.com/EpicGames/UnrealEngine/blob/5.3/Engine/Source/Runtime/Core/Public/Containers/StringConv.hL#L1070
+	auto converter = StringCast<UTF8CHAR>(*Message);
+	OutBinaryArray.Empty();
+	OutBinaryArray.Append((uint8*)converter.Get(), converter.Length());
+#endif
 }
+
