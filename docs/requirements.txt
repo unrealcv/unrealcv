@@ -1,16 +1,12 @@
-sphinx>=7.4,<8
+sphinx>=5.0
 sphinx_rtd_theme
 numpy
-# Install the pkg-config to build matplotlib
 matplotlib
 breathe
 docker
 pytest
-git-lfs
 sphinx-issues
 pillow
-nbsphinx>=0.9.4
-nbconvert>=7.16
-# numpydoc
-recommonmark
+nbsphinx
+myst-parser
 unrealcv

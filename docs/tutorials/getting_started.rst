@@ -71,10 +71,10 @@ Generate some images from the scene
     from unrealcv import client
     client.connect() # Connect to the game
     if not client.isconnected(): # Check if the connection is successfully established
-      print 'UnrealCV server is not running. Run the game from http://unrealcv.github.io first.'
+                print('UnrealCV server is not running. Run the game from https://unrealcv.github.io first.')
     else:
-      filename = client.request('vget /camera/0/lit')
-      filename = client.request('vget /camera/0/depth depth.exr')
+                filename = client.request('vget /camera/0/lit')
+                filename = client.request('vget /camera/0/depth depth.exr')
 
 You can find this example in :gitcode:`examples/10lines.py`.
 
@@ -84,14 +84,14 @@ If you encountered any errors following this tutorial, please see :doc:`the diag
 Next: Use UnrealCV in the game mode or plugin mode?
 ---------------------------------------------------
 
-For the game mode, you can use a compiled game binary. You can freely control the camera in this game and generate images and ground truth from it. But it is not easy to change the scene, such as add more objects or change the material properties. If you have access to an UE4 project and know how to use the UE4Editor, you can install the plugin to UE4Editor, so that you can combine the power of UE4Editor and UnrealCV to create new virtual worlds for research.
+For the game mode, you can use a compiled game binary. You can freely control the camera in this game and generate images and ground truth from it. But it is not easy to change the scene, such as add more objects or change the material properties. If you have access to a UE project and know how to use the UE Editor, you can install the plugin to the UE Editor, so that you can combine the power of Unreal Engine and UnrealCV to create new virtual worlds for research.
 
 Tutorials
 ---------
 
 - :doc:`How to generate an image dataset </tutorials/generate_images_tutorial>`
 - :doc:`Integrate with a deep learning framework </tutorials/faster_rcnn>`
-- :doc:`Use the plugin in UE4Editor </plugin/editor>`
+- :doc:`Use the plugin in the UE Editor </plugin/editor>`
 - :doc:`Modify code and add a new command </plugin/develop>`
 
 Articles
