@@ -1,0 +1,34 @@
+name: Command Schema
+
+on:
+  pull_request:
+    paths:
+      - 'Source/UnrealCV/Private/Commands/**'
+      - 'client/python/unrealcv/**'
+      - 'docs/reference/commands.rst'
+      - 'docs/reference/command_schema.json'
+      - 'tools/command_schema/**'
+      - '.github/workflows/command-schema.yml'
+
+jobs:
+  schema-sync-and-coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Regenerate command schema
+        run: python tools/command_schema/generate_schema.py --repo-root . --output docs/reference/command_schema.json
+
+      - name: Verify schema is committed
+        run: |
+          git diff --exit-code -- docs/reference/command_schema.json || (echo "command_schema.json is out of date. Regenerate and commit." && exit 1)
+
+      - name: Validate docs/client coverage (non-blocking)
+        run: python tools/command_schema/validate_coverage.py --repo-root . --schema docs/reference/command_schema.json

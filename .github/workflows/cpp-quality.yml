@@ -1,0 +1,100 @@
+name: C++ Quality
+
+on:
+  pull_request:
+    paths:
+      - 'Source/**/*.h'
+      - 'Source/**/*.hpp'
+      - 'Source/**/*.cpp'
+      - '.clang-format'
+      - '.clang-tidy'
+      - '.github/workflows/cpp-quality.yml'
+
+jobs:
+  clang-format:
+    name: clang-format (changed files)
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+
+      - name: Collect changed C++ files
+        id: files
+        run: |
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.sha }}"
+          CHANGED=$(git diff --name-only --diff-filter=ACMRT "$BASE_SHA...$HEAD_SHA" | grep -E '^Source/.*\.(h|hpp|cpp)$' || true)
+          {
+            echo 'changed<<EOF'
+            echo "$CHANGED"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check formatting
+        if: steps.files.outputs.changed != ''
+        run: |
+          echo "${{ steps.files.outputs.changed }}" | while IFS= read -r file; do
+            [ -n "$file" ] || continue
+            echo "Checking $file"
+            clang-format --dry-run --Werror "$file"
+          done
+
+  clang-tidy:
+    name: clang-tidy (advisory on changed files)
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install clang-tidy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-tidy
+
+      - name: Collect changed C++ files
+        id: files
+        run: |
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.sha }}"
+          CHANGED=$(git diff --name-only --diff-filter=ACMRT "$BASE_SHA...$HEAD_SHA" | grep -E '^Source/.*\.(h|hpp|cpp)$' || true)
+          {
+            echo 'changed<<EOF'
+            echo "$CHANGED"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Run clang-tidy (advisory)
+        if: steps.files.outputs.changed != ''
+        continue-on-error: true
+        run: |
+          mkdir -p .artifacts
+          : > .artifacts/clang-tidy.txt
+          if [ ! -f compile_commands.json ]; then
+            echo "No compile_commands.json found; skipping clang-tidy advisory run." | tee -a .artifacts/clang-tidy.txt
+            exit 0
+          fi
+          echo "${{ steps.files.outputs.changed }}" | while IFS= read -r file; do
+            [ -n "$file" ] || continue
+            echo "===== $file =====" | tee -a .artifacts/clang-tidy.txt
+            clang-tidy "$file" -p . --extra-arg=-std=c++17 -- -I Source/UnrealCV/Public 2>&1 | tee -a .artifacts/clang-tidy.txt
+            echo | tee -a .artifacts/clang-tidy.txt
+          done
+
+      - name: Upload advisory report
+        if: always() && steps.files.outputs.changed != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: clang-tidy-report
+          path: .artifacts/clang-tidy.txt
+          if-no-files-found: ignore

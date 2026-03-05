@@ -1,6 +1,9 @@
 Command System
 ==============
 
+The machine-readable command schema is generated from server registrations and committed in ``docs/reference/command_schema.json``.
+Use ``python tools/command_schema/generate_schema.py`` to regenerate it after command changes.
+
 Unreal Engine 4 has some built-in commands to help game development. These commands can be typed into a built-in console. Using these commands, a developer can profile the game performance and view debug information.  To invoke the built-in console of a game, type the \` key (the key above tab).
 
 UnrealCV provides commands useful for computer vision researchers. What is more, these commands can be used by an external program. A built-in command can also be used using the special command :code:`vrun`.

@@ -1,0 +1,32 @@
+name: Python API Stability
+
+on:
+  pull_request:
+    paths:
+      - 'client/python/unrealcv/**'
+      - 'client/python/tools/**'
+      - 'test/client/test_public_api_snapshot.py'
+      - 'client/python/unrealcv/public_api_snapshot.json'
+      - '.github/workflows/python-api-stability.yml'
+
+jobs:
+  api-compatibility:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip pytest
+
+      - name: Verify snapshot is up to date
+        run: python client/python/tools/update_public_api_snapshot.py --repo-root . --check
+
+      - name: Run API compatibility test
+        run: pytest test/client/test_public_api_snapshot.py

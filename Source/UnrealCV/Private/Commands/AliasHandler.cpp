@@ -7,6 +7,7 @@
 #include "Utils/UObjectUtils.h"
 #include "SerializeBPLib.h"
 #include "UnrealcvLog.h"
+#include "UnrealcvServer.h"
 
 
 void FAliasHandler::RegisterCommands()
@@ -15,8 +16,8 @@ void FAliasHandler::RegisterCommands()
 	FString Help;
 
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasHandler::VRun);
-	Help = "Run UE4 built-in commands";
-	CommandDispatcher->BindCommand("vrun [str]", Cmd, Help);
+	Help = TEXT("Run UE5 built-in commands");
+	CommandDispatcher->BindCommand("vcmd [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vrun [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vrun [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vrun [str] [str] [str] [str]", Cmd, Help);
@@ -24,7 +25,7 @@ void FAliasHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vrun [str] [str] [str] [str] [str] [str]", Cmd, Help);
 
 	// vexec ActorId FuncName Params
-	Help = "Run UE4 blueprint function";
+	Help = TEXT("Run UE5 blueprint function");
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasHandler::VExec);
 	CommandDispatcher->BindCommand("vexec [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vexec [str] [str] [str]", Cmd, Help);
@@ -58,24 +59,31 @@ void FAliasHandler::RegisterCommands()
 
 FExecStatus FAliasHandler::VRun(const TArray<FString>& Args)
 {
-	if (!FUnrealcvServer::Get().Config.AllowDangerousCommands)
+	const int32 NumArgs = Args.Num();
+	if (NumArgs < 1)
 	{
-		return FExecStatus::Error(TEXT("Command disabled by policy: set AllowDangerousCommands=true or -cvallowdangerous"));
+		return FExecStatus::Error(TEXT("vrun requires at least one argument"));
 	}
 
-	FString Cmd = "";
-
-	uint32 NumArgs = Args.Num();
-	for (uint32 ArgIndex = 0; ArgIndex < NumArgs-1; ArgIndex++)
+	FString Cmd;
+	for (int32 ArgIndex = 0; ArgIndex < NumArgs - 1; ++ArgIndex)
 	{
-		Cmd += Args[ArgIndex] + " ";
+		Cmd += Args[ArgIndex] + TEXT(" ");
 	}
-	Cmd += Args[NumArgs-1];
+	Cmd += Args[NumArgs - 1];
+
 	UWorld* World = FUnrealcvServer::Get().GetWorld();
-	check(World->IsGameWorld());
+	if (!IsValid(World) || !World->IsGameWorld())
+	{
+		return FExecStatus::Error(TEXT("No valid game world available for vrun"));
+	}
 
-	APlayerController* PlayerController = World->GetFirstPlayerController();
-	PlayerController->ConsoleCommand(Cmd, true);
+	APlayerController* PC = World->GetFirstPlayerController();
+	if (!IsValid(PC))
+	{
+		return FExecStatus::Error(TEXT("No player controller available"));
+	}
+	PC->ConsoleCommand(Cmd, true);
 	return FExecStatus::OK();
 }
 
@@ -107,7 +115,17 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 	// Cmd = Cmd.TrimTrailing(); // TODO: Simplify this function.
 	Cmd = Cmd.TrimEnd(); // New API
 
-	FConsoleOutputDevice OutputDevice(FUnrealcvServer::Get().GetWorld()->GetGameViewport()->ViewportConsole);
+	UWorld* ExecWorld = FUnrealcvServer::Get().GetWorld();
+	if (!IsValid(ExecWorld))
+	{
+		return FExecStatus::Error(TEXT("No valid world"));
+	}
+	UGameViewportClient* Viewport = ExecWorld->GetGameViewport();
+	if (!Viewport || !Viewport->ViewportConsole)
+	{
+		return FExecStatus::Error(TEXT("No viewport console available"));
+	}
+	FConsoleOutputDevice OutputDevice(Viewport->ViewportConsole);
 
 
 	// if (Obj->CallFunctionByNameWithArguments(*Cmd, OutputDevice, nullptr, true))
@@ -123,11 +141,6 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 	FOutputDevice& Ar = OutputDevice;
 	UObject* Executor = nullptr;
 	bool bForceCallWithNonExec = true;/*=false*/
-
-	if (!FUnrealcvServer::Get().Config.AllowDangerousCommands)
-	{
-		return FExecStatus::Error(TEXT("Command disabled by policy: set AllowDangerousCommands=true or -cvallowdangerous"));
-	}
 
 	// Find an exec function.
 	FString MsgStr;
@@ -319,7 +332,7 @@ FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 			{
 				UE_LOG(LogUnrealCV, Warning, TEXT("Unrecognized type for parameter %s"), *Key);
 			}
-			
+
 			Dict.Emplace(Key, Value);
 		}
 	}
@@ -343,11 +356,6 @@ FExecStatus FAliasHandler::VExec(const TArray<FString>& Args)
 	// Args[0] : ActorId
 	// Args[1] : BlueprintFunctionName
 	// Args[2 .. end] : Parameters
-
-	if (!FUnrealcvServer::Get().Config.AllowDangerousCommands)
-	{
-		return FExecStatus::Error(TEXT("Command disabled by policy: set AllowDangerousCommands=true or -cvallowdangerous"));
-	}
 
 	FString ActorId, FuncName;
 	if (Args.Num() < 1)
@@ -383,17 +391,22 @@ FExecStatus FAliasHandler::VExec(const TArray<FString>& Args)
 		ArgId++;
 	}
 
-	// FOutputDeviceNull OutputDevice;
-	FConsoleOutputDevice OutputDevice(FUnrealcvServer::Get().GetWorld()->GetGameViewport()->ViewportConsole);
-	// APlayerController* TestPlayerController = this->GetWorld()->GetFirstPlayerController();
-	// FString ControllerName = TestPlayerController->GetName();
-	// TestPlayerController->CallFunctionByNameWithArguments(TEXT("SetRotation 30 30 30"), ar, NULL, true);
-	// check(TestPlayerController == Obj);
-	// check(Cmd == TEXT("SetRotation 30 30 30"));
+	UWorld* VExecWorld = FUnrealcvServer::Get().GetWorld();
+	if (!IsValid(VExecWorld))
+	{
+		return FExecStatus::Error(TEXT("No valid world"));
+	}
+	UGameViewportClient* VExecViewport = VExecWorld->GetGameViewport();
+	if (!VExecViewport || !VExecViewport->ViewportConsole)
+	{
+		return FExecStatus::Error(TEXT("No viewport console available"));
+	}
+	FConsoleOutputDevice OutputDevice(VExecViewport->ViewportConsole);
 
-	// An example command is vexec RoboArmController_C_0 30 0 0
-	check(IsValid(Obj) && !Obj->IsUnreachable());
-	EObjectFlags Flags = Obj->GetFlags();
+	if (!IsValid(Obj) || Obj->IsUnreachable())
+	{
+		return FExecStatus::Error(TEXT("Object is invalid or unreachable"));
+	}
 
 	// From Actor.cpp ProcessEvent
 	//#if WITH_EDITOR
@@ -433,14 +446,14 @@ FExecStatus FAliasHandler::VExec(const TArray<FString>& Args)
 FExecStatus FAliasHandler::GetPersistentLevelId(const TArray<FString>& Args)
 {
 	UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
-	
+
 	if (IsValid(GameWorld) && IsValid(GameWorld->PersistentLevel))
 	{
 		return FExecStatus::OK(GameWorld->PersistentLevel->GetName());
 	}
 	else
 	{
-		return FExecStatus::Error("The UWorld is invalid");
+		return FExecStatus::Error(TEXT("The UWorld is invalid"));
 	}
 }
 
@@ -448,12 +461,14 @@ FExecStatus FAliasHandler::GetLevelScriptActorId(const TArray<FString>& Args)
 {
 	UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
 
-	if (IsValid(GameWorld) && IsValid(GameWorld->PersistentLevel))
+	if (!IsValid(GameWorld) || !IsValid(GameWorld->PersistentLevel))
 	{
-		return FExecStatus::OK(GameWorld->PersistentLevel->LevelScriptActor->GetName());
+		return FExecStatus::Error(TEXT("The UWorld or PersistentLevel is invalid"));
 	}
-	else
+	const ALevelScriptActor* ScriptActor = GameWorld->PersistentLevel->LevelScriptActor;
+	if (!IsValid(ScriptActor))
 	{
-		return FExecStatus::Error("The UWorld is invalid");
+		return FExecStatus::Error(TEXT("The LevelScriptActor is null"));
 	}
+	return FExecStatus::OK(ScriptActor->GetName());
 }
