@@ -1,18 +1,20 @@
 #include "PluginHandler.h"
-#include "Runtime/Engine/Classes/Engine/World.h"
-#include "Runtime/Projects/Public/Interfaces/IPluginManager.h"
+#include "Engine/World.h"
+#include "Interfaces/IPluginManager.h"
 
 #include "UnrealcvServer.h"
+#include "UnixTcpServer.h"
 #include "UnrealcvShim.h"
 #include "UnrealcvStats.h"
 
-DECLARE_CYCLE_STAT(TEXT("FPluginHandler::GetUnrealCVStatus"), 
+DECLARE_CYCLE_STAT(TEXT("FPluginHandler::GetUnrealCVStatus"),
 	STAT_GetUnrealCVStatus, STATGROUP_UnrealCV);
 
 FExecStatus FPluginHandler::Echo(const TArray<FString>& Args)
 {
+	if (Args.Num() < 1) { return FExecStatus::InvalidArgument; }
 	// Async version
-	FString Msg = Args[0];
+	const FString Msg = Args[0];
 	// FPromiseDelegate PromiseDelegate = FPromiseDelegate::CreateLambda([Msg]()
 	// {
 	// 	return FExecStatus::OK(Msg);
@@ -26,28 +28,15 @@ FExecStatus FPluginHandler::Echo(const TArray<FString>& Args)
 FExecStatus FPluginHandler::GetUnrealCVStatus(const TArray<FString>& Args)
 {
 	SCOPE_CYCLE_COUNTER(STAT_GetUnrealCVStatus);
-	FString Msg;
-	FUnrealcvServer& Server = FUnrealcvServer::Get(); // TODO: Can not use a copy constructor, need to disable copy constructor
+	const FUnrealcvServer& Server = FUnrealcvServer::Get();
+	const UUnixTcpServer* Tcp = Server.GetTcpServer();
 
-	if (Server.TcpServer->IsListening())
-	{
-		Msg += "Is Listening\n";
-	}
-	else
-	{
-		Msg += "Not Listening\n";
-	}
-	if (Server.TcpServer->IsConnected())
-	{
-		Msg += "Client Connected\n";
-	}
-	else
-	{
-		Msg += "No Client Connected\n";
-	}
-	Msg += FString::Printf(TEXT("%d\n"), Server.TcpServer->PortNum);
-	Msg += "Configuration\n";
-	Msg += FUnrealcvServer::Get().Config.ToString();
+	FString Msg;
+	Msg += Tcp->IsListening()  ? TEXT("Is Listening\n")      : TEXT("Not Listening\n");
+	Msg += Tcp->IsConnected()  ? TEXT("Client Connected\n")  : TEXT("No Client Connected\n");
+	Msg += FString::Printf(TEXT("%d\n"), Tcp->GetPortNum());
+	Msg += TEXT("Configuration\n");
+	Msg += Server.GetConfig().ToString();
 	return FExecStatus::OK(Msg);
 }
 
@@ -60,7 +49,7 @@ FExecStatus FPluginHandler::GetCommands(const TArray<FString>& Args)
 	TMap<FString, FString> UriDescription = CommandDispatcher->GetUriDescription();
 	UriDescription.GetKeys(UriList);
 
-	for (auto Value : UriDescription)
+	for (const auto& Value : UriDescription)
 	{
 		Message += Value.Key + "\n";
 		Message += Value.Value + "\n";
@@ -76,14 +65,8 @@ FExecStatus FPluginHandler::GetVersion(const TArray<FString>& Args)
 	{
 		return FExecStatus::Error("The plugin is not correctly loaded");
 	}
-	else
-	{
-		FString PluginName = Plugin->GetName();
-		FPluginDescriptor PluginDescriptor = Plugin->GetDescriptor();
-		FString VersionName = PluginDescriptor.VersionName;
-		int32 VersionNumber = PluginDescriptor.Version;
-		return FExecStatus::OK(VersionName);
-	}
+	const FPluginDescriptor& Descriptor = Plugin->GetDescriptor();
+	return FExecStatus::OK(Descriptor.VersionName);
 }
 
 FExecStatus FPluginHandler::GetSceneName(const TArray<FString>& Args)
@@ -94,11 +77,15 @@ FExecStatus FPluginHandler::GetSceneName(const TArray<FString>& Args)
 
 FExecStatus FPluginHandler::GetLevelName(const TArray<FString>& Args)
 {
-	FUnrealcvServer& Server = FUnrealcvServer::Get();
-	FString PrefixedMapName = Server.GetWorld()->GetMapName();	
-	FString Prefix = Server.GetWorld()->StreamingLevelsPrefix;
-	FString MapName = PrefixedMapName.Mid(Prefix.Len());
-	return FExecStatus::OK(MapName);
+	const FUnrealcvServer& Server = FUnrealcvServer::Get();
+	const UWorld* World = Server.GetWorld();
+	if (!IsValid(World))
+	{
+		return FExecStatus::Error(TEXT("No valid world"));
+	}
+	const FString PrefixedMapName = World->GetMapName();
+	const FString Prefix = World->StreamingLevelsPrefix;
+	return FExecStatus::OK(PrefixedMapName.Mid(Prefix.Len()));
 }
 
 void FPluginHandler::RegisterCommands()

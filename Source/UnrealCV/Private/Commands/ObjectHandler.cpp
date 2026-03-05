@@ -1,9 +1,9 @@
 // Weichao Qiu @ 2017
 #include "ObjectHandler.h"
 
-#include "Runtime/Engine/Classes/Engine/World.h"
-#include "Runtime/CoreUObject/Public/UObject/UObjectGlobals.h"
-#include "Runtime/CoreUObject/Public/UObject/Package.h"
+#include "Engine/World.h"
+#include "UObject/UObjectGlobals.h"
+#include "UObject/Package.h"
 
 #include "UnrealcvServer.h"
 #include "Controller/ActorController.h"
@@ -13,34 +13,32 @@
 #include "VisionBPLib.h"
 #include "CubeActor.h"
 #include "CommandInterface.h"
+#include "UnrealcvLog.h"
 
-FExecStatus SetActorName(AActor* Actor, FString NewName)
+namespace {
+
+FExecStatus SetActorName(AActor* Actor, const FString& NewName)
 {
-	// UObject* NameScopeOuter = ANY_PACKAGE;
-	// UObject* ExistingObject = StaticFindObject(/*Class=*/ NULL, NameScopeOuter, *NewName, true);
 	UObject* ExistingObject = FindFirstObjectSafe<UObject>(*NewName);
 	if (IsValid(ExistingObject))
 	{
 		if (ExistingObject == Actor)
 		{
-			FString ErrorMsg = TEXT("The name has already been set");
-			return FExecStatus::OK(ErrorMsg);
+			return FExecStatus::OK(TEXT("The name has already been set"));
 		}
-		else if (ExistingObject)
-		{
-			FString ErrorMsg = FString::Printf(TEXT("Renaming an object to overwrite an existing object is not allowed, %s"),  *NewName);
-			return FExecStatus::Error(ErrorMsg);
-		}
+		// IsValid succeeded so ExistingObject is guaranteed non-null.
+		return FExecStatus::Error(FString::Printf(
+			TEXT("Renaming an object to overwrite an existing object is not allowed: %s"), *NewName));
 	}
-	else
-	{
-		ICommandInterface* CmdActor = Cast<ICommandInterface>(Actor);
-		if (CmdActor) CmdActor->UnbindCommands();
-		Actor->Rename(*NewName);
-		if (CmdActor) CmdActor->BindCommands();
-	}
+
+	ICommandInterface* CmdActor = Cast<ICommandInterface>(Actor);
+	if (CmdActor) { CmdActor->UnbindCommands(); }
+	Actor->Rename(*NewName);
+	if (CmdActor) { CmdActor->BindCommands(); }
 	return FExecStatus::OK();
 }
+
+} // anonymous namespace
 
 void FObjectHandler::RegisterCommands()
 {
@@ -185,12 +183,16 @@ void FObjectHandler::RegisterCommands()
 	);
 }
 
+namespace {
+
 AActor* GetActor(const TArray<FString>& Args)
 {
-	FString ActorId = Args[0];
-	AActor* Actor = GetActorById(FUnrealcvServer::Get().GetWorld(), ActorId);
-	return Actor;
+	if (Args.Num() < 1) { return nullptr; }
+	const FString& ActorId = Args[0];
+	return GetActorById(FUnrealcvServer::Get().GetWorld(), ActorId);
 }
+
+} // anonymous namespace
 
 FExecStatus FObjectHandler::GetObjectList(const TArray<FString>& Args)
 {
@@ -208,7 +210,7 @@ FExecStatus FObjectHandler::GetObjectList(const TArray<FString>& Args)
 FExecStatus FObjectHandler::GetLocation(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
-	if (!Actor) return FExecStatus::Error("Can not find object");
+	if (!Actor) return FExecStatus::Error(TEXT("Cannot find object"));
 
 	FActorController Controller(Actor);
 	FVector Location = Controller.GetLocation();
@@ -222,8 +224,9 @@ FExecStatus FObjectHandler::GetLocation(const TArray<FString>& Args)
 /** There is no guarantee this will always succeed, for example, hitting a wall */
 FExecStatus FObjectHandler::SetLocation(const TArray<FString>& Args)
 {
+	if (Args.Num() < 4) { return FExecStatus::InvalidArgument; }
 	AActor* Actor = GetActor(Args);
-	if (!Actor) return FExecStatus::Error("Can not find object");
+	if (!Actor) return FExecStatus::Error(TEXT("Cannot find object"));
 	FActorController Controller(Actor);
 
 	// TODO: Check whether this object is movable
@@ -237,7 +240,7 @@ FExecStatus FObjectHandler::SetLocation(const TArray<FString>& Args)
 FExecStatus FObjectHandler::GetRotation(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
-	if (!Actor) return FExecStatus::Error("Can not find object");
+	if (!Actor) return FExecStatus::Error(TEXT("Cannot find object"));
 
 	FActorController Controller(Actor);
 	FRotator Rotation = Controller.GetRotation();
@@ -250,8 +253,9 @@ FExecStatus FObjectHandler::GetRotation(const TArray<FString>& Args)
 
 FExecStatus FObjectHandler::SetRotation(const TArray<FString>& Args)
 {
+	if (Args.Num() < 4) { return FExecStatus::InvalidArgument; }
 	AActor* Actor = GetActor(Args);
-	if (!Actor) return FExecStatus::Error("Can not find object");
+	if (!Actor) return FExecStatus::Error(TEXT("Cannot find object"));
 	FActorController Controller(Actor);
 
 	// TODO: Check whether this object is movable
@@ -266,7 +270,7 @@ FExecStatus FObjectHandler::SetRotation(const TArray<FString>& Args)
 FExecStatus FObjectHandler::GetAnnotationColor(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
-	if (!Actor) return FExecStatus::Error("Can not find object");
+	if (!Actor) return FExecStatus::Error(TEXT("Cannot find object"));
 	FActorController Controller(Actor);
 
 	FColor AnnotationColor;
@@ -276,8 +280,9 @@ FExecStatus FObjectHandler::GetAnnotationColor(const TArray<FString>& Args)
 
 FExecStatus FObjectHandler::SetAnnotationColor(const TArray<FString>& Args)
 {
+	if (Args.Num() < 4) { return FExecStatus::InvalidArgument; }
 	AActor* Actor = GetActor(Args);
-	if (!Actor) return FExecStatus::Error("Can not find object");
+	if (!Actor) return FExecStatus::Error(TEXT("Cannot find object"));
 	FActorController Controller(Actor);
 
 	// ObjectName, R, G, B, A = 255
@@ -292,7 +297,7 @@ FExecStatus FObjectHandler::SetAnnotationColor(const TArray<FString>& Args)
 FExecStatus FObjectHandler::GetMobility(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
-	if (!Actor) return FExecStatus::Error("Can not find object");
+	if (!Actor) return FExecStatus::Error(TEXT("Cannot find object"));
 	FActorController Controller(Actor);
 
 	FString MobilityName = "";
@@ -310,7 +315,7 @@ FExecStatus FObjectHandler::GetMobility(const TArray<FString>& Args)
 FExecStatus FObjectHandler::SetShow(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
-	if (!Actor) return FExecStatus::Error("Can not find object");
+	if (!Actor) return FExecStatus::Error(TEXT("Cannot find object"));
 
 	FActorController Controller(Actor);
 	Controller.Show();
@@ -320,7 +325,7 @@ FExecStatus FObjectHandler::SetShow(const TArray<FString>& Args)
 FExecStatus FObjectHandler::SetHide(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
-	if (!Actor) return FExecStatus::Error("Can not find object");
+	if (!Actor) return FExecStatus::Error(TEXT("Cannot find object"));
 
 	FActorController Controller(Actor);
 	Controller.Hide();
@@ -330,12 +335,13 @@ FExecStatus FObjectHandler::SetHide(const TArray<FString>& Args)
 FExecStatus FObjectHandler::GetObjectVertexLocation(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
+	if (!Actor) return FExecStatus::Error(TEXT("Cannot find object"));
 	FVertexSensor VertexSensor(Actor);
 	TArray<FVector> VertexArray = VertexSensor.GetVertexArray();
 
 	// Serialize it to json?
 	FString Str = "";
-	for (auto Vertex : VertexArray)
+	for (const auto& Vertex : VertexArray)
 	{
 		FString VertexLocation = FString::Printf(
 			TEXT("%.5f     %.5f     %.5f"),
@@ -349,33 +355,37 @@ FExecStatus FObjectHandler::GetObjectVertexLocation(const TArray<FString>& Args)
 /** A debug utility function to create StaticBox through python API */
 FExecStatus FObjectHandler::SpawnBox(const TArray<FString>& Args)
 {
-	FString ObjectName;
-	if (Args.Num() == 1) { ObjectName = Args[0]; }
-
 	UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
 	AActor* Actor = GameWorld->SpawnActor(ACubeActor::StaticClass());
-
-	return FExecStatus::OK();
+	if (!IsValid(Actor))
+	{
+		return FExecStatus::Error(TEXT("Failed to spawn cube actor"));
+	}
+	if (Args.Num() == 1)
+	{
+		SetActorName(Actor, Args[0]);
+	}
+	return FExecStatus::OK(Actor->GetName());
 }
 
 FExecStatus FObjectHandler::Spawn(const TArray<FString>& Args)
 {
 	if (Args.Num() == 2)
 	{
-		FString ActorId = Args[1];
+		const FString& ActorId = Args[1];
 		AActor* Actor = GetActorById(FUnrealcvServer::Get().GetWorld(), ActorId);
 		if (IsValid(Actor))
 		{
-			FString ErrorMsg = FString::Printf(TEXT("Failed to spawn %s, object exsit."), *ActorId);
-			UE_LOG(LogTemp, Warning, TEXT("%s"), *ErrorMsg);
+			FString ErrorMsg = FString::Printf(TEXT("Failed to spawn %s, object exists."), *ActorId);
+			UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *ErrorMsg);
 			return FExecStatus::Error(ErrorMsg);
 		}
 	}
 
 	FString UClassName;
 	if (Args.Num() == 1 || Args.Num() == 2)
-	{ 
-		UClassName = Args[0]; 
+	{
+		UClassName = Args[0];
 	}
 	// Lookup UClass with a string
 	UClass*	Class = FindFirstObjectSafe<UClass>(*UClassName);
@@ -383,7 +393,7 @@ FExecStatus FObjectHandler::Spawn(const TArray<FString>& Args)
 	if (!IsValid(Class))
 	{
 		FString ErrorMsg = FString::Printf(TEXT("Can not find a class with name '%s'"), *UClassName);
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *ErrorMsg);
+		UE_LOG(LogUnrealCV, Warning, TEXT("%s"), *ErrorMsg);
 		return FExecStatus::Error(ErrorMsg);
 	}
 
@@ -399,7 +409,7 @@ FExecStatus FObjectHandler::Spawn(const TArray<FString>& Args)
 
 	if (Args.Num() == 2)
 	{
-		FString ActorName = Args[1];
+		const FString& ActorName = Args[1];
 		SetActorName(Actor, ActorName);
 	}
 	return FExecStatus::OK(Actor->GetName());
@@ -408,7 +418,7 @@ FExecStatus FObjectHandler::Spawn(const TArray<FString>& Args)
 FExecStatus FObjectHandler::Destroy(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
-	if (!Actor) return FExecStatus::Error("Can not find object");
+	if (!Actor) return FExecStatus::Error(TEXT("Cannot find object"));
 
 	Actor->Destroy();
 	return FExecStatus::OK();
@@ -417,16 +427,29 @@ FExecStatus FObjectHandler::Destroy(const TArray<FString>& Args)
 FExecStatus FObjectHandler::GetUClassName(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
-	if (!Actor) return FExecStatus::Error("Can not find object");
+	if (!Actor) return FExecStatus::Error(TEXT("Cannot find object"));
 
-	FString UClassName = Actor->StaticClass()->GetName();
+	FString UClassName = Actor->GetClass()->GetName();
 	return FExecStatus::OK(UClassName);
 }
 
 /** Get component names of the object */
 FExecStatus FObjectHandler::GetComponents(const TArray<FString>& Args)
 {
-	return FExecStatus::OK();
+	AActor* Actor = GetActor(Args);
+	if (!IsValid(Actor)) { return FExecStatus::Error(TEXT("Cannot find object")); }
+
+	FString Result;
+	TInlineComponentArray<UActorComponent*> Components;
+	Actor->GetComponents(Components);
+	for (const UActorComponent* Component : Components)
+	{
+		if (IsValid(Component))
+		{
+			Result += Component->GetName() + TEXT(" ");
+		}
+	}
+	return FExecStatus::OK(Result);
 }
 
 
@@ -437,14 +460,14 @@ FExecStatus FObjectHandler::SetName(const TArray<FString>& Args)
 		return FExecStatus::InvalidArgument;
 	}
 	AActor* Actor = GetActor(Args);
-	if (!Actor) return FExecStatus::Error("Can not find object");
+	if (!Actor) return FExecStatus::Error(TEXT("Cannot find object"));
 
-	FString NewName = Args[1];
-	// Check whether the object name already exists, otherwise it will crash in 
+	const FString& NewName = Args[1];
+	// Check whether the object name already exists, otherwise it will crash in
 	// File:/home/qiuwch/UnrealEngine/Engine/Source/Runtime/CoreUObject/Private/UObject/Obj.cpp] [Line: 198]
 	FExecStatus Status = SetActorName(Actor, NewName);
 
-	return Status; 
+	return Status;
 }
 
 #if WITH_EDITOR
@@ -454,7 +477,7 @@ FExecStatus FObjectHandler::SetActorLabel(const TArray<FString>& Args)
 	if (Args.Num() == 2) { ActorLabel = Args[1]; }
 
 	AActor* Actor = GetActor(Args);
-	if (!IsValid(Actor)) return FExecStatus::Error("Can not find object");
+	if (!IsValid(Actor)) return FExecStatus::Error(TEXT("Cannot find object"));
 
 	Actor->SetActorLabel(ActorLabel);
 	return FExecStatus::OK();
@@ -463,18 +486,18 @@ FExecStatus FObjectHandler::SetActorLabel(const TArray<FString>& Args)
 FExecStatus FObjectHandler::GetActorLabel(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
-	if (!IsValid(Actor)) return FExecStatus::Error("Can not find object");
+	if (!IsValid(Actor)) return FExecStatus::Error(TEXT("Cannot find object"));
 
 	FString ActorLabel = Actor->GetActorLabel();
 	return FExecStatus::OK(ActorLabel);
 }
-#endif 
+#endif
 
 
 FExecStatus FObjectHandler::GetScale(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
-	if (!IsValid(Actor)) return FExecStatus::Error("Can not find object");
+	if (!IsValid(Actor)) return FExecStatus::Error(TEXT("Cannot find object"));
 
 	FVector Scale = Actor->GetActorScale3D();
 
@@ -486,8 +509,9 @@ FExecStatus FObjectHandler::GetScale(const TArray<FString>& Args)
 
 FExecStatus FObjectHandler::SetScale(const TArray<FString>& Args)
 {
+	if (Args.Num() < 4) { return FExecStatus::InvalidArgument; }
 	AActor* Actor = GetActor(Args);
-	if (!IsValid(Actor)) return FExecStatus::Error("Can not find object");
+	if (!IsValid(Actor)) return FExecStatus::Error(TEXT("Cannot find object"));
 
 	float X = FCString::Atof(*Args[1]), Y = FCString::Atof(*Args[2]), Z = FCString::Atof(*Args[3]);
 	FVector Scale = FVector(X, Y, Z);
@@ -499,14 +523,14 @@ FExecStatus FObjectHandler::SetScale(const TArray<FString>& Args)
 FExecStatus FObjectHandler::GetBounds(const TArray<FString>& Args)
 {
 	AActor* Actor = GetActor(Args);
-	if (!IsValid(Actor)) return FExecStatus::Error("Can not find object");
+	if (!IsValid(Actor)) return FExecStatus::Error(TEXT("Cannot find object"));
 
 	bool bOnlyCollidingComponents = false;
 	FVector Origin, BoundsExtent;
-	Actor->GetActorBounds(bOnlyCollidingComponents, Origin, BoundsExtent);  
+	Actor->GetActorBounds(bOnlyCollidingComponents, Origin, BoundsExtent);
 	FVector Min = Origin - BoundsExtent, Max = Origin + BoundsExtent;
 
-	FString Res = FString::Printf(TEXT("%.2f %.2f %.2f %.2f %.2f %.2f"), 
+	FString Res = FString::Printf(TEXT("%.2f %.2f %.2f %.2f %.2f %.2f"),
 		Min.X, Min.Y, Min.Z, Max.X, Max.Y, Max.Z);
 
 	return FExecStatus::OK(Res);

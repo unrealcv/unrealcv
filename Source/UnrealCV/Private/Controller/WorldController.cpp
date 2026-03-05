@@ -9,6 +9,7 @@
 #include "Sensor/CameraSensor/PawnCamSensor.h"
 #include "VisionBPLib.h"
 #include "UnrealcvServer.h"
+#include "UnixTcpServer.h"
 #include "PlayerViewMode.h"
 #include "UnrealcvLog.h"
 
@@ -43,14 +44,14 @@ void AUnrealcvWorldController::AttachPawnSensor()
 	PawnCamSensor->AttachToComponent(Pawn->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	// AActor* OwnerActor = FusionCamSensor->GetOwner();
 	PawnCamSensor->RegisterComponent(); // Is this neccessary?
-	UVisionBPLib::UpdateInput(Pawn, Server.Config.EnableInput);
+	UVisionBPLib::UpdateInput(Pawn, Server.GetConfig().bEnableInput);
 }
 
 void AUnrealcvWorldController::InitWorld()
 {
 	UE_LOG(LogUnrealCV, Display, TEXT("Overwrite the world setting with some UnrealCV extensions"));
 	FUnrealcvServer& UnrealcvServer = FUnrealcvServer::Get();
-	if (UnrealcvServer.TcpServer && !UnrealcvServer.TcpServer->IsListening())
+	if (UnrealcvServer.GetTcpServer() && !UnrealcvServer.GetTcpServer()->IsListening())
 	{
 		UE_LOG(LogUnrealCV, Warning, TEXT("The tcp server is not running"));
 	}
