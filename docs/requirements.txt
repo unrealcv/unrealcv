@@ -1,4 +1,4 @@
-sphinx==4.0.1
+sphinx>=7.4,<8
 sphinx_rtd_theme
 numpy
 # Install the pkg-config to build matplotlib
@@ -9,7 +9,8 @@ pytest
 git-lfs
 sphinx-issues
 pillow
-nbsphinx
+nbsphinx>=0.9.4
+nbconvert>=7.16
 # numpydoc
 recommonmark
 unrealcv
