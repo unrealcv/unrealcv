@@ -1,5 +1,6 @@
 #include "ImageWorker.h"
 #include "Runtime/Core/Public/HAL/RunnableThread.h"
+#include "Runtime/Core/Public/HAL/PlatformProcess.h"
 #include "UnrealcvLog.h"
 #include "Utils/RuntimeConstants.h"
 
