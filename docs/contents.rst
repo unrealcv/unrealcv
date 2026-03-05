@@ -48,3 +48,10 @@ Table of Contents
     plugin/develop
     reference/python_api
     contribute
+
+.. toctree::
+    :hidden:
+
+    doxygen
+    index1
+    tutorials/faster_rcnn
