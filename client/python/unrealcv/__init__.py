@@ -1,5 +1,6 @@
 import ctypes
 import logging
+import queue
 import re
 import socket
 import struct
@@ -67,6 +68,9 @@ class SocketMessage:
             # _L.debug('socket disconnect by server')
             return None
 
+        if len(raw_magic) != 4:
+            return None
+
         magic = struct.unpack(cls.fmt, raw_magic)[0]  # 'I' means unsigned int
         if magic != cls.magic:
             print(
@@ -84,6 +88,8 @@ class SocketMessage:
         raw_payload_size = sock.recv(4)
         if not raw_payload_size:
             print("Warning: socket disconnected by server")
+            return None
+        if len(raw_payload_size) != 4:
             return None
         # print 'Receive raw payload size: %d, %s' % (len(raw_payload_size), raw_payload_size)
         payload_size = struct.unpack("I", raw_payload_size)[0]
@@ -115,24 +121,15 @@ class SocketMessage:
         Send payload, true if success, false if failed
         """
         try:
-            # From SocketServer.py
-            # wbufsize = 0, flush immediately
-            wbufsize = -1
-            # Convert
-            socket_message = SocketMessage(payload)
-            wfile = sock.makefile("wb", wbufsize)
-            # Write the message
-            wfile.write(struct.pack(cls.fmt, socket_message.magic))
-            # Need to send the packed version
-            # print 'Sent ', socket_message.magic
+            # Ensure payload is bytes for Python 3
+            if isinstance(payload, str):
+                payload = payload.encode("utf-8")
 
-            wfile.write(struct.pack(cls.fmt, socket_message.payload_size))
-            # print 'Sent ', socket_message.payload_size
+            packet = struct.pack(cls.fmt, cls.magic)
+            packet += struct.pack(cls.fmt, ctypes.c_uint32(len(payload)).value)
+            packet += payload
 
-            wfile.write(payload)
-            # print 'Sent ', payload
-            wfile.flush()
-            wfile.close()  # Close file object, not close the socket
+            sock.sendall(packet)
             return True
         except Exception as e:
             print(f"Fail to send message {e}")
@@ -172,13 +169,15 @@ class Client:
         self.recv_num_q = SimpleQueue()  # inf
         self.recv_data_q = SimpleQueue()  # inf
         self.type = type
+        self.RECONNECT_ATTEMPTS = 5
+        self.RECONNECT_BASE_DELAY = 1
+        self.RECONNECT_MAX_DELAY = 1
 
     def send(self, message):
         """Send message out, return whether the message was successfully sent"""
         if self.isconnected():
             _L.debug("BaseClient: Send message %s", message)
-            SocketMessage.WrapAndSendPayload(self.sock, message)
-            return True
+            return SocketMessage.WrapAndSendPayload(self.sock, message)
         else:
             _L.error("Fail to send message, client is not connected")
             return False
@@ -210,7 +209,7 @@ class Client:
                 "No message handler to handle message with length %d", len(raw_message)
             )
 
-    def connect(self, timeout=1):
+    def connect(self, timeout=1, start_receive_thread=True):
         """
         Try to connect to server, return whether connection successful
         """
@@ -238,8 +237,14 @@ class Client:
                     self.sock = s
 
                     # start receive queue here
-                    self.t = threading.Thread(target=self.receive_loop_queue)
-                    self.t.start()
+                    if start_receive_thread and not (
+                        getattr(self, "t", None) and self.t.is_alive()
+                    ):
+                        self.t = threading.Thread(
+                            target=self.receive_loop_queue,
+                            daemon=True,
+                        )
+                        self.t.start()
 
                     return True
 
@@ -294,7 +299,7 @@ class Client:
             time.sleep(0.1)
 
         if getattr(self, "t", None):
-            if self.t.is_alive():
+            if self.t.is_alive() and self.t is not threading.current_thread():
                 self.recv_num_q.put(None)
                 self.t.join()
 
@@ -319,17 +324,21 @@ class Client:
 
                 # try reconnect
                 print("try reconnecting!")
-                for _ in range(5):
-                    flag = self.connect()
+                for attempt in range(self.RECONNECT_ATTEMPTS):
+                    flag = self.connect(start_receive_thread=False)
                     if flag:
                         print("reconnect succeed!")
-                        break
+                        return SocketMessage.ReceivePayload(self.sock)
                     else:
                         print("reconnect fail! sleep 1s and retry...")
-                        time.sleep(1)
-                print("disconnecting...")
-                self.disconnect()
-                assert 0, "exit because of abnormal disconnection"
+                        delay = min(
+                            self.RECONNECT_BASE_DELAY * (2**attempt),
+                            self.RECONNECT_MAX_DELAY,
+                        )
+                        time.sleep(delay)
+                err = ConnectionError("Failed to reconnect")
+                self.recv_data_q.put(err)
+                raise err
 
             return message
 
@@ -369,14 +378,13 @@ class Client:
 
         raw_message = b"%d:%s" % (self.send_message_id, message)
         if not self.send(raw_message):
-            assert 0, "failed send because of socket is closed"
-            # return None
+            raise ConnectionError("failed send because socket is closed")
 
         self.send_message_id += 1
 
         self.recv_num_q.put(1)
         # self.message_id += 1
-        return None
+        return True
 
     def request_batch_async(self, batch):
         """
@@ -396,12 +404,12 @@ class Client:
 
             raw_message = b"%d:%s" % (self.send_message_id, message)
             if not self.send(raw_message):
-                assert 0, "failed send because of socket is closed"
+                raise ConnectionError("failed send because socket is closed")
             # self.send(raw_message)
             self.send_message_id += 1
 
         self.recv_num_q.put(len(batch))
-        return None
+        return True
 
     def request_batch(self, batch):
         """
@@ -427,8 +435,7 @@ class Client:
 
             raw_message = b"%d:%s" % (self.send_message_id, message)
             if not self.send(raw_message):
-                assert 0, "failed send because of socket is closed"
-                # return None
+                raise ConnectionError("failed send because socket is closed")
             self.send_message_id += 1
 
         self.recv_num_q.put(-len(batch))  # negative number indicates need results
@@ -436,6 +443,8 @@ class Client:
         batch_res = []
         for i in range(len(batch)):
             message = self.recv_data_q.get()
+            if isinstance(message, Exception):
+                raise message
             batch_res.append(message)
 
         return batch_res
@@ -486,13 +495,17 @@ class Client:
         raw_message = b"%d:%s" % (self.send_message_id, message)
         # _L.debug('Request: %s', raw_message.decode("utf-8"))
         if not self.send(raw_message):
-            _L.error("failed send because socket is closed")
-            return None
+            raise ConnectionError("failed send because socket is closed")
 
         self.send_message_id += 1
 
         self.recv_num_q.put(-1)  # negative number indicates need results
-        message = self.recv_data_q.get()
+        try:
+            message = self.recv_data_q.get(timeout=timeout)
+        except queue.Empty as e:
+            raise TimeoutError("Request timed out") from e
+        if isinstance(message, Exception):
+            raise message
 
         return message
 
@@ -508,3 +521,6 @@ class Client:
 # if 'linux' in sys.platform and unix_socket_path is not None and os.path.exists(unix_socket_path):
 #     print('=> Info: Use UDS client...')
 #     client = Client(unix_socket_path, 'unix')
+
+# Backward-compatible default client used by legacy tests/scripts.
+client = Client(("localhost", 9000), "inet")
