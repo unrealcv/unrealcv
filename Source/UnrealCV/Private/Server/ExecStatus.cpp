@@ -5,9 +5,9 @@
 #include "Runtime/Core/Public/Containers/StringConv.h"
 #endif
 // DECLARE_DELEGATE_OneParam(FDispatcherDelegate, const TArray< FString >&);
-FExecStatus FExecStatus::InvalidArgument = FExecStatus(FExecStatusType::ErrorMsg, "Argument Invalid");
-FExecStatus FExecStatus::NotImplemented = FExecStatus(FExecStatusType::ErrorMsg, "Not Implemented");
-FExecStatus FExecStatus::InvalidPointer = FExecStatus(FExecStatusType::ErrorMsg, "Pointer to object invalid, check log for details");
+FExecStatus FExecStatus::InvalidArgument = FExecStatus(EExecStatusType::Error, "Argument Invalid");
+FExecStatus FExecStatus::NotImplemented = FExecStatus(EExecStatusType::Error, "Not Implemented");
+FExecStatus FExecStatus::InvalidPointer = FExecStatus(EExecStatusType::Error, "Pointer to object invalid, check log for details");
 
 /** Begin of FPromise functions */
 
@@ -19,12 +19,12 @@ FExecStatus FPromise::CheckStatus()
 }
 
 /** Begin of FExecStatus functions */
-bool operator==(const FExecStatus& ExecStatus, const FExecStatusType& ExecStatusType)
+bool operator==(const FExecStatus& ExecStatus, const EExecStatusType& ExecStatusType)
 {
 	return (ExecStatus.ExecStatusType == ExecStatusType);
 }
 
-bool operator!=(const FExecStatus& ExecStatus, const FExecStatusType& ExecStatusType)
+bool operator!=(const FExecStatus& ExecStatus, const EExecStatusType& ExecStatusType)
 {
 	return (ExecStatus.ExecStatusType != ExecStatusType);
 }
@@ -39,13 +39,13 @@ FExecStatus& FExecStatus::operator+=(const FExecStatus& Src)
 
 FExecStatus FExecStatus::OK(FString InMessage)
 {
-	return FExecStatus(FExecStatusType::OK, InMessage);
+	return FExecStatus(EExecStatusType::OK, InMessage);
 }
 
 
 FExecStatus FExecStatus::Error(FString ErrorMessage)
 {
-	return FExecStatus(FExecStatusType::ErrorMsg, ErrorMessage);
+	return FExecStatus(EExecStatusType::Error, ErrorMessage);
 }
 
 FString FExecStatus::GetMessage() const // Define how to format the reply string
@@ -53,12 +53,12 @@ FString FExecStatus::GetMessage() const // Define how to format the reply string
 	FString TypeName;
 	switch (ExecStatusType)
 	{
-	case FExecStatusType::OK:
+	case EExecStatusType::OK:
 		if (MessageBody == "")
 			return "ok";
 		else
 			return MessageBody;
-	case FExecStatusType::ErrorMsg:
+	case EExecStatusType::Error:
 		TypeName = "error"; break;
 	default:
 		TypeName = "unknown FExecStatus Type";
@@ -67,13 +67,13 @@ FString FExecStatus::GetMessage() const // Define how to format the reply string
 	return Message;
 }
 
-FExecStatus::FExecStatus(FExecStatusType InExecStatusType, FPromise InPromise)
+FExecStatus::FExecStatus(EExecStatusType InExecStatusType, FPromise InPromise)
 {
 	ExecStatusType = InExecStatusType;
 	Promise = InPromise;
 }
 
-FExecStatus::FExecStatus(FExecStatusType InExecStatusType, FString InMessage)
+FExecStatus::FExecStatus(EExecStatusType InExecStatusType, FString InMessage)
 {
 	ExecStatusType = InExecStatusType;
 	MessageBody = InMessage;
@@ -85,10 +85,10 @@ FExecStatus::~FExecStatus()
 
 FExecStatus FExecStatus::Binary(TArray<uint8>& BinaryData)
 {
-	return FExecStatus(FExecStatusType::OK, BinaryData);
+	return FExecStatus(EExecStatusType::OK, BinaryData);
 }
 
-FExecStatus::FExecStatus(FExecStatusType InExecStatusType, TArray<uint8>& InBinaryData)
+FExecStatus::FExecStatus(EExecStatusType InExecStatusType, TArray<uint8>& InBinaryData)
 {
 	ExecStatusType = InExecStatusType;
 	BinaryData = InBinaryData;
@@ -104,18 +104,18 @@ TArray<uint8> FExecStatus::GetData() const // Define how to format the reply str
 	FString Message;
 	switch (ExecStatusType)
 	{
-	case FExecStatusType::OK:
+	case EExecStatusType::OK:
 		if (MessageBody == "")
 			Message = "ok";
 		else
 			Message = MessageBody;
 		break;
-	case FExecStatusType::ErrorMsg:
+	case EExecStatusType::Error:
 		TypeName = "error"; break;
 	default:
 		TypeName = "unknown FExecStatus Type";
 	}
-	if (ExecStatusType != FExecStatusType::OK)
+	if (ExecStatusType != EExecStatusType::OK)
 	{
 		Message = FString::Printf(TEXT("%s %s"), *TypeName, *MessageBody);
 	}
