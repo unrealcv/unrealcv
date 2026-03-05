@@ -41,6 +41,8 @@ docs/doxygen/
 !*.ini
 !*.uplugin
 !*.bat
+!*.yml
+!*.yaml
 # !*.ipynb  Add ipython notebook and png, jpg by force
 
 !.vscode/
