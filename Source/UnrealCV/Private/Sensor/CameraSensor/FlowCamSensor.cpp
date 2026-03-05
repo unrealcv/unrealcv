@@ -1,5 +1,6 @@
 // shc @ 2025
 #include "FlowCamSensor.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 UFlowCamSensor::UFlowCamSensor(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)

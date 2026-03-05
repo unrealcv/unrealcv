@@ -14,6 +14,10 @@
 //different header files in UE
 #include "Runtime/Engine/Public/StaticMeshSceneProxy.h"
 #include "Runtime/Engine/Public/SkeletalMeshSceneProxy.h"
+#if ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 7
+// Required for UE 5.7+ where SceneView is no longer implicitly included
+#include "Runtime/Engine/Public/SceneView.h"
+#endif
 
 #endif
 #include "Runtime/Engine/Public/Rendering/SkeletalMeshRenderData.h"
