@@ -1,0 +1,39 @@
+{
+  "timestamp": "2026-03-05T12:23:48.263117",
+  "binary": "/Volumes/UD210/test57/Binaries/Mac/test57-Mac-Shipping.app",
+  "config": "Shipping",
+  "resolution": [
+    640,
+    480
+  ],
+  "results": {
+    "camera_spawn": {
+      "time_ms": 18.117189407348633,
+      "before": 3,
+      "after": 4
+    },
+    "camera_control": {
+      "get_location_ms": 17.77195930480957,
+      "set_location_ms": 19.249916076660156,
+      "batch_3cmds_ms": 17.998218536376953
+    },
+    "multimodal": {
+      "lit": {
+        "fps": 14.130345209737195,
+        "count": 71
+      },
+      "depth": {
+        "fps": 33.02784714701237,
+        "count": 166
+      },
+      "object_mask": {
+        "fps": 32.066224575609205,
+        "count": 161
+      },
+      "normal": {
+        "fps": 22.302912260718085,
+        "count": 112
+      }
+    }
+  }
+}

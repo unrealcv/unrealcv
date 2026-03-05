@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-03-05T11:18:45.138089",
+  "binary": "/Users/funway/.unrealcv/UnrealEnv/UE4_ExampleScene_Mac/UE4_ExampleScene.app",
+  "resolution": [
+    640,
+    480
+  ],
+  "results": {
+    "spawn_camera": {
+      "spawn_time_ms": 19.31285858154297,
+      "camera_id": 1,
+      "total_cameras": 2
+    },
+    "camera_control": {
+      "get_location_ms": 18.256187438964844,
+      "get_rotation_ms": 19.370079040527344,
+      "get_fov_ms": 18.01776885986328,
+      "set_location_ms": 18.341779708862305,
+      "set_rotation_ms": 17.48490333557129,
+      "batch_3cmds_ms": 114.94612693786621,
+      "batch_avg_ms": 38.315375645955406
+    },
+    "multimodal_capture": {
+      "lit": {
+        "fps": 13.72837020281162,
+        "count": 69,
+        "duration": 5.026088237762451,
+        "errors": 0,
+        "sample_image": 

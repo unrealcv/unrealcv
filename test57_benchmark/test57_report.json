@@ -1,0 +1,42 @@
+{
+  "timestamp": "2026-03-05T16:38:24.533451",
+  "binary": "/Volumes/UD210/test57/PackagedDev/Mac/test57.app",
+  "resolution": [
+    640,
+    480
+  ],
+  "results": {
+    "camera_spawn": {
+      "time_ms": 32.025814056396484,
+      "before": 4,
+      "after": 5
+    },
+    "camera_control": {
+      "get_location_ms": 39.96896743774414,
+      "set_location_ms": 53.2839298248291,
+      "batch_3cmds_ms": 34.706830978393555
+    },
+    "multimodal": {
+      "lit": {
+        "fps": 10.445448943147001,
+        "count": 53,
+        "duration": 5.073980093002319
+      },
+      "depth": {
+        "fps": 17.92695104591234,
+        "count": 90,
+        "duration": 5.020374059677124
+      },
+      "object_mask": {
+        "fps": 17.046587765601124,
+        "count": 86,
+        "duration": 5.044997930526733
+      },
+      "normal": {
+        "fps": 14.28364002092103,
+        "count": 72,
+        "duration": 5.040731906890869
+      }
+    }
+  }
+}

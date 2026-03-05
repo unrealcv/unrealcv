@@ -1,0 +1,150 @@
+{
+  "Metadata": {
+    "name": "UnrealCV Extended Benchmark Suite",
+    "version": "2.0",
+    "description": "Comprehensive performance testing for UnrealCV Python API commands",
+    "created": "2026-03-05"
+  },
+  "TestConfig": {
+    "default_duration": 3,
+    "default_count": 100,
+    "warmup_iterations": 10
+  },
+  "TestSuites": {
+    "basic_info": {
+      "name": "基础信息查询",
+      "description": "测试基本状态查询命令的性能",
+      "tasks": [
+        {"Cmd": "vget /unrealcv/status", "Count": 100, "Category": "status"},
+        {"Cmd": "vget /scene/name", "Count": 100, "Category": "scene"},
+        {"Cmd": "vget /level/name", "Count": 100, "Category": "scene"},
+        {"Cmd": "vget /cameras", "Count": 100, "Category": "camera"}
+      ]
+    },
+    "camera_get_simple": {
+      "name": "相机状态查询",
+      "description": "测试相机属性查询命令",
+      "tasks": [
+        {"Cmd": "vget /camera/0/location", "Count": 100, "Category": "camera_state"},
+        {"Cmd": "vget /camera/0/rotation", "Count": 100, "Category": "camera_state"},
+        {"Cmd": "vget /camera/0/fov", "Count": 100, "Category": "camera_state"},
+        {"Cmd": "vget /camera/0/pose", "Count": 100, "Category": "camera_state"}
+      ]
+    },
+    "camera_capture_file": {
+      "name": "相机图像捕获(保存文件)",
+      "description": "测试图像捕获并保存到文件的性能",
+      "tasks": [
+        {"Cmd": "vget /camera/0/lit test_lit.png", "Duration": 5, "Category": "capture_file"},
+        {"Cmd": "vget /camera/0/depth test_depth.npy", "Duration": 5, "Category": "capture_file"},
+        {"Cmd": "vget /camera/0/normal test_normal.png", "Duration": 5, "Category": "capture_file"},
+        {"Cmd": "vget /camera/0/object_mask test_mask.png", "Duration": 5, "Category": "capture_file"}
+      ]
+    },
+    "camera_capture_memory": {
+      "name": "相机图像捕获(内存模式)",
+      "description": "测试图像捕获到内存的性能(png/bmp/npy)",
+      "tasks": [
+        {"Cmd": "vget /camera/0/lit png", "Duration": 5, "Category": "capture_memory"},
+        {"Cmd": "vget /camera/0/lit bmp", "Duration": 5, "Category": "capture_memory"},
+        {"Cmd": "vget /camera/0/depth npy", "Duration": 5, "Category": "capture_memory"},
+        {"Cmd": "vget /camera/0/normal bmp", "Duration": 5, "Category": "capture_memory"},
+        {"Cmd": "vget /camera/0/object_mask bmp", "Duration": 5, "Category": "capture_memory"},
+        {"Cmd": "vget /camera/0/optical_flow bmp", "Duration": 5, "Category": "capture_memory"}
+      ]
+    },
+    "camera_set": {
+      "name": "相机控制命令",
+      "description": "测试相机位置和姿态设置(异步模式)",
+      "tasks": [
+        {"Cmd": "vset /camera/0/location 100.0 -100.0 100.0", "Count": 50, "Category": "camera_control", "Async": true},
+        {"Cmd": "vset /camera/0/rotation 0.0 0.0 0.0", "Count": 50, "Category": "camera_control", "Async": true},
+        {"Cmd": "vset /camera/0/fov 90", "Count": 50, "Category": "camera_control", "Async": true},
+        {"Cmd": "vset /camera/0/moveto 100.0 -100.0 100.0", "Count": 20, "Category": "camera_control", "Async": true}
+      ]
+    },
+    "object_query": {
+      "name": "物体信息查询",
+      "description": "测试物体属性查询命令(使用第一个物体)",
+      "prepare": "get_first_object",
+      "tasks": [
+        {"Cmd": "vget /objects", "Count": 50, "Category": "object_list"},
+        {"Cmd": "vget /object/{first_object}/location", "Count": 100, "Category": "object_state"},
+        {"Cmd": "vget /object/{first_object}/rotation", "Count": 100, "Category": "object_state"},
+        {"Cmd": "vget /object/{first_object}/color", "Count": 100, "Category": "object_state"},
+        {"Cmd": "vget /object/{first_object}/bounds", "Count": 100, "Category": "object_state"},
+        {"Cmd": "vget /object/{first_object}/scale", "Count": 100, "Category": "object_state"},
+        {"Cmd": "vget /object/{first_object}/uclass_name", "Count": 100, "Category": "object_state"}
+      ]
+    },
+    "object_control": {
+      "name": "物体控制命令",
+      "description": "测试物体控制命令(异步模式)",
+      "prepare": "get_first_object",
+      "tasks": [
+        {"Cmd": "vset /object/{first_object}/location 0 0 0", "Count": 50, "Category": "object_control", "Async": true},
+        {"Cmd": "vset /object/{first_object}/rotation 0 0 0", "Count": 50, "Category": "object_control", "Async": true},
+        {"Cmd": "vset /object/{first_object}/color 255 0 0", "Count": 50, "Category": "object_control", "Async": true}
+      ]
+    },
+    "game_control": {
+      "name": "游戏控制命令",
+      "description": "测试游戏暂停、恢复等控制命令",
+      "tasks": [
+        {"Cmd": "vget /action/game/is_paused", "Count": 50, "Category": "game_state"},
+        {"Cmd": "vset /action/game/pause", "Count": 10, "Category": "game_control"},
+        {"Cmd": "vset /action/game/resume", "Count": 10, "Category": "game_control"}
+      ]
+    },
+    "vrun_commands": {
+      "name": "UE Console 命令",
+      "description": "测试 vrun 执行 Unreal Console 命令的性能",
+      "tasks": [
+        {"Cmd": "vrun stat fps", "Count": 50, "Category": "console"},
+        {"Cmd": "vrun stat unit", "Count": 50, "Category": "console"},
+        {"Cmd": "vrun showflag.postprocessing 0", "Count": 20, "Category": "console"},
+        {"Cmd": "vrun showflag.postprocessing 1", "Count": 20, "Category": "console"}
+      ]
+    },
+    "batch_commands": {
+      "name": "批量命令测试",
+      "description": "测试批量发送命令的性能",
+      "tasks": [
+        {"Cmd": "batch:location_rotation", "Type": "batch", "Count": 50, "Category": "batch"},
+        {"Cmd": "batch:multi_camera", "Type": "batch", "Count": 20, "Category": "batch"}
+      ]
+    },
+    "multiview_capture": {
+      "name": "多视角图像捕获",
+      "description": "测试同时捕获多种视角模式的性能",
+      "tasks": [
+        {"Cmd": "multiview:lit_depth_normal", "Type": "multiview", "Count": 20, "Category": "multiview"},
+        {"Cmd": "multiview:all_modes", "Type": "multiview", "Count": 10, "Category": "multiview"}
+      ]
+    },
+    "stress_test": {
+      "name": "压力测试",
+      "description": "高频率命令压力测试",
+      "tasks": [
+        {"Cmd": "vget /camera/0/lit bmp", "Duration": 10, "Category": "stress"},
+        {"Cmd": "vget /camera/0/location", "Duration": 10, "Category": "stress"},
+        {"Cmd": "stress:mixed", "Type": "stress", "Duration": 10, "Category": "stress"}
+      ]
+    }
+  },
+  "BatchTemplates": {
+    "location_rotation": [
+      "vget /camera/0/location",
+      "vget /camera/0/rotation"
+    ],
+    "multi_camera": [
+      "vget /camera/0/lit bmp",
+      "vget /camera/1/lit bmp",
+      "vget /camera/2/lit bmp"
+    ]
+  },
+  "MultiviewTemplates": {
+    "lit_depth_normal": ["lit", "depth", "normal"],
+    "all_modes": ["lit", "depth", "normal", "object_mask", "optical_flow"]
+  }
+}
