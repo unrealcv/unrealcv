@@ -2,8 +2,8 @@
 # Utility commands to make unrealcv development easier
 
 import os
-ue4_root = '/home/qiuwch/UE419' # The configuration only for my machine
-uat_script = os.path.join(ue4_root, '/Engine/Build/BatchFiles/RunUAT.sh')
+ue4_root = os.getenv('UE_ROOT', '')
+uat_script = os.path.join(ue4_root, 'Engine/Build/BatchFiles/RunUAT.sh') if ue4_root else 'RunUAT.sh'
 
 def task_cleanup():
     cmd = 'rm -rf Binaries/ Intermediate/'
@@ -31,8 +31,8 @@ def task_build():
     abs_plugin_file = os.path.abspath('./UnrealCV.uplugin')
     # Avoid generating to current folder, otherwise the binary built by the editor might conflict
     abs_output_folder = os.path.abspath('/tmp/unrealcv_binary')
-    cmd = os.path.join(uat_script, 'BuildPlugin -plugin={abs_plugin_file} \
-    -package={abs_output_folder} -rocket -targetplatforms=Linux -compile'.format(**locals()))
+    cmd = '"{uat_script}" BuildPlugin -plugin={abs_plugin_file} -package={abs_output_folder} -rocket -targetplatforms=Linux -compile'.format(**locals())
+    actions = [cmd]
 
     return {'actions': actions, 'verbosity': 2}
 
@@ -41,10 +41,7 @@ def task_package():
     # Mainly used to check whether the package is successful
     abs_uproject_file = os.path.abspath('../CarAct.uproject')
     abs_output_folder = os.path.abspath('/tmp/CarAct_binary')
-    cmd = os.path.join(uat_script, 'BuildCookRun -project={abs_uproject_file} \
-    -archivedirectory={abs_output_folder} \
-    -platform=Linux -clientconfig=Development \
-    -noP4 -stage -pak -archive -cook -build'.format(**locals()))
+    cmd = '"{uat_script}" BuildCookRun -project={abs_uproject_file} -archivedirectory={abs_output_folder} -platform=Linux -clientconfig=Development -noP4 -stage -pak -archive -cook -build'.format(**locals())
     actions = [cmd]
 
     return {'actions': actions, 'verbosity': 2}

@@ -1,8 +1,8 @@
-import subprocess, os
+import subprocess, os, sys
 
-ue4_win = r"C:\Program Files\Epic Games\UE_4.16"
-ue4_linux = "/home/qiuwch/workspace/UE416"
-ue4_mac = '/Users/Shared/Epic Games/UE_4.16'
+ue4_win = os.getenv('UE4_WIN', r"C:\Program Files\Epic Games\UE_4.16")
+ue4_linux = os.getenv('UE4_LINUX', "/home/qiuwch/workspace/UE416")
+ue4_mac = os.getenv('UE4_MAC', '/Users/Shared/Epic Games/UE_4.16')
 
 win_uprojects = [
     r'C:\qiuwch\workspace\uprojects\UE4RealisticRendering\RealisticRendering.uproject',
@@ -30,6 +30,16 @@ mac_uprojects = [
     os.path.expanduser('~/uprojects/UE4ArchinteriorsVol2Scene3/ArchinteriorsVol2Scene3.uproject'),
     os.path.expanduser('~/uprojects/UE4UrbanCity/UrbanCity.uproject'),
 ]
+
+custom_uprojects = os.getenv('UE4_UPROJECTS')
+if custom_uprojects:
+    projects = [p for p in custom_uprojects.split(os.pathsep) if p]
+    if sys.platform.startswith('win'):
+        win_uprojects = projects
+    elif sys.platform.startswith('linux'):
+        linux_uprojects = projects
+    elif sys.platform == 'darwin':
+        mac_uprojects = projects
 
 uprojects = []
 
