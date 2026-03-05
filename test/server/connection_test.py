@@ -23,4 +23,3 @@ def test_viewmode():
         res = client.request(cmd)
         assert checker.is_ok(res)
     client.disconnect()
-    exit()
