@@ -11,10 +11,8 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FServerConfigDefaultsTest::RunTest(const FString& Parameters)
 {
-	// Verify that a default-constructed config has sane values.
-	// Note: FServerConfig() calls Load()/Save()/ParseCmdArgs(), but
-	// missing config files should leave defaults intact.
-	FServerConfig Config;
+	// Use side-effect-free init for deterministic test behaviour.
+	FServerConfig Config(EServerConfigInitMode::NoSideEffects);
 
 	TestTrue(TEXT("Default port > 0"), Config.Port > 0);
 	TestTrue(TEXT("Default width > 0"), Config.Width > 0);
@@ -32,7 +30,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FServerConfigToStringTest::RunTest(const FString& Parameters)
 {
-	FServerConfig Config;
+	FServerConfig Config(EServerConfigInitMode::NoSideEffects);
 	const FString Str = Config.ToString();
 
 	TestTrue(TEXT("ToString contains Port"), Str.Contains(TEXT("Port")));

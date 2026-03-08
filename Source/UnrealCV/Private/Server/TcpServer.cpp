@@ -34,13 +34,14 @@ bool FSocketMessageHeader::WrapAndSendPayload(const TArray<uint8>& Payload, FSoc
 	while (Remaining > 0)
 	{
 		int32 AmountSent = 0;
-		Socket->Send(Ar.GetData() + TotalSent, Ar.Num() - TotalSent, AmountSent);
+		const bool bSendOk = Socket->Send(Ar.GetData() + TotalSent, Ar.Num() - TotalSent, AmountSent);
 
-		if (AmountSent == -1)
+		if (!bSendOk || AmountSent <= 0)
 		{
 			if (--RetriesLeft < 0)
 			{
-				UE_LOG(LogUnrealCV, Error, TEXT("Send failed after retries. Expected %d, sent %d."), Ar.Num(), TotalSent);
+				UE_LOG(LogUnrealCV, Error, TEXT("Send failed after retries. Expected %d, sent %d (last chunk=%d, ok=%s)."),
+					Ar.Num(), TotalSent, AmountSent, bSendOk ? TEXT("true") : TEXT("false"));
 				return false;
 			}
 			FPlatformProcess::Sleep(0.001f);

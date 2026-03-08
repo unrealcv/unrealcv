@@ -62,7 +62,7 @@ FExecStatus FAliasHandler::VRun(const TArray<FString>& Args)
 	const int32 NumArgs = Args.Num();
 	if (NumArgs < 1)
 	{
-		return FExecStatus::Error(TEXT("vrun requires at least one argument"));
+		return FExecStatus::Error(TEXT("This command requires at least one argument"));
 	}
 
 	FString Cmd;
@@ -75,7 +75,7 @@ FExecStatus FAliasHandler::VRun(const TArray<FString>& Args)
 	UWorld* World = FUnrealcvServer::Get().GetWorld();
 	if (!IsValid(World) || !World->IsGameWorld())
 	{
-		return FExecStatus::Error(TEXT("No valid game world available for vrun"));
+		return FExecStatus::Error(TEXT("No valid game world available"));
 	}
 
 	APlayerController* PC = World->GetFirstPlayerController();

@@ -3,6 +3,12 @@
 
 #include "CoreMinimal.h"
 
+enum class EServerConfigInitMode : uint8
+{
+	WithSideEffects,
+	NoSideEffects,
+};
+
 /**
  * Runtime configuration for the UnrealCV server.
  *
@@ -23,7 +29,7 @@ public:
 
 	TArray<FString> SupportedModes;
 
-	FServerConfig();
+	explicit FServerConfig(EServerConfigInitMode InitMode = EServerConfigInitMode::WithSideEffects);
 
 	/** Human-readable dump of all settings. */
 	[[nodiscard]] FString ToString() const;
