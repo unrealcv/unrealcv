@@ -9,6 +9,17 @@ import warnings
 _L = logging.getLogger(__name__)
 
 
+__all__ = [
+    'ResChecker',
+    'measure_fps',
+    'read_png',
+    'read_npy',
+    'convert2planedepth',
+    'time_it',
+    'parse_resolution',
+    'get_path2UnrealEnv',
+]
+
 class ResChecker:
     # Define some utility functions to check whether the response is as expected
     def is_error(self, res):
@@ -35,7 +46,6 @@ class ResChecker:
                 sorted(expected_exts),
             )
         return ext in expected_exts
-
 
 def measure_fps(func, *args, **kwargs):
     """
@@ -174,12 +184,11 @@ def parse_resolution(res):
     """
     resolution = res.split("x")
     if len(resolution) != 2:
-        parser.error("Resolution must be specified as WIDTHxHEIGHT")
+        raise ValueError("Resolution must be specified as WIDTHxHEIGHT")
     try:
         return (int(resolution[0]), int(resolution[1]))
     except ValueError:
-        parser.error("WIDTH and HEIGHT must be integers")
-
+        raise ValueError("WIDTH and HEIGHT must be integers")
 
 def get_path2UnrealEnv():
     # get path to UnrealEnv
