@@ -6,6 +6,13 @@ from unrealcv.util import read_png, read_npy
 import matplotlib.pyplot as plt
 import numpy as np
 import json
+import os
+import sys
+
+
+def _default_binary_path():
+    binary_name = 'RealisticRendering.exe' if sys.platform.startswith('win') else 'RealisticRendering'
+    return os.path.join(os.path.expanduser('~'), '.unrealcv', 'RealisticRendering', binary_name)
 
 class PlaybackSequence:
     def __init__(self, json_filename):
@@ -45,7 +52,10 @@ class Camera:
         return img
 
 def main():
-    binary_path = r'C:\qiuwch\workspace\unrealcv\Binaries\RealisticRendering.uproject\WindowsNoEditor\RealisticRendering.exe'
+    binary_path = os.environ.get(
+        'UNREALCV_BINARY',
+        _default_binary_path()
+    )
     binary = UE4Binary(binary_path)
     playback_seq = PlaybackSequence('./rr_573.json')
     camera = Camera(client, 0)
