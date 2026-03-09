@@ -18,6 +18,15 @@ void FAliasCommandHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vexec [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str]", Cmd, Help);
+
+	//vexec Call blueprintlevelblueprint
+	Help = "Call Level blueprint";
+	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasCommandHandler::LevelEvent);
+	CommandDispatcher->BindCommand("vexec /levelEvent [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vexec /levelEvent [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vexec /levelEvent [str] [str] [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vexec /levelEvent [str] [str] [str] [str]", Cmd, Help);
+
 }
 
 FExecStatus FAliasCommandHandler::VRun(const TArray<FString>& Args)
@@ -120,4 +129,40 @@ FExecStatus FAliasCommandHandler::VExec(const TArray<FString>& Args)
 	{
 		return FExecStatus::Error(FString::Printf(TEXT("Fail to execute the function '%s' of %s"), *Cmd, *ActorId));
 	}
+}
+
+
+FExecStatus FAliasCommandHandler::LevelEvent(const TArray<FString>& Args)
+{
+	// Args[0] : BlueprintFunctionName
+	// Args[1 .. end] : Parameters
+
+	FString FuncName;
+	if (Args.Num() < 1)
+	{
+		return FExecStatus::Error("The blueprint function name can not be empty.");
+	}
+	else
+	{
+		FuncName = Args[0];
+	}
+
+	FString Cmd = FuncName;
+	int ArgId = 1;
+	while (ArgId < Args.Num())
+	{
+		Cmd += FString::Printf(TEXT(" %s"), *Args[ArgId]);
+		ArgId++;
+	}
+	FOutputDeviceNull ar;
+
+	if (this->GetWorld()->GetLevelScriptActor()->CallFunctionByNameWithArguments(*Cmd, ar, nullptr, true))
+	{
+		return FExecStatus::OK();
+	}
+	else
+	{
+		return FExecStatus::Error(FString::Printf(TEXT("Fail to execute the function '%s' of Level"), *Cmd));
+	}
+	
 }
