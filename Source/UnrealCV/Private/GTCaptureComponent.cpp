@@ -42,7 +42,7 @@ void SaveExr(UTextureRenderTarget2D* RenderTarget, FString Filename)
 	FTextureRenderTargetResource* RenderTargetResource = RenderTarget->GameThread_GetRenderTargetResource();
 	RenderTargetResource->ReadFloat16Pixels(FloatImage);
 
-	TArray<uint8> ExrData = SerializationUtils::Image2Exr(FloatImage, Width, Height);
+	TArray64<uint8> ExrData = SerializationUtils::Image2Exr(FloatImage, Width, Height);
 	FFileHelper::SaveArrayToFile(ExrData, *Filename);
 }
 
@@ -65,7 +65,7 @@ void SavePng(UTextureRenderTarget2D* RenderTarget, FString Filename)
 		// Instead of using this flag, we will set the gamma to the correct value directly
 		RenderTargetResource->ReadPixels(Image, ReadSurfaceDataFlags);
 	}
-	TArray<uint8> ImgData = SerializationUtils::Image2Png(Image, Width, Height);
+	TArray64<uint8> ImgData = SerializationUtils::Image2Png(Image, Width, Height);
 	FFileHelper::SaveArrayToFile(ImgData, *Filename);
 }
 
@@ -120,7 +120,7 @@ UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, TArray<FString> 
 	UWorld* World = FUE4CVServer::Get().GetGameWorld();
 	UGTCaptureComponent* GTCapturer = NewObject<UGTCaptureComponent>();
 
-	GTCapturer->bIsActive = true;
+	GTCapturer->SetActiveFlag(true);
 	// check(GTCapturer->IsComponentTickEnabled() == true);
 	GTCapturer->Pawn = InPawn; // This GTCapturer should depend on the Pawn and be released together with the Pawn.
 
@@ -136,7 +136,7 @@ UGTCaptureComponent* UGTCaptureComponent::Create(APawn* InPawn, TArray<FString> 
 	{
 		// DEPRECATED_FORGAME(4.6, "CaptureComponent2D should not be accessed directly, please use GetCaptureComponent2D() function instead. CaptureComponent2D will soon be private and your code will not compile.")
 		USceneCaptureComponent2D* CaptureComponent = NewObject<USceneCaptureComponent2D>();
-		CaptureComponent->bIsActive = false; // Disable it by default for performance consideration
+		GTCapturer->SetActiveFlag(false); // Disable it by default for performance consideration
 		GTCapturer->CaptureComponents.Add(Mode, CaptureComponent);
 
 		// CaptureComponent needs to be attached to somewhere immediately, otherwise it will be gc-ed

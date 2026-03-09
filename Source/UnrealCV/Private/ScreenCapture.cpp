@@ -44,7 +44,7 @@ bool CaptureWithSync(UGameViewportClient *ViewportClient, const FString& Capture
 			TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule.CreateImageWrapper(EImageFormat::EXR);
 
 			ImageWrapper->SetRaw(FloatBitmap.GetData(), FloatBitmap.GetAllocatedSize(), Size.X, Size.Y, ERGBFormat::RGBA, 16);
-			const TArray<uint8>& PngData = ImageWrapper->GetCompressed();
+			const TArray64<uint8>& PngData = ImageWrapper->GetCompressed();
 			FFileHelper::SaveArrayToFile(PngData, *CaptureFilename);
 		}
 
