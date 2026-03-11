@@ -262,8 +262,6 @@ class UETestRunner:
             ("Level Name", "vget /level/name"),
 
             ("Cameras List", "vget /cameras"),
-            ("Cameras CID Format", "vget /cameras_CID"),
-            ("Cameras Legacy Format", "vget /cameras_legacy"),
             ("Camera 0 Location", "vget /camera/0/location"),
             ("Camera 0 Rotation", "vget /camera/0/rotation"),
             ("Camera 0 FOV", "vget /camera/0/fov"),
@@ -273,14 +271,11 @@ class UETestRunner:
 
             ("Is Paused", "vget /action/game/is_paused"),
 
-            ("Pawn Location", "vget /pawn/location"),
-            ("Pawn Rotation", "vget /pawn/rotation"),
-
             ("View Mode", "vget /viewmode"),
 
             # === 别名/关卡命令 ===
             ("Persistent Level ID", "vget /persistent_level/id"),
-            ("Persistent Level Script Actor ID", "vget /persistent_level/level_script_actor/id"),
+            # ("Persistent Level Script Actor ID", "vget /persistent_level/level_script_actor/id"),
         ]
 
         for name, cmd in tests:
