@@ -77,15 +77,24 @@ UMaterial* UPlayerViewMode::GetMaterial(FString InModeName)
 APostProcessVolume* UPlayerViewMode::GetPostProcessVolume()
 {
 	UWorld* World = FUnrealcvServer::Get().GetWorld();
-	static APostProcessVolume* PostProcessVolume = nullptr;
-	static UWorld* CurrentWorld = nullptr; // Check whether the world has been restarted.
-	if (PostProcessVolume == nullptr || CurrentWorld != World)
+	if (!IsValid(World))
 	{
-		PostProcessVolume = World->SpawnActor<APostProcessVolume>();
-		PostProcessVolume->bUnbound = true;
+		return nullptr;
+	}
+	static TWeakObjectPtr<APostProcessVolume> PostProcessVolume;
+	static TWeakObjectPtr<UWorld> CurrentWorld; // Check whether the world has been restarted.
+	if (!PostProcessVolume.IsValid() || CurrentWorld.Get() != World)
+	{
+		APostProcessVolume* SpawnedPostProcessVolume = World->SpawnActor<APostProcessVolume>();
+		if (!IsValid(SpawnedPostProcessVolume))
+		{
+			return nullptr;
+		}
+		SpawnedPostProcessVolume->bUnbound = true;
+		PostProcessVolume = SpawnedPostProcessVolume;
 		CurrentWorld = World;
 	}
-	return PostProcessVolume;
+	return PostProcessVolume.Get();
 }
 
 // UPlayerViewMode::~UPlayerViewMode() {}
@@ -222,7 +231,13 @@ void UPlayerViewMode::Object()
 
 void UPlayerViewMode::ClearPostProcess()
 {
-	GetPostProcessVolume()->BlendWeight = 0;
+	APostProcessVolume* PostProcessVolume = GetPostProcessVolume();
+	if (!IsValid(PostProcessVolume))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("PostProcessVolume is invalid in ClearPostProcess"));
+		return;
+	}
+	PostProcessVolume->BlendWeight = 0;
 }
 
 void UPlayerViewMode::ApplyPostProcess(FString ModeName)
@@ -241,6 +256,11 @@ void UPlayerViewMode::ApplyPostProcess(FString ModeName)
 	}
 
 	APostProcessVolume* PostProcessVolume = GetPostProcessVolume();
+	if (!IsValid(PostProcessVolume))
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("PostProcessVolume is invalid in ApplyPostProcess"));
+		return;
+	}
 	// PostProcessVolume->bEnabled = true;
 	PostProcessVolume->Settings.WeightedBlendables.Array.Empty();
 	// PostProcessVolume->AddOrUpdateBlendable(Material);
