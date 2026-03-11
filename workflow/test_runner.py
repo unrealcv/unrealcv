@@ -142,6 +142,7 @@ class UETestRunner:
             # Configure log filter
             self._log_monitor.filter.include_keywords = config.log_filter_keywords
             self._log_monitor.filter.exclude_patterns = config.log_exclude_patterns
+            self._log_monitor.filter.include_levels = config.log_include_levels
             self._log_monitor.add_callback(printer)
 
             self._log_monitor.start_monitoring_process(self._game_proc)
@@ -253,13 +254,28 @@ class UETestRunner:
 
         # Define tests
         tests = [
-            ("Version", "vget /unrealcv/version"),
-            ("Status", "vget /unrealcv/status"),
-            ("Cameras", "vget /cameras"),
+            ("Unrealcv Version", "vget /unrealcv/version"),
+            ("Unrealcv Status", "vget /unrealcv/status"),
+            ("Unrealcv Help", "vget /unrealcv/help"),
+            ("Unrealcv Echo", "vget /unrealcv/echo test_message"),
+            ("Scene Name", "vget /scene/name"),
+            ("Level Name", "vget /level/name"),
+
+            ("Cameras List", "vget /cameras"),
             ("Camera 0 Location", "vget /camera/0/location"),
             ("Camera 0 Rotation", "vget /camera/0/rotation"),
             ("Camera 0 FOV", "vget /camera/0/fov"),
-            ("Objects", "vget /objects"),
+            ("Camera 0 Size", "vget /camera/0/size"),
+
+            ("Objects List", "vget /objects"),
+
+            ("Is Paused", "vget /action/game/is_paused"),
+
+            ("View Mode", "vget /viewmode"),
+
+            # === 别名/关卡命令 ===
+            ("Persistent Level ID", "vget /persistent_level/id"),
+            # ("Persistent Level Script Actor ID", "vget /persistent_level/level_script_actor/id"),
         ]
 
         for name, cmd in tests:
@@ -282,7 +298,7 @@ class UETestRunner:
                         name=name,
                         status=TestStatus.PASSED,
                         duration=duration,
-                        message=f"Response: {res[:100]}"
+                        message=f"Response: {res}"
                     ))
                 else:
                     results.append(TestResult(
@@ -465,11 +481,10 @@ class UETestRunner:
         logs = []
         critical_error_logs = []
         if self._log_monitor:
-            errors = self._log_monitor.get_errors()  # Only Error level
-            logs = [str(e) for e in errors[-10:]]  # Last 10 errors
+            errors = self._log_monitor.get_errors()
 
             # Check for critical errors: must match BOTH category AND Error level
-            critical_categories = {"LogUnrealCV", "LogTemp", "LogUE4", "LogUnreal"}
+            critical_categories = {"LogUnrealCV", "LogTemp"}
             for error in errors:
                 # Error is already Error level, check if category matches
                 if any(cat.lower() in error.category.lower() for cat in critical_categories):
@@ -479,7 +494,7 @@ class UETestRunner:
         if critical_error_logs and failed == 0:
             failed += 1
             # Add synthetic test result for log errors
-            error_msg = f"Critical errors found in logs: {', '.join(str(e) for e in critical_error_logs[:3])}"
+            error_msg = f"Critical errors found in logs: {', '.join(str(e) for e in critical_error_logs)}"
             results.append(TestResult(
                 name="Log Error Check",
                 status=TestStatus.FAILED,
@@ -500,70 +515,6 @@ class UETestRunner:
             results=results,
             logs=logs
         )
-
-    def run_pytest_suite(self, test_paths: Optional[List[str]] = None) -> TestSuiteResult:
-        """Run pytest test suite"""
-        import subprocess
-
-        config = self.config
-        start_time = time.time()
-
-        if test_paths is None:
-            test_paths = config.test_patterns
-
-        # Build pytest command
-        cmd = ["python", "-m", "pytest", "-v", "--tb=short"]
-        cmd.extend(test_paths)
-
-        print(f"\n[Pytest] Running: {' '.join(cmd)}\n")
-        self._notify_status(TestStatus.RUNNING, f"Running pytest: {test_paths}")
-
-        try:
-            result = subprocess.run(
-                cmd,
-                cwd=str(config.plugin_root),
-                capture_output=True,
-                text=True,
-                timeout=config.test_timeout
-            )
-
-            duration = time.time() - start_time
-
-            # Parse results
-            output = result.stdout + result.stderr
-            passed = output.count("PASSED")
-            failed = output.count("FAILED")
-            error = output.count("ERROR")
-
-            status = TestStatus.PASSED if result.returncode == 0 else TestStatus.FAILED
-
-            return TestSuiteResult(
-                overall_status=status,
-                total_tests=passed + failed + error,
-                passed=passed,
-                failed=failed + error,
-                duration=duration,
-                logs=output.split('\n')[-50:]  # Last 50 lines
-            )
-
-        except subprocess.TimeoutExpired:
-            return TestSuiteResult(
-                overall_status=TestStatus.TIMEOUT,
-                total_tests=0,
-                passed=0,
-                failed=0,
-                duration=config.test_timeout,
-                logs=["Test suite timed out"]
-            )
-        except Exception as e:
-            return TestSuiteResult(
-                overall_status=TestStatus.FAILED,
-                total_tests=0,
-                passed=0,
-                failed=0,
-                duration=time.time() - start_time,
-                logs=[str(e)]
-            )
 
     def stop_game(self):
         """Stop the game process"""

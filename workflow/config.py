@@ -4,20 +4,37 @@ Centralized configuration for build, test, and log monitoring.
 """
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Tuple
 import json
 import os
 
+def _detect_paths_from_file() -> Tuple[Path, Path]:
+    config_file = Path(__file__).resolve()
+
+    # config.py -> workflow -> unrealcv (plugin_root)
+    plugin_root = config_file.parent.parent
+    assert plugin_root.name.startswith("unrealcv"), f"Expected 'unrealcv' folder, found '{plugin_root.name}' at {plugin_root}"
+
+    # unrealcv -> Plugins -> ProjectRoot
+    project_root = plugin_root.parent.parent
+
+    # 查找 .uproject 文件
+    uproject_files = list(project_root.glob("*.uproject"))
+    assert uproject_files, f"No .uproject file found in {project_root}"
+
+    project_path = uproject_files[0]
+
+    return plugin_root, project_path
 
 @dataclass
 class UEConfig:
     """Unreal Engine project configuration"""
-    # UE Installation
-    ue_path: Path = Path("H:/UE_5.6/Engine")
+    # UE Installation (from env var or hardcoded)
+    ue_path: Path = field(default_factory=lambda: Path(os.getenv('UE_PATH', 'H:/UE_5.6/Engine')))
 
-    # Project paths
-    project_path: Path = Path("G:/HUAWEI_Project_UE56/HUAWEI_Project.uproject")
-    plugin_root: Path = Path("G:/HUAWEI_Project_UE56/Plugins/unrealcv")
+    # Project paths (auto-detected from __file__, fallback to env vars)
+    project_path: Path = None
+    plugin_root: Path = None
 
     # Network
     port: int = 9000
@@ -38,7 +55,10 @@ class UEConfig:
         "Blueprint", "Camera", "Sensor", "Recording"
     ])
     log_exclude_patterns: List[str] = field(default_factory=lambda: [
-        "LogInit", "LogModuleManager", "LogStreamlineAPI"
+        "LogInit", "LogModuleManager", "LogStreamlineAPI", "Connection"
+    ])
+    log_include_levels: List[str] = field(default_factory=lambda: [
+        "Error", "Fatal"
     ])
     log_buffer_size: int = 1000  # lines to keep in memory
     log_output_dir: Path = field(default_factory=lambda: Path("./debug_logs"))
@@ -121,6 +141,9 @@ def get_config() -> UEConfig:
     if _config is None:
         config_path = Path(__file__).parent / "config.json"
         _config = UEConfig.from_file(config_path)
+
+    if _config.project_path is None or _config.plugin_root is None:
+        _config.plugin_root, _config.project_path = _detect_paths_from_file()
     return _config
 
 
