@@ -1,5 +1,6 @@
 // Copyright (c) 2016-2024, UnrealCV Contributors. All Rights Reserved.
 #include "CommandDispatcher.h"
+#include "Internationalization/Regex.h"
 #include "UnrealcvStats.h"
 #include "UnrealcvLog.h"
 
