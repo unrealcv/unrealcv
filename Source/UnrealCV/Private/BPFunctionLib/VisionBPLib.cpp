@@ -104,7 +104,7 @@ bool UVisionBPLib::AppendData(const FString& Data, const FString& Filename)
 
 bool UVisionBPLib::SendMessageBP(const FString& Message)
 {
-	FUnrealcvServer::Get().GetTcpServer()->SendMessage(Message);
+	(void)FUnrealcvServer::Get().GetTcpServer()->SendMessage(Message);
 	return true;
 }
 

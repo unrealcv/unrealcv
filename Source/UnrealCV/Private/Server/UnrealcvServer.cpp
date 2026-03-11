@@ -199,7 +199,7 @@ void FUnrealcvServer::ProcessRequest(const FRequest& Request)
 	TArray<uint8> ReplyData;
 	FExecStatus::BinaryArrayFromString(Header, ReplyData);
 	ExecStatus.AppendDataTo(ReplyData);
-	TcpServer->SendData(ReplyData);
+	(void)TcpServer->SendData(ReplyData);
 }
 
 void FUnrealcvServer::ProcessPendingRequest()
@@ -234,7 +234,7 @@ void FUnrealcvServer::ProcessPendingRequest()
 			TArray<uint8> ReplyData;
 			FExecStatus::BinaryArrayFromString(Header, ReplyData);
 			FExecStatus::OK().AppendDataTo(ReplyData);
-			TcpServer->SendData(ReplyData);
+			(void)TcpServer->SendData(ReplyData);
 			continue;
 		}
 

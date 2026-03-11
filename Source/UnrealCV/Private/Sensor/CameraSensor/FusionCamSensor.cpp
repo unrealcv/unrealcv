@@ -157,7 +157,7 @@ void UFusionCamSensor::GetDepth(TArray<float>& DepthData, int& Width, int& Heigh
 // normal
 void UFusionCamSensor::GetNormal(TArray<FColor>& NormalData, int& Width, int& Height)
 {
-	this->NormalCamSensor->Capture(NormalData, Width, Height);
+	this->NormalCamSensor->CaptureNormal(NormalData, Width, Height);
 }
 
 // optical flow

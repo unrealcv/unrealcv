@@ -18,10 +18,10 @@ FServerConfig::FServerConfig(EServerConfigInitMode InitMode)
 	SupportedModes.Add(TEXT("object_mask"));
 	SupportedModes.Add(TEXT("normal"));
 
-	Load();
+	(void)Load();
 	if (InitMode == EServerConfigInitMode::WithSideEffects)
 	{
-		Save(); // Flush defaults to disk if the file does not exist yet.
+		(void)Save(); // Flush defaults to disk if the file does not exist yet.
 		ParseCmdArgs();
 	}
 
