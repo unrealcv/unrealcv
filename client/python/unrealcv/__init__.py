@@ -368,9 +368,8 @@ class Client:
         if type(message) is list:
             return self.request_batch_async(message)
 
-        if sys.version_info[0] == 3:
-            if not isinstance(message, bytes):
-                message = message.encode("utf-8")
+        if not isinstance(message, bytes):
+            message = message.encode('utf-8')
 
         message_id = self._next_message_id()
         raw_message = b"%d:%s" % (message_id, message)
@@ -393,9 +392,8 @@ class Client:
         None
         """
         for message in batch:
-            if sys.version_info[0] == 3:
-                if not isinstance(message, bytes):
-                    message = message.encode("utf-8")
+            if not isinstance(message, bytes):
+                message = message.encode('utf-8')
 
             message_id = self._next_message_id()
             raw_message = b"%d:%s" % (message_id, message)
@@ -423,9 +421,8 @@ class Client:
         ['100.0 -100.0 100.0', '0.0 0.0 0.0']
         """
         for message in batch:
-            if sys.version_info[0] == 3:
-                if not isinstance(message, bytes):
-                    message = message.encode("utf-8")
+            if not isinstance(message, bytes):
+                message = message.encode('utf-8')
 
             message_id = self._next_message_id()
             raw_message = b"%d:%s" % (message_id, message)
@@ -482,9 +479,8 @@ class Client:
         if type(message) is list:
             return self.request_batch(message)
 
-        if sys.version_info[0] == 3:
-            if not isinstance(message, bytes):
-                message = message.encode("utf-8")
+        if not isinstance(message, bytes):
+            message = message.encode('utf-8')
 
         message_id = self._next_message_id()
         raw_message = b"%d:%s" % (message_id, message)

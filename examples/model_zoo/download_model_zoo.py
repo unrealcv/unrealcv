@@ -1,5 +1,6 @@
 import subprocess, os
 from urllib.request import urlretrieve
+from urllib.error import URLError
 platform = 'Windows'
 version = 'master'
 ids = ['RealisticRendering', 'ArchinteriorsVol2Scene1', 'ArchinteriorsVol2Scene2', 'ArchinteriorsVol2Scene3', 'UrbanCity']
@@ -13,7 +14,8 @@ if __name__ == '__main__':
             # subprocess.call(['wget', '-c', url])
             try:
                 urlretrieve(url, filename)
-            except:
+            except (URLError, OSError) as err:
                 print('Fail to download %s' % url)
+                print(err)
         else:
             print('Ignore downloaded file %s' % filename)
