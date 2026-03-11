@@ -3,18 +3,6 @@
 # Weichao Qiu @ 2017
 import subprocess, sys, os, argparse, platform, logging, glob, shutil, json
 
-__all__ = [
-    'UE4Automation',
-    'UE4Binary',
-    'UE4BinaryBase',
-    'WindowsBinary',
-    'LinuxBinary',
-    'MacBinary',
-    'DockerBinary',
-    'get_platform_name',
-    'get_plugin_version',
-]
-
 def get_platform_name():
     ''''
     Python and UE4 use different names for platform, in this script we will use UE4 platform name exclusively
@@ -67,8 +55,7 @@ class UE4Automation:
         abs_plugin_descriptor = os.path.abspath(plugin_descriptor)
         abs_output_folder = os.path.abspath(output_folder)
 
-        if overwrite == False and os.path.isdir(abs_output_folder):
-            print('Output folder "%s" already exists, skip compilation.' % abs_output_folder)
+        if not overwrite and os.path.isdir(abs_output_folder):
             print('Remove this folder if you want to compile the plugin with a different UE4 version.')
         else:
             script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -111,7 +98,7 @@ class UE4Automation:
         Parameters
         ----------
         project_descriptor : str
-            UE4 project file name ending with ``.uproject``.
+            UE4 project file name ends with *.uproject
         overwrite : bool
             Overwrite existing files
         '''
@@ -119,7 +106,7 @@ class UE4Automation:
         abs_project_path = os.path.abspath(project_descriptor)
         abs_output_folder = os.path.abspath(output_folder)
 
-        if overwrite == False and os.path.isdir(abs_output_folder):
+        if not overwrite and os.path.isdir(abs_output_folder):
             print('Packaged binary already exist')
         else:
             subprocess.call([
@@ -201,20 +188,16 @@ def UE4Binary(binary_path):
 
 import time, os
 # The environment runner
-class UE4BinaryBase(object):
+class UE4BinaryBase:
     '''
-    Base class for platform-dependent UE4 binary wrappers.
+    UE4BinaryBase is the base class for all platform-dependent classes, it is different from UE4Binary which serves as a factory to create a platform-dependent binary wrapper. User should use UE4Binary instead of UE4BinaryBase
 
-    Use ``UE4Binary`` as the public factory instead of instantiating this class directly.
+    Binary is a python wrapper to control the start and stop of a UE4 binary.
+    The wrapper provides simple features to start and stop the binary, mainly useful for automate the testing.
 
-    Binary is a Python wrapper to control the start and stop of a UE4 binary.
-    The wrapper provides simple features to start and stop the binary, mainly useful
-    for automated testing.
-
-    Usage::
-
-        binary = UE4Binary('/tmp/RealisticRendering/RealisticRendering')
-        with binary:
+    Usage:
+        bin = UE4Binary('/tmp/RealisticRendering/RealisticRendering')
+        with bin:
             client.request('vget /camera/0/lit test.png')
     '''
     def __init__(self, binary_path):
@@ -227,7 +210,7 @@ class UE4BinaryBase(object):
         else:
             print('Binary %s can not be found' % self.binary_path)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         ''' Close the binary '''
         self.close()
 
@@ -302,6 +285,3 @@ if __name__ == '__main__':
     with binary:
         client.connect()
         client.request('vget /unrealcv/status')
-
-    pass
-    # Try some simple tests in here?
