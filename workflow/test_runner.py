@@ -380,6 +380,98 @@ class UETestRunner:
                         message=f"Exception: {e}"
                     ))
 
+        # Performance tests - 50 iterations for each sensor type and mode
+        if not self._cancelled:
+            print("\n" + "="*60)
+            print("INFO|Test|Starting Performance Tests (50 iterations each)")
+            print("="*60)
+
+            print("INFO|Test|Waiting for 10 seconds to let the UE Game settle...")
+            time.sleep(10)
+
+            # Define sensor types with their file extensions
+            sensor_configs = [
+                ("lit", "png"),
+                ("depth", "npy"),
+                ("normal", "png"),
+                ("object_mask", "png"),
+                ("optical_flow", "png"),
+            ]
+
+            performance_iterations = 50
+
+            for sensor_type, file_ext in sensor_configs:
+                if self._cancelled:
+                    break
+
+                print(f"\n--- Performance Test: {sensor_type} ---")
+
+                # === Test 1: File path mode (direct save to disk) ===
+                file_times = []
+                file_cmd = f"vget /camera/0/{sensor_type} {os.path.join(desktop_path, f'perf_{sensor_type}.{file_ext}')}"
+
+                print(f"  [File Mode] Running {performance_iterations} iterations...")
+                for i in range(performance_iterations):
+                    if self._cancelled:
+                        break
+                    iter_start = time.time()
+                    try:
+                        res = client.request(file_cmd)
+                        iter_duration = time.time() - iter_start
+                        if res and not res.startswith("error"):
+                            file_times.append(iter_duration)
+                    except Exception:
+                        pass  # Skip failed iterations
+
+                file_avg = sum(file_times) / len(file_times) if file_times else 0
+                file_fps = 1.0 / file_avg if file_avg > 0 else 0
+                file_total = sum(file_times)
+
+                # === Test 2: Suffix mode (TCP transfer) ===
+                suffix_times = []
+                suffix_cmd = f"vget /camera/0/{sensor_type} {file_ext}"
+
+                print(f"  [TCP Mode]  Running {performance_iterations} iterations...")
+                for i in range(performance_iterations):
+                    if self._cancelled:
+                        break
+                    iter_start = time.time()
+                    try:
+                        res = client.request(suffix_cmd)
+                        iter_duration = time.time() - iter_start
+                        if res and (not isinstance(res, str) or not res.startswith("error")):
+                            suffix_times.append(iter_duration)
+                    except Exception as e:
+                        print(f"Error in suffix mode iteration {i}: {e}")
+                        pass  # Skip failed iterations
+
+                suffix_avg = sum(suffix_times) / len(suffix_times) if suffix_times else 0
+                suffix_fps = 1.0 / suffix_avg if suffix_avg > 0 else 0
+                suffix_total = sum(suffix_times)
+
+                # === Report Results ===
+                print(f"\n  [{sensor_type.upper()}] Performance Summary:")
+                print(f"    File Mode (direct save):  {len(file_times)}/{performance_iterations} success")
+                print(f"      Total: {file_total:.2f}s | Avg: {file_avg*1000:.1f}ms | FPS: {file_fps:.1f}")
+                print(f"    TCP Mode (network transfer): {len(suffix_times)}/{performance_iterations} success")
+                print(f"      Total: {suffix_total:.2f}s | Avg: {suffix_avg*1000:.1f}ms | FPS: {suffix_fps:.1f}")
+
+                # Add performance test results to test suite
+                results.append(TestResult(
+                    name=f"Perf-{sensor_type}-File-{performance_iterations}x",
+                    status=TestStatus.PASSED if len(file_times) > 0 else TestStatus.FAILED,
+                    duration=file_total,
+                    message=f"FPS: {file_fps:.1f} ({len(file_times)}/{performance_iterations} success)"
+                ))
+
+                results.append(TestResult(
+                    name=f"Perf-{sensor_type}-TCP-{performance_iterations}x",
+                    status=TestStatus.PASSED if len(suffix_times) > 0 else TestStatus.FAILED,
+                    duration=suffix_total,
+                    message=f"FPS: {suffix_fps:.1f} ({len(suffix_times)}/{performance_iterations} success)"
+                ))
+
+
         # Calculate summary
         passed = sum(1 for r in results if r.status == TestStatus.PASSED)
         failed = sum(1 for r in results if r.status == TestStatus.FAILED)
