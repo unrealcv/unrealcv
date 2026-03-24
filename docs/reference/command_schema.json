@@ -202,6 +202,12 @@
       "line": 77
     },
     {
+      "command": "vget /object/[str]/material",
+      "category": "object",
+      "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
+      "line": 172
+    },
+    {
       "command": "vget /object/[str]/mobility",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
@@ -506,6 +512,12 @@
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
       "line": 83
+    },
+    {
+      "command": "vset /object/[str]/material [uint] [str]",
+      "category": "object",
+      "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
+      "line": 178
     },
     {
       "command": "vset /object/[str]/name [str]",

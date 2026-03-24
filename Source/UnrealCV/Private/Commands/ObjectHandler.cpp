@@ -15,6 +15,10 @@
 #include "CommandInterface.h"
 #include "UnrealcvLog.h"
 
+#include "Materials/MaterialInterface.h"
+#include "Runtime/Engine/Classes/Components/MeshComponent.h"
+#include "Runtime/Engine/Classes/Components/StaticMeshComponent.h"
+
 namespace {
 
 FExecStatus SetActorName(AActor* Actor, const FString& NewName)
@@ -162,6 +166,19 @@ void FObjectHandler::RegisterCommands()
 		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SetActorLabel),
 		"Set actor label"
 	);
+
+	// Get the material(s) of an object and change it (first StaticMeshComponent).
+	CommandDispatcher->BindCommand(
+		"vget /object/[str]/material",
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::GetMaterial),
+		"Get the material(s) of the object"
+	);
+
+	CommandDispatcher->BindCommand(
+		"vset /object/[str]/material [uint] [str]",
+		FDispatcherDelegate::CreateRaw(this, &FObjectHandler::SetMaterial),
+		"Set material of the object (via slot index)"
+	);
 #endif
 
 	CommandDispatcher->BindCommand(
@@ -191,6 +208,23 @@ AActor* GetActor(const TArray<FString>& Args)
 	const FString& ActorId = Args[0];
 	return GetActorById(FUnrealcvServer::Get().GetWorld(), ActorId);
 }
+
+#if WITH_EDITOR
+UStaticMeshComponent* GetFirstStaticMeshComponent(AActor* Actor)
+{
+	if (!IsValid(Actor)) { return nullptr; }
+	TArray<UMeshComponent*> MeshComponents;
+	Actor->GetComponents<UMeshComponent>(MeshComponents);
+	for (UMeshComponent* MeshComponent : MeshComponents)
+	{
+		if (UStaticMeshComponent* StaticMesh = Cast<UStaticMeshComponent>(MeshComponent))
+		{
+			return StaticMesh;
+		}
+	}
+	return nullptr;
+}
+#endif
 
 } // anonymous namespace
 
@@ -490,6 +524,77 @@ FExecStatus FObjectHandler::GetActorLabel(const TArray<FString>& Args)
 
 	FString ActorLabel = Actor->GetActorLabel();
 	return FExecStatus::OK(ActorLabel);
+}
+
+FExecStatus FObjectHandler::GetMaterial(const TArray<FString>& Args)
+{
+	AActor* TargetActor = GetActor(Args);
+	if (!IsValid(TargetActor))
+	{
+		return FExecStatus::Error(TEXT("Can not find object"));
+	}
+
+	UStaticMeshComponent* MeshComponent = GetFirstStaticMeshComponent(TargetActor);
+	if (!MeshComponent)
+	{
+		return FExecStatus::Error(TEXT("Object has no StaticMeshComponent"));
+	}
+
+	FString MaterialInfo;
+
+	for (int32 SlotIndex = 0; SlotIndex < MeshComponent->GetNumMaterials(); ++SlotIndex)
+	{
+		if (UMaterialInterface* Material = MeshComponent->GetMaterial(SlotIndex))
+		{
+			MaterialInfo += FString::Printf(
+				TEXT("[%d] %s "),
+				SlotIndex,
+				*Material->GetPathName()
+			);
+		}
+	}
+
+	return FExecStatus::OK(MaterialInfo);
+}
+
+FExecStatus FObjectHandler::SetMaterial(const TArray<FString>& Args)
+{
+	if (Args.Num() != 3)
+	{
+		return FExecStatus::InvalidArgument;
+	}
+
+	AActor* TargetActor = GetActor(Args);
+	if (!IsValid(TargetActor))
+	{
+		return FExecStatus::Error(TEXT("Can not find object"));
+	}
+
+	const int32 SlotIndex = FCString::Atoi(*Args[1]);
+	const FString& MaterialPath = Args[2];
+
+	UStaticMeshComponent* MeshComponent = GetFirstStaticMeshComponent(TargetActor);
+	if (!MeshComponent)
+	{
+		return FExecStatus::Error(TEXT("Object has no StaticMeshComponent"));
+	}
+
+	if (SlotIndex < 0 || SlotIndex >= MeshComponent->GetNumMaterials())
+	{
+		return FExecStatus::Error(TEXT("Invalid material slot"));
+	}
+
+	UMaterialInterface* NewMaterial = Cast<UMaterialInterface>(
+		StaticLoadObject(UMaterialInterface::StaticClass(), nullptr, *MaterialPath)
+	);
+
+	if (!NewMaterial)
+	{
+		return FExecStatus::Error(TEXT("Can not load material"));
+	}
+
+	MeshComponent->SetMaterial(SlotIndex, NewMaterial);
+	return FExecStatus::OK();
 }
 #endif
 

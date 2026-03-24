@@ -120,6 +120,12 @@ vset /object/[obj_name]/hide
 vget /object/[obj_name]/mobility
     (v0.3.10) Get object mobility
 
+vget /object/[obj_name]/material
+    (editor) List material path for each slot on the first StaticMeshComponent on the object
+
+vset /object/[obj_name]/material [slot] [material_path]
+    (editor) Assign ``material_path`` to ``slot`` on the first StaticMeshComponent (UE object path, e.g. ``/Game/Materials/M_Material.M_Material``)
+
 vset /objects/spawn [class_name] [obj_name]
     (v0.4.0) Spawn an object with class name and object name. It can also be used to create a new camera, for example:
 

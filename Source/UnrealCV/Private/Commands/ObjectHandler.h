@@ -37,6 +37,10 @@ private:
 #if WITH_EDITOR
 	FExecStatus SetActorLabel(const TArray<FString>& Args);
 	FExecStatus GetActorLabel(const TArray<FString>& Args);
+
+	// Francisco Material commands
+	FExecStatus GetMaterial(const TArray<FString>& Args);
+	FExecStatus SetMaterial(const TArray<FString>& Args);
 #endif
 
 	FExecStatus GetScale(const TArray<FString>& Args);
