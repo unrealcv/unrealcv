@@ -267,7 +267,7 @@ class DockerBinary(UE4BinaryBase):
 
 if __name__ == '__main__':
     import argparse
-    from unrealcv import client
+    from unrealcv import Client
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--binary', help = 'Test running the binary', required = True)
@@ -276,12 +276,14 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # A hacky way to determine the binary type
     binary_path = args.binary
+    binary: UE4BinaryBase
     if binary_path.lower().endswith('.exe'):
         binary = WindowsBinary(binary_path)
     elif binary_path.lower().endswith('.app'):
         binary = MacBinary(binary_path)
     else:
         binary = LinuxBinary(binary_path)
+    client = Client(('localhost', 9000), 'inet')
     with binary:
         client.connect()
         client.request('vget /unrealcv/status')
