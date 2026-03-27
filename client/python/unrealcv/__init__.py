@@ -28,7 +28,7 @@ _L.addHandler(h)
 _L.propagate = False
 _L.setLevel(logging.INFO)
 
-__version__ = '1.1.7'  # add async request, IPC on linux >= 1.0.0
+__version__ = '1.2.0'  # release current client changes under a distinct version
 
 class SocketMessage:
     """
