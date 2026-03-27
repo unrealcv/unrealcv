@@ -123,7 +123,7 @@ Create `config.json` based on the example:
 
 ```json
 {
-  "ue_path": "H:/UE_5.6/Engine",
+  "ue_path": "M:/UE_5.6/Engine",
   "project_path": "G:/HUAWEI_Project_UE56/HUAWEI_Project.uproject",
   "plugin_root": "G:/HUAWEI_Project_UE56/Plugins/unrealcv",
   "port": 9000,
@@ -137,6 +137,12 @@ Create `config.json` based on the example:
   "max_build_retries": 2
 }
 ```
+
+`ue_path` is optional. Resolution order is:
+
+1. `workflow/config.json`
+2. `UE_PATH` environment variable
+3. Auto-detect from the `.uproject` `EngineAssociation` using common install locations such as `M:/UE_5.6/Engine`
 
 ## Module Architecture
 

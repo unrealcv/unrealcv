@@ -8,6 +8,7 @@ from typing import List, Optional, Tuple
 import json
 import os
 
+
 def _detect_paths_from_file() -> Tuple[Path, Path]:
     config_file = Path(__file__).resolve()
 
@@ -26,11 +27,73 @@ def _detect_paths_from_file() -> Tuple[Path, Path]:
 
     return plugin_root, project_path
 
+
+def _normalize_engine_path(path_value: Optional[str]) -> Optional[Path]:
+    if not path_value:
+        return None
+
+    path = Path(path_value)
+    if path.name.lower() == "engine":
+        return path
+    return path / "Engine"
+
+
+def _read_engine_association(project_path: Path) -> Optional[str]:
+    try:
+        with open(project_path, "r", encoding="utf-8") as f:
+            project_data = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return None
+
+    association = project_data.get("EngineAssociation")
+    if not association:
+        return None
+    return str(association)
+
+
+def _candidate_engine_paths(engine_association: Optional[str]) -> List[Path]:
+    candidates: List[Path] = []
+
+    def add_candidate(path: Optional[Path]):
+        if path and path not in candidates:
+            candidates.append(path)
+
+    add_candidate(_normalize_engine_path(os.getenv("UE_PATH")))
+
+    if engine_association:
+        version_suffixes = [engine_association]
+        if engine_association.replace(".", "").isdigit():
+            version_suffixes.append(engine_association.replace(".", "_"))
+
+        for version in version_suffixes:
+            for drive in ["M", "H", "D", "C"]:
+                add_candidate(Path(f"{drive}:/UE_{version}/Engine"))
+                add_candidate(Path(f"{drive}:/EpicGames/UE_{version}/Engine"))
+                add_candidate(Path(f"{drive}:/Program Files/Epic Games/UE_{version}/Engine"))
+            add_candidate(Path(f"C:/Program Files/Epic Games/UE_{version}/Engine"))
+
+    return candidates
+
+
+def _resolve_ue_path(project_path: Path, configured_path: Optional[Path]) -> Optional[Path]:
+    if configured_path:
+        normalized = _normalize_engine_path(str(configured_path))
+        if normalized and normalized.exists():
+            return normalized
+
+    engine_association = _read_engine_association(project_path)
+    for candidate in _candidate_engine_paths(engine_association):
+        if candidate.exists():
+            return candidate
+
+    return configured_path
+
+
 @dataclass
 class UEConfig:
     """Unreal Engine project configuration"""
-    # UE Installation (from env var or hardcoded)
-    ue_path: Path = field(default_factory=lambda: Path(os.getenv('UE_PATH', 'H:/UE_5.6/Engine')))
+    # UE Installation (prefer UE_PATH/config.json, otherwise auto-detect from .uproject)
+    ue_path: Optional[Path] = field(default_factory=lambda: _normalize_engine_path(os.getenv("UE_PATH")))
 
     # Project paths (auto-detected from __file__, fallback to env vars)
     project_path: Path = None
@@ -144,6 +207,7 @@ def get_config() -> UEConfig:
 
     if _config.project_path is None or _config.plugin_root is None:
         _config.plugin_root, _config.project_path = _detect_paths_from_file()
+    _config.ue_path = _resolve_ue_path(_config.project_path, _config.ue_path)
     return _config
 
 
