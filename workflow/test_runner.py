@@ -404,9 +404,21 @@ class UETestRunner:
                 api_client.obj_dict = {}
                 api_client.cam = {}
 
+                legacy_ids = api_client.get_camera_list_legacy()
                 cid_list = api_client.get_camera_list_cid()
+                camera_id_map = api_client.get_camera_id_map()
+                objects = api_client.get_objects()
+
+                if not legacy_ids:
+                    raise RuntimeError("get_camera_list_legacy returned no cameras")
                 if not cid_list:
                     raise RuntimeError("get_camera_list_cid returned no cameras")
+                if len(legacy_ids) != len(cid_list) or len(camera_id_map) != len(legacy_ids):
+                    raise RuntimeError(
+                        f"camera id mapping mismatch: legacy={len(legacy_ids)} cid={len(cid_list)} map={len(camera_id_map)}"
+                    )
+                if not objects:
+                    raise RuntimeError("get_objects returned no actors")
                 primary_cid = cid_list[0]
 
                 try:
@@ -422,6 +434,28 @@ class UETestRunner:
                             path.unlink()
                         except OSError:
                             pass
+
+                annotation_cache_enabled = api_client.set_annotation_cache_enabled(True)
+                api_client.annotate_object(objects[0])
+                api_client.annotate_world()
+                api_client.clear_annotation_cache()
+                api_client.clear_world_annotation()
+
+                spawned_from_path = api_client.spawn_object_from_path(
+                    '/Game/MetaHumans/Taro/BP_Taro.BP_Taro',
+                    'PythonApiSpawnFromPath'
+                )
+                if not spawned_from_path:
+                    raise RuntimeError("spawn_object_from_path returned no object name")
+                api_client.destroy_obj(spawned_from_path)
+
+                spawned_via_fallback = api_client.set_new_obj(
+                    '/Game/MetaHumans/Taro/BP_Taro.BP_Taro',
+                    'PythonApiSpawnFallback'
+                )
+                if not spawned_via_fallback:
+                    raise RuntimeError("set_new_obj(asset_path, ...) fallback returned no object name")
+                api_client.destroy_obj(spawned_via_fallback)
 
                 api_client.set_camera_panoramic_resolution(primary_cid, 512)
                 api_client.capture_panoramic(primary_cid, cid_pano_output, 2048, 1024)
@@ -468,7 +502,11 @@ class UETestRunner:
                     name="Python API Latest CID",
                     status=TestStatus.PASSED,
                     duration=duration,
-                    message=f"cid={primary_cid}; outputs={len(generated_files)}"
+                    message=(
+                        f"legacy={len(legacy_ids)} cid={len(cid_list)} primary={primary_cid} "
+                        f"spawned={spawned_from_path} fallback={spawned_via_fallback} "
+                        f"annotation_cache={annotation_cache_enabled} outputs={len(generated_files)}"
+                    )
                 ))
             except Exception as e:
                 duration = time.time() - test_start
