@@ -1032,8 +1032,23 @@ class UnrealCv_API:
         cmd = f'vset /objects/spawn {class_name} {obj_name}'
         res = self.client.request(cmd)
         if self.checker.is_error(res):
-
-            warnings.warn(res)
+            hint = (
+                f"{res}. Hint: set_new_obj() prefers UClass names. "
+                f"If you already have an asset path like /Game/... or /Engine/... , use spawn_object_from_path()."
+            )
+            if isinstance(class_name, str) and class_name.startswith('/'):
+                try:
+                    return self.spawn_object_from_path(
+                        class_name, obj_name=obj_name, annotate=True
+                    )
+                except Exception as exc:
+                    warnings.warn(
+                        f"{hint} Auto-fallback to spawn_object_from_path({class_name}, {obj_name}) "
+                        f"also failed: {exc}"
+                    )
+                    return None
+            warnings.warn(hint)
+            return None
         else:  # add object to the object list, check if new cameras are added
             # assign a random color to the object
             color = np.random.randint(0, 255, 3).tolist()
@@ -1046,6 +1061,39 @@ class UnrealCv_API:
             while len(self.cam) < self.get_camera_num():
                 self.register_camera(len(self.cam), obj_name)
             return obj_name
+
+    def spawn_object_from_path(self, asset_path, obj_name=None, annotate=True, return_cmd=False):
+        """
+        Spawn an object directly from an asset path.
+
+        Args:
+            asset_path (str): Full asset path, for example ``/Game/Props/Chair.Chair``.
+            obj_name (str | None): Optional spawned actor name.
+            annotate (bool): Whether to use the auto-annotation variant. Default is True.
+            return_cmd (bool): Whether to return the command string instead of executing it.
+
+        Returns:
+            str: Spawned object name.
+        """
+        cmd_name = 'spawn_from_path' if annotate else 'spawn_from_path_wo_annotation'
+        cmd = f'vset /objects/{cmd_name} {asset_path}'
+        if obj_name is not None:
+            cmd += f' {obj_name}'
+        if return_cmd:
+            return cmd
+
+        res = self.client.request(cmd)
+        if self.checker.is_error(res):
+            warnings.warn(res)
+            return None
+
+        spawned_name = res.strip()
+        if annotate:
+            try:
+                self.obj_dict[spawned_name] = self.get_obj_color(spawned_name)
+            except Exception:
+                pass
+        return spawned_name
 
     def get_vertex_locations(self, obj, return_cmd=False):
         """
@@ -1291,7 +1339,7 @@ class UnrealCv_API:
 
     def get_camera_list_legacy(self, return_cmd=False):
         """
-        Get legacy numeric camera identifiers.
+        Get legacy camera names returned by ``vget /cameras_legacy``.
         """
         cmd = 'vget /cameras_legacy'
         if return_cmd:
@@ -1309,7 +1357,7 @@ class UnrealCv_API:
 
     def get_camera_id_map(self):
         """
-        Pair legacy numeric camera IDs with stable CID identifiers.
+        Pair legacy camera names with stable CID identifiers.
         """
         legacy_ids = self.get_camera_list_legacy()
         cid_ids = self.get_camera_list_cid()
@@ -1317,6 +1365,67 @@ class UnrealCv_API:
             dict(index=index, legacy_id=legacy_id, cid=cid_id)
             for index, (legacy_id, cid_id) in enumerate(zip(legacy_ids, cid_ids))
         ]
+
+    def annotate_object(self, actor_name, return_cmd=False):
+        """
+        Annotate a single actor by name.
+        """
+        cmd = f'vset /annotation/object/{actor_name}'
+        if return_cmd:
+            return cmd
+        res = self.client.request(cmd)
+        if isinstance(res, str) and res.startswith("error"):
+            raise ValueError(res)
+        return res
+
+    def annotate_world(self, return_cmd=False):
+        """
+        Annotate the current world.
+        """
+        cmd = 'vset /annotation/world'
+        if return_cmd:
+            return cmd
+        res = self.client.request(cmd)
+        if isinstance(res, str) and res.startswith("error"):
+            raise ValueError(res)
+        return res
+
+    def clear_world_annotation(self, return_cmd=False):
+        """
+        Remove world annotation.
+        """
+        cmd = 'vset /annotation/world/clear'
+        if return_cmd:
+            return cmd
+        res = self.client.request(cmd)
+        if isinstance(res, str) and res.startswith("error"):
+            raise ValueError(res)
+        return res
+
+    def set_annotation_cache_enabled(self, enabled, return_cmd=False):
+        """
+        Enable or disable annotation component cache.
+        """
+        enabled = self._to_uint_flag(enabled)
+        cmd = f'vset /annotation/cache/enable {enabled}'
+        if return_cmd:
+            return cmd
+        res = self.client.request(cmd)
+        if isinstance(res, str) and res.startswith("error"):
+            raise ValueError(res)
+        return self._parse_bool_response(res)
+
+    def clear_annotation_cache(self, return_cmd=False):
+        """
+        Clear annotation component cache.
+        """
+        cmd = 'vset /annotation/cache/clear'
+        if return_cmd:
+            return cmd
+        res = self.client.request(cmd)
+        if isinstance(res, str) and res.startswith("error"):
+            raise ValueError(res)
+        return res
 
     def mount_pak(self, pak_file_path, pak_order=0, return_cmd=False):
         """
