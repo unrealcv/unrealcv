@@ -14,12 +14,17 @@ from dataclasses import dataclass, field
 from enum import Enum
 import json
 
-# Add plugin Source path for unrealcv import
+# Add plugin client path for unrealcv import
 WORKFLOW_DIR = Path(__file__).resolve().parent
 PLUGIN_ROOT = WORKFLOW_DIR.parent
+UNREALCV_CLIENT_PYTHON_DIR = PLUGIN_ROOT / "client" / "python"
+if UNREALCV_CLIENT_PYTHON_DIR.exists():
+    sys.path.insert(0, str(UNREALCV_CLIENT_PYTHON_DIR))
+
+# Keep the legacy uezoo path available when present.
 CLIENT_PYTHON_DIR = PLUGIN_ROOT / "Source" / "uezoo"
 if CLIENT_PYTHON_DIR.exists():
-    sys.path.insert(0, str(CLIENT_PYTHON_DIR))
+    sys.path.append(str(CLIENT_PYTHON_DIR))
 
 from config import get_config
 from log_monitor import LogMonitor, LogEntry, ConsoleLogPrinter
@@ -262,6 +267,8 @@ class UETestRunner:
             ("Level Name", "vget /level/name"),
 
             ("Cameras List", "vget /cameras"),
+            ("Cameras CID Format", "vget /cameras_CID"),
+            ("Cameras Legacy Format", "vget /cameras_legacy"),
             ("Camera 0 Location", "vget /camera/0/location"),
             ("Camera 0 Rotation", "vget /camera/0/rotation"),
             ("Camera 0 FOV", "vget /camera/0/fov"),
@@ -379,6 +386,98 @@ class UETestRunner:
                         duration=duration,
                         message=f"Exception: {e}"
                     ))
+
+        # Latest UnrealCV+ Python API CID smoke tests
+        if not self._cancelled:
+            print("INFO|Test|Running latest UnrealCV+ Python API CID smoke tests")
+            test_start = time.time()
+            cid_pano_output = os.path.join(desktop_path, "test_cid_panorama.png")
+            cid_record_dir = os.path.join(desktop_path, "test_cid_record")
+
+            try:
+                from unrealcv import api as unrealcv_api
+
+                api_client = unrealcv_api.UnrealCv_API.__new__(unrealcv_api.UnrealCv_API)
+                api_client.client = client
+                api_client.decoder = unrealcv_api.MsgDecoder()
+                api_client.checker = unrealcv_api.ResChecker()
+                api_client.obj_dict = {}
+                api_client.cam = {}
+
+                cid_list = api_client.get_camera_list_cid()
+                if not cid_list:
+                    raise RuntimeError("get_camera_list_cid returned no cameras")
+                primary_cid = cid_list[0]
+
+                try:
+                    if os.path.exists(cid_pano_output):
+                        os.remove(cid_pano_output)
+                except OSError:
+                    pass
+
+                os.makedirs(cid_record_dir, exist_ok=True)
+                for path in Path(cid_record_dir).rglob("*"):
+                    if path.is_file():
+                        try:
+                            path.unlink()
+                        except OSError:
+                            pass
+
+                api_client.set_camera_panoramic_resolution(primary_cid, 512)
+                api_client.capture_panoramic(primary_cid, cid_pano_output, 2048, 1024)
+
+                pano_ready = False
+                wait_start = time.time()
+                while time.time() - wait_start < 10:
+                    if os.path.exists(cid_pano_output) and os.path.getsize(cid_pano_output) > 0:
+                        pano_ready = True
+                        break
+                    time.sleep(0.2)
+                if not pano_ready:
+                    raise RuntimeError("CID capture_panoramic did not write output within 10s")
+
+                api_client.start_simple_recording(primary_cid, cid_record_dir, 10, 3.0, ["lit"])
+
+                recording_seen = False
+                wait_start = time.time()
+                while time.time() - wait_start < 5:
+                    if api_client.is_recording(primary_cid):
+                        recording_seen = True
+                        break
+                    time.sleep(0.1)
+                if not recording_seen:
+                    raise RuntimeError(f"CID recording never became active for {primary_cid}")
+
+                api_client.stop_recording(primary_cid)
+
+                generated_files = []
+                wait_start = time.time()
+                while time.time() - wait_start < 10:
+                    generated_files = [
+                        path for path in Path(cid_record_dir).rglob("*")
+                        if path.is_file() and path.stat().st_size > 0
+                    ]
+                    if generated_files:
+                        break
+                    time.sleep(0.2)
+                if not generated_files:
+                    raise RuntimeError(f"CID recording output not written under {cid_record_dir}")
+
+                duration = time.time() - test_start
+                results.append(TestResult(
+                    name="Python API Latest CID",
+                    status=TestStatus.PASSED,
+                    duration=duration,
+                    message=f"cid={primary_cid}; outputs={len(generated_files)}"
+                ))
+            except Exception as e:
+                duration = time.time() - test_start
+                results.append(TestResult(
+                    name="Python API Latest CID",
+                    status=TestStatus.FAILED,
+                    duration=duration,
+                    message=f"Exception: {e}"
+                ))
 
         # Performance tests - 50 iterations for each sensor type and mode
         if not self._cancelled:
