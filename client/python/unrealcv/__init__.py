@@ -224,6 +224,7 @@ class Client:
             elif self.type == 'inet':
                 print('=>Info: using ip-port socket')
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             else:
                 raise NotImplementedError
             # Make the socket working in the blocking mode
@@ -237,7 +238,7 @@ class Client:
                     _L.info('Got connection confirm: %s', repr(message))
 
                     # start receive queue here
-                    self.t = threading.Thread(target=self.receive_loop_queue)
+                    self.t = threading.Thread(target=self.receive_loop_queue, daemon=True)
                     self.t.start()
 
                     return True
@@ -274,17 +275,23 @@ class Client:
                 threading.current_thread().name,
             )
 
-            self.sock.shutdown(socket.SHUT_RD)
-            # Because socket is on read in __receiving thread, need to call shutdown to force it to close
-            if self.sock:  # This may also be set to None in the __receiving thread
-                self.sock.close()
+            try:
+                self.sock.shutdown(socket.SHUT_RD)
+            except OSError:
+                pass
+
+            if self.sock:
+                try:
+                    self.sock.close()
+                except OSError:
+                    pass
                 self.sock = None
-            time.sleep(0.1)
 
         if getattr(self, 't', None):
             if self.t.is_alive():
                 self.recv_num_q.put(None)
-                self.t.join()
+                if threading.current_thread() != self.t:
+                    self.t.join(timeout=2.0)
 
     def receive(self):
         """
@@ -302,22 +309,15 @@ class Client:
             if not message:
                 print('BaseClient: remote disconnected, no more message')
                 _L.debug('BaseClient: remote disconnected, no more message')
-                # self.sock = None
-                self.disconnect()
 
-                # try reconnect
-                _L.warning('Remote disconnected, attempting reconnect...')
-                for _ in range(5):
-                    flag = self.connect()
-                    if flag:
-                        _L.info('Reconnect succeeded')
-                        break
-                    else:
-                        _L.warning('Reconnect failed, retrying in 1s...')
-                        time.sleep(1)
-                _L.error('All reconnect attempts failed, disconnecting')
-                self.disconnect()
-                raise ConnectionError('Remote disconnected and reconnection failed')
+                if self.sock:
+                    try:
+                        self.sock.close()
+                    except OSError:
+                        pass
+                    self.sock = None
+
+                return None
 
             return message
 
@@ -333,6 +333,10 @@ class Client:
                 # need results
                 for _ in range(-num):
                     raw_message = self.receive()
+                    if raw_message is None:
+                        print('Connection lost during receive, exiting receive loop')
+                        self.recv_data_q.put(None)
+                        return
                     message = self.raw_message_handler(raw_message)
                     self.recv_message_id += (
                         1  # Increment it only after the request/response cycle finished
@@ -342,6 +346,9 @@ class Client:
                 # do not need results
                 for _ in range(num):
                     raw_message = self.receive()
+                    if raw_message is None:
+                        print('Connection lost during receive, exiting receive loop')
+                        return
                     self.recv_message_id += 1
 
     def request_async(self, message):
