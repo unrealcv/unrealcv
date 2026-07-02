@@ -1,109 +1,103 @@
 {
   "schema_version": 1,
   "generated_from": "Source/UnrealCV/Private/Commands/*.cpp",
-  "command_count": 102,
+  "command_count": 114,
   "commands": [
     {
       "command": "vbp [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 38
+      "line": 89
     },
     {
       "command": "vbp [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 39
+      "line": 90
     },
     {
       "command": "vbp [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 40
+      "line": 91
     },
     {
       "command": "vbp [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 41
+      "line": 92
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 42
+      "line": 93
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 43
+      "line": 94
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 44
+      "line": 95
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 45
+      "line": 96
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 46
+      "line": 97
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 47
-    },
-    {
-      "command": "vcmd [str]",
-      "category": "misc",
-      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 20
+      "line": 98
     },
     {
       "command": "vexec [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 30
+      "line": 81
     },
     {
       "command": "vexec [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 31
+      "line": 82
     },
     {
       "command": "vexec [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 32
+      "line": 83
     },
     {
       "command": "vexec [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 33
+      "line": 84
     },
     {
       "command": "vexec [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 34
+      "line": 85
     },
     {
       "command": "vexec [str] [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 35
+      "line": 86
     },
     {
       "command": "vget /action/game/is_paused",
@@ -271,13 +265,13 @@
       "command": "vget /persistent_level/id",
       "category": "persistent_level",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 49
+      "line": 117
     },
     {
       "command": "vget /persistent_level/level_script_actor/id",
       "category": "persistent_level",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 54
+      "line": 121
     },
     {
       "command": "vget /scene/name",
@@ -322,34 +316,112 @@
       "line": 823
     },
     {
+      "command": "vreflect [str] [str]",
+      "category": "misc",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 102
+    },
+    {
+      "command": "vreflect [str] [str] [str]",
+      "category": "misc",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 103
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str]",
+      "category": "misc",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 104
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 105
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 106
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 107
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 108
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 109
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 110
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 111
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 113
+    },
+    {
+      "command": "vreflect [str] call_json [str] [Anything]",
+      "category": "misc",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 115
+    },
+    {
+      "command": "vrun [str]",
+      "category": "alias",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 71
+    },
+    {
       "command": "vrun [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 21
+      "line": 72
     },
     {
       "command": "vrun [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 22
+      "line": 73
     },
     {
       "command": "vrun [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 23
+      "line": 74
     },
     {
       "command": "vrun [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 24
+      "line": 75
     },
     {
       "command": "vrun [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 25
+      "line": 76
     },
     {
       "command": "vset /action/eyes_distance [float]",

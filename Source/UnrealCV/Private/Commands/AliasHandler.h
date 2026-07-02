@@ -4,19 +4,22 @@
 
 class FAliasHandler : public FCommandHandler
 {
-public:
-	void RegisterCommands() override;
+  public:
+    void RegisterCommands() override;
 
-private:
-	/** vrun : run UE built-in commands */
-	FExecStatus VRun(const TArray<FString>& Args);
+  private:
+    /** vrun : run UE built-in commands */
+    FExecStatus VRun(const TArray<FString>& Args);
 
-	/** vexec : run Blueprint function (no return value) */
-	FExecStatus VExec(const TArray<FString>& Args);
+    /** vexec : run Blueprint function (no return value) */
+    FExecStatus VExec(const TArray<FString>& Args);
 
-	FExecStatus VExecWithOutput(const TArray<FString>& Args);
+    FExecStatus VExecWithOutput(const TArray<FString>& Args);
 
-	FExecStatus GetPersistentLevelId(const TArray<FString>& Args);
+    FExecStatus VReflect(const TArray<FString>& Args);
 
-	FExecStatus GetLevelScriptActorId(const TArray<FString>& Args);
+    FExecStatus GetPersistentLevelId(const TArray<FString>& Args);
+
+    FExecStatus GetLevelScriptActorId(const TArray<FString>& Args);
+    void HandleVBPAsync(UObject* TargetObject, const FString& FuncName, const FString& Args);
 };

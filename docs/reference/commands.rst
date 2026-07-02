@@ -238,3 +238,36 @@ A few examples are:
  - :code:`vbp BP_Player_C SetActorLocation 100 200 300` - Set the location of the player
 
 Note that the Blueprint function name is case sensitive, depending on how it is defined in the Blueprint editor.
+
+7. Reflect functions and variables
+----------------------------------
+
+vreflect [obj_name] functions
+    List reflected functions on the target object as JSON.
+
+vreflect [obj_name] properties
+    List reflected properties on the target object as JSON.
+
+vreflect [obj_name] get [property_path]
+    Read a reflected property by name or dotted path and return JSON.
+
+vreflect [obj_name] set [property_path] [value]
+    Set a reflected property by name or dotted path using Unreal text import rules, then return the updated JSON value.
+
+vreflect [obj_name] call_json [function_name] [json_args]
+    Call a reflected function using a JSON object keyed by parameter name, then return output and return parameters as JSON.
+
+The target can also be a class default object using :code:`class:` or :code:`cdo:`:
+
+- :code:`vreflect class:UKismetSystemLibrary functions`
+- :code:`vreflect cdo:/Script/Engine.KismetSystemLibrary properties`
+
+A few examples are:
+
+- :code:`vreflect BP_Player_C_0 functions`
+- :code:`vreflect BP_Player_C_0 properties`
+- :code:`vreflect BP_Player_C_0 get RootComponent.RelativeLocation`
+- :code:`vreflect BP_Player_C_0 set RootComponent.RelativeLocation "(X=100,Y=200,Z=300)"`
+- :code:`vreflect BP_Player_C_0 call_json K2_SetActorLocation {"NewLocation":{"X":100,"Y":200,"Z":300},"bSweep":false,"bTeleport":true}`
+
+This command family is intended as the first step toward a SPEAR-like reflection surface inside UnrealCV.
