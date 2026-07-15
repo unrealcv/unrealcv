@@ -89,10 +89,9 @@ void AUnrealcvWorldController::BeginPlay()
 void AUnrealcvWorldController::OpenLevel(FName LevelName)
 {
 	UWorld* World = GetWorld();
-	if (!World) return;
+	if (!IsValid(World)) return;
 
 	UGameplayStatics::OpenLevel(World, LevelName);
-	UGameplayStatics::FlushLevelStreaming(World);
 	UE_LOG(LogUnrealCV, Warning, TEXT("Level loaded"));
 }
 
