@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "generated_from": "Source/UnrealCV/Private/Commands/*.cpp",
-  "command_count": 102,
+  "command_count": 107,
   "commands": [
     {
       "command": "vbp [str] [str]",
@@ -115,67 +115,97 @@
       "command": "vget /camera/[uint]/depth [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 786
+      "line": 884
+    },
+    {
+      "command": "vget /camera/[uint]/depth_shared",
+      "category": "camera",
+      "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
+      "line": 896
     },
     {
       "command": "vget /camera/[uint]/fov",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 829
+      "line": 933
     },
     {
       "command": "vget /camera/[uint]/lit [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 780
+      "line": 878
+    },
+    {
+      "command": "vget /camera/[uint]/lit_shared",
+      "category": "camera",
+      "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
+      "line": 895
     },
     {
       "command": "vget /camera/[uint]/location",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 749
+      "line": 847
     },
     {
       "command": "vget /camera/[uint]/normal [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 792
+      "line": 890
+    },
+    {
+      "command": "vget /camera/[uint]/normal_shared",
+      "category": "camera",
+      "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
+      "line": 897
     },
     {
       "command": "vget /camera/[uint]/object_mask [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 807
+      "line": 909
+    },
+    {
+      "command": "vget /camera/[uint]/object_mask_shared",
+      "category": "camera",
+      "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
+      "line": 918
     },
     {
       "command": "vget /camera/[uint]/optical_flow [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 802
+      "line": 904
     },
     {
       "command": "vget /camera/[uint]/rotation",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 768
+      "line": 866
     },
     {
       "command": "vget /camera/[uint]/seg [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 812
+      "line": 914
+    },
+    {
+      "command": "vget /camera/[uint]/seg_shared",
+      "category": "camera",
+      "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
+      "line": 919
     },
     {
       "command": "vget /camera/[uint]/size",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 847
+      "line": 951
     },
     {
       "command": "vget /cameras",
       "category": "cameras",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 739
+      "line": 837
     },
     {
       "command": "vget /level/name",
@@ -289,7 +319,7 @@
       "command": "vget /screenshot [str]",
       "category": "screenshot",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 734
+      "line": 832
     },
     {
       "command": "vget /unrealcv/echo [str]",
@@ -319,7 +349,7 @@
       "command": "vget /viewmode",
       "category": "viewmode",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 823
+      "line": 927
     },
     {
       "command": "vrun [str] [str]",
@@ -397,109 +427,109 @@
       "command": "vset /camera/[uint]/auto_brightness [float] [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 901
+      "line": 1005
     },
     {
       "command": "vset /camera/[uint]/auto_speed [float] [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 895
+      "line": 999
     },
     {
       "command": "vset /camera/[uint]/exposure_bias [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 889
+      "line": 993
     },
     {
       "command": "vset /camera/[uint]/exposure_method [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 883
+      "line": 987
     },
     {
       "command": "vset /camera/[uint]/focal [float] [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 919
+      "line": 1023
     },
     {
       "command": "vset /camera/[uint]/fov [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 835
+      "line": 939
     },
     {
       "command": "vset /camera/[uint]/illumination [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 877
+      "line": 981
     },
     {
       "command": "vset /camera/[uint]/lit_source [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 865
+      "line": 969
     },
     {
       "command": "vset /camera/[uint]/location [float] [float] [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 755
+      "line": 853
     },
     {
       "command": "vset /camera/[uint]/motion_blur [float] [float] [float] [uint]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 913
+      "line": 1017
     },
     {
       "command": "vset /camera/[uint]/moveto [float] [float] [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 762
+      "line": 860
     },
     {
       "command": "vset /camera/[uint]/ortho_width [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 853
+      "line": 957
     },
     {
       "command": "vset /camera/[uint]/physical_exposure [uint]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 907
+      "line": 1011
     },
     {
       "command": "vset /camera/[uint]/projection_type [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 859
+      "line": 963
     },
     {
       "command": "vset /camera/[uint]/reflection [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 871
+      "line": 975
     },
     {
       "command": "vset /camera/[uint]/rotation [float] [float] [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 774
+      "line": 872
     },
     {
       "command": "vset /camera/[uint]/size [uint] [uint]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 841
+      "line": 945
     },
     {
       "command": "vset /cameras/spawn",
       "category": "cameras",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 744
+      "line": 842
     },
     {
       "command": "vset /object/[str]/color [uint] [uint] [uint]",
@@ -613,7 +643,7 @@
       "command": "vset /viewmode [str]",
       "category": "viewmode",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 817
+      "line": 921
     }
   ]
 }

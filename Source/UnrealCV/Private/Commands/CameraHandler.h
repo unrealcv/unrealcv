@@ -45,6 +45,10 @@ private:
 	FExecStatus GetCameraLit(const TArray<FString>& Args);
 	FExecStatus GetCameraDepth(const TArray<FString>& Args);
 	FExecStatus GetCameraNormal(const TArray<FString>& Args);
+	FExecStatus GetCameraLitShared(const TArray<FString>& Args);
+	FExecStatus GetCameraDepthShared(const TArray<FString>& Args);
+	FExecStatus GetCameraNormalShared(const TArray<FString>& Args);
+	FExecStatus GetCameraSegShared(const TArray<FString>& Args);
 	FExecStatus GetCameraFlow(const TArray<FString>& Args);
 	FExecStatus GetCameraObjMask(const TArray<FString>& Args);
 	FExecStatus MoveTo(const TArray<FString>& Args);
