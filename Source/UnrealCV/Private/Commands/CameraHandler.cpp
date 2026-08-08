@@ -32,63 +32,67 @@ namespace
 {
 FString SerializeJsonObject(const TSharedRef<FJsonObject>& JsonObject)
 {
-	FString Output;
-	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Output);
-	FJsonSerializer::Serialize(JsonObject, Writer);
-	return Output;
+    FString Output;
+    TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&Output);
+    FJsonSerializer::Serialize(JsonObject, Writer);
+    return Output;
 }
 
 TArray<TSharedPtr<FJsonValue>> MakeJsonNumberArray(std::initializer_list<double> Values)
 {
-	TArray<TSharedPtr<FJsonValue>> Result;
-	for (double Value : Values)
-	{
-		Result.Add(MakeShared<FJsonValueNumber>(Value));
-	}
-	return Result;
+    TArray<TSharedPtr<FJsonValue>> Result;
+    for (double Value : Values)
+    {
+        Result.Add(MakeShared<FJsonValueNumber>(Value));
+    }
+    return Result;
 }
 
-FString SharedImageResponse(const FUnrealCVSharedMemoryView& View, const FString& Modality,
-	int32 Width, int32 Height, const FString& DType, const FString& Layout,
-	const FString& ChannelOrder, const TArray<TSharedPtr<FJsonValue>>& Shape, uint64 Frame)
+FString SharedImageResponse(const FUnrealCVSharedMemoryView& View, const FString& Modality, int32 Width, int32 Height,
+                            const FString& DType, const FString& Layout, const FString& ChannelOrder,
+                            const TArray<TSharedPtr<FJsonValue>>& Shape, uint64 Frame)
 {
-	TSharedRef<FJsonObject> Json = MakeShared<FJsonObject>();
-	Json->SetStringField(TEXT("transport"), TEXT("windows_shared_memory"));
-	Json->SetStringField(TEXT("modality"), Modality);
-	Json->SetStringField(TEXT("name"), View.Name);
-	Json->SetNumberField(TEXT("num_bytes"), static_cast<double>(View.NumBytes));
-	Json->SetNumberField(TEXT("version"), static_cast<double>(View.Version));
-	Json->SetNumberField(TEXT("offset_bytes"), View.OffsetBytes);
-	Json->SetArrayField(TEXT("shape"), Shape);
-	Json->SetStringField(TEXT("dtype"), DType);
-	Json->SetStringField(TEXT("layout"), Layout);
-	if (!ChannelOrder.IsEmpty()) Json->SetStringField(TEXT("channel_order"), ChannelOrder);
-	Json->SetNumberField(TEXT("width"), Width);
-	Json->SetNumberField(TEXT("height"), Height);
-	Json->SetNumberField(TEXT("frame"), static_cast<double>(Frame));
-	Json->SetStringField(TEXT("lifetime"), TEXT("valid until the next capture writes the same shared memory name or the UnrealCV server exits"));
-	return SerializeJsonObject(Json);
+    TSharedRef<FJsonObject> Json = MakeShared<FJsonObject>();
+    Json->SetStringField(TEXT("transport"), TEXT("windows_shared_memory"));
+    Json->SetStringField(TEXT("modality"), Modality);
+    Json->SetStringField(TEXT("name"), View.Name);
+    Json->SetNumberField(TEXT("num_bytes"), static_cast<double>(View.NumBytes));
+    Json->SetNumberField(TEXT("version"), static_cast<double>(View.Version));
+    Json->SetNumberField(TEXT("offset_bytes"), View.OffsetBytes);
+    Json->SetArrayField(TEXT("shape"), Shape);
+    Json->SetStringField(TEXT("dtype"), DType);
+    Json->SetStringField(TEXT("layout"), Layout);
+    if (!ChannelOrder.IsEmpty())
+        Json->SetStringField(TEXT("channel_order"), ChannelOrder);
+    Json->SetNumberField(TEXT("width"), Width);
+    Json->SetNumberField(TEXT("height"), Height);
+    Json->SetNumberField(TEXT("frame"), static_cast<double>(Frame));
+    Json->SetStringField(
+        TEXT("lifetime"),
+        TEXT("valid until the next capture writes the same shared memory name or the UnrealCV server exits"));
+    return SerializeJsonObject(Json);
 }
 
 template <typename T>
 FExecStatus WriteSharedImage(const TArray<T>& Data, int Width, int Height, const FString& LogicalName,
-	const FString& Modality, const FString& DType, const FString& Layout, const FString& Channels,
-	const TArray<TSharedPtr<FJsonValue>>& Shape, uint64 Frame)
+                             const FString& Modality, const FString& DType, const FString& Layout,
+                             const FString& Channels, const TArray<TSharedPtr<FJsonValue>>& Shape, uint64 Frame)
 {
-	if (Width <= 0 || Height <= 0 || Data.Num() != Width * Height)
-		return FExecStatus::Error(FString::Printf(TEXT("Invalid %s dimensions or data size: %dx%d, samples=%d"), *Modality, Width, Height, Data.Num()));
-	FUnrealCVSharedMemoryView View;
-	FString Error;
-	if (!FUnrealCVSharedMemoryManager::Get().WriteBytes(LogicalName, Data.GetData(), static_cast<int64>(Data.Num()) * sizeof(T), View, Error))
-		return FExecStatus::Error(Error);
-	return FExecStatus::OK(SharedImageResponse(View, Modality, Width, Height, DType, Layout, Channels, Shape, Frame));
+    if (Width <= 0 || Height <= 0 || Data.Num() != Width * Height)
+        return FExecStatus::Error(FString::Printf(TEXT("Invalid %s dimensions or data size: %dx%d, samples=%d"),
+                                                  *Modality, Width, Height, Data.Num()));
+    FUnrealCVSharedMemoryView View;
+    FString Error;
+    if (!FUnrealCVSharedMemoryManager::Get().WriteBytes(LogicalName, Data.GetData(),
+                                                        static_cast<int64>(Data.Num()) * sizeof(T), View, Error))
+        return FExecStatus::Error(Error);
+    return FExecStatus::OK(SharedImageResponse(View, Modality, Width, Height, DType, Layout, Channels, Shape, Frame));
 }
 
-template <typename TEnum>
-bool ResolveOption(const TMap<FString, TEnum>& Options, const FString& Input, TEnum& OutValue)
+template <typename TEnum> bool ResolveOption(const TMap<FString, TEnum>& Options, const FString& Input, TEnum& OutValue)
 {
-	const FString Key = Input.ToLower();
-	if (const TEnum* Found = Options.Find(Key))
+    const FString Key = Input.ToLower();
+    if (const TEnum* Found = Options.Find(Key))
 	{
 		OutValue = *Found;
 		return true;
@@ -387,48 +391,68 @@ FExecStatus FCameraHandler::GetCameraNormal(const TArray<FString>& Args)
 
 FExecStatus FCameraHandler::GetCameraLitShared(const TArray<FString>& Args)
 {
-	FExecStatus Status = FExecStatus::OK();
-	UFusionCamSensor* Sensor = GetCamera(Args, Status);
-	if (!IsValid(Sensor)) return Status;
-	TArray<FColor> Data; int Width = 0, Height = 0; Sensor->GetLit(Data, Width, Height);
-	static uint64 Frame = 0;
-	return WriteSharedImage(Data, Width, Height, FString::Printf(TEXT("camera_%s_lit_bgra8"), *Args[0]), TEXT("lit"), TEXT("uint8"), TEXT("HWC"), TEXT("BGRA"), MakeJsonNumberArray({double(Height), double(Width), 4.0}), ++Frame);
+    FExecStatus Status = FExecStatus::OK();
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor))
+        return Status;
+    TArray<FColor> Data;
+    int Width = 0, Height = 0;
+    Sensor->GetLit(Data, Width, Height);
+    static uint64 Frame = 0;
+    return WriteSharedImage(Data, Width, Height, FString::Printf(TEXT("camera_%s_lit_bgra8"), *Args[0]), TEXT("lit"),
+                            TEXT("uint8"), TEXT("HWC"), TEXT("BGRA"),
+                            MakeJsonNumberArray({double(Height), double(Width), 4.0}), ++Frame);
 }
 
 FExecStatus FCameraHandler::GetCameraDepthShared(const TArray<FString>& Args)
 {
-	FExecStatus Status = FExecStatus::OK();
-	UFusionCamSensor* Sensor = GetCamera(Args, Status);
-	if (!IsValid(Sensor)) return Status;
-	TArray<float> Data; int Width = 0, Height = 0; Sensor->GetDepth(Data, Width, Height);
-	static uint64 Frame = 0;
-	FExecStatus Result = WriteSharedImage(Data, Width, Height, FString::Printf(TEXT("camera_%s_depth_float32"), *Args[0]), TEXT("depth"), TEXT("float32"), TEXT("HW"), TEXT(""), MakeJsonNumberArray({double(Height), double(Width)}), ++Frame);
-	return Result;
+    FExecStatus Status = FExecStatus::OK();
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor))
+        return Status;
+    TArray<float> Data;
+    int Width = 0, Height = 0;
+    Sensor->GetDepth(Data, Width, Height);
+    static uint64 Frame = 0;
+    FExecStatus Result = WriteSharedImage(
+        Data, Width, Height, FString::Printf(TEXT("camera_%s_depth_float32"), *Args[0]), TEXT("depth"), TEXT("float32"),
+        TEXT("HW"), TEXT(""), MakeJsonNumberArray({double(Height), double(Width)}), ++Frame);
+    return Result;
 }
 
 FExecStatus FCameraHandler::GetCameraNormalShared(const TArray<FString>& Args)
 {
-	FExecStatus Status = FExecStatus::OK();
-	UFusionCamSensor* Sensor = GetCamera(Args, Status);
-	if (!IsValid(Sensor)) return Status;
-	TArray<FColor> Data; int Width = 0, Height = 0; Sensor->GetNormal(Data, Width, Height);
-	static uint64 Frame = 0;
-	return WriteSharedImage(Data, Width, Height, FString::Printf(TEXT("camera_%s_normal_bgra8"), *Args[0]), TEXT("normal"), TEXT("uint8"), TEXT("HWC"), TEXT("BGRA"), MakeJsonNumberArray({double(Height), double(Width), 4.0}), ++Frame);
+    FExecStatus Status = FExecStatus::OK();
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor))
+        return Status;
+    TArray<FColor> Data;
+    int Width = 0, Height = 0;
+    Sensor->GetNormal(Data, Width, Height);
+    static uint64 Frame = 0;
+    return WriteSharedImage(Data, Width, Height, FString::Printf(TEXT("camera_%s_normal_bgra8"), *Args[0]),
+                            TEXT("normal"), TEXT("uint8"), TEXT("HWC"), TEXT("BGRA"),
+                            MakeJsonNumberArray({double(Height), double(Width), 4.0}), ++Frame);
 }
 
 FExecStatus FCameraHandler::GetCameraSegShared(const TArray<FString>& Args)
 {
-	FExecStatus Status = FExecStatus::OK();
-	UFusionCamSensor* Sensor = GetCamera(Args, Status);
-	if (!IsValid(Sensor)) return Status;
-	TArray<FColor> Data; int Width = 0, Height = 0; Sensor->GetSeg(Data, Width, Height);
-	static uint64 Frame = 0;
-	return WriteSharedImage(Data, Width, Height, FString::Printf(TEXT("camera_%s_object_mask_bgra8"), *Args[0]), TEXT("object_mask"), TEXT("uint8"), TEXT("HWC"), TEXT("BGRA"), MakeJsonNumberArray({double(Height), double(Width), 4.0}), ++Frame);
+    FExecStatus Status = FExecStatus::OK();
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor))
+        return Status;
+    TArray<FColor> Data;
+    int Width = 0, Height = 0;
+    Sensor->GetSeg(Data, Width, Height);
+    static uint64 Frame = 0;
+    return WriteSharedImage(Data, Width, Height, FString::Printf(TEXT("camera_%s_object_mask_bgra8"), *Args[0]),
+                            TEXT("object_mask"), TEXT("uint8"), TEXT("HWC"), TEXT("BGRA"),
+                            MakeJsonNumberArray({double(Height), double(Width), 4.0}), ++Frame);
 }
 
 FExecStatus FCameraHandler::GetCameraFlow(const TArray<FString>& Args)
 {
-	FExecStatus ExecStatus = FExecStatus::OK();
+    FExecStatus ExecStatus = FExecStatus::OK();
 	UFusionCamSensor* FusionCamSensor = GetCamera(Args, ExecStatus);
 	if (!IsValid(FusionCamSensor)) return ExecStatus;
 
@@ -892,33 +916,40 @@ void FCameraHandler::RegisterCommands()
 		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraNormal),
 		"Get npy binary data from surface normal sensor");
 
-	CommandDispatcher->BindCommand("vget /camera/[uint]/lit_shared", FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraLitShared), "Get lit image through Windows shared memory");
-	CommandDispatcher->BindCommand("vget /camera/[uint]/depth_shared", FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraDepthShared), "Get depth image through Windows shared memory");
-	CommandDispatcher->BindCommand("vget /camera/[uint]/normal_shared", FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraNormalShared), "Get normal image through Windows shared memory");
+    CommandDispatcher->BindCommand("vget /camera/[uint]/lit_shared",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraLitShared),
+                                   "Get lit image through Windows shared memory");
+    CommandDispatcher->BindCommand("vget /camera/[uint]/depth_shared",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraDepthShared),
+                                   "Get depth image through Windows shared memory");
+    CommandDispatcher->BindCommand("vget /camera/[uint]/normal_shared",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraNormalShared),
+                                   "Get normal image through Windows shared memory");
 
-	// CommandDispatcher->BindCommand(
-	// 	"vget /camera/[uint]/flow [str]",
-	// 	FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraFlow),
-	// 	"Get npy binary data from optical flow sensor");
+    // CommandDispatcher->BindCommand(
+    // 	"vget /camera/[uint]/flow [str]",
+    // 	FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraFlow),
+    // 	"Get npy binary data from optical flow sensor");
 
-	CommandDispatcher->BindCommand(
-		"vget /camera/[uint]/optical_flow [str]",
-		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraFlow),
-		"Get npy binary data from optical flow sensor");
+    CommandDispatcher->BindCommand("vget /camera/[uint]/optical_flow [str]",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraFlow),
+                                   "Get npy binary data from optical flow sensor");
 
-	CommandDispatcher->BindCommand(
-		"vget /camera/[uint]/object_mask [str]",
-		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraObjMask),
-		"Get object mask from camera sensor");
+    CommandDispatcher->BindCommand("vget /camera/[uint]/object_mask [str]",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraObjMask),
+                                   "Get object mask from camera sensor");
 
-	CommandDispatcher->BindCommand(
-		"vget /camera/[uint]/seg [str]",
-		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraObjMask),
-		"Get object mask from camera sensor");
-	CommandDispatcher->BindCommand("vget /camera/[uint]/object_mask_shared", FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraSegShared), "Get object mask through Windows shared memory");
-	CommandDispatcher->BindCommand("vget /camera/[uint]/seg_shared", FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraSegShared), "Get segmentation through Windows shared memory");
+    CommandDispatcher->BindCommand("vget /camera/[uint]/seg [str]",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraObjMask),
+                                   "Get object mask from camera sensor");
+    CommandDispatcher->BindCommand("vget /camera/[uint]/object_mask_shared",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraSegShared),
+                                   "Get object mask through Windows shared memory");
+    CommandDispatcher->BindCommand("vget /camera/[uint]/seg_shared",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCameraSegShared),
+                                   "Get segmentation through Windows shared memory");
 
-	CommandDispatcher->BindCommand(
+    CommandDispatcher->BindCommand(
 		"vset /viewmode [str]",
 		FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetPlayerViewMode),
 		"Set ViewMode to (lit, normal, depth, object_mask)"
