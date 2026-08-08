@@ -763,3 +763,55 @@ def test_socketmessage_receivepayload_returns_none_on_recv_exception():
             raise RuntimeError("boom")
 
     assert SocketMessage.ReceivePayload(_ExceptionSocket()) is None
+
+
+@pytest.mark.parametrize(
+    "location,expected",
+    [
+        (None, "vset /objects/spawn Cube_C cube_1"),
+        ([100, 200.5, -30], "vset /objects/spawn Cube_C cube_1 100 200.5 -30"),
+    ],
+)
+def test_set_new_obj_builds_optional_location_command(api_factory, location, expected):
+    api = api_factory()
+    assert api.set_new_obj("Cube_C", "cube_1", location=location, return_cmd=True) == expected
+
+
+def test_set_new_obj_rejects_invalid_location(api_factory):
+    api = api_factory()
+    with pytest.raises(ValueError, match="exactly three"):
+        api.set_new_obj("Cube_C", "cube_1", location=[1, 2], return_cmd=True)
+    with pytest.raises(ValueError, match="numeric"):
+        api.set_new_obj("Cube_C", "cube_1", location=[1, "bad", 3], return_cmd=True)
+    with pytest.raises(ValueError, match="numeric"):
+        api.set_new_obj("Cube_C", "cube_1", location=123, return_cmd=True)
+
+
+@pytest.mark.parametrize(
+    "bone_names,space,expected",
+    [
+        (None, "component", "vget /object/Hero/bones"),
+        (None, "world", "vget /object/Hero/bones world"),
+        (["root", "head"], "component", "vget /object/Hero/bones root,head"),
+        ("root,head", "world", "vget /object/Hero/bones root,head world"),
+    ],
+)
+def test_get_obj_bones_builds_command(api_factory, bone_names, space, expected):
+    api = api_factory()
+    assert api.get_obj_bones("Hero", bone_names, space, return_cmd=True) == expected
+
+
+def test_get_obj_bones_decodes_json(dummy_client_factory, api_factory):
+    client = dummy_client_factory(['[{"bone_name":"root","transform":{}}]'])
+    api = api_factory(client)
+
+    result = api.get_obj_bones("Hero")
+
+    assert result == [{"bone_name": "root", "transform": {}}]
+    assert client.calls == [("vget /object/Hero/bones", ())]
+
+
+def test_get_obj_bones_rejects_invalid_space(api_factory):
+    api = api_factory()
+    with pytest.raises(ValueError, match="component.*world"):
+        api.get_obj_bones("Hero", space="camera", return_cmd=True)

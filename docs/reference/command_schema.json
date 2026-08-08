@@ -1,577 +1,619 @@
 {
   "schema_version": 1,
   "generated_from": "Source/UnrealCV/Private/Commands/*.cpp",
-  "command_count": 93,
+  "command_count": 102,
   "commands": [
     {
       "command": "vbp [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 37
+      "line": 38
     },
     {
       "command": "vbp [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 38
+      "line": 39
     },
     {
       "command": "vbp [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 39
+      "line": 40
     },
     {
       "command": "vbp [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 40
+      "line": 41
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 41
+      "line": 42
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 42
+      "line": 43
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 43
+      "line": 44
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 44
+      "line": 45
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 45
+      "line": 46
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 46
+      "line": 47
+    },
+    {
+      "command": "vcmd [str]",
+      "category": "misc",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 20
     },
     {
       "command": "vexec [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 29
+      "line": 30
     },
     {
       "command": "vexec [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 30
+      "line": 31
     },
     {
       "command": "vexec [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 31
+      "line": 32
     },
     {
       "command": "vexec [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 32
+      "line": 33
     },
     {
       "command": "vexec [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 33
+      "line": 34
     },
     {
       "command": "vexec [str] [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 34
+      "line": 35
     },
     {
       "command": "vget /action/game/is_paused",
       "category": "action",
       "source": "Source/UnrealCV/Private/Commands/ActionHandler.cpp",
-      "line": 25
+      "line": 26
     },
     {
       "command": "vget /camera/[uint]/depth [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 803
+      "line": 786
     },
     {
       "command": "vget /camera/[uint]/fov",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 846
+      "line": 829
     },
     {
       "command": "vget /camera/[uint]/lit [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 797
+      "line": 780
     },
     {
       "command": "vget /camera/[uint]/location",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 766
+      "line": 749
     },
     {
       "command": "vget /camera/[uint]/normal [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 809
+      "line": 792
     },
     {
       "command": "vget /camera/[uint]/object_mask [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 824
+      "line": 807
     },
     {
       "command": "vget /camera/[uint]/optical_flow [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 819
+      "line": 802
     },
     {
       "command": "vget /camera/[uint]/rotation",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 785
+      "line": 768
     },
     {
       "command": "vget /camera/[uint]/seg [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 829
+      "line": 812
     },
     {
       "command": "vget /camera/[uint]/size",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 864
+      "line": 847
     },
     {
       "command": "vget /cameras",
       "category": "cameras",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 756
+      "line": 739
     },
     {
       "command": "vget /level/name",
       "category": "level",
       "source": "Source/UnrealCV/Private/Commands/PluginHandler.cpp",
-      "line": 129
+      "line": 116
+    },
+    {
+      "command": "vget /object/[str]/bones",
+      "category": "object",
+      "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
+      "line": 240
+    },
+    {
+      "command": "vget /object/[str]/bones [str]",
+      "category": "object",
+      "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
+      "line": 244
+    },
+    {
+      "command": "vget /object/[str]/bones [str] [str]",
+      "category": "object",
+      "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
+      "line": 248
     },
     {
       "command": "vget /object/[str]/bounds",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 181
+      "line": 236
     },
     {
       "command": "vget /object/[str]/color",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 107
+      "line": 180
     },
     {
       "command": "vget /object/[str]/label",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 156
+      "line": 210
     },
     {
       "command": "vget /object/[str]/location",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 77
+      "line": 160
     },
     {
       "command": "vget /object/[str]/material",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 172
+      "line": 219
     },
     {
       "command": "vget /object/[str]/mobility",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 119
+      "line": 188
     },
     {
       "command": "vget /object/[str]/rotation",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 89
+      "line": 168
     },
     {
       "command": "vget /object/[str]/scale",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 169
+      "line": 228
     },
     {
       "command": "vget /object/[str]/uclass_name",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 143
+      "line": 201
     },
     {
       "command": "vget /object/[str]/vertex_location",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 101
+      "line": 176
     },
     {
       "command": "vget /objects",
       "category": "objects",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 47
+      "line": 124
     },
     {
       "command": "vget /persistent_level/id",
       "category": "persistent_level",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 48
+      "line": 49
     },
     {
       "command": "vget /persistent_level/level_script_actor/id",
       "category": "persistent_level",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 53
+      "line": 54
     },
     {
       "command": "vget /scene/name",
       "category": "scene",
       "source": "Source/UnrealCV/Private/Commands/PluginHandler.cpp",
-      "line": 127
+      "line": 114
     },
     {
       "command": "vget /screenshot [str]",
       "category": "screenshot",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 751
+      "line": 734
     },
     {
       "command": "vget /unrealcv/echo [str]",
       "category": "unrealcv",
       "source": "Source/UnrealCV/Private/Commands/PluginHandler.cpp",
-      "line": 119
+      "line": 106
     },
     {
       "command": "vget /unrealcv/help",
       "category": "unrealcv",
       "source": "Source/UnrealCV/Private/Commands/PluginHandler.cpp",
-      "line": 115
+      "line": 102
     },
     {
       "command": "vget /unrealcv/status",
       "category": "unrealcv",
       "source": "Source/UnrealCV/Private/Commands/PluginHandler.cpp",
-      "line": 111
+      "line": 98
     },
     {
       "command": "vget /unrealcv/version",
       "category": "unrealcv",
       "source": "Source/UnrealCV/Private/Commands/PluginHandler.cpp",
-      "line": 123
+      "line": 110
     },
     {
       "command": "vget /viewmode",
       "category": "viewmode",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 840
-    },
-    {
-      "command": "vrun [str]",
-      "category": "alias",
-      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 19
+      "line": 823
     },
     {
       "command": "vrun [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 20
+      "line": 21
     },
     {
       "command": "vrun [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 21
+      "line": 22
     },
     {
       "command": "vrun [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 22
+      "line": 23
     },
     {
       "command": "vrun [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 23
+      "line": 24
     },
     {
       "command": "vrun [str] [str] [str] [str] [str] [str]",
       "category": "alias",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 24
+      "line": 25
     },
     {
       "command": "vset /action/eyes_distance [float]",
       "category": "action",
       "source": "Source/UnrealCV/Private/Commands/ActionHandler.cpp",
-      "line": 45
+      "line": 46
     },
     {
       "command": "vset /action/game/level [str]",
       "category": "action",
       "source": "Source/UnrealCV/Private/Commands/ActionHandler.cpp",
-      "line": 33
+      "line": 34
     },
     {
       "command": "vset /action/game/pause",
       "category": "action",
       "source": "Source/UnrealCV/Private/Commands/ActionHandler.cpp",
-      "line": 19
+      "line": 20
     },
     {
       "command": "vset /action/game/resume",
       "category": "action",
       "source": "Source/UnrealCV/Private/Commands/ActionHandler.cpp",
-      "line": 23
+      "line": 24
     },
     {
       "command": "vset /action/input/disable",
       "category": "action",
       "source": "Source/UnrealCV/Private/Commands/ActionHandler.cpp",
-      "line": 41
+      "line": 42
     },
     {
       "command": "vset /action/input/enable",
       "category": "action",
       "source": "Source/UnrealCV/Private/Commands/ActionHandler.cpp",
-      "line": 37
+      "line": 38
     },
     {
       "command": "vset /action/keyboard [str] [float]",
       "category": "action",
       "source": "Source/UnrealCV/Private/Commands/ActionHandler.cpp",
-      "line": 50
+      "line": 51
     },
     {
       "command": "vset /camera/[uint]/auto_brightness [float] [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 918
+      "line": 901
     },
     {
       "command": "vset /camera/[uint]/auto_speed [float] [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 912
+      "line": 895
     },
     {
       "command": "vset /camera/[uint]/exposure_bias [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 906
+      "line": 889
     },
     {
       "command": "vset /camera/[uint]/exposure_method [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 900
+      "line": 883
     },
     {
       "command": "vset /camera/[uint]/focal [float] [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 936
+      "line": 919
     },
     {
       "command": "vset /camera/[uint]/fov [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 852
+      "line": 835
     },
     {
       "command": "vset /camera/[uint]/illumination [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 894
+      "line": 877
     },
     {
       "command": "vset /camera/[uint]/lit_source [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 882
+      "line": 865
     },
     {
       "command": "vset /camera/[uint]/location [float] [float] [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 772
+      "line": 755
     },
     {
       "command": "vset /camera/[uint]/motion_blur [float] [float] [float] [uint]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 930
+      "line": 913
     },
     {
       "command": "vset /camera/[uint]/moveto [float] [float] [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 779
+      "line": 762
     },
     {
       "command": "vset /camera/[uint]/ortho_width [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 870
+      "line": 853
     },
     {
       "command": "vset /camera/[uint]/physical_exposure [uint]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 924
+      "line": 907
     },
     {
       "command": "vset /camera/[uint]/projection_type [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 876
+      "line": 859
     },
     {
       "command": "vset /camera/[uint]/reflection [str]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 888
+      "line": 871
     },
     {
       "command": "vset /camera/[uint]/rotation [float] [float] [float]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 791
+      "line": 774
     },
     {
       "command": "vset /camera/[uint]/size [uint] [uint]",
       "category": "camera",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 858
+      "line": 841
     },
     {
       "command": "vset /cameras/spawn",
       "category": "cameras",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 761
+      "line": 744
     },
     {
       "command": "vset /object/[str]/color [uint] [uint] [uint]",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 113
+      "line": 184
     },
     {
       "command": "vset /object/[str]/destroy",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 137
+      "line": 198
     },
     {
       "command": "vset /object/[str]/hide",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 131
+      "line": 195
     },
     {
       "command": "vset /object/[str]/label [str]",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 162
+      "line": 214
     },
     {
       "command": "vset /object/[str]/location [float] [float] [float]",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 83
+      "line": 164
     },
     {
       "command": "vset /object/[str]/material [uint] [str]",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 178
+      "line": 223
     },
     {
       "command": "vset /object/[str]/name [str]",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 149
+      "line": 205
     },
     {
       "command": "vset /object/[str]/rotation [float] [float] [float]",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 95
+      "line": 172
     },
     {
       "command": "vset /object/[str]/scale [float] [float] [float]",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 175
+      "line": 232
     },
     {
       "command": "vset /object/[str]/show",
       "category": "object",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 125
+      "line": 192
     },
     {
       "command": "vset /objects/spawn [str]",
       "category": "objects",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 65
+      "line": 144
+    },
+    {
+      "command": "vset /objects/spawn [str] [float] [float] [float]",
+      "category": "objects",
+      "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
+      "line": 152
     },
     {
       "command": "vset /objects/spawn [str] [str]",
       "category": "objects",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 71
+      "line": 148
+    },
+    {
+      "command": "vset /objects/spawn [str] [str] [float] [float] [float]",
+      "category": "objects",
+      "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
+      "line": 156
     },
     {
       "command": "vset /objects/spawn_cube",
       "category": "objects",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 53
+      "line": 128
+    },
+    {
+      "command": "vset /objects/spawn_cube [float] [float] [float]",
+      "category": "objects",
+      "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
+      "line": 136
     },
     {
       "command": "vset /objects/spawn_cube [str]",
       "category": "objects",
       "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
-      "line": 59
+      "line": 132
+    },
+    {
+      "command": "vset /objects/spawn_cube [str] [float] [float] [float]",
+      "category": "objects",
+      "source": "Source/UnrealCV/Private/Commands/ObjectHandler.cpp",
+      "line": 140
     },
     {
       "command": "vset /viewmode [str]",
       "category": "viewmode",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 834
+      "line": 817
     }
   ]
 }
