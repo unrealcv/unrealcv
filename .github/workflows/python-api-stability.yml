@@ -29,4 +29,4 @@ jobs:
         run: python client/python/tools/update_public_api_snapshot.py --repo-root . --check
 
       - name: Run API compatibility test
-        run: pytest test/client/test_public_api_snapshot.py
+        run: pytest --noconftest test/client/test_public_api_snapshot.py

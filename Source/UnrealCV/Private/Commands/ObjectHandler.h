@@ -10,40 +10,41 @@
  */
 class FObjectHandler : public FCommandHandler
 {
-public:
-	void RegisterCommands() override;
+  public:
+    void RegisterCommands() override;
 
-private:
-	FExecStatus GetObjectList(const TArray<FString>& Args);
-	FExecStatus SpawnBox(const TArray<FString>& Args);
-	FExecStatus Spawn(const TArray<FString>& Args);
-	FExecStatus GetAnnotationColor(const TArray<FString>& Args);
-	FExecStatus SetAnnotationColor(const TArray<FString>& Args);
-	FExecStatus GetObjectName(const TArray<FString>& Args);
-	FExecStatus CurrentObjectHandler(const TArray<FString>& Args);
-	FExecStatus GetLocation(const TArray<FString>& Args);
-	FExecStatus GetRotation(const TArray<FString>& Args);
-	FExecStatus SetLocation(const TArray<FString>& Args);
-	FExecStatus SetRotation(const TArray<FString>& Args);
-	FExecStatus SetShow(const TArray<FString>& Args);
-	FExecStatus SetHide(const TArray<FString>& Args);
-	FExecStatus GetMobility(const TArray<FString>& Args);
-	FExecStatus GetObjectVertexLocation(const TArray<FString>& Args);
-	FExecStatus Destroy(const TArray<FString>& Args);
-	FExecStatus GetUClassName(const TArray<FString>& Args);
-	FExecStatus GetComponents(const TArray<FString>& Args);
-	FExecStatus SetName(const TArray<FString>& Args);
+  private:
+    FExecStatus GetObjectList(const TArray<FString>& Args);
+    FExecStatus SpawnBox(const TArray<FString>& Args);
+    FExecStatus Spawn(const TArray<FString>& Args);
+    FExecStatus GetAnnotationColor(const TArray<FString>& Args);
+    FExecStatus SetAnnotationColor(const TArray<FString>& Args);
+    FExecStatus GetObjectName(const TArray<FString>& Args);
+    FExecStatus CurrentObjectHandler(const TArray<FString>& Args);
+    FExecStatus GetLocation(const TArray<FString>& Args);
+    FExecStatus GetRotation(const TArray<FString>& Args);
+    FExecStatus SetLocation(const TArray<FString>& Args);
+    FExecStatus SetRotation(const TArray<FString>& Args);
+    FExecStatus SetShow(const TArray<FString>& Args);
+    FExecStatus SetHide(const TArray<FString>& Args);
+    FExecStatus GetMobility(const TArray<FString>& Args);
+    FExecStatus GetObjectVertexLocation(const TArray<FString>& Args);
+    FExecStatus Destroy(const TArray<FString>& Args);
+    FExecStatus GetUClassName(const TArray<FString>& Args);
+    FExecStatus GetComponents(const TArray<FString>& Args);
+    FExecStatus SetName(const TArray<FString>& Args);
 
 #if WITH_EDITOR
-	FExecStatus SetActorLabel(const TArray<FString>& Args);
-	FExecStatus GetActorLabel(const TArray<FString>& Args);
+    FExecStatus SetActorLabel(const TArray<FString>& Args);
+    FExecStatus GetActorLabel(const TArray<FString>& Args);
 
-	// Francisco Material commands
-	FExecStatus GetMaterial(const TArray<FString>& Args);
-	FExecStatus SetMaterial(const TArray<FString>& Args);
+    // Francisco Material commands
+    FExecStatus GetMaterial(const TArray<FString>& Args);
+    FExecStatus SetMaterial(const TArray<FString>& Args);
 #endif
 
-	FExecStatus GetScale(const TArray<FString>& Args);
-	FExecStatus SetScale(const TArray<FString>& Args);
-	FExecStatus GetBounds(const TArray<FString>& Args);
+    FExecStatus GetScale(const TArray<FString>& Args);
+    FExecStatus SetScale(const TArray<FString>& Args);
+    FExecStatus GetBounds(const TArray<FString>& Args);
+    FExecStatus GetBones(const TArray<FString>& Args);
 };

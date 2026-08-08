@@ -22,6 +22,7 @@ import unrealcv
 import cv2
 import numpy as np
 import math
+import json
 import time
 import os
 import re
@@ -1019,21 +1020,38 @@ class UnrealCv_API:
             fov=self.get_cam_fov(cam_id),
         )
 
-    def set_new_obj(self, class_name, obj_name):
+    def set_new_obj(self, class_name, obj_name, location=None, return_cmd=False):
         """
         Spawn a new object.
 
         Args:
             class_name (str): The class name of the object.
             obj_name (str): The object name.
+            location (sequence | None): Optional world location ``[x, y, z]``.
+            return_cmd (bool): Return the command without executing it.
 
         Returns:
             str: The object name of the new object.
         
         Example:
-            >>> api.set_new_obj('Cube_C', 'cube_1')
+            >>> api.set_new_obj('Cube_C', 'cube_1', location=[100, 200, 300])
         """
         cmd = f'vset /objects/spawn {class_name} {obj_name}'
+        if location is not None:
+            try:
+                location_values = list(location)
+            except TypeError as exc:
+                raise ValueError('location values must be numeric') from exc
+            if len(location_values) != 3:
+                raise ValueError('location must contain exactly three values')
+            try:
+                [float(value) for value in location_values]
+            except (TypeError, ValueError) as exc:
+                raise ValueError('location values must be numeric') from exc
+            cmd += ' ' + ' '.join(str(value) for value in location_values)
+        if return_cmd:
+            return cmd
+
         res = self.client.request(cmd)
         if self.checker.is_error(res):
             hint = (
@@ -1117,6 +1135,45 @@ class UnrealCv_API:
         while res is None:
             res = self.client.request(cmd)
         return self.decoder.decode_vertex(res)
+
+    def get_obj_bones(self, obj, bone_names=None, space='component', return_cmd=False):
+        """Get skeletal bone transforms as JSON-compatible dictionaries.
+
+        Args:
+            obj (str): Object name returned by ``vget /objects``.
+            bone_names (str | sequence | None): Optional comma-separated names or sequence.
+            space (str): ``component`` or ``world``.
+            return_cmd (bool): Return the command without executing it.
+
+        Returns:
+            list[dict]: Bone names and transforms.
+        """
+        normalized_space = space.lower()
+        if normalized_space not in ('component', 'world'):
+            raise ValueError("space must be 'component' or 'world'")
+
+        if bone_names is None:
+            bone_arg = None
+        elif isinstance(bone_names, str):
+            bone_arg = bone_names
+        else:
+            bone_arg = ','.join(str(name) for name in bone_names)
+
+        cmd = f'vget /object/{obj}/bones'
+        if bone_arg:
+            cmd += f' {bone_arg}'
+            if normalized_space == 'world':
+                cmd += ' world'
+        elif normalized_space == 'world':
+            cmd += ' world'
+
+        if return_cmd:
+            return cmd
+
+        res = self.client.request(cmd)
+        if self.checker.is_error(res):
+            raise RuntimeError(res)
+        return json.loads(res)
 
     def get_obj_uclass(self, obj, return_cmd=False):
         """
