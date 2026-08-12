@@ -52,6 +52,13 @@ Table of Contents
     contribute
 
 .. toctree::
+    :includehidden:
+    :caption: UnrealCV+
+    :titlesonly:
+
+    unrealcv_plus/index
+
+.. toctree::
     :hidden:
 
     doxygen
