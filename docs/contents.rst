@@ -16,6 +16,7 @@ Table of Contents
     tutorials/python_client
     tutorials/examples
     tutorials/generate_images_tutorial
+    tutorials/faster_rcnn
 
 .. toctree::
     :includehidden:
@@ -57,10 +58,3 @@ Table of Contents
     :titlesonly:
 
     unrealcv_plus/index
-
-.. toctree::
-    :hidden:
-
-    doxygen
-    index1
-    tutorials/faster_rcnn
