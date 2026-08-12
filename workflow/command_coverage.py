@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 
-COMMAND_VERBS = ("vbp ", "vcmd ", "vexec ", "vget ", "vrun ", "vset ")
+COMMAND_VERBS = ("vbp ", "vcmd ", "vexec ", "vget ", "vreflect ", "vrun ", "vset ")
 
 
 def load_schema_commands(schema_path: Path, availability="runtime"):

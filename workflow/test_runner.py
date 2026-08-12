@@ -523,6 +523,63 @@ class UETestRunner:
                 message="Windows shared-memory camera routes are not registered",
             ))
 
+        if not self._cancelled and any(
+            command.startswith("vreflect ") for command in registered_commands
+        ):
+            print("INFO|Test|Running runtime reflection tests")
+            test_start = time.time()
+            try:
+                object_names = client.request("vget /objects").split()
+                if not object_names:
+                    raise RuntimeError("vget /objects returned no reflection target")
+                target = object_names[0]
+
+                functions = json.loads(client.request(f"vreflect {target} functions"))
+                properties = json.loads(client.request(f"vreflect {target} properties"))
+                if not isinstance(functions, list) or not functions:
+                    raise RuntimeError(f"{target}: functions did not return a non-empty JSON list")
+                if not isinstance(properties, list) or not properties:
+                    raise RuntimeError(f"{target}: properties did not return a non-empty JSON list")
+
+                original = json.loads(client.request(f"vreflect {target} get CustomTimeDilation"))
+                if original.get("name") != "CustomTimeDilation" or "value" not in original:
+                    raise RuntimeError(f"{target}: invalid property response {original}")
+                written = json.loads(
+                    client.request(f"vreflect {target} set CustomTimeDilation {original['value']}")
+                )
+                if written.get("value") != original["value"]:
+                    raise RuntimeError(f"{target}: property round trip changed value")
+
+                location = json.loads(
+                    client.request(f"vreflect {target} call_json K2_GetActorLocation {{}}")
+                )
+                return_value = location.get("ReturnValue")
+                if not isinstance(return_value, dict) or not all(
+                    axis in return_value for axis in ("X", "Y", "Z")
+                ):
+                    raise RuntimeError(f"{target}: invalid K2_GetActorLocation result {location}")
+
+                results.append(TestResult(
+                    name="Runtime Reflection",
+                    status=TestStatus.PASSED,
+                    duration=time.time() - test_start,
+                    message=f"Validated functions, properties, get/set, and call_json on {target}",
+                ))
+            except Exception as e:
+                results.append(TestResult(
+                    name="Runtime Reflection",
+                    status=TestStatus.FAILED,
+                    duration=time.time() - test_start,
+                    message=f"Exception: {e}",
+                ))
+        elif not self._cancelled:
+            results.append(TestResult(
+                name="Runtime Reflection",
+                status=TestStatus.SKIPPED,
+                duration=0,
+                message="Runtime reflection routes are not registered",
+            ))
+
         # Latest UnrealCV+ Python API CID smoke tests
         if not self._cancelled and has_registered_route(
             registered_commands, "vget /cameras_CID"

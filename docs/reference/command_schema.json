@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "generated_from": "Source/UnrealCV/Private/**/*.cpp (excluding Tests)",
-  "command_count": 108,
+  "command_count": 119,
   "commands": [
     {
       "command": "vbp [str] [str]",
@@ -9,7 +9,7 @@
       "description": "Run UE5 blueprint function",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 39
+      "line": 71
     },
     {
       "command": "vbp [str] [str] [str]",
@@ -17,7 +17,7 @@
       "description": "Run UE5 blueprint function",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 40
+      "line": 72
     },
     {
       "command": "vbp [str] [str] [str] [str]",
@@ -25,7 +25,7 @@
       "description": "Run UE5 blueprint function",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 41
+      "line": 73
     },
     {
       "command": "vbp [str] [str] [str] [str] [str]",
@@ -33,7 +33,7 @@
       "description": "Run UE5 blueprint function",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 42
+      "line": 74
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str]",
@@ -41,7 +41,7 @@
       "description": "Run UE5 blueprint function",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 43
+      "line": 75
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str] [str]",
@@ -49,7 +49,7 @@
       "description": "Run UE5 blueprint function",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 44
+      "line": 76
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str] [str] [str]",
@@ -57,7 +57,7 @@
       "description": "Run UE5 blueprint function",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 45
+      "line": 77
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str] [str] [str] [str]",
@@ -65,7 +65,7 @@
       "description": "Run UE5 blueprint function",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 46
+      "line": 78
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]",
@@ -73,7 +73,7 @@
       "description": "Run UE5 blueprint function",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 47
+      "line": 79
     },
     {
       "command": "vbp [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]",
@@ -81,7 +81,7 @@
       "description": "Run UE5 blueprint function",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 48
+      "line": 80
     },
     {
       "command": "vcmd [str]",
@@ -89,7 +89,7 @@
       "description": "Run UE5 built-in commands",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 20
+      "line": 52
     },
     {
       "command": "vexec [str] [str]",
@@ -97,7 +97,7 @@
       "description": "Run UE5 blueprint function",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 31
+      "line": 63
     },
     {
       "command": "vexec [str] [str] [str]",
@@ -105,7 +105,7 @@
       "description": "Run UE5 blueprint function",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 32
+      "line": 64
     },
     {
       "command": "vexec [str] [str] [str] [str]",
@@ -113,7 +113,7 @@
       "description": "Run UE5 blueprint function",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 33
+      "line": 65
     },
     {
       "command": "vexec [str] [str] [str] [str] [str]",
@@ -121,7 +121,7 @@
       "description": "Run UE5 blueprint function",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 34
+      "line": 66
     },
     {
       "command": "vexec [str] [str] [str] [str] [str] [str]",
@@ -129,7 +129,7 @@
       "description": "Run UE5 blueprint function",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 35
+      "line": 67
     },
     {
       "command": "vexec [str] [str] [str] [str] [str] [str] [str]",
@@ -137,7 +137,7 @@
       "description": "Run UE5 blueprint function",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 36
+      "line": 68
     },
     {
       "command": "vget /action/game/is_paused",
@@ -401,7 +401,7 @@
       "description": "Get persistent level id, so that we can call BP function defined in it",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 50
+      "line": 97
     },
     {
       "command": "vget /persistent_level/level_script_actor/id",
@@ -409,7 +409,7 @@
       "description": "Get persistent level id, so that we can call BP function defined in it",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 55
+      "line": 101
     },
     {
       "command": "vget /scene/name",
@@ -468,12 +468,100 @@
       "line": 987
     },
     {
+      "command": "vreflect [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 84
+    },
+    {
+      "command": "vreflect [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 85
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 86
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 87
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 88
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 89
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 90
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 91
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 92
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 93
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 95
+    },
+    {
       "command": "vrun [str]",
       "category": "alias",
       "description": "Run UE5 built-in commands",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 21
+      "line": 53
     },
     {
       "command": "vrun [str] [str]",
@@ -481,7 +569,7 @@
       "description": "Run UE5 built-in commands",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 22
+      "line": 54
     },
     {
       "command": "vrun [str] [str] [str]",
@@ -489,7 +577,7 @@
       "description": "Run UE5 built-in commands",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 23
+      "line": 55
     },
     {
       "command": "vrun [str] [str] [str] [str]",
@@ -497,7 +585,7 @@
       "description": "Run UE5 built-in commands",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 24
+      "line": 56
     },
     {
       "command": "vrun [str] [str] [str] [str] [str]",
@@ -505,7 +593,7 @@
       "description": "Run UE5 built-in commands",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 25
+      "line": 57
     },
     {
       "command": "vrun [str] [str] [str] [str] [str] [str]",
@@ -513,7 +601,7 @@
       "description": "Run UE5 built-in commands",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 26
+      "line": 58
     },
     {
       "command": "vset /action/eyes_distance [float]",

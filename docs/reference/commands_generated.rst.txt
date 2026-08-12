@@ -45,91 +45,91 @@ Aliases and engine commands
 
 ``vbp [str] [str]``
     Run UE5 blueprint function
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:39`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:71`
 
 ``vbp [str] [str] [str]``
     Run UE5 blueprint function
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:40`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:72`
 
 ``vbp [str] [str] [str] [str]``
     Run UE5 blueprint function
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:41`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:73`
 
 ``vbp [str] [str] [str] [str] [str]``
     Run UE5 blueprint function
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:42`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:74`
 
 ``vbp [str] [str] [str] [str] [str] [str]``
     Run UE5 blueprint function
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:43`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:75`
 
 ``vbp [str] [str] [str] [str] [str] [str] [str]``
     Run UE5 blueprint function
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:44`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:76`
 
 ``vbp [str] [str] [str] [str] [str] [str] [str] [str]``
     Run UE5 blueprint function
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:45`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:77`
 
 ``vbp [str] [str] [str] [str] [str] [str] [str] [str] [str]``
     Run UE5 blueprint function
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:46`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:78`
 
 ``vbp [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]``
     Run UE5 blueprint function
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:47`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:79`
 
 ``vbp [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]``
     Run UE5 blueprint function
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:48`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:80`
 
 ``vexec [str] [str]``
     Run UE5 blueprint function
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:31`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:63`
 
 ``vexec [str] [str] [str]``
     Run UE5 blueprint function
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:32`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:64`
 
 ``vexec [str] [str] [str] [str]``
     Run UE5 blueprint function
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:33`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:65`
 
 ``vexec [str] [str] [str] [str] [str]``
     Run UE5 blueprint function
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:34`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:66`
 
 ``vexec [str] [str] [str] [str] [str] [str]``
     Run UE5 blueprint function
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:35`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:67`
 
 ``vexec [str] [str] [str] [str] [str] [str] [str]``
     Run UE5 blueprint function
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:36`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:68`
 
 ``vrun [str]``
     Run UE5 built-in commands
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:21`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:53`
 
 ``vrun [str] [str]``
     Run UE5 built-in commands
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:22`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:54`
 
 ``vrun [str] [str] [str]``
     Run UE5 built-in commands
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:23`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:55`
 
 ``vrun [str] [str] [str] [str]``
     Run UE5 built-in commands
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:24`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:56`
 
 ``vrun [str] [str] [str] [str] [str]``
     Run UE5 built-in commands
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:25`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:57`
 
 ``vrun [str] [str] [str] [str] [str] [str]``
     Run UE5 built-in commands
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:26`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:58`
 
 Camera
 ~~~~~~
@@ -285,7 +285,51 @@ Miscellaneous
 
 ``vcmd [str]``
     Run UE5 built-in commands
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:20`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:52`
+
+``vreflect [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:84`
+
+``vreflect [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:85`
+
+``vreflect [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:86`
+
+``vreflect [str] [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:87`
+
+``vreflect [str] [str] [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:88`
+
+``vreflect [str] [str] [str] [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:89`
+
+``vreflect [str] [str] [str] [str] [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:90`
+
+``vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:91`
+
+``vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:92`
+
+``vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:93`
+
+``vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:95`
 
 Object
 ~~~~~~
@@ -430,11 +474,11 @@ Persistent level
 
 ``vget /persistent_level/id``
     Get persistent level id, so that we can call BP function defined in it
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:50`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:97`
 
 ``vget /persistent_level/level_script_actor/id``
     Get persistent level id, so that we can call BP function defined in it
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:55`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:101`
 
 Scene
 ~~~~~

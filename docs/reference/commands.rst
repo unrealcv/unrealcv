@@ -264,7 +264,35 @@ A few examples are:
 
 Note that the Blueprint function name is case sensitive, depending on how it is defined in the Blueprint editor.
 
-7. Complete registered command index
+7. Runtime reflection
+---------------------
+
+``vreflect`` exposes selected Unreal reflection operations through the UnrealCV command channel.
+
+vreflect [obj_name] functions
+    List reflected functions on an object as JSON.
+
+vreflect [obj_name] properties
+    List reflected properties on an object as JSON.
+
+vreflect [obj_name] get [property_path]
+    Read a property by name or dotted path and return its type and value as JSON.
+
+vreflect [obj_name] set [property_path] [value]
+    Set a property using Unreal text import syntax and return the updated value.
+
+vreflect [obj_name] call_json [function_name] [json_args]
+    Call a reflected function with a JSON object keyed by parameter name and return output parameters as JSON.
+
+Prefix the target with ``class:`` or ``cdo:`` to address a class default object. Examples:
+
+- :code:`vreflect BP_Player_C_0 get RootComponent.RelativeLocation`
+- :code:`vreflect BP_Player_C_0 set RootComponent.RelativeLocation "(X=100,Y=200,Z=300)"`
+- :code:`vreflect class:KismetMathLibrary call_json Add_IntInt {"A":2,"B":3}`
+
+Only expose UnrealCV to trusted clients. Reflection can read and mutate runtime state and invoke reflected functions.
+
+8. Complete registered command index
 ------------------------------------
 
 The following generated index is synchronized with every production ``BindCommand`` registration. It supplements the hand-written explanations above and is the authoritative list for the current branch.
