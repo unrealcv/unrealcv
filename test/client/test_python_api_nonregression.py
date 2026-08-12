@@ -1,5 +1,6 @@
 import io
 import struct
+import warnings
 
 import numpy as np
 import pytest
@@ -305,6 +306,124 @@ def test_client_request_returns_none_when_send_fails(monkeypatch):
         client.request("vget /camera/0/location")
 
 
+def test_client_loads_command_capabilities_from_server(monkeypatch):
+    client = Client(("localhost", 1))
+    monkeypatch.setattr(
+        client,
+        "_request_without_capability_check",
+        lambda message, timeout=5: (
+            "vget /camera/[uint]/location\n"
+            "vget /unrealcv/commands\n"
+            "vset /camera/[uint]/location [float] [float] [float]"
+        ),
+    )
+
+    client._load_command_capabilities()
+
+    assert client._command_capabilities_available is True
+    assert client._supported_command_templates == (
+        "vget /camera/[uint]/location",
+        "vget /unrealcv/commands",
+        "vset /camera/[uint]/location [float] [float] [float]",
+    )
+
+
+def test_client_warns_once_when_server_is_too_old_for_capability_detection(
+    monkeypatch,
+):
+    client = Client(("localhost", 1))
+    monkeypatch.setattr(
+        client,
+        "_request_without_capability_check",
+        lambda message, timeout=5: "error No handler found for URI",
+    )
+
+    with pytest.warns(UserWarning, match=r"1\.1\.0 or newer") as captured:
+        client._load_command_capabilities()
+        client._load_command_capabilities()
+
+    assert len(captured) == 1
+    assert client._command_capabilities_available is False
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "vget   /camera/0/location",
+        "vset /camera/0/location 1.0 -2 3.5",
+    ],
+    ids=["whitespace-insensitive", "path-and-value-placeholders"],
+)
+def test_client_supported_command_templates_match_arguments_without_warning(
+    monkeypatch, message
+):
+    client = Client(("localhost", 1))
+    client._supported_command_templates = (
+        "vget /camera/[uint]/location",
+        "vset /camera/[uint]/location [float] [float] [float]",
+    )
+    client._command_capabilities_available = True
+    monkeypatch.setattr(client, "send", lambda _message: True)
+    client.recv_data_q.put("ok")
+
+    with warnings.catch_warnings(record=True) as captured:
+        warnings.simplefilter("always")
+        assert client.request(message) == "ok"
+
+    assert len(captured) == 0
+
+
+def test_client_warns_for_unknown_command_but_still_returns_server_response(
+    monkeypatch,
+):
+    client = Client(("localhost", 1))
+    client._supported_command_templates = ("vget /camera/[uint]/location",)
+    client._command_capabilities_available = True
+    sent_messages = []
+    monkeypatch.setattr(client, "send", lambda message: sent_messages.append(message) or True)
+    client.recv_data_q.put("server accepted it")
+
+    with pytest.warns(UserWarning, match="may not support command"):
+        response = client.request("vget /custom/extension 123")
+
+    assert response == "server accepted it"
+    assert sent_messages == [b"0:vget /custom/extension 123"]
+
+
+def test_client_batch_warns_for_only_unknown_commands_and_sends_all(monkeypatch):
+    client = Client(("localhost", 1))
+    client._supported_command_templates = ("vget /camera/[uint]/location",)
+    client._command_capabilities_available = True
+    sent_messages = []
+    monkeypatch.setattr(client, "send", lambda message: sent_messages.append(message) or True)
+    client.recv_data_q.put("known")
+    client.recv_data_q.put("unknown but accepted")
+
+    with pytest.warns(UserWarning, match="vget /custom/extension") as captured:
+        response = client.request_batch(
+            ["vget /camera/0/location", "vget /custom/extension"]
+        )
+
+    assert len(captured) == 1
+    assert response == ["known", "unknown but accepted"]
+    assert sent_messages == [
+        b"0:vget /camera/0/location",
+        b"1:vget /custom/extension",
+    ]
+
+
+def test_client_skips_capability_warning_when_detection_is_unavailable(monkeypatch):
+    client = Client(("localhost", 1))
+    monkeypatch.setattr(client, "send", lambda _message: True)
+    client.recv_data_q.put("ok")
+
+    with warnings.catch_warnings(record=True) as captured:
+        warnings.simplefilter("always")
+        assert client.request("vget /unknown/command") == "ok"
+
+    assert len(captured) == 0
+
+
 def test_client_request_list_delegates_to_request_batch(monkeypatch):
     client = Client(("localhost", 1))
     calls = {}
@@ -553,6 +672,7 @@ def test_connect_success_sets_socket_and_starts_receive_thread(
     monkeypatch.setattr("unrealcv.threading.Thread", fake_thread_factory)
 
     client = Client(("localhost", 1))
+    monkeypatch.setattr(client, "_load_command_capabilities", lambda: None)
     connected = client.connect()
 
     assert connected is True
@@ -560,6 +680,42 @@ def test_connect_success_sets_socket_and_starts_receive_thread(
     assert len(created_threads) == 1
     assert created_threads[0].target == client.receive_loop_queue
     assert created_threads[0].started is True
+
+
+def test_connect_loads_command_capabilities_only_for_initial_connection(
+    monkeypatch, fake_socket_factory
+):
+    class _FakeThread:
+        def __init__(self, target, daemon):
+            self.started = False
+
+        def start(self):
+            self.started = True
+
+        def is_alive(self):
+            return self.started
+
+    fake_socket = fake_socket_factory()
+    monkeypatch.setattr("unrealcv.socket.socket", lambda *_args, **_kwargs: fake_socket)
+    monkeypatch.setattr(
+        "unrealcv.SocketMessage.ReceivePayload", lambda _sock: b"connected to test"
+    )
+    monkeypatch.setattr("unrealcv.threading.Thread", _FakeThread)
+
+    client = Client(("localhost", 1))
+    capability_loads = []
+
+    def fake_load_capabilities():
+        capability_loads.append(True)
+        client._command_capabilities_checked = True
+
+    monkeypatch.setattr(client, "_load_command_capabilities", fake_load_capabilities)
+
+    assert client.connect() is True
+    client.sock = None
+    assert client.connect(start_receive_thread=False) is True
+
+    assert capability_loads == [True]
 
 
 def test_connect_with_unsupported_socket_type_returns_false():

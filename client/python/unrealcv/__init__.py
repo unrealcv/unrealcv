@@ -7,6 +7,7 @@ import sys
 import threading
 import time
 import os
+import warnings
 from .api import *
 from .automation import *
 from .groom_wind import *
@@ -148,6 +149,109 @@ class Client:
         self.recv_num_q = SimpleQueue()  # inf
         self.recv_data_q = SimpleQueue()  # inf
         self.type = type
+        self._supported_command_templates = None
+        self._command_capabilities_available = False
+        self._command_capabilities_checked = False
+        self._capability_warning_emitted = False
+
+    @staticmethod
+    def _normalize_command_whitespace(command):
+        if isinstance(command, bytes):
+            command = command.decode('utf-8', errors='replace')
+        return ' '.join(str(command).split())
+
+    @classmethod
+    def _matches_command_template(cls, command, template):
+        command = cls._normalize_command_whitespace(command)
+        template = cls._normalize_command_whitespace(template)
+        if not command or not template:
+            return False
+
+        pattern_parts = []
+        position = 0
+        for placeholder in re.finditer(r'\[[^\[\]]+\]', template):
+            literal = template[position : placeholder.start()]
+            pattern_parts.append(re.escape(literal).replace(r'\ ', r'\s+'))
+            pattern_parts.append(r'\S*')
+            position = placeholder.end()
+        literal = template[position:]
+        pattern_parts.append(re.escape(literal).replace(r'\ ', r'\s+'))
+        return re.fullmatch(''.join(pattern_parts), command) is not None
+
+    def _warn_if_command_maybe_unsupported(self, message):
+        if not self._command_capabilities_available:
+            return
+        if any(
+            self._matches_command_template(message, template)
+            for template in self._supported_command_templates
+        ):
+            return
+
+        normalized = self._normalize_command_whitespace(message)
+        warnings.warn(
+            f"The connected UnrealCV server may not support command '{normalized}'. "
+            'The request will still be sent.',
+            UserWarning,
+            stacklevel=3,
+        )
+
+    def _warn_command_capabilities_unavailable(self):
+        if self._capability_warning_emitted:
+            return
+        warnings.warn(
+            'The connected UnrealCV server is too old to report its supported commands. '
+            'Command capability detection requires UnrealCV server 1.1.0 or newer; '
+            'requests will continue without capability checks.',
+            UserWarning,
+            stacklevel=3,
+        )
+        self._capability_warning_emitted = True
+
+    def _load_command_capabilities(self):
+        self._command_capabilities_checked = True
+        try:
+            response = self._request_without_capability_check(
+                'vget /unrealcv/commands', timeout=5
+            )
+        except (ConnectionError, TimeoutError):
+            self._warn_command_capabilities_unavailable()
+            return
+
+        if isinstance(response, bytes):
+            response = response.decode('utf-8', errors='replace')
+        if not isinstance(response, str) or response.lstrip().lower().startswith('error'):
+            self._warn_command_capabilities_unavailable()
+            return
+
+        templates = tuple(
+            self._normalize_command_whitespace(line)
+            for line in response.splitlines()
+            if self._normalize_command_whitespace(line)
+        )
+        if not templates or 'vget /unrealcv/commands' not in templates:
+            self._warn_command_capabilities_unavailable()
+            return
+
+        self._supported_command_templates = templates
+        self._command_capabilities_available = True
+
+    def _request_without_capability_check(self, message, timeout=5):
+        if not isinstance(message, bytes):
+            message = message.encode('utf-8')
+
+        raw_message = b'%d:%s' % (self.send_message_id, message)
+        if not self.send(raw_message):
+            raise ConnectionError('Failed to send: socket is closed')
+
+        self.send_message_id += 1
+        self.recv_num_q.put(-1)
+        try:
+            response = self.recv_data_q.get(timeout=timeout)
+        except Empty as exception:
+            raise TimeoutError(f'Request timed out after {timeout} seconds') from exception
+        if isinstance(response, Exception):
+            raise response
+        return response
 
     def send(self, message):
         """Send message out, return whether the message was successfully sent"""
@@ -215,6 +319,9 @@ class Client:
                     ):
                         self.t = threading.Thread(target=self.receive_loop_queue, daemon=True)
                         self.t.start()
+
+                    if start_receive_thread and not self._command_capabilities_checked:
+                        self._load_command_capabilities()
 
                     return True
 
@@ -342,6 +449,8 @@ class Client:
         if isinstance(message, list):
             return self.request_batch_async(message)
 
+        self._warn_if_command_maybe_unsupported(message)
+
         if not isinstance(message, bytes):
             message = message.encode('utf-8')
 
@@ -367,6 +476,7 @@ class Client:
         None
         """
         for message in batch:
+            self._warn_if_command_maybe_unsupported(message)
             if not isinstance(message, bytes):
                 message = message.encode('utf-8')
 
@@ -397,6 +507,7 @@ class Client:
         ['100.0 -100.0 100.0', '0.0 0.0 0.0']
         """
         for message in batch:
+            self._warn_if_command_maybe_unsupported(message)
             if not isinstance(message, bytes):
                 message = message.encode('utf-8')
 
@@ -456,26 +567,8 @@ class Client:
         if isinstance(message, list):
             return self.request_batch(message)
 
-        if not isinstance(message, bytes):
-            message = message.encode('utf-8')
-
-        raw_message = b'%d:%s' % (self.send_message_id, message)
-        # _L.debug('Request: %s', raw_message.decode("utf-8"))
-        if not self.send(raw_message):
-            raise ConnectionError('Failed to send: socket is closed')
-            # return None
-
-        self.send_message_id += 1
-
-        self.recv_num_q.put(-1)  # negative number indicates need results
-        try:
-            message = self.recv_data_q.get(timeout=timeout)
-        except Empty as exception:
-            raise TimeoutError(f'Request timed out after {timeout} seconds') from exception
-        if isinstance(message, Exception):
-            raise message
-
-        return message
+        self._warn_if_command_maybe_unsupported(message)
+        return self._request_without_capability_check(message, timeout=timeout)
 
 # To use IPC on Unix, set this path to: /tmp/unrealcv_{portnum}.socket
 # Your executable will create this file on startup.

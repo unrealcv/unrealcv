@@ -311,6 +311,7 @@ def test_connect_success_sets_socket_and_starts_receive_thread(
     monkeypatch.setattr("unrealcv.threading.Thread", fake_thread_factory)
 
     client = _new_client()
+    monkeypatch.setattr(client, "_load_command_capabilities", lambda: None)
     connected = client.connect()
 
     assert connected is True
@@ -337,6 +338,7 @@ def test_connect_with_alive_receive_thread_does_not_spawn_another(
 
     client = _new_client()
     client.t = _AliveThread()
+    monkeypatch.setattr(client, "_load_command_capabilities", lambda: None)
 
     connected = client.connect()
 
