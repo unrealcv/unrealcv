@@ -280,6 +280,56 @@ class UnrealCv_API:
             cv2.imshow('image', depth/depth.max())  # normalize the depth image
             cv2.waitKey(10)
         return depth
+
+    def get_scene_occupancy(self, profile='lingo_vis', origin_cm=None,
+                            yaw_degrees=0.0, include_dynamic=False, method='bounds'):
+        """Return a scene occupancy grid from an extended UnrealCV server."""
+        cmd = self._build_scene_occupancy_command(
+            'vget /scene/occupancy', profile, method, origin_cm,
+            yaw_degrees, include_dynamic
+        )
+        payload = self._request_unrealcv_plus(cmd, 120)
+        if not isinstance(payload, (bytes, bytearray, memoryview)):
+            raise RuntimeError(f'Occupancy command did not return binary NPY data: {payload}')
+        return np.load(BytesIO(bytes(payload)), allow_pickle=False)
+
+    def save_scene_occupancy(self, path, profile='lingo_vis', origin_cm=None,
+                             yaw_degrees=0.0, include_dynamic=False, method='bounds'):
+        """Build and save a scene occupancy grid on an extended UnrealCV server."""
+        cmd = self._build_scene_occupancy_command(
+            f'vset /scene/occupancy/save {path}', profile, method, origin_cm,
+            yaw_degrees, include_dynamic
+        )
+        return self._request_unrealcv_plus(cmd, 120)
+
+    def get_scene_occupancy_spec(self, profile='lingo_vis', method='bounds'):
+        """Return the selected scene occupancy grid contract as decoded JSON."""
+        payload = self._request_unrealcv_plus(
+            f'vget /scene/occupancy/spec {profile} {method}'
+        )
+        if not isinstance(payload, str):
+            raise RuntimeError(f'Occupancy spec did not return JSON text: {payload}')
+        return json.loads(payload)
+
+    @staticmethod
+    def _build_scene_occupancy_command(prefix, profile, method, origin_cm,
+                                       yaw_degrees, include_dynamic):
+        if origin_cm is None and not yaw_degrees and not include_dynamic:
+            return f'{prefix} {profile} {method}'
+        if origin_cm is None:
+            origin_cm = (0.0, 0.0, 0.0)
+        if not hasattr(origin_cm, '__len__') or len(origin_cm) != 3:
+            raise ValueError('origin_cm must contain exactly three values')
+        try:
+            origin = [float(value) for value in origin_cm]
+            yaw = float(yaw_degrees)
+        except (TypeError, ValueError) as exc:
+            raise ValueError('origin_cm and yaw_degrees must be numeric') from exc
+        dynamic = 1 if include_dynamic else 0
+        return (
+            f'{prefix} {profile} {method} '
+            f'{origin[0]} {origin[1]} {origin[2]} {yaw} {dynamic}'
+        )
     
     def get_optical_flow(self, cam_id, return_cmd=False, show=False):
         cmd = f'vget /camera/{cam_id}/optical_flow bmp'
@@ -1650,7 +1700,7 @@ class UnrealCv_API:
             raise ValueError(res)
         return res
 
-    def capture_panoramic(self, cam_id, path, width=None, height=None, return_cmd=False):
+    def capture_panoramic(self, cam_id, path, width=None, height=None, return_cmd=False, timeout=5):
         """
         Capture a panoramic equirectangular image to file.
         """
@@ -1661,8 +1711,43 @@ class UnrealCv_API:
             cmd += f' {width} {height}'
         if return_cmd:
             return cmd
-        res = self._request_unrealcv_plus(cmd)
-        if res.startswith("error"):
+        res = self._request_unrealcv_plus(cmd, timeout)
+        if timeout >= 0 and isinstance(res, str) and res.startswith("error"):
+            raise ValueError(res)
+        return res
+
+    def capture_panoramic_normal(self, cam_id, path, width=None, height=None,
+                                 return_cmd=False, timeout=5):
+        """Capture a panoramic world-normal image to a server-side file."""
+        return self._capture_panoramic_modality(
+            cam_id, 'normal', path, width, height, return_cmd, timeout
+        )
+
+    def capture_panoramic_mask(self, cam_id, path, width=None, height=None,
+                               return_cmd=False, timeout=5):
+        """Capture a panoramic object-mask image to a server-side file."""
+        return self._capture_panoramic_modality(
+            cam_id, 'mask', path, width, height, return_cmd, timeout
+        )
+
+    def capture_panoramic_depth(self, cam_id, path, width=None, height=None,
+                                return_cmd=False, timeout=5):
+        """Capture a panoramic depth preview image to a server-side file."""
+        return self._capture_panoramic_modality(
+            cam_id, 'depth', path, width, height, return_cmd, timeout
+        )
+
+    def _capture_panoramic_modality(self, cam_id, modality, path, width, height,
+                                    return_cmd, timeout):
+        if (width is None) != (height is None):
+            raise ValueError("width and height must be provided together")
+        cmd = f'vget /camera/{cam_id}/panoramic/{modality} {path}'
+        if width is not None and height is not None:
+            cmd += f' {width} {height}'
+        if return_cmd:
+            return cmd
+        res = self._request_unrealcv_plus(cmd, timeout)
+        if timeout >= 0 and isinstance(res, str) and res.startswith("error"):
             raise ValueError(res)
         return res
 

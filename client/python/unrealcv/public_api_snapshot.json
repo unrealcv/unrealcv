@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "source": "ast-static-analysis",
-  "symbol_count": 174,
+  "symbol_count": 181,
   "symbols": [
     "Client",
     "Client.connect",
@@ -76,6 +76,9 @@
     "UnrealCv_API.build_pose_dic",
     "UnrealCv_API.camera_info",
     "UnrealCv_API.capture_panoramic",
+    "UnrealCv_API.capture_panoramic_depth",
+    "UnrealCv_API.capture_panoramic_mask",
+    "UnrealCv_API.capture_panoramic_normal",
     "UnrealCv_API.check_connection",
     "UnrealCv_API.clear_annotation_cache",
     "UnrealCv_API.clear_world_annotation",
@@ -122,6 +125,8 @@
     "UnrealCv_API.get_record_add_timestamp",
     "UnrealCv_API.get_record_via_viewport",
     "UnrealCv_API.get_recording_paused",
+    "UnrealCv_API.get_scene_occupancy",
+    "UnrealCv_API.get_scene_occupancy_spec",
     "UnrealCv_API.get_use_movie_quality_rendering",
     "UnrealCv_API.get_vertex_locations",
     "UnrealCv_API.get_warmup_frames",
@@ -136,6 +141,7 @@
     "UnrealCv_API.register_camera",
     "UnrealCv_API.register_pak_assets",
     "UnrealCv_API.save_image",
+    "UnrealCv_API.save_scene_occupancy",
     "UnrealCv_API.scan_pak_assets",
     "UnrealCv_API.set_annotation_cache_enabled",
     "UnrealCv_API.set_cam_fov",
@@ -175,6 +181,7 @@
     "WindowsBinary",
     "WindowsBinary.close",
     "WindowsBinary.start",
+    "build_keyframe_groom_wind_json",
     "get_platform_name",
     "get_plugin_version"
   ]

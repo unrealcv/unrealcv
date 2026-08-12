@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Set
 
 
-MODULES = ["api.py", "automation.py", "launcher.py"]
+MODULES = ["api.py", "automation.py", "groom_wind.py", "launcher.py"]
 
 
 def _collect_public_names(path: Path) -> Set[str]:

@@ -9,12 +9,14 @@ import time
 import os
 from .api import *
 from .automation import *
+from .groom_wind import *
 from .launcher import *
 from queue import Empty, SimpleQueue
 
 __all__ = [
     "Client",
     "SocketMessage",
+    "build_keyframe_groom_wind_json",
     "__version__",
 ]
 
