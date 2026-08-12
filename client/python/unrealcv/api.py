@@ -1027,7 +1027,7 @@ class UnrealCv_API:
         Args:
             class_name (str): The class name of the object.
             obj_name (str): The object name.
-            location (sequence | None): Optional world location ``[x, y, z]``.
+            location (list | tuple | None): Optional world location ``[x, y, z]``.
             return_cmd (bool): Return the command without executing it.
 
         Returns:
@@ -1141,7 +1141,7 @@ class UnrealCv_API:
 
         Args:
             obj (str): Object name returned by ``vget /objects``.
-            bone_names (str | sequence | None): Optional comma-separated names or sequence.
+            bone_names (str | list | tuple | None): Optional comma-separated names or a name collection.
             space (str): ``component`` or ``world``.
             return_cmd (bool): Return the command without executing it.
 
@@ -1985,12 +1985,12 @@ class MsgDecoder:
         Note: The depth image should use the 'npy' mode to decode.
         """
         if mode == 'png':
-            img = self.decode_png(res)
+            return self.decode_png(res)
         if mode == 'bmp':
-            img = self.decode_bmp(res)
+            return self.decode_bmp(res)
         if mode == 'npy':
-            img = self.decode_depth(res, inverse)
-        return img
+            return self.decode_depth(res, inverse)
+        raise ValueError(f"Unknown image mode '{mode}', expected 'png', 'bmp', or 'npy'")
 
     def decode_png(self, res):
         """

@@ -33,28 +33,28 @@ void FUnrealCVPlugin::StartupModule()
 	FServerConfig& Config = Server.GetMutableConfig();
 
 	int32 OverridePort = Config.Port;
-	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVPort"), OverridePort))
+	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVPort="), OverridePort))
 	{
 		UE_LOG(LogUnrealCV, Warning, TEXT("Overriding listening port to %d"), OverridePort);
 		Config.Port = OverridePort;
 	}
 
 	int32 OverrideWidth = Config.Width;
-	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVWidth"), OverrideWidth))
+	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVWidth="), OverrideWidth))
 	{
 		UE_LOG(LogUnrealCV, Warning, TEXT("Overriding width to %d"), OverrideWidth);
 		Config.Width = OverrideWidth;
 	}
 
 	int32 OverrideHeight = Config.Height;
-	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVHeight"), OverrideHeight))
+	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVHeight="), OverrideHeight))
 	{
 		UE_LOG(LogUnrealCV, Warning, TEXT("Overriding height to %d"), OverrideHeight);
 		Config.Height = OverrideHeight;
 	}
 
 	float OverrideFOV = Config.FOV;
-	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVFOV"), OverrideFOV))
+	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVFOV="), OverrideFOV))
 	{
 		UE_LOG(LogUnrealCV, Warning, TEXT("Overriding FOV to %f"), OverrideFOV);
 		Config.FOV = OverrideFOV;

@@ -53,7 +53,7 @@ for obj in objects:
 
 # Annotation helpers and asset-path spawning
 api.annotate_world()
-spawned = api.spawn_object_from_path('/Game/MetaHumans/Taro/BP_Taro.BP_Taro', 'SpawnedFromPath')
+spawned = api.spawn_object_from_path('/Engine/BasicShapes/Cube.Cube', 'SpawnedFromPath')
 api.clear_world_annotation()
 ```
 

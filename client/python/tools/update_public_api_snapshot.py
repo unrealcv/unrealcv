@@ -13,9 +13,14 @@ def _collect_public_names_from_module(path: Path) -> Set[str]:
     tree = ast.parse(path.read_text(encoding="utf-8", errors="ignore"), filename=str(path))
     exported: Set[str] = set()
     for node in tree.body:
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             if not node.name.startswith("_"):
                 exported.add(node.name)
+        elif isinstance(node, ast.ClassDef) and not node.name.startswith("_"):
+            exported.add(node.name)
+            for member in node.body:
+                if isinstance(member, (ast.FunctionDef, ast.AsyncFunctionDef)) and not member.name.startswith("_"):
+                    exported.add(f"{node.name}.{member.name}")
         elif isinstance(node, ast.Assign):
             for target in node.targets:
                 if isinstance(target, ast.Name) and not target.id.startswith("_"):
@@ -36,7 +41,7 @@ def build_snapshot(repo_root: Path) -> Dict[str, Any]:
     names.difference_update(EXCLUDED_SYMBOLS)
 
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "source": "ast-static-analysis",
         "symbol_count": len(names),
         "symbols": sorted(names),

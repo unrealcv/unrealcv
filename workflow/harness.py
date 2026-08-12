@@ -110,7 +110,10 @@ class DebugHarness:
         self._current_phase = "build"
         self._print_header("PHASE 1: BUILD")
 
-        result = self.builder.build(clean=clean)
+        result = self.builder.build(
+            target=f"{self.config.project_path.stem}Editor",
+            clean=clean,
+        )
         self._results['build'] = result
 
         if result.status == BuildStatus.SUCCESS:
@@ -135,7 +138,8 @@ class DebugHarness:
         self._current_phase = "launch"
         self._print_header("PHASE 2: LAUNCH")
 
-        self._print_status(f"Executable: {self.config.exe_path}")
+        launch_executable = self.config.editor_exe_path or self.config.exe_path
+        self._print_status(f"Executable: {launch_executable}")
 
         launch_args = []
         if headless:
@@ -169,12 +173,18 @@ class DebugHarness:
         self._results['basic_tests'] = result
 
         for test in result.results:
-            status_text = "PASS" if test.status == TestStatus.PASSED else "FAIL"
+            if test.status == TestStatus.PASSED:
+                status_text = "PASS"
+            elif test.status == TestStatus.SKIPPED:
+                status_text = "SKIP"
+            else:
+                status_text = "FAIL"
             print(f"{status_text}|{test.name}|{test.duration:.2f}s")
             if test.status == TestStatus.FAILED and test.message:
                 print(f"ERROR|{test.name}|{test.message}")
 
-        print(f"SUMMARY|{result.passed}/{result.total_tests} passed")
+        skipped = sum(1 for test in result.results if test.status == TestStatus.SKIPPED)
+        print(f"SUMMARY|{result.passed} passed, {skipped} skipped, {result.failed} failed")
 
         if result.overall_status == TestStatus.PASSED:
             self._print_status("All basic tests passed", "success")
@@ -197,14 +207,15 @@ class DebugHarness:
                 self.shutdown()
                 return False
             
-            self.phase_test()
+            test_success = self.phase_test()
             time.sleep(2.0)
-            self.test_runner.stop_game()
+            if not args.no_cleanup:
+                self.test_runner.stop_game()
 
             total_duration = time.time() - overall_start
             self._print_header(f"WORKFLOW COMPLETE|{total_duration:.1f}s")
 
-            return True
+            return test_success
 
         except Exception as e:
             self._print_status(f"Workflow error: {e}", "error")

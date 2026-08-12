@@ -133,8 +133,10 @@ vset /objects/spawn [class_name] [obj_name]
     - :code:`vset /objects/spawn StereoCameraActor StereoCam_1` - create a new stereo camera named StereoCam_1
 
 vset /objects/spawn [class_name] [x] [y] [z]
+    (5.2+) Spawn an object at a world-space location.
+
 vset /objects/spawn [class_name] [obj_name] [x] [y] [z]
-    (5.2+) Spawn an object at an optional world-space location. The same coordinate forms are available for :code:`vset /objects/spawn_cube`.
+    (5.2+) Spawn a named object at a world-space location. The same coordinate forms are available for :code:`vset /objects/spawn_cube`.
 
 vset /object/[obj_name]/destroy
     (v0.4.0) Destroy object
@@ -161,7 +163,11 @@ vget /object/[obj_name]/vertex_location
     (v0.4.0) Get the vertex location of an object
 
 vget /object/[obj_name]/bones
+    (5.2+) Return all bone transforms in component space.
+
 vget /object/[obj_name]/bones [component|world]
+    (5.2+) Return all bone transforms in the selected coordinate space.
+
 vget /object/[obj_name]/bones [bone_1,bone_2,...] [component|world]
     (5.2+) Return skeletal or poseable mesh bone transforms as JSON. The default is all bones in component space. This command provides world-space bone locations for pose and keypoint workflows. If an actor has multiple eligible mesh components, only the first poseable mesh component, or otherwise the first skeletal mesh component, is queried.
 
@@ -238,3 +244,10 @@ A few examples are:
  - :code:`vbp BP_Player_C SetActorLocation 100 200 300` - Set the location of the player
 
 Note that the Blueprint function name is case sensitive, depending on how it is defined in the Blueprint editor.
+
+7. Complete registered command index
+------------------------------------
+
+The following generated index is synchronized with every production ``BindCommand`` registration. It supplements the hand-written explanations above and is the authoritative list for the current branch.
+
+.. include:: commands_generated.rst.txt

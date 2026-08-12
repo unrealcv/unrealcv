@@ -36,6 +36,7 @@ docs/doxygen/
 !*.cpp
 !*.h
 !*.rst
+!*.rst.txt
 !*.md
 !*.json
 !*.ini
