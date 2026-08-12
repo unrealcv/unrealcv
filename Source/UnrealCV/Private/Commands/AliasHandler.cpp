@@ -18,6 +18,7 @@ void FAliasHandler::RegisterCommands()
 	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasHandler::VRun);
 	Help = TEXT("Run UE5 built-in commands");
 	CommandDispatcher->BindCommand("vcmd [str]", Cmd, Help);
+	CommandDispatcher->BindCommand("vrun [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vrun [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vrun [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vrun [str] [str] [str] [str]", Cmd, Help);

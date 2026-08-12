@@ -34,6 +34,7 @@ public class UnrealcvBuildConfig
 			"Core",
 			"CoreUObject",
 			"Engine",
+			"EngineSettings",
 			"InputCore",
 			"RenderCore",
 			"Networking",

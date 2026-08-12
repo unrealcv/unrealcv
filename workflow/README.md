@@ -4,7 +4,7 @@ A comprehensive debugging workflow system for UnrealCV plugin development with C
 
 ## Overview
 
-This harness provides a **closed-loop, feedback-driven workflow** for building, testing, and debugging UnrealCV:
+This harness provides a **closed-loop, feedback-driven workflow** for building, testing, and debugging UnrealCV. Source-project tests build the project Editor target and launch ``UnrealEditor <project> -game`` so uncooked content and shader libraries are available.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -98,6 +98,8 @@ python harness.py test --pytest
 # Test existing server (skip launch)
 python harness.py test --skip-launch
 ```
+
+The basic suite first compares every production C++ ``BindCommand`` registration in ``docs/reference/command_schema.json`` with the live ``vget /unrealcv/help`` response. This provides full command-registration coverage before the suite runs scene-dependent API and image-capture behavior checks. Runtime-only actor commands may appear as additional entries and are reported without failing the schema contract. Optional UnrealCV+ behavior tests are capability-gated from the live registry: they run when their routes are present and are reported as skipped for a base UnrealCV server.
 
 ### `logs` - Log Monitoring
 

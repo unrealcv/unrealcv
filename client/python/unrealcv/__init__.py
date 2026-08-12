@@ -10,7 +10,7 @@ import os
 from .api import *
 from .automation import *
 from .launcher import *
-from queue import SimpleQueue
+from queue import Empty, SimpleQueue
 
 __all__ = [
     "Client",
@@ -44,27 +44,26 @@ class SocketMessage:
         self.payload_size = ctypes.c_uint32(len(payload)).value
 
     @classmethod
+    def _recv_exact(cls, sock, nbytes):
+        chunks = []
+        remaining = nbytes
+        while remaining:
+            chunk = sock.recv(remaining)
+            if not chunk:
+                return None
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        return b''.join(chunks)
+
+    @classmethod
     def ReceivePayload(cls, sock):
         """
         Return only payload, not the raw message, None if failed.
         sock: a blocking socket for read data.
         """
-        # print(sock.gettimeout())
-        # rbufsize = -1 # From SocketServer.py
-        # rbufsize = 0
-        # rfile = sock.makefile('rb', rbufsize)
         try:
-            # raw_magic = rfile.read(4) # socket is disconnected or invalid
-            raw_magic = b''
-            while len(raw_magic) < 4:
-                recv_data = sock.recv(4)
-                if not recv_data:
-                    # socket closed by server
-                    print('Warning: socket disconnected by server')
-                    break
-                raw_magic += recv_data
+            raw_magic = cls._recv_exact(sock, 4)
         except Exception as e:
-            print(f'fail to read raw_magic, exception: {e}')
             _L.debug('Fail to read raw_magic, exception: "%s"', e)
             raw_magic = None
 
@@ -84,33 +83,11 @@ class SocketMessage:
             return None
             # The next time it will read four bytes again
 
-        # _L.debug('read payload')
-        # raw_payload_size = rfile.read(4)
-        raw_payload_size = sock.recv(4)
+        raw_payload_size = cls._recv_exact(sock, 4)
         if not raw_payload_size:
-            print('Warning: socket disconnected by server')
             return None
-        # print 'Receive raw payload size: %d, %s' % (len(raw_payload_size), raw_payload_size)
         payload_size = struct.unpack('I', raw_payload_size)[0]
-        # _L.debug('Receive payload size %d', payload_size)
-
-        # if the message is incomplete, should wait until all the data received
-        payload = b''
-        remain_size = payload_size
-        while remain_size > 0:
-            # data = rfile.read(remain_size)
-            data = sock.recv(remain_size)
-            if not data:
-                print('recv data is None!')
-                return None
-
-            payload += data
-            bytes_read = len(data)  # len(data) is its string length, but we want length of bytes
-            # print 'bytes_read %d, remain_size %d, read_str %s' % (bytes_read, remain_size, data)
-            assert bytes_read <= remain_size
-            remain_size -= bytes_read
-
-        return payload
+        return cls._recv_exact(sock, payload_size)
 
     @classmethod
     def WrapAndSendPayload(cls, sock, payload):
@@ -118,24 +95,13 @@ class SocketMessage:
         Send payload, true if success, false if failed
         """
         try:
-            # From SocketServer.py
-            # wbufsize = 0, flush immediately
-            wbufsize = -1
-            # Convert
             socket_message = SocketMessage(payload)
-            wfile = sock.makefile('wb', wbufsize)
-            # Write the message
-            wfile.write(struct.pack(cls.fmt, socket_message.magic))
-            # Need to send the packed version
-            # print 'Sent ', socket_message.magic
-
-            wfile.write(struct.pack(cls.fmt, socket_message.payload_size))
-            # print 'Sent ', socket_message.payload_size
-
-            wfile.write(payload)
-            # print 'Sent ', payload
-            wfile.flush()
-            wfile.close()  # Close file object, not close the socket
+            message = (
+                struct.pack(cls.fmt, socket_message.magic)
+                + struct.pack(cls.fmt, socket_message.payload_size)
+                + payload
+            )
+            sock.sendall(message)
             return True
         except Exception as e:
             print(f'Fail to send message {e}')
@@ -159,6 +125,11 @@ class Client:
     More clients will be rejected
     """
 
+    SOCKET_TIMEOUT = 60
+    RECONNECT_ATTEMPTS = 5
+    RECONNECT_BASE_DELAY = 0.5
+    RECONNECT_MAX_DELAY = 8.0
+
     def __init__(self, endpoint, type='inet'):
         """
         Parameters:
@@ -180,8 +151,7 @@ class Client:
         """Send message out, return whether the message was successfully sent"""
         if self.isconnected():
             _L.debug('BaseClient: Send message %s', message)
-            SocketMessage.WrapAndSendPayload(self.sock, message)
-            return True
+            return SocketMessage.WrapAndSendPayload(self.sock, message)
         else:
             _L.error('Fail to send message, client is not connected')
             return False
@@ -203,20 +173,21 @@ class Client:
             if message_id == self.recv_message_id:
                 return message_body
             else:
-                raise RuntimeError(
+                raise AssertionError(
                     f'Message ID mismatch: got {message_id}, expected {self.recv_message_id}'
                 )
         else:
             # Instead of just dropping this message, give a verbose notice
             _L.error('No message handler to handle message with length %d', len(raw_message))
 
-    def connect(self, timeout=1):
+    def connect(self, timeout=1, start_receive_thread=True):
         """
         Try to connect to server, return whether connection successful
         """
         if self.isconnected():
             return True
 
+        s = None
         try:
             if self.type == 'unix':
                 print('=>Info: using uds socket')
@@ -237,9 +208,11 @@ class Client:
                 if message.startswith(b'connected'):
                     _L.info('Got connection confirm: %s', repr(message))
 
-                    # start receive queue here
-                    self.t = threading.Thread(target=self.receive_loop_queue, daemon=True)
-                    self.t.start()
+                    if start_receive_thread and (
+                        getattr(self, 't', None) is None or not self.t.is_alive()
+                    ):
+                        self.t = threading.Thread(target=self.receive_loop_queue, daemon=True)
+                        self.t.start()
 
                     return True
 
@@ -259,6 +232,11 @@ class Client:
         except Exception as e:
             _L.error('Can not connect to %s', str(self.endpoint))
             _L.error('Error %s', e)
+            if s is not None:
+                try:
+                    s.close()
+                except OSError:
+                    pass
             self.disconnect()
             # self.sock = None
             return False
@@ -309,15 +287,19 @@ class Client:
             if not message:
                 print('BaseClient: remote disconnected, no more message')
                 _L.debug('BaseClient: remote disconnected, no more message')
+                self.disconnect()
 
-                if self.sock:
-                    try:
-                        self.sock.close()
-                    except OSError:
-                        pass
-                    self.sock = None
-
-                return None
+                delay = self.RECONNECT_BASE_DELAY
+                for _attempt in range(self.RECONNECT_ATTEMPTS):
+                    if self.connect(timeout=self.SOCKET_TIMEOUT, start_receive_thread=False):
+                        return self.receive()
+                    time.sleep(delay)
+                    delay = min(delay * 2, self.RECONNECT_MAX_DELAY)
+                error = ConnectionError(
+                    f'Failed to reconnect to {self.endpoint} after {self.RECONNECT_ATTEMPTS} attempts'
+                )
+                self.recv_data_q.put(error)
+                raise error
 
             return message
 
@@ -427,6 +409,8 @@ class Client:
         batch_res = []
         for i in range(len(batch)):
             message = self.recv_data_q.get()
+            if isinstance(message, Exception):
+                raise message
             batch_res.append(message)
 
         return batch_res
@@ -482,7 +466,12 @@ class Client:
         self.send_message_id += 1
 
         self.recv_num_q.put(-1)  # negative number indicates need results
-        message = self.recv_data_q.get()
+        try:
+            message = self.recv_data_q.get(timeout=timeout)
+        except Empty as exception:
+            raise TimeoutError(f'Request timed out after {timeout} seconds') from exception
+        if isinstance(message, Exception):
+            raise message
 
         return message
 

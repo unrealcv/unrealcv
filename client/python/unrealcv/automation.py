@@ -98,7 +98,7 @@ class UE4Automation:
         Parameters
         ----------
         project_descriptor : str
-            UE4 project file name ends with *.uproject
+            UE4 project file name ending with ``.uproject``
         overwrite : bool
             Overwrite existing files
         '''
@@ -195,7 +195,8 @@ class UE4BinaryBase:
     Binary is a python wrapper to control the start and stop of a UE4 binary.
     The wrapper provides simple features to start and stop the binary, mainly useful for automate the testing.
 
-    Usage:
+    Usage::
+
         bin = UE4Binary('/tmp/RealisticRendering/RealisticRendering')
         with bin:
             client.request('vget /camera/0/lit test.png')
