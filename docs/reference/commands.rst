@@ -8,6 +8,13 @@ Unreal Engine 4 has some built-in commands to help game development. These comma
 
 UnrealCV provides commands useful for computer vision researchers. What is more, these commands can be used by an external program. A built-in command can also be used using the special command :code:`vrun`.
 
+Console command completion
+--------------------------
+
+When the Unreal Engine console is open, type an UnrealCV verb such as :code:`vget` or :code:`vset` to see registered command suggestions. Each suggestion includes the command template and the first line of its help text. UnrealCV also provides executable argument examples and camera-index examples such as :code:`vget /camera/0/location`.
+
+The completion list is generated from the live command dispatcher and refreshed after UnrealCV registers its command handlers, so newly registered commands appear without maintaining a separate console command list.
+
 Command cheatsheet
 ------------------
 

@@ -5,6 +5,7 @@
 #include "Modules/ModuleManager.h"
 
 #include "UnrealcvServer.h"
+#include "ConsoleHelper.h"
 #include "UnrealcvLog.h"
 #include "UnixTcpServer.h"
 
@@ -88,5 +89,9 @@ void FUnrealCVPlugin::StartupModule()
 
 void FUnrealCVPlugin::ShutdownModule()
 {
+	if (FConsoleHelper* ConsoleHelper = FConsoleHelper::GetIfInitialized())
+	{
+		ConsoleHelper->UnregisterConsoleAutoComplete();
+	}
 }
 
