@@ -34,6 +34,8 @@ Table of Contents
 
     reference/architecture
     reference/commands
+    reference/shared_memory
+    reference/runtime_reflection
     reference/model_zoo
     reference/issues
     CHANGELOG
