@@ -84,6 +84,7 @@ language = 'en'
 # Folder can not end with /
 exclude_patterns = [
     '_build/',
+    '_build/**',
     'doxygen.md',
     'index1.rst',
     '**/Thumbs.db',

@@ -1,10 +1,10 @@
 Pak File Workflow Tutorial
 ==========================
 
-This guide describes the runtime pak workflow supported by UnrealCV+:
+This guide describes the runtime pak workflow supported by UnrealCV Dev For UnrealZoo:
 mount a cooked pak, inspect its contents, scan its package paths, and load an
 asset. The commands and Blueprint signatures below match the current
-UnrealCV+ implementation.
+UnrealCV Dev For UnrealZoo implementation.
 
 Workflow
 --------
@@ -191,4 +191,4 @@ See Also
 --------
 
 - :doc:`../reference/pak-commands` for the complete command reference.
-- :doc:`../overview` for the UnrealCV+ feature summary.
+- :doc:`../overview` for the UnrealCV Dev For UnrealZoo feature summary.

@@ -29,6 +29,19 @@ Images generated from the technical demo <a href="http://docs.unrealcv.org/en/ma
  - Support RPC communication between Server and Client in Linux, higher FPS and more reliable.
  - A set of new commands for camera control and object manipulation, please refer to [command system](https://docs.unrealcv.org/en/latest/reference/commands.html) for more details.
 
+## UnrealCV Dev For UnrealZoo
+
+[UnrealCV Dev For UnrealZoo](https://docs.unrealcv.org/en/latest/unrealcv_plus/index.html)
+is the continuously developed feature surface tested in UnrealZoo before
+general-purpose capabilities are promoted into the open-source plugin. These
+features are currently available in supported [UnrealZoo](https://unrealzoo.github.io/)
+environments and are not part of the open-source command contract unless they
+appear in the main [Command System](https://docs.unrealcv.org/en/latest/reference/commands.html).
+
+Runtime MCP public clients, examples, and an agent skill are available at
+[unrealcv-runtime-mcp](https://github.com/lizi-Margin/unrealcv-runtime-mcp).
+The Unreal Engine C++ Runtime MCP server is not currently open source.
+
 ## How to install UnrealCV
 To install the UnrealCV `Server`, you need:
 1. Download the source code and place it on the ``Plugin`` folder of a C++ UE project.

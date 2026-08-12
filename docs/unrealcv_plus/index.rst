@@ -1,14 +1,26 @@
-UnrealCV+
-=========
+UnrealCV Dev For UnrealZoo
+==========================
 
-This section contains features and implementation notes from the extended
-UnrealCV+ codebase. These pages are intentionally separate from the open-source
-UnrealCV command reference because the documented server capabilities are not
-available in every UnrealCV build.
+UnrealCV Dev For UnrealZoo is the continuously developed and tested feature
+surface used by UnrealZoo. These capabilities are currently available in
+UnrealZoo builds before they are promoted into the open-source UnrealCV plugin.
+Use an UnrealZoo environment when following these pages.
 
-Start with :doc:`overview` for a feature summary. The command pages below are
-the authoritative UnrealCV+ command documentation; the base open-source command
-reference remains at :doc:`../reference/commands`.
+This is an availability label, not a second open-source plugin distribution.
+The open-source command contract remains :doc:`../reference/commands`; the
+development command inventory is documented separately so clients can detect
+and handle the difference explicitly.
+
+The development features are tested in UnrealZoo first. General-purpose parts
+that mature without project-specific dependencies may later move into the
+open-source plugin. The Runtime MCP server implementation is not currently part
+of this repository; public clients, examples, and agent skills are maintained
+in the `UnrealCV Runtime MCP repository
+<https://github.com/lizi-Margin/unrealcv-runtime-mcp>`_. This public staging
+repository is intended to move to the ``unrealcv`` organization.
+
+Start with :doc:`runtime-mcp` for the agent workflow or :doc:`overview` for the
+current development feature summary.
 
 .. toctree::
     :maxdepth: 2
@@ -20,7 +32,7 @@ reference remains at :doc:`../reference/commands`.
 
 .. toctree::
     :maxdepth: 2
-    :caption: UnrealCV+ Commands
+    :caption: Development Commands
     :titlesonly:
 
     reference/light-commands

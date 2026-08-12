@@ -1,45 +1,85 @@
-# UnrealCV Runtime MCP
+# Runtime MCP with UnrealZoo
 
-`UnrealCVMCP` is a runtime JSON-RPC MCP server listening on TCP port `29998`.
-It uses UnrealCV's framed TCP transport and supports `initialize`, `ping`,
-`tools/list`, and `tools/call`.
+Runtime MCP lets an agent inspect and control a running UnrealZoo environment
+through compact structured tools. It is part of **UnrealCV Dev For UnrealZoo**:
+the service is in active development, is tested in UnrealZoo first, and is not
+included in the open-source UnrealCV plugin in this repository.
 
-## Built-in toolsets
+The public client, examples, and Codex skill live in
+[`lizi-Margin/unrealcv-runtime-mcp`](https://github.com/lizi-Margin/unrealcv-runtime-mcp).
+It is the public staging repository intended for transfer to the `unrealcv`
+organization.
+The Unreal Engine C++ server implementation is not currently open source.
 
-The `unrealcv` toolset exposes the existing command dispatcher:
+## Prerequisites
 
-- `unrealcv.list_cmd`: list registered UnrealCV commands.
-- `unrealcv.describe_command`: describe one command URI template.
-- `unrealcv.exec`: execute a raw UnrealCV command.
+1. Start a supported UnrealZoo environment with Runtime MCP enabled.
+2. Confirm its log contains `Runtime MCP server listening on port 29998`.
+3. Clone the public client repository and use Python 3.9 or newer. The example
+   client has no third-party dependencies.
 
-The `scene` toolset exposes agent-oriented runtime context:
+The service listens on `127.0.0.1:29998` by default and uses UnrealCV's framed
+TCP transport. Keep it on a trusted network.
 
-- `scene.overview`: main camera pose/FOV and nearby actors, ordered by distance,
-  with compact world-space bbox, annotation color, view angle, screen projection,
-  and line-of-sight signals. It defaults to a 2500 cm radius and 20 actors;
-  callers can override `radius` and `max_actors` (up to 100).
-- `scene.inspect_actor`: transform, bounds, tags, ownership, and components for
-  an actor returned by `scene.overview`.
-- `scene.capture_view`: a `lit`, `normal`, or `object_mask` camera capture as MCP
-  image content.
+## Connect and discover tools
 
-## Registering a toolset
-
-Implement `IMCPToolset` from `MCPToolset.h`, then register a shared instance
-during the owning runtime module's startup:
-
-```cpp
-FMCPToolRegistry::Get().RegisterToolset(MakeShared<FMyRuntimeToolset>());
+```powershell
+git clone https://github.com/unrealcv/unrealcv-runtime-mcp.git
+cd unrealcv-runtime-mcp
+python .\examples\runtime_mcp_client.py ping
+python .\examples\runtime_mcp_client.py tools
 ```
 
-Tool names must use the toolset name as their prefix, for example
-`navigation.find_path` for a toolset whose `GetName()` returns `navigation`.
-Unregister the toolset during module shutdown:
+Always run `tools` after changing environments or builds. Its result is the
+authoritative capability list for the connected runtime.
 
-```cpp
-FMCPToolRegistry::Get().UnregisterToolset(TEXT("navigation"));
+## Inspect a scene
+
+Start with the compact scene overview:
+
+```powershell
+python .\examples\runtime_mcp_client.py call scene.overview --arguments '{"radius":2500,"max_actors":20}'
 ```
 
-The MCP server discovers definitions and dispatches calls only through the
-registry, so adding a toolset does not require changes to the transport or
-JSON-RPC implementation.
+Select an actor name from that result before requesting more detail:
+
+```powershell
+python .\examples\runtime_mcp_client.py call scene.inspect_actor --arguments '{"actor":"ActorName"}'
+```
+
+Use `scene.capture_view` only when the structured overview and actor inspection
+do not answer the task. Available capture arguments are described by `tools`.
+
+## Use UnrealCV commands
+
+The Runtime MCP `unrealcv` toolset exposes the existing command dispatcher:
+
+- `unrealcv.list_cmd` lists commands registered by the running build.
+- `unrealcv.describe_command` describes a command template.
+- `unrealcv.exec` executes a raw UnrealCV command.
+
+For example:
+
+```powershell
+python .\examples\runtime_mcp_client.py exec "vget /unrealcv/status"
+python .\examples\runtime_mcp_client.py exec "vget /camera/0/location"
+```
+
+Do not infer command availability from a Python API method. Query the runtime
+first. The open-source command contract is documented in
+{doc}`Command System <../reference/commands>`; additional development commands
+are marked {doc}`UnrealCV Dev For UnrealZoo <reference/commands>`.
+
+## Install the Codex skill
+
+The public repository includes `skills/unrealcv-runtime-mcp`. Install that
+folder in the Codex skills directory, then invoke `$unrealcv-runtime-mcp` to
+follow the discovery-first inspection workflow. The skill prefers structured
+scene tools, verifies capabilities before raw commands, and asks before broad or
+destructive state changes.
+
+## Protocol surface
+
+The current service implements JSON-RPC 2.0 methods `initialize`, `ping`,
+`tools/list`, and `tools/call` with MCP protocol version `2025-03-26`. Use the
+public client instead of reimplementing the frame header in each integration.

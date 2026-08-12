@@ -1,6 +1,8 @@
-# UnrealCV+ Plugin
+# UnrealCV Dev For UnrealZoo
 
-Summary of notable UnrealCV+ changes in v3.0 stage.
+These continuously developed features are currently provided and tested first
+in UnrealZoo. They are not part of the open-source UnrealCV command contract
+unless they also appear in the main Command System reference.
 
 - Added runtime `PAK` mounting support for packaged applications, making it easier to extend content without rebuilding the whole project.
   - Supports mount, unmount, mounted pak listing, mount-state checks, file enumeration, asset enumeration, asset rescanning, and dynamic asset loading/registration.

@@ -168,5 +168,5 @@ Common Issues
 See Also
 --------
 
-- :doc:`../overview` - UnrealCV+ rendering feature summary
+- :doc:`../overview` - UnrealCV Dev For UnrealZoo rendering feature summary
 - :doc:`../../reference/commands` - Base UnrealCV command reference

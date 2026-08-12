@@ -1,8 +1,13 @@
-UnrealCV+ command reference
-===========================
+UnrealCV Dev For UnrealZoo command reference
+=============================================
 
-Commands on this page are UnrealCV+ capabilities. They are not part of the
-open-source v1.1.0 command contract unless they also appear in the base reference.
+Commands on this page are development capabilities tested and currently
+provided by UnrealZoo. They are not part of the open-source UnrealCV command
+contract unless they also appear in :doc:`../../reference/commands`.
+
+Do not assume availability from the Python method alone. Query
+``vget /unrealcv/commands`` at runtime and gate optional workflows on the exact
+command template returned by the server.
 
 Agent navigation
 ----------------

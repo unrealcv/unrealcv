@@ -15,12 +15,15 @@ Table of Contents
     tutorials/getting_started
     tutorials/python_client
     tutorials/examples
+    unrealcv_plus/runtime-mcp
+    unrealcv_plus/tutorials/pak-workflow
+    unrealcv_plus/integration/gym-unrealcv
     tutorials/generate_images_tutorial
     tutorials/faster_rcnn
 
 .. toctree::
     :includehidden:
-    :caption: UE4 Plugin
+    :caption: UE Plugin
     :titlesonly:
 
     plugin/install
@@ -36,6 +39,10 @@ Table of Contents
 
     reference/architecture
     reference/commands
+    unrealcv_plus/reference/commands
+    unrealcv_plus/reference/light-commands
+    unrealcv_plus/reference/pak-commands
+    unrealcv_plus/reference/sensor-data-formats
     reference/shared_memory
     reference/runtime_reflection
     reference/model_zoo
@@ -51,11 +58,10 @@ Table of Contents
 
     plugin/develop
     reference/python_api
-    contribute
-
-.. toctree::
-    :includehidden:
-    :caption: UnrealCV+
-    :titlesonly:
-
     unrealcv_plus/index
+    unrealcv_plus/architecture/sensor-system
+    unrealcv_plus/architecture/annotation-system
+    unrealcv_plus/migration/camera-id-format
+    unrealcv_plus/diagrams/annotation-decision
+    unrealcv_plus/diagrams/command-dispatch
+    contribute

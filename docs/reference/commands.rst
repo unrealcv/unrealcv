@@ -4,7 +4,32 @@ Command System
 The machine-readable command schema is generated from server registrations and committed in ``docs/reference/command_schema.json``.
 Use ``python tools/command_schema/generate_schema.py`` to regenerate it after command changes.
 
-Unreal Engine 4 has some built-in commands to help game development. These commands can be typed into a built-in console. Using these commands, a developer can profile the game performance and view debug information.  To invoke the built-in console of a game, type the \` key (the key above tab).
+This page is the command contract for the open-source UnrealCV plugin in this
+repository. The generated index contains only commands registered by this
+checkout. Features tested first in UnrealZoo are listed separately in
+:doc:`../unrealcv_plus/reference/commands` under the
+**UnrealCV Dev For UnrealZoo** availability label.
+
+Runtime capability detection
+----------------------------
+
+Do not infer server support from a client method or documentation version.
+Query the connected server and compare exact templates::
+
+    from unrealcv import Client
+
+    client = Client(('127.0.0.1', 9000))
+    client.connect()
+    templates = set(client.request('vget /unrealcv/commands').splitlines())
+
+    required = 'vget /camera/[uint]/lit_shared'
+    if required not in templates:
+        raise RuntimeError(f'The connected UnrealCV build does not provide {required}')
+
+The committed :file:`command_schema.json` and the generated index at the end of
+this page are the authoritative build-time inventory for the current branch.
+
+Unreal Engine has built-in commands to help game development. These commands can be typed into the built-in console. Using these commands, a developer can profile game performance and view debug information. To invoke the console, type the \` key (the key above tab).
 
 UnrealCV provides commands useful for computer vision researchers. What is more, these commands can be used by an external program. A built-in command can also be used using the special command :code:`vrun`.
 
@@ -248,11 +273,11 @@ vset /action/input/disable
 vset /action/eyes_distance [eye_distance]
     (v0.3.10) Set the eye distance between left eye and right eye (camera 1). This command might be marked as deprecated when we finish multiple camera support.
 
-5. Run UE4 built-in commands
------------------------------
+5. Run Unreal Engine built-in commands
+--------------------------------------
 
 vrun [cmd]
-    (v0.3) This is a special command used to execute Unreal Engine built-in commands. UE4 provides some built-in commands for development and debug. They are not very well documented, but very useful.
+    (v0.3) This is a special command used to execute Unreal Engine built-in commands. Unreal Engine provides built-in commands for development and debugging.
 
 A few examples are:
 
@@ -260,13 +285,13 @@ A few examples are:
 - :code:`shot` - take a screenshot
 - :code:`show Material` - toggle the display of Material
 
-These commands can be executed in the UE4 console. If you want to use them in UnrealCV, you can prefix these commands with `vrun stat FPS`.
+These commands can be executed in the Unreal Engine console. To use one through UnrealCV, prefix it with ``vrun``, for example ``vrun stat FPS``.
 
 6. Run Blueprint commands
 --------------------------
 
 vbp [obj_name] [func_name] [arg1] [arg2] ...
-    (v0.4.0) This is a special command used to execute Blueprint commands. Blueprint is a visual programming language in UE4. It is widely used in UE4 game development. UnrealCV provides a way to call Blueprint functions from the command line.
+    (v0.4.0) This is a special command used to execute Blueprint commands. Blueprint is Unreal Engine's visual programming language. UnrealCV provides a way to call Blueprint functions from the command line.
 A few examples are:
  - :code:`vbp BP_Player_C GetActorLocation` - Get the location of the player
  - :code:`vbp BP_Player_C SetActorLocation 100 200 300` - Set the location of the player

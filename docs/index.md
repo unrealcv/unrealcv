@@ -6,15 +6,25 @@
 
 <!-- [![Build Status](https://travis-ci.org/unrealcv/unrealcv.svg?branch=master)](https://travis-ci.org/unrealcv/unrealcv) -->
 
-UnrealCV is a project to help computer vision researchers build virtual worlds using Unreal Engine 4 (UE4). It extends UE4 with a plugin by providing:
+UnrealCV is a project to help computer vision researchers build virtual worlds using Unreal Engine (UE). It extends UE with a plugin by providing:
 
 1. A set of UnrealCV commands to interact with the virtual world.
-2. Communication between UE4 and an external program, such as Caffe.
+2. Communication between UE and an external program, such as PyTorch or TensorFlow.
 
-UnrealCV can be used in two ways. The first one is using a compiled game binary with UnrealCV embedded. This is as simple as running a game, no knowledge of Unreal Engine is required. The second is installing UnrealCV plugin to Unreal Engine 4 (UE4) and use the editor of UE4 to build a new virtual world.
+UnrealCV can be used in two ways. The first is using a compiled game binary with UnrealCV embedded. The second is installing the UnrealCV plugin in an Unreal Engine project and using the editor to build a new virtual world.
 
 
 Please read [Tutorial: Getting Started](http://unrealcv.github.io/tutorial/getting_started.html) to learn using UnrealCV.
+
+## UnrealCV Dev For UnrealZoo
+
+{doc}`UnrealCV Dev For UnrealZoo <unrealcv_plus/index>` contains features in
+active development and testing. They are currently provided in supported
+[UnrealZoo](https://unrealzoo.github.io/) environments before general-purpose
+parts are promoted into the open-source plugin. Runtime MCP clients, examples,
+and an agent skill are published at
+[unrealcv-runtime-mcp](https://github.com/lizi-Margin/unrealcv-runtime-mcp);
+the Unreal Engine C++ Runtime MCP server is not currently open source.
 
 <center>
 <img src="http://unrealcv.github.io/images/homepage_teaser.png" alt="annotation"/>

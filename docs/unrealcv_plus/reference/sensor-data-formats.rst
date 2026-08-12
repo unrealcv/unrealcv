@@ -11,7 +11,7 @@ interpreting captured data in downstream processing pipelines.
 **Related Documents:**
 
 - :doc:`../architecture/sensor-system` - Sensor system architecture
-- :doc:`../overview` - UnrealCV+ recording feature summary
+- :doc:`../overview` - UnrealCV Dev For UnrealZoo recording feature summary
 
 Lit (RGB) Data
 --------------
@@ -523,4 +523,4 @@ See Also
 --------
 
 - :doc:`../architecture/sensor-system` - Sensor system architecture and APIs
-- :doc:`../overview` - UnrealCV+ dataset and recording overview
+- :doc:`../overview` - UnrealCV Dev For UnrealZoo dataset and recording overview

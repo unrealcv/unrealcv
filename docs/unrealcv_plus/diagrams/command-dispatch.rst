@@ -6,7 +6,7 @@ This page summarizes how a TCP request reaches an UnrealCV command handler.
 Request Flow
 ------------
 
-::
+.. code-block:: text
 
     TCP client
         |
@@ -35,7 +35,7 @@ Request Flow
 Registration Flow
 -----------------
 
-::
+.. code-block:: text
 
     Handler construction
         |
@@ -82,7 +82,7 @@ Runtime Sequence
 Error Flow
 ----------
 
-::
+.. code-block:: text
 
     No matching template ------> "Can not find a handler for URI ..."
     Invalid arguments ---------> Handler usage or conversion error
@@ -93,5 +93,5 @@ Related Pages
 -------------
 
 - :doc:`../../reference/commands` for the base command reference.
-- :doc:`../reference/commands` for UnrealCV+ commands.
+- :doc:`../reference/commands` for UnrealCV Dev For UnrealZoo commands.
 - :doc:`../runtime-mcp` for MCP exposure of runtime capabilities.

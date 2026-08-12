@@ -1331,7 +1331,7 @@ class UnrealCv_API:
         self.client.request(cmd, -1)
 
 #########################################################################################################################
-# Latest UnrealCV+ APIs
+# UnrealCV Dev For UnrealZoo APIs
 #########################################################################################################################
 
     def _get_server_version(self):
@@ -1357,10 +1357,10 @@ class UnrealCv_API:
         parsed_version = self._parse_version_tuple(server_version)
         if parsed_version is None or parsed_version < (2, 0, 0):
             warnings.warn(
-                "Latest UnrealCV+ APIs require UnrealCV server version >= 2.0.0. "
+                "UnrealCV Dev For UnrealZoo APIs require UnrealCV server version >= 2.0.0. "
                 f"Current server version from `vget /unrealcv/version` is {server_version!r}. "
-                "Please make sure you are using the latest UnrealCV+ version from UnrealZoo "
-                "to get UnrealCV+ API support.",
+                "Please make sure you are using the latest UnrealCV Dev For UnrealZoo build "
+                "to get UnrealCV Dev For UnrealZoo API support.",
                 UserWarning,
                 stacklevel=2,
             )
@@ -1491,7 +1491,7 @@ class UnrealCv_API:
 
     def get_camera_list_cid(self, return_cmd=False):
         """
-        Get stable UnrealCV+ camera identifiers (CID format).
+        Get stable UnrealCV Dev For UnrealZoo camera identifiers (CID format).
         """
         cmd = 'vget /cameras_CID'
         if return_cmd:

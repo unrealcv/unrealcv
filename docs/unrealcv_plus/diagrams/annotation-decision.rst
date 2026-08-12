@@ -31,7 +31,7 @@ Mode Comparison
 Decision Flow
 -------------
 
-::
+.. code-block:: text
 
     Need annotation?
           |
@@ -47,7 +47,7 @@ Decision Flow
 Direct Flow
 -----------
 
-::
+.. code-block:: text
 
     Actor list
         |
@@ -60,7 +60,7 @@ Direct Flow
 Proxy Flow
 ----------
 
-::
+.. code-block:: text
 
     Actor IDs / stencil state
         |
