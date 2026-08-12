@@ -24,6 +24,7 @@ reference remains at :doc:`../reference/commands`.
     reference/light-commands
     reference/pak-commands
     reference/sensor-data-formats
+    reference/commands
 
 .. toctree::
     :maxdepth: 2
