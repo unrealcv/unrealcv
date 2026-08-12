@@ -13,6 +13,7 @@ from typing import Optional, List, Callable, Dict
 from dataclasses import dataclass, field
 from enum import Enum
 import json
+import mmap
 
 # Add plugin client path for unrealcv import
 WORKFLOW_DIR = Path(__file__).resolve().parent
@@ -28,6 +29,7 @@ if CLIENT_PYTHON_DIR.exists():
 
 from config import get_config
 from log_monitor import LogMonitor, LogEntry, ConsoleLogPrinter
+from command_coverage import compare_registry_with_schema, has_registered_route
 
 def get_desktop_path():
     if os.name == 'nt':
@@ -47,6 +49,7 @@ class TestStatus(Enum):
     RUNNING = "running"
     PASSED = "passed"
     FAILED = "failed"
+    SKIPPED = "skipped"
     TIMEOUT = "timeout"
     CANCELLED = "cancelled"
 
@@ -103,7 +106,9 @@ class UETestRunner:
     def launch_game(self, extra_args: Optional[List[str]] = None) -> bool:
         """Launch the UE game executable"""
         config = self.config
-        exe_path = config.exe_path
+        editor_exe_path = config.editor_exe_path
+        use_editor = editor_exe_path is not None and editor_exe_path.exists()
+        exe_path = editor_exe_path if use_editor else config.exe_path
 
         if not exe_path.exists():
             print(f"ERROR|Launch|Executable not found: {exe_path}")
@@ -112,15 +117,17 @@ class UETestRunner:
         env = os.environ.copy()
         env["UE-CV-PORT"] = str(config.port)
 
-        cmd = [
-            str(exe_path),
-            f"-Port={config.port}",
+        cmd = [str(exe_path)]
+        if use_editor:
+            cmd.extend([str(config.project_path), "-game"])
+        cmd.extend([
+            f"-UnrealCVPort={config.port}",
             "-Log",
             "-NoSplash",
             "-NoPause",
             "-FullStdOutLogOutput",
             "-RenderOffScreen",
-        ]
+        ])
 
         if extra_args:
             cmd.extend(extra_args)
@@ -130,7 +137,7 @@ class UETestRunner:
         try:
             self._game_proc = subprocess.Popen(
                 cmd,
-                cwd=str(exe_path.parent),
+                cwd=str(config.project_path.parent if use_editor else exe_path.parent),
                 env=env,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -267,8 +274,6 @@ class UETestRunner:
             ("Level Name", "vget /level/name"),
 
             ("Cameras List", "vget /cameras"),
-            ("Cameras CID Format", "vget /cameras_CID"),
-            ("Cameras Legacy Format", "vget /cameras_legacy"),
             ("Camera 0 Location", "vget /camera/0/location"),
             ("Camera 0 Rotation", "vget /camera/0/rotation"),
             ("Camera 0 FOV", "vget /camera/0/fov"),
@@ -284,6 +289,61 @@ class UETestRunner:
             ("Persistent Level ID", "vget /persistent_level/id"),
             # ("Persistent Level Script Actor ID", "vget /persistent_level/level_script_actor/id"),
         ]
+
+        # Verify every production BindCommand registration before exercising
+        # scene-dependent behavior below. Extra commands are allowed because
+        # actors may register routes dynamically at runtime.
+        registry_start = time.time()
+        registered_commands = set()
+        try:
+            help_response = client.request("vget /unrealcv/help")
+            coverage = compare_registry_with_schema(
+                help_response,
+                PLUGIN_ROOT / "docs" / "reference" / "command_schema.json",
+            )
+            missing = sorted(coverage["missing"])
+            registered_commands = coverage["registered"]
+            if missing:
+                results.append(TestResult(
+                    name="Command Registry Coverage",
+                    status=TestStatus.FAILED,
+                    duration=time.time() - registry_start,
+                    message=f"Missing {len(missing)} registered commands: {missing}",
+                    details={"missing": missing, "unexpected": sorted(coverage["unexpected"])},
+                ))
+            else:
+                results.append(TestResult(
+                    name="Command Registry Coverage",
+                    status=TestStatus.PASSED,
+                    duration=time.time() - registry_start,
+                    message=(
+                        f"Validated all {len(coverage['expected'])} schema commands; "
+                        f"runtime extras={len(coverage['unexpected'])}"
+                    ),
+                    details={"unexpected": sorted(coverage["unexpected"])},
+                ))
+        except Exception as e:
+            results.append(TestResult(
+                name="Command Registry Coverage",
+                status=TestStatus.FAILED,
+                duration=time.time() - registry_start,
+                message=f"Exception: {e}",
+            ))
+
+        optional_tests = [
+            ("Cameras CID Format", "vget /cameras_CID"),
+            ("Cameras Legacy Format", "vget /cameras_legacy"),
+        ]
+        for name, cmd in optional_tests:
+            if has_registered_route(registered_commands, cmd):
+                tests.append((name, cmd))
+            else:
+                results.append(TestResult(
+                    name=name,
+                    status=TestStatus.SKIPPED,
+                    duration=0,
+                    message=f"Optional UnrealCV+ route is not registered: {cmd}",
+                ))
 
         for name, cmd in tests:
             if self._cancelled:
@@ -388,7 +448,142 @@ class UETestRunner:
                     ))
 
         # Latest UnrealCV+ Python API CID smoke tests
-        if not self._cancelled:
+        if not self._cancelled and os.name == "nt" and has_registered_route(
+            registered_commands, "vget /camera/[uint]/lit_shared"
+        ):
+            print("INFO|Test|Running Windows shared-memory camera tests")
+            test_start = time.time()
+            shared_cases = [
+                ("lit_shared", "lit", "uint8", "HWC", 4),
+                ("depth_shared", "depth", "float32", "HW", 4),
+                ("normal_shared", "normal", "uint8", "HWC", 4),
+                ("object_mask_shared", "object_mask", "uint8", "HWC", 4),
+            ]
+            try:
+                metadata_by_route = {}
+                for route, modality, dtype, layout, bytes_per_pixel in shared_cases:
+                    response = client.request(f"vget /camera/0/{route}")
+                    metadata = json.loads(response)
+                    expected_shape = (
+                        [metadata["height"], metadata["width"], 4]
+                        if layout == "HWC"
+                        else [metadata["height"], metadata["width"]]
+                    )
+                    expected_bytes = metadata["height"] * metadata["width"] * bytes_per_pixel
+                    if metadata["transport"] != "windows_shared_memory":
+                        raise RuntimeError(f"{route}: unexpected transport {metadata['transport']}")
+                    if metadata["modality"] != modality or metadata["dtype"] != dtype:
+                        raise RuntimeError(f"{route}: unexpected modality/dtype metadata {metadata}")
+                    if metadata["layout"] != layout or metadata["shape"] != expected_shape:
+                        raise RuntimeError(f"{route}: unexpected layout/shape metadata {metadata}")
+                    if metadata["num_bytes"] != expected_bytes or metadata["offset_bytes"] != 0:
+                        raise RuntimeError(f"{route}: unexpected byte metadata {metadata}")
+                    with mmap.mmap(
+                        -1,
+                        metadata["num_bytes"],
+                        tagname=metadata["name"],
+                        access=mmap.ACCESS_READ,
+                    ) as mapping:
+                        mapping.read(min(64, metadata["num_bytes"]))
+                        mapping.seek(max(0, metadata["num_bytes"] - 1))
+                        mapping.read(1)
+                    metadata_by_route[route] = metadata
+
+                second_lit = json.loads(client.request("vget /camera/0/lit_shared"))
+                first_lit = metadata_by_route["lit_shared"]
+                if second_lit["name"] != first_lit["name"] or second_lit["version"] != first_lit["version"]:
+                    raise RuntimeError("lit_shared did not reuse the same-size mapping")
+                if second_lit["frame"] <= first_lit["frame"]:
+                    raise RuntimeError("lit_shared frame counter did not advance")
+
+                seg_alias = json.loads(client.request("vget /camera/0/seg_shared"))
+                object_mask = metadata_by_route["object_mask_shared"]
+                if seg_alias["name"] != object_mask["name"] or seg_alias["modality"] != "object_mask":
+                    raise RuntimeError("seg_shared did not alias object_mask_shared")
+
+                results.append(TestResult(
+                    name="Camera Shared Memory",
+                    status=TestStatus.PASSED,
+                    duration=time.time() - test_start,
+                    message="Validated metadata and opened all camera shared-memory mappings",
+                    details={"routes": sorted(metadata_by_route), "lit_mapping": first_lit["name"]},
+                ))
+            except Exception as e:
+                results.append(TestResult(
+                    name="Camera Shared Memory",
+                    status=TestStatus.FAILED,
+                    duration=time.time() - test_start,
+                    message=f"Exception: {e}",
+                ))
+        elif not self._cancelled:
+            results.append(TestResult(
+                name="Camera Shared Memory",
+                status=TestStatus.SKIPPED,
+                duration=0,
+                message="Windows shared-memory camera routes are not registered",
+            ))
+
+        if not self._cancelled and has_registered_route(
+            registered_commands, "vreflect [str] [str]"
+        ):
+            print("INFO|Test|Running runtime reflection tests")
+            test_start = time.time()
+            try:
+                object_names = client.request("vget /objects").split()
+                if not object_names:
+                    raise RuntimeError("vget /objects returned no reflection target")
+                target = object_names[0]
+
+                functions = json.loads(client.request(f"vreflect {target} functions"))
+                properties = json.loads(client.request(f"vreflect {target} properties"))
+                if not isinstance(functions, list) or not functions:
+                    raise RuntimeError(f"{target}: functions did not return a non-empty JSON list")
+                if not isinstance(properties, list) or not properties:
+                    raise RuntimeError(f"{target}: properties did not return a non-empty JSON list")
+
+                original = json.loads(client.request(f"vreflect {target} get CustomTimeDilation"))
+                if original.get("name") != "CustomTimeDilation" or "value" not in original:
+                    raise RuntimeError(f"{target}: invalid property response {original}")
+                written = json.loads(
+                    client.request(f"vreflect {target} set CustomTimeDilation {original['value']}")
+                )
+                if written.get("value") != original["value"]:
+                    raise RuntimeError(f"{target}: property round trip changed value")
+
+                location = json.loads(
+                    client.request(f"vreflect {target} call_json K2_GetActorLocation {{}}")
+                )
+                return_value = location.get("ReturnValue")
+                if not isinstance(return_value, dict) or not all(
+                    axis in return_value for axis in ("X", "Y", "Z")
+                ):
+                    raise RuntimeError(f"{target}: invalid K2_GetActorLocation result {location}")
+
+                results.append(TestResult(
+                    name="Runtime Reflection",
+                    status=TestStatus.PASSED,
+                    duration=time.time() - test_start,
+                    message=f"Validated functions, properties, get/set, and call_json on {target}",
+                ))
+            except Exception as e:
+                results.append(TestResult(
+                    name="Runtime Reflection",
+                    status=TestStatus.FAILED,
+                    duration=time.time() - test_start,
+                    message=f"Exception: {e}",
+                ))
+        elif not self._cancelled:
+            results.append(TestResult(
+                name="Runtime Reflection",
+                status=TestStatus.SKIPPED,
+                duration=0,
+                message="Runtime reflection routes are not registered",
+            ))
+
+        # Latest UnrealCV+ Python API CID smoke tests
+        if not self._cancelled and has_registered_route(
+            registered_commands, "vget /cameras_CID"
+        ):
             print("INFO|Test|Running latest UnrealCV+ Python API CID smoke tests")
             test_start = time.time()
             cid_pano_output = os.path.join(desktop_path, "test_cid_panorama.png")
@@ -403,6 +598,8 @@ class UETestRunner:
                 api_client.checker = unrealcv_api.ResChecker()
                 api_client.obj_dict = {}
                 api_client.cam = {}
+                api_client._server_version = None
+                api_client._unrealcv_plus_warning_emitted = False
 
                 legacy_ids = api_client.get_camera_list_legacy()
                 cid_list = api_client.get_camera_list_cid()
@@ -442,20 +639,21 @@ class UETestRunner:
                 api_client.clear_world_annotation()
 
                 spawned_from_path = api_client.spawn_object_from_path(
-                    '/Game/MetaHumans/Taro/BP_Taro.BP_Taro',
+                    '/Engine/BasicShapes/Cube.Cube',
                     'PythonApiSpawnFromPath'
                 )
                 if not spawned_from_path:
                     raise RuntimeError("spawn_object_from_path returned no object name")
                 api_client.destroy_obj(spawned_from_path)
 
-                spawned_via_fallback = api_client.set_new_obj(
-                    '/Game/MetaHumans/Taro/BP_Taro.BP_Taro',
-                    'PythonApiSpawnFallback'
+                spawned_at_location = api_client.set_new_obj(
+                    'CubeActor',
+                    'PythonApiPositionedSpawn',
+                    location=[100, 200, 300],
                 )
-                if not spawned_via_fallback:
-                    raise RuntimeError("set_new_obj(asset_path, ...) fallback returned no object name")
-                api_client.destroy_obj(spawned_via_fallback)
+                if not spawned_at_location:
+                    raise RuntimeError("set_new_obj(..., location=...) returned no object name")
+                api_client.destroy_obj(spawned_at_location)
 
                 api_client.set_camera_panoramic_resolution(primary_cid, 512)
                 api_client.capture_panoramic(primary_cid, cid_pano_output, 2048, 1024)
@@ -504,7 +702,7 @@ class UETestRunner:
                     duration=duration,
                     message=(
                         f"legacy={len(legacy_ids)} cid={len(cid_list)} primary={primary_cid} "
-                        f"spawned={spawned_from_path} fallback={spawned_via_fallback} "
+                        f"spawned={spawned_from_path} positioned={spawned_at_location} "
                         f"annotation_cache={annotation_cache_enabled} outputs={len(generated_files)}"
                     )
                 ))
@@ -516,6 +714,13 @@ class UETestRunner:
                     duration=duration,
                     message=f"Exception: {e}"
                 ))
+        elif not self._cancelled:
+            results.append(TestResult(
+                name="Python API Latest CID",
+                status=TestStatus.SKIPPED,
+                duration=0,
+                message="Optional UnrealCV+ CID routes are not registered by this server",
+            ))
 
         # Performance tests - 50 iterations for each sensor type and mode
         if not self._cancelled:
@@ -612,6 +817,7 @@ class UETestRunner:
         # Calculate summary
         passed = sum(1 for r in results if r.status == TestStatus.PASSED)
         failed = sum(1 for r in results if r.status == TestStatus.FAILED)
+        skipped = sum(1 for r in results if r.status == TestStatus.SKIPPED)
         total_duration = time.time() - start_time
 
         # Get recent errors from log monitor
@@ -641,7 +847,10 @@ class UETestRunner:
 
         overall = TestStatus.PASSED if failed == 0 else TestStatus.FAILED
 
-        self._notify_status(overall, f"Tests completed: {passed}/{len(results)} passed")
+        self._notify_status(
+            overall,
+            f"Tests completed: {passed} passed, {skipped} skipped, {failed} failed",
+        )
 
         return TestSuiteResult(
             overall_status=overall,

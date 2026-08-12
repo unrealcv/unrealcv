@@ -34,13 +34,13 @@ FServerConfig::FServerConfig(EServerConfigInitMode InitMode)
 void FServerConfig::ParseCmdArgs()
 {
 	int32 ArgPort = 0;
-	if (FParse::Value(FCommandLine::Get(), TEXT("cvport"), ArgPort))
+	if (FParse::Value(FCommandLine::Get(), TEXT("cvport="), ArgPort))
 	{
 		Port = ArgPort;
 	}
 
 	FString LsFolder;
-	if (FParse::Value(FCommandLine::Get(), TEXT("cvls"), LsFolder))
+	if (FParse::Value(FCommandLine::Get(), TEXT("cvls="), LsFolder))
 	{
 		ListAsset(LsFolder);
 		FGenericPlatformMisc::RequestExit(false);

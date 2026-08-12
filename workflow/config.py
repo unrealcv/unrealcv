@@ -109,7 +109,7 @@ class UEConfig:
 
     # Launch settings
     launch_timeout: int = 180  # seconds
-    server_ready_timeout: int = 60  # seconds
+    server_ready_timeout: int = 240  # first uncooked Editor launch may compile shaders
     post_launch_delay: float = 3.0  # seconds to wait after server ready before tests
 
     # Log settings
@@ -137,6 +137,13 @@ class UEConfig:
         """Get game executable path"""
         project_name = self.project_path.stem
         return self.project_path.parent / "Binaries" / "Win64" / f"{project_name}.exe"
+
+    @property
+    def editor_exe_path(self) -> Optional[Path]:
+        """Get the editor executable used for uncooked source-project tests."""
+        if self.ue_path is None:
+            return None
+        return self.ue_path / "Binaries" / "Win64" / "UnrealEditor.exe"
 
     @property
     def ue_log_path(self) -> Path:

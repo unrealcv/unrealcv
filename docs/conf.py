@@ -4,6 +4,7 @@ import os, sys, glob, shutil, subprocess, hashlib, json
 doc_dir = os.path.dirname(os.path.abspath(__file__))
 project_dir = os.path.dirname(doc_dir)
 sys.path.insert(0, doc_dir)
+sys.path.insert(0, os.path.join(project_dir, 'client', 'python'))
 
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd:
@@ -104,7 +105,6 @@ html_theme = 'sphinx_rtd_theme'
 # html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 html_theme_options = {
     'collapse_navigation': False,
-    'display_version': False,
     'logo_only': False,
 }
 

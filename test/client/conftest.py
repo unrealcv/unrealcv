@@ -32,6 +32,9 @@ class FakeSocket:
     def settimeout(self, timeout):
         self.timeout = timeout
 
+    def setsockopt(self, *_args):
+        pass
+
     def connect(self, endpoint):
         self.connected = True
         self.connected_endpoint = endpoint

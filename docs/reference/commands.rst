@@ -8,6 +8,13 @@ Unreal Engine 4 has some built-in commands to help game development. These comma
 
 UnrealCV provides commands useful for computer vision researchers. What is more, these commands can be used by an external program. A built-in command can also be used using the special command :code:`vrun`.
 
+Console command completion
+--------------------------
+
+When the Unreal Engine console is open, type an UnrealCV verb such as :code:`vget` or :code:`vset` to see registered command suggestions. Each suggestion includes the command template and the first line of its help text. UnrealCV also provides executable argument examples and camera-index examples such as :code:`vget /camera/0/location`.
+
+The completion list is generated from the live command dispatcher and refreshed after UnrealCV registers its command handlers, so newly registered commands appear without maintaining a separate console command list.
+
 Command cheatsheet
 ------------------
 
@@ -54,6 +61,18 @@ vget /camera/[id]/[viewmode] [format]
 
 vget /camera/[id]/object_mask
     (v0.2) The object mask is captured by first switching the viewmode to object_mask mode, then take a screenshot
+
+vget /camera/[id]/lit_shared
+    Capture the lit image into a Windows named shared-memory region and return JSON metadata containing its name, shape, dtype, and byte size.
+
+vget /camera/[id]/depth_shared
+    Capture the depth image into Windows shared memory as a row-major ``float32`` array and return JSON metadata.
+
+vget /camera/[id]/normal_shared
+    Capture the surface-normal image into Windows shared memory as BGRA ``uint8`` pixels and return JSON metadata.
+
+vget /camera/[id]/object_mask_shared
+    Capture the object mask into Windows shared memory as BGRA ``uint8`` pixels and return JSON metadata. ``seg_shared`` is an alias.
 
 vset /viewmode [viewmode]
     (v0.2) Set ViewMode to (lit, normal, depth, object_mask)
@@ -133,8 +152,10 @@ vset /objects/spawn [class_name] [obj_name]
     - :code:`vset /objects/spawn StereoCameraActor StereoCam_1` - create a new stereo camera named StereoCam_1
 
 vset /objects/spawn [class_name] [x] [y] [z]
+    (5.2+) Spawn an object at a world-space location.
+
 vset /objects/spawn [class_name] [obj_name] [x] [y] [z]
-    (5.2+) Spawn an object at an optional world-space location. The same coordinate forms are available for :code:`vset /objects/spawn_cube`.
+    (5.2+) Spawn a named object at a world-space location. The same coordinate forms are available for :code:`vset /objects/spawn_cube`.
 
 vset /object/[obj_name]/destroy
     (v0.4.0) Destroy object
@@ -161,7 +182,11 @@ vget /object/[obj_name]/vertex_location
     (v0.4.0) Get the vertex location of an object
 
 vget /object/[obj_name]/bones
+    (5.2+) Return all bone transforms in component space.
+
 vget /object/[obj_name]/bones [component|world]
+    (5.2+) Return all bone transforms in the selected coordinate space.
+
 vget /object/[obj_name]/bones [bone_1,bone_2,...] [component|world]
     (5.2+) Return skeletal or poseable mesh bone transforms as JSON. The default is all bones in component space. This command provides world-space bone locations for pose and keypoint workflows. If an actor has multiple eligible mesh components, only the first poseable mesh component, or otherwise the first skeletal mesh component, is queried.
 
@@ -239,35 +264,37 @@ A few examples are:
 
 Note that the Blueprint function name is case sensitive, depending on how it is defined in the Blueprint editor.
 
-7. Reflect functions and variables
-----------------------------------
+7. Runtime reflection
+---------------------
+
+``vreflect`` exposes selected Unreal reflection operations through the UnrealCV command channel.
 
 vreflect [obj_name] functions
-    List reflected functions on the target object as JSON.
+    List reflected functions on an object as JSON.
 
 vreflect [obj_name] properties
-    List reflected properties on the target object as JSON.
+    List reflected properties on an object as JSON.
 
 vreflect [obj_name] get [property_path]
-    Read a reflected property by name or dotted path and return JSON.
+    Read a property by name or dotted path and return its type and value as JSON.
 
 vreflect [obj_name] set [property_path] [value]
-    Set a reflected property by name or dotted path using Unreal text import rules, then return the updated JSON value.
+    Set a property using Unreal text import syntax and return the updated value.
 
 vreflect [obj_name] call_json [function_name] [json_args]
-    Call a reflected function using a JSON object keyed by parameter name, then return output and return parameters as JSON.
+    Call a reflected function with a JSON object keyed by parameter name and return output parameters as JSON.
 
-The target can also be a class default object using :code:`class:` or :code:`cdo:`:
+Prefix the target with ``class:`` or ``cdo:`` to address a class default object. Examples:
 
-- :code:`vreflect class:UKismetSystemLibrary functions`
-- :code:`vreflect cdo:/Script/Engine.KismetSystemLibrary properties`
-
-A few examples are:
-
-- :code:`vreflect BP_Player_C_0 functions`
-- :code:`vreflect BP_Player_C_0 properties`
 - :code:`vreflect BP_Player_C_0 get RootComponent.RelativeLocation`
 - :code:`vreflect BP_Player_C_0 set RootComponent.RelativeLocation "(X=100,Y=200,Z=300)"`
-- :code:`vreflect BP_Player_C_0 call_json K2_SetActorLocation {"NewLocation":{"X":100,"Y":200,"Z":300},"bSweep":false,"bTeleport":true}`
+- :code:`vreflect class:KismetMathLibrary call_json Add_IntInt {"A":2,"B":3}`
 
-This command family is intended as the first step toward a SPEAR-like reflection surface inside UnrealCV.
+Only expose UnrealCV to trusted clients. Reflection can read and mutate runtime state and invoke reflected functions.
+
+8. Complete registered command index
+------------------------------------
+
+The following generated index is synchronized with every production ``BindCommand`` registration. It supplements the hand-written explanations above and is the authoritative list for the current branch.
+
+.. include:: commands_generated.rst.txt

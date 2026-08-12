@@ -4,9 +4,13 @@ on:
   pull_request:
     paths:
       - 'Source/UnrealCV/Private/Commands/**'
+      - 'Source/UnrealCV/Private/Server/CommandDispatcher.cpp'
       - 'client/python/unrealcv/**'
       - 'docs/reference/commands.rst'
+      - 'docs/reference/commands_generated.rst.txt'
       - 'docs/reference/command_schema.json'
+      - 'workflow/command_coverage.py'
+      - 'workflow/test_runner.py'
       - 'tools/command_schema/**'
       - '.github/workflows/command-schema.yml'
 
@@ -28,7 +32,7 @@ jobs:
 
       - name: Verify schema is committed
         run: |
-          git diff --exit-code -- docs/reference/command_schema.json || (echo "command_schema.json is out of date. Regenerate and commit." && exit 1)
+          git diff --exit-code -- docs/reference/command_schema.json docs/reference/commands_generated.rst.txt || (echo "Generated command docs are out of date. Regenerate and commit." && exit 1)
 
-      - name: Validate docs/client coverage (non-blocking)
-        run: python tools/command_schema/validate_coverage.py --repo-root . --schema docs/reference/command_schema.json
+      - name: Validate documentation and workflow coverage
+        run: python tools/command_schema/validate_coverage.py --repo-root . --schema docs/reference/command_schema.json --strict

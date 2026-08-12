@@ -158,6 +158,8 @@ void FUnrealcvServer::RegisterCommandHandlers()
 		Handler->SetCommandDispatcher(CommandDispatcher);
 		Handler->RegisterCommands();
 	}
+
+	FConsoleHelper::Get().InvalidateConsoleAutoComplete();
 }
 
 FUnrealcvServer::FUnrealcvServer()
