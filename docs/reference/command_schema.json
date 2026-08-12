@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "generated_from": "Source/UnrealCV/Private/**/*.cpp (excluding Tests)",
-  "command_count": 103,
+  "command_count": 108,
   "commands": [
     {
       "command": "vbp [str] [str]",
@@ -153,7 +153,15 @@
       "description": "Get npy binary data from depth sensor",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 786
+      "line": 942
+    },
+    {
+      "command": "vget /camera/[uint]/depth_shared",
+      "category": "camera",
+      "description": "Get depth image through Windows shared memory",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
+      "line": 953
     },
     {
       "command": "vget /camera/[uint]/fov",
@@ -161,7 +169,7 @@
       "description": "Get FOV",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 829
+      "line": 991
     },
     {
       "command": "vget /camera/[uint]/lit [str]",
@@ -169,7 +177,15 @@
       "description": "Get png binary data from lit sensor",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 780
+      "line": 938
+    },
+    {
+      "command": "vget /camera/[uint]/lit_shared",
+      "category": "camera",
+      "description": "Get lit image through Windows shared memory",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
+      "line": 950
     },
     {
       "command": "vget /camera/[uint]/location",
@@ -177,7 +193,7 @@
       "description": "Get sensor location in world space",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 749
+      "line": 917
     },
     {
       "command": "vget /camera/[uint]/normal [str]",
@@ -185,7 +201,15 @@
       "description": "Get npy binary data from surface normal sensor",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 792
+      "line": 946
+    },
+    {
+      "command": "vget /camera/[uint]/normal_shared",
+      "category": "camera",
+      "description": "Get normal image through Windows shared memory",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
+      "line": 956
     },
     {
       "command": "vget /camera/[uint]/object_mask [str]",
@@ -193,7 +217,15 @@
       "description": "Get object mask from camera sensor",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 807
+      "line": 969
+    },
+    {
+      "command": "vget /camera/[uint]/object_mask_shared",
+      "category": "camera",
+      "description": "Get object mask through Windows shared memory",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
+      "line": 976
     },
     {
       "command": "vget /camera/[uint]/optical_flow [str]",
@@ -201,7 +233,7 @@
       "description": "Get npy binary data from optical flow sensor",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 802
+      "line": 965
     },
     {
       "command": "vget /camera/[uint]/rotation",
@@ -209,7 +241,7 @@
       "description": "Get sensor rotation in world space",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 768
+      "line": 930
     },
     {
       "command": "vget /camera/[uint]/seg [str]",
@@ -217,7 +249,15 @@
       "description": "Get object mask from camera sensor",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 812
+      "line": 973
+    },
+    {
+      "command": "vget /camera/[uint]/seg_shared",
+      "category": "camera",
+      "description": "Get segmentation through Windows shared memory",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
+      "line": 979
     },
     {
       "command": "vget /camera/[uint]/size",
@@ -225,7 +265,7 @@
       "description": "Get Camera Film Size",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 847
+      "line": 1001
     },
     {
       "command": "vget /cameras",
@@ -233,7 +273,7 @@
       "description": "List all sensors in the scene",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 739
+      "line": 909
     },
     {
       "command": "vget /level/name",
@@ -385,7 +425,7 @@
       "description": "Get screenshot",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 734
+      "line": 905
     },
     {
       "command": "vget /unrealcv/echo [str]",
@@ -425,7 +465,7 @@
       "description": "Get current ViewMode",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 823
+      "line": 987
     },
     {
       "command": "vrun [str]",
@@ -537,7 +577,7 @@
       "description": "Set camera auto-exposure min max brightness",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 901
+      "line": 1037
     },
     {
       "command": "vset /camera/[uint]/auto_speed [float] [float]",
@@ -545,7 +585,7 @@
       "description": "Set camera auto-exposure speed down and speed up",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 895
+      "line": 1033
     },
     {
       "command": "vset /camera/[uint]/exposure_bias [float]",
@@ -553,7 +593,7 @@
       "description": "Set camera exposure bias",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 889
+      "line": 1029
     },
     {
       "command": "vset /camera/[uint]/exposure_method [str]",
@@ -561,7 +601,7 @@
       "description": "Set camera exposure method",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 883
+      "line": 1025
     },
     {
       "command": "vset /camera/[uint]/focal [float] [float]",
@@ -569,7 +609,7 @@
       "description": "Set camera focus distance and range",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 919
+      "line": 1050
     },
     {
       "command": "vset /camera/[uint]/fov [float]",
@@ -577,7 +617,7 @@
       "description": "Set FOV",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 835
+      "line": 994
     },
     {
       "command": "vset /camera/[uint]/illumination [str]",
@@ -585,7 +625,7 @@
       "description": "Set camera global illumination method: None, Lumen, ScreenSpace, Plugin,",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 877
+      "line": 1021
     },
     {
       "command": "vset /camera/[uint]/lit_source [str]",
@@ -593,7 +633,7 @@
       "description": "Set the capture source of the lit camera",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 865
+      "line": 1013
     },
     {
       "command": "vset /camera/[uint]/location [float] [float] [float]",
@@ -601,7 +641,7 @@
       "description": "Set sensor to location [x, y, z]",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 755
+      "line": 921
     },
     {
       "command": "vset /camera/[uint]/motion_blur [float] [float] [float] [uint]",
@@ -609,7 +649,7 @@
       "description": "Set camera motion blur amount, max, per object, fps",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 913
+      "line": 1046
     },
     {
       "command": "vset /camera/[uint]/moveto [float] [float] [float]",
@@ -617,7 +657,7 @@
       "description": "Move camera to location [x, y, z], will be blocked by objects",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 762
+      "line": 926
     },
     {
       "command": "vset /camera/[uint]/ortho_width [float]",
@@ -625,7 +665,7 @@
       "description": "Set ortho width of the camera",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 853
+      "line": 1005
     },
     {
       "command": "vset /camera/[uint]/physical_exposure [uint]",
@@ -633,7 +673,7 @@
       "description": "Set camera apply physical camera exposure",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 907
+      "line": 1041
     },
     {
       "command": "vset /camera/[uint]/projection_type [str]",
@@ -641,7 +681,7 @@
       "description": "Set camera projection type",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 859
+      "line": 1009
     },
     {
       "command": "vset /camera/[uint]/reflection [str]",
@@ -649,7 +689,7 @@
       "description": "Set camera reflection method: None, Lumen, ScreenSpace",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 871
+      "line": 1017
     },
     {
       "command": "vset /camera/[uint]/rotation [float] [float] [float]",
@@ -657,7 +697,7 @@
       "description": "Set rotation [pitch, yaw, roll] of camera [id]",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 774
+      "line": 934
     },
     {
       "command": "vset /camera/[uint]/size [uint] [uint]",
@@ -665,7 +705,7 @@
       "description": "Set Camera Film Size",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 841
+      "line": 997
     },
     {
       "command": "vset /cameras/spawn",
@@ -673,7 +713,7 @@
       "description": "Spawn a new camera actor in the scene",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 744
+      "line": 913
     },
     {
       "command": "vset /object/[str]/color [uint] [uint] [uint]",
@@ -825,7 +865,7 @@
       "description": "Set ViewMode to (lit, normal, depth, object_mask)",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
-      "line": 817
+      "line": 983
     }
   ]
 }

@@ -62,6 +62,18 @@ vget /camera/[id]/[viewmode] [format]
 vget /camera/[id]/object_mask
     (v0.2) The object mask is captured by first switching the viewmode to object_mask mode, then take a screenshot
 
+vget /camera/[id]/lit_shared
+    Capture the lit image into a Windows named shared-memory region and return JSON metadata containing its name, shape, dtype, and byte size.
+
+vget /camera/[id]/depth_shared
+    Capture the depth image into Windows shared memory as a row-major ``float32`` array and return JSON metadata.
+
+vget /camera/[id]/normal_shared
+    Capture the surface-normal image into Windows shared memory as BGRA ``uint8`` pixels and return JSON metadata.
+
+vget /camera/[id]/object_mask_shared
+    Capture the object mask into Windows shared memory as BGRA ``uint8`` pixels and return JSON metadata. ``seg_shared`` is an alias.
+
 vset /viewmode [viewmode]
     (v0.2) Set ViewMode to (lit, normal, depth, object_mask)
 

@@ -136,122 +136,142 @@ Camera
 
 ``vget /camera/[uint]/depth [str]``
     Get npy binary data from depth sensor
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:786`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:942`
+
+``vget /camera/[uint]/depth_shared``
+    Get depth image through Windows shared memory
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:953`
 
 ``vget /camera/[uint]/fov``
     Get FOV
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:829`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:991`
 
 ``vget /camera/[uint]/lit [str]``
     Get png binary data from lit sensor
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:780`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:938`
+
+``vget /camera/[uint]/lit_shared``
+    Get lit image through Windows shared memory
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:950`
 
 ``vget /camera/[uint]/location``
     Get sensor location in world space
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:749`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:917`
 
 ``vget /camera/[uint]/normal [str]``
     Get npy binary data from surface normal sensor
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:792`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:946`
+
+``vget /camera/[uint]/normal_shared``
+    Get normal image through Windows shared memory
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:956`
 
 ``vget /camera/[uint]/object_mask [str]``
     Get object mask from camera sensor
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:807`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:969`
+
+``vget /camera/[uint]/object_mask_shared``
+    Get object mask through Windows shared memory
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:976`
 
 ``vget /camera/[uint]/optical_flow [str]``
     Get npy binary data from optical flow sensor
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:802`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:965`
 
 ``vget /camera/[uint]/rotation``
     Get sensor rotation in world space
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:768`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:930`
 
 ``vget /camera/[uint]/seg [str]``
     Get object mask from camera sensor
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:812`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:973`
+
+``vget /camera/[uint]/seg_shared``
+    Get segmentation through Windows shared memory
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:979`
 
 ``vget /camera/[uint]/size``
     Get Camera Film Size
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:847`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:1001`
 
 ``vset /camera/[uint]/auto_brightness [float] [float]``
     Set camera auto-exposure min max brightness
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:901`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:1037`
 
 ``vset /camera/[uint]/auto_speed [float] [float]``
     Set camera auto-exposure speed down and speed up
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:895`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:1033`
 
 ``vset /camera/[uint]/exposure_bias [float]``
     Set camera exposure bias
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:889`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:1029`
 
 ``vset /camera/[uint]/exposure_method [str]``
     Set camera exposure method
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:883`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:1025`
 
 ``vset /camera/[uint]/focal [float] [float]``
     Set camera focus distance and range
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:919`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:1050`
 
 ``vset /camera/[uint]/fov [float]``
     Set FOV
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:835`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:994`
 
 ``vset /camera/[uint]/illumination [str]``
     Set camera global illumination method: None, Lumen, ScreenSpace, Plugin,
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:877`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:1021`
 
 ``vset /camera/[uint]/lit_source [str]``
     Set the capture source of the lit camera
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:865`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:1013`
 
 ``vset /camera/[uint]/location [float] [float] [float]``
     Set sensor to location [x, y, z]
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:755`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:921`
 
 ``vset /camera/[uint]/motion_blur [float] [float] [float] [uint]``
     Set camera motion blur amount, max, per object, fps
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:913`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:1046`
 
 ``vset /camera/[uint]/moveto [float] [float] [float]``
     Move camera to location [x, y, z], will be blocked by objects
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:762`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:926`
 
 ``vset /camera/[uint]/ortho_width [float]``
     Set ortho width of the camera
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:853`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:1005`
 
 ``vset /camera/[uint]/physical_exposure [uint]``
     Set camera apply physical camera exposure
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:907`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:1041`
 
 ``vset /camera/[uint]/projection_type [str]``
     Set camera projection type
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:859`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:1009`
 
 ``vset /camera/[uint]/reflection [str]``
     Set camera reflection method: None, Lumen, ScreenSpace
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:871`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:1017`
 
 ``vset /camera/[uint]/rotation [float] [float] [float]``
     Set rotation [pitch, yaw, roll] of camera [id]
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:774`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:934`
 
 ``vset /camera/[uint]/size [uint] [uint]``
     Set Camera Film Size
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:841`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:997`
 
 Camera collection
 ~~~~~~~~~~~~~~~~~
 
 ``vget /cameras``
     List all sensors in the scene
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:739`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:909`
 
 ``vset /cameras/spawn``
     Spawn a new camera actor in the scene
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:744`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:913`
 
 Level
 ~~~~~
@@ -428,7 +448,7 @@ Screenshot
 
 ``vget /screenshot [str]``
     Get screenshot
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:734`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:905`
 
 Plugin
 ~~~~~~
@@ -454,8 +474,8 @@ View mode
 
 ``vget /viewmode``
     Get current ViewMode
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:823`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:987`
 
 ``vset /viewmode [str]``
     Set ViewMode to (lit, normal, depth, object_mask)
-    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:817`
+    Source: :file:`Source/UnrealCV/Private/Commands/CameraHandler.cpp:983`

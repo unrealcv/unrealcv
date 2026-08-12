@@ -13,6 +13,7 @@ from typing import Optional, List, Callable, Dict
 from dataclasses import dataclass, field
 from enum import Enum
 import json
+import mmap
 
 # Add plugin client path for unrealcv import
 WORKFLOW_DIR = Path(__file__).resolve().parent
@@ -445,6 +446,82 @@ class UETestRunner:
                         duration=duration,
                         message=f"Exception: {e}"
                     ))
+
+        # Latest UnrealCV+ Python API CID smoke tests
+        if not self._cancelled and os.name == "nt" and has_registered_route(
+            registered_commands, "vget /camera/[uint]/lit_shared"
+        ):
+            print("INFO|Test|Running Windows shared-memory camera tests")
+            test_start = time.time()
+            shared_cases = [
+                ("lit_shared", "lit", "uint8", "HWC", 4),
+                ("depth_shared", "depth", "float32", "HW", 4),
+                ("normal_shared", "normal", "uint8", "HWC", 4),
+                ("object_mask_shared", "object_mask", "uint8", "HWC", 4),
+            ]
+            try:
+                metadata_by_route = {}
+                for route, modality, dtype, layout, bytes_per_pixel in shared_cases:
+                    response = client.request(f"vget /camera/0/{route}")
+                    metadata = json.loads(response)
+                    expected_shape = (
+                        [metadata["height"], metadata["width"], 4]
+                        if layout == "HWC"
+                        else [metadata["height"], metadata["width"]]
+                    )
+                    expected_bytes = metadata["height"] * metadata["width"] * bytes_per_pixel
+                    if metadata["transport"] != "windows_shared_memory":
+                        raise RuntimeError(f"{route}: unexpected transport {metadata['transport']}")
+                    if metadata["modality"] != modality or metadata["dtype"] != dtype:
+                        raise RuntimeError(f"{route}: unexpected modality/dtype metadata {metadata}")
+                    if metadata["layout"] != layout or metadata["shape"] != expected_shape:
+                        raise RuntimeError(f"{route}: unexpected layout/shape metadata {metadata}")
+                    if metadata["num_bytes"] != expected_bytes or metadata["offset_bytes"] != 0:
+                        raise RuntimeError(f"{route}: unexpected byte metadata {metadata}")
+                    with mmap.mmap(
+                        -1,
+                        metadata["num_bytes"],
+                        tagname=metadata["name"],
+                        access=mmap.ACCESS_READ,
+                    ) as mapping:
+                        mapping.read(min(64, metadata["num_bytes"]))
+                        mapping.seek(max(0, metadata["num_bytes"] - 1))
+                        mapping.read(1)
+                    metadata_by_route[route] = metadata
+
+                second_lit = json.loads(client.request("vget /camera/0/lit_shared"))
+                first_lit = metadata_by_route["lit_shared"]
+                if second_lit["name"] != first_lit["name"] or second_lit["version"] != first_lit["version"]:
+                    raise RuntimeError("lit_shared did not reuse the same-size mapping")
+                if second_lit["frame"] <= first_lit["frame"]:
+                    raise RuntimeError("lit_shared frame counter did not advance")
+
+                seg_alias = json.loads(client.request("vget /camera/0/seg_shared"))
+                object_mask = metadata_by_route["object_mask_shared"]
+                if seg_alias["name"] != object_mask["name"] or seg_alias["modality"] != "object_mask":
+                    raise RuntimeError("seg_shared did not alias object_mask_shared")
+
+                results.append(TestResult(
+                    name="Camera Shared Memory",
+                    status=TestStatus.PASSED,
+                    duration=time.time() - test_start,
+                    message="Validated metadata and opened all camera shared-memory mappings",
+                    details={"routes": sorted(metadata_by_route), "lit_mapping": first_lit["name"]},
+                ))
+            except Exception as e:
+                results.append(TestResult(
+                    name="Camera Shared Memory",
+                    status=TestStatus.FAILED,
+                    duration=time.time() - test_start,
+                    message=f"Exception: {e}",
+                ))
+        elif not self._cancelled:
+            results.append(TestResult(
+                name="Camera Shared Memory",
+                status=TestStatus.SKIPPED,
+                duration=0,
+                message="Windows shared-memory camera routes are not registered",
+            ))
 
         # Latest UnrealCV+ Python API CID smoke tests
         if not self._cancelled and has_registered_route(
