@@ -92,8 +92,6 @@ void FAliasHandler::RegisterCommands()
 	CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
 	CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vreflect [str] call_json [str] [Anything]", Cmd, Help);
-
 	CommandDispatcher->BindCommand("vget /persistent_level/id",
 		FDispatcherDelegate::CreateRaw(this, &FAliasHandler::GetPersistentLevelId),
 		"Get persistent level id, so that we can call BP function defined in it"

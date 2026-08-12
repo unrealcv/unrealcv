@@ -523,8 +523,8 @@ class UETestRunner:
                 message="Windows shared-memory camera routes are not registered",
             ))
 
-        if not self._cancelled and has_registered_route(
-            registered_commands, "vreflect [str] [str]"
+        if not self._cancelled and any(
+            command.startswith("vreflect ") for command in registered_commands
         ):
             print("INFO|Test|Running runtime reflection tests")
             test_start = time.time()

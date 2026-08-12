@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "generated_from": "Source/UnrealCV/Private/**/*.cpp (excluding Tests)",
-  "command_count": 108,
+  "command_count": 119,
   "commands": [
     {
       "command": "vbp [str] [str]",
@@ -401,7 +401,7 @@
       "description": "Get persistent level id, so that we can call BP function defined in it",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 97
+      "line": 95
     },
     {
       "command": "vget /persistent_level/level_script_actor/id",
@@ -409,7 +409,7 @@
       "description": "Get persistent level id, so that we can call BP function defined in it",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 102
+      "line": 100
     },
     {
       "command": "vget /scene/name",
@@ -466,6 +466,94 @@
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/CameraHandler.cpp",
       "line": 987
+    },
+    {
+      "command": "vreflect [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 84
+    },
+    {
+      "command": "vreflect [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 85
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 86
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 87
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 88
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 89
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 90
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 91
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 92
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 93
+    },
+    {
+      "command": "vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]",
+      "category": "misc",
+      "description": "Reflect functions and properties, or invoke a function with JSON arguments",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
+      "line": 94
     },
     {
       "command": "vrun [str]",

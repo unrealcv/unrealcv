@@ -6,7 +6,7 @@ from collections import defaultdict
 from pathlib import Path
 
 
-COMMAND_VERBS = {"vbp", "vcmd", "vexec", "vget", "vrun", "vset"}
+COMMAND_VERBS = {"vbp", "vcmd", "vexec", "vget", "vreflect", "vrun", "vset"}
 CATEGORY_TITLES = {
     "action": "Action",
     "alias": "Aliases and engine commands",

@@ -287,6 +287,50 @@ Miscellaneous
     Run UE5 built-in commands
     Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:52`
 
+``vreflect [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:84`
+
+``vreflect [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:85`
+
+``vreflect [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:86`
+
+``vreflect [str] [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:87`
+
+``vreflect [str] [str] [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:88`
+
+``vreflect [str] [str] [str] [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:89`
+
+``vreflect [str] [str] [str] [str] [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:90`
+
+``vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:91`
+
+``vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:92`
+
+``vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:93`
+
+``vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]``
+    Reflect functions and properties, or invoke a function with JSON arguments
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:94`
+
 Object
 ~~~~~~
 
@@ -430,11 +474,11 @@ Persistent level
 
 ``vget /persistent_level/id``
     Get persistent level id, so that we can call BP function defined in it
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:97`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:95`
 
 ``vget /persistent_level/level_script_actor/id``
     Get persistent level id, so that we can call BP function defined in it
-    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:102`
+    Source: :file:`Source/UnrealCV/Private/Commands/AliasHandler.cpp:100`
 
 Scene
 ~~~~~
