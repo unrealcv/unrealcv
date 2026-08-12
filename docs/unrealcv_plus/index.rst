@@ -13,6 +13,7 @@ reference remains at :doc:`../reference/commands`.
 .. toctree::
     :maxdepth: 2
     :caption: Overview
+    :titlesonly:
 
     overview
     runtime-mcp
@@ -20,6 +21,7 @@ reference remains at :doc:`../reference/commands`.
 .. toctree::
     :maxdepth: 2
     :caption: UnrealCV+ Commands
+    :titlesonly:
 
     reference/light-commands
     reference/pak-commands
@@ -29,6 +31,7 @@ reference remains at :doc:`../reference/commands`.
 .. toctree::
     :maxdepth: 2
     :caption: Architecture
+    :titlesonly:
 
     architecture/sensor-system
     architecture/annotation-system
@@ -36,6 +39,7 @@ reference remains at :doc:`../reference/commands`.
 .. toctree::
     :maxdepth: 2
     :caption: Workflows
+    :titlesonly:
 
     tutorials/pak-workflow
     integration/gym-unrealcv
@@ -44,6 +48,7 @@ reference remains at :doc:`../reference/commands`.
 .. toctree::
     :maxdepth: 1
     :caption: Diagrams
+    :titlesonly:
 
     diagrams/annotation-decision
     diagrams/command-dispatch

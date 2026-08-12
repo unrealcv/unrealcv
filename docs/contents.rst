@@ -32,6 +32,7 @@ Table of Contents
 .. toctree::
     :includehidden:
     :caption: Reference
+    :titlesonly:
 
     reference/architecture
     reference/commands
