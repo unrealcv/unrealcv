@@ -201,6 +201,12 @@ vget /unrealcv/status
 vget /unrealcv/help
     (v0.2) List all available commands and their help message
 
+vget /unrealcv/commands
+    Return all command templates currently registered in the UnrealCV command
+    dispatcher. The result is stable, sorted plain text with exactly one command
+    template per line and no heading or description. Clients can use this output
+    for runtime capability detection.
+
 vget /unrealcv/version
     (v0.3.10) Get the version of UnrealCV plugin
 

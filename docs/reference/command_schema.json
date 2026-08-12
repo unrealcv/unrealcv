@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "generated_from": "Source/UnrealCV/Private/**/*.cpp (excluding Tests)",
-  "command_count": 119,
+  "command_count": 120,
   "commands": [
     {
       "command": "vbp [str] [str]",
@@ -281,7 +281,7 @@
       "description": "Get current level name",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/PluginHandler.cpp",
-      "line": 116
+      "line": 129
     },
     {
       "command": "vget /object/[str]/bones",
@@ -417,7 +417,7 @@
       "description": "Get the name of this scene, to make sure the annotation data is for this scene.",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/PluginHandler.cpp",
-      "line": 114
+      "line": 127
     },
     {
       "command": "vget /screenshot [str]",
@@ -428,12 +428,20 @@
       "line": 905
     },
     {
+      "command": "vget /unrealcv/commands",
+      "category": "unrealcv",
+      "description": "List registered UnrealCV command templates, one command per line",
+      "availability": "runtime",
+      "source": "Source/UnrealCV/Private/Commands/PluginHandler.cpp",
+      "line": 115
+    },
+    {
       "command": "vget /unrealcv/echo [str]",
       "category": "unrealcv",
       "description": "[debug] Echo back all message, for debug",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/PluginHandler.cpp",
-      "line": 106
+      "line": 119
     },
     {
       "command": "vget /unrealcv/help",
@@ -441,7 +449,7 @@
       "description": "List all available commands and their help message",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/PluginHandler.cpp",
-      "line": 102
+      "line": 111
     },
     {
       "command": "vget /unrealcv/status",
@@ -449,7 +457,7 @@
       "description": "Get the status of UnrealCV plugin",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/PluginHandler.cpp",
-      "line": 98
+      "line": 107
     },
     {
       "command": "vget /unrealcv/version",
@@ -457,7 +465,7 @@
       "description": "Get the version of UnrealCV, the format is v0.*.*",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/PluginHandler.cpp",
-      "line": 110
+      "line": 123
     },
     {
       "command": "vget /viewmode",

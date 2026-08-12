@@ -278,7 +278,7 @@ Level
 
 ``vget /level/name``
     Get current level name
-    Source: :file:`Source/UnrealCV/Private/Commands/PluginHandler.cpp:116`
+    Source: :file:`Source/UnrealCV/Private/Commands/PluginHandler.cpp:129`
 
 Miscellaneous
 ~~~~~~~~~~~~~
@@ -485,7 +485,7 @@ Scene
 
 ``vget /scene/name``
     Get the name of this scene, to make sure the annotation data is for this scene.
-    Source: :file:`Source/UnrealCV/Private/Commands/PluginHandler.cpp:114`
+    Source: :file:`Source/UnrealCV/Private/Commands/PluginHandler.cpp:127`
 
 Screenshot
 ~~~~~~~~~~
@@ -497,21 +497,25 @@ Screenshot
 Plugin
 ~~~~~~
 
+``vget /unrealcv/commands``
+    List registered UnrealCV command templates, one command per line
+    Source: :file:`Source/UnrealCV/Private/Commands/PluginHandler.cpp:115`
+
 ``vget /unrealcv/echo [str]``
     [debug] Echo back all message, for debug
-    Source: :file:`Source/UnrealCV/Private/Commands/PluginHandler.cpp:106`
+    Source: :file:`Source/UnrealCV/Private/Commands/PluginHandler.cpp:119`
 
 ``vget /unrealcv/help``
     List all available commands and their help message
-    Source: :file:`Source/UnrealCV/Private/Commands/PluginHandler.cpp:102`
+    Source: :file:`Source/UnrealCV/Private/Commands/PluginHandler.cpp:111`
 
 ``vget /unrealcv/status``
     Get the status of UnrealCV plugin
-    Source: :file:`Source/UnrealCV/Private/Commands/PluginHandler.cpp:98`
+    Source: :file:`Source/UnrealCV/Private/Commands/PluginHandler.cpp:107`
 
 ``vget /unrealcv/version``
     Get the version of UnrealCV, the format is v0.*.*
-    Source: :file:`Source/UnrealCV/Private/Commands/PluginHandler.cpp:110`
+    Source: :file:`Source/UnrealCV/Private/Commands/PluginHandler.cpp:123`
 
 View mode
 ~~~~~~~~~

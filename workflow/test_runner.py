@@ -264,6 +264,34 @@ class UETestRunner:
             print(f"INFO|Test|Waiting {config.post_launch_delay}s for initialization")
             time.sleep(config.post_launch_delay)
 
+        command_list_start = time.time()
+        try:
+            command_response = str(client.request("vget /unrealcv/commands"))
+            command_templates = command_response.splitlines()
+            if not command_templates:
+                raise RuntimeError("command list is empty")
+            if any(not command or command != command.strip() for command in command_templates):
+                raise RuntimeError("command list contains blank or padded lines")
+            if command_templates != sorted(command_templates):
+                raise RuntimeError("command list is not sorted")
+            if len(command_templates) != len(set(command_templates)):
+                raise RuntimeError("command list contains duplicate entries")
+            if "vget /unrealcv/commands" not in command_templates:
+                raise RuntimeError("command list does not contain its own command template")
+            results.append(TestResult(
+                name="Structured UnrealCV Command List",
+                status=TestStatus.PASSED,
+                duration=time.time() - command_list_start,
+                message=f"Validated {len(command_templates)} registered command templates",
+            ))
+        except Exception as e:
+            results.append(TestResult(
+                name="Structured UnrealCV Command List",
+                status=TestStatus.FAILED,
+                duration=time.time() - command_list_start,
+                message=f"Exception: {e}",
+            ))
+
         # Define tests
         tests = [
             ("Unrealcv Version", "vget /unrealcv/version"),

@@ -15,36 +15,40 @@ DECLARE_DELEGATE_RetVal_OneParam(FExecStatus, FDispatcherDelegate, const TArray<
  */
 class UNREALCV_API FCommandDispatcher
 {
-public:
-	FCommandDispatcher();
-	~FCommandDispatcher() = default;
+  public:
+    FCommandDispatcher();
+    ~FCommandDispatcher() = default;
 
-	/** Register a command handler for the given URI template. */
-	bool BindCommand(const FString& UriTemplate, const FDispatcherDelegate& Command, const FString& Description);
+    /** Register a command handler for the given URI template. */
+    bool BindCommand(const FString& UriTemplate, const FDispatcherDelegate& Command, const FString& Description);
 
-	/** Register an alias that expands to a single command. */
-	bool Alias(const FString& AliasName, const FString& Command, const FString& Description);
+    /** Register an alias that expands to a single command. */
+    bool Alias(const FString& AliasName, const FString& Command, const FString& Description);
 
-	/** Register an alias that expands to multiple commands. */
-	bool Alias(const FString& AliasName, const TArray<FString>& Commands, const FString& Description);
+    /** Register an alias that expands to multiple commands. */
+    bool Alias(const FString& AliasName, const TArray<FString>& Commands, const FString& Description);
 
-	/** Execute a command URI. Must be called on the game thread. */
-	[[nodiscard]] FExecStatus Exec(const FString& Uri);
+    /** Execute a command URI. Must be called on the game thread. */
+    [[nodiscard]] FExecStatus Exec(const FString& Uri);
 
-	/** Return a map of URI template -> description for all registered commands. */
-	[[nodiscard]] const TMap<FString, FString>& GetUriDescription() const;
+    /** Return a map of URI template -> description for all registered commands. */
+    [[nodiscard]] const TMap<FString, FString>& GetUriDescription() const;
 
-private:
-	FExecStatus AliasHelper(const TArray<FString>& Args);
-	[[nodiscard]] bool FormatUri(const FString& RawUri, FString& OutRegex) const;
+    /** Return the currently active readable command templates. */
+    void GetRegisteredCommandTemplates(TArray<FString>& OutTemplates) const;
 
-	TMap<FString, FDispatcherDelegate> UriMapping;
-	TArray<FString> UriList;
-	TMap<FString, FRegexPattern> UriRegexPattern;
-	TMap<FString, FString> UriVerb;
-	TMap<FString, FString> UriDescription;
-	TMap<FString, TArray<FString>> AliasMapping;
-	TMap<FString, FString> TypeRegexp;
+  private:
+    FExecStatus AliasHelper(const TArray<FString>& Args);
+    [[nodiscard]] bool FormatUri(const FString& RawUri, FString& OutRegex) const;
 
-	static constexpr uint32 NumArgsLimit = 32;
+    TMap<FString, FDispatcherDelegate> UriMapping;
+    TArray<FString> UriList;
+    TMap<FString, FRegexPattern> UriRegexPattern;
+    TMap<FString, FString> UriVerb;
+    TMap<FString, FString> UriDescription;
+    TMap<FString, FString> UriReadableTemplate;
+    TMap<FString, TArray<FString>> AliasMapping;
+    TMap<FString, FString> TypeRegexp;
+
+    static constexpr uint32 NumArgsLimit = 32;
 };
