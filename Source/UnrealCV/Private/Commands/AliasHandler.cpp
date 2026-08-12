@@ -14,583 +14,598 @@ namespace
 {
 UObject* ResolveReflectionTarget(UWorld* World, const FString& TargetId, FString& OutError)
 {
-	if (TargetId.StartsWith(TEXT("class:"), ESearchCase::IgnoreCase) ||
-		TargetId.StartsWith(TEXT("cdo:"), ESearchCase::IgnoreCase))
-	{
-		FString ClassNameOrPath = TargetId;
-		int32 PrefixIndex = INDEX_NONE;
-		if (ClassNameOrPath.FindChar(TEXT(':'), PrefixIndex))
-		{
-			ClassNameOrPath = ClassNameOrPath.Mid(PrefixIndex + 1);
-		}
+    if (TargetId.StartsWith(TEXT("class:"), ESearchCase::IgnoreCase) ||
+        TargetId.StartsWith(TEXT("cdo:"), ESearchCase::IgnoreCase))
+    {
+        FString ClassNameOrPath = TargetId;
+        int32 PrefixIndex = INDEX_NONE;
+        if (ClassNameOrPath.FindChar(TEXT(':'), PrefixIndex))
+        {
+            ClassNameOrPath = ClassNameOrPath.Mid(PrefixIndex + 1);
+        }
 
-		UClass* Class = UnrealCV::ReflectionUtils::ResolveClass(ClassNameOrPath);
-		if (!IsValid(Class))
-		{
-			OutError = FString::Printf(TEXT("Can not find class '%s'"), *ClassNameOrPath);
-			return nullptr;
-		}
-		return Class->GetDefaultObject();
-	}
+        UClass* Class = UnrealCV::ReflectionUtils::ResolveClass(ClassNameOrPath);
+        if (!IsValid(Class))
+        {
+            OutError = FString::Printf(TEXT("Can not find class '%s'"), *ClassNameOrPath);
+            return nullptr;
+        }
+        return Class->GetDefaultObject();
+    }
 
-	UObject* Object = GetObjectById(World, TargetId);
-	if (!IsValid(Object))
-	{
-		OutError = FString::Printf(TEXT("Can not find object with id '%s'"), *TargetId);
-	}
-	return Object;
+    UObject* Object = GetObjectById(World, TargetId);
+    if (!IsValid(Object))
+    {
+        OutError = FString::Printf(TEXT("Can not find object with id '%s'"), *TargetId);
+    }
+    return Object;
 }
 } // namespace
 
 void FAliasHandler::RegisterCommands()
 {
-	FDispatcherDelegate Cmd;
-	FString Help;
+    FDispatcherDelegate Cmd;
+    FString Help;
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasHandler::VRun);
-	Help = TEXT("Run UE5 built-in commands");
-	CommandDispatcher->BindCommand("vcmd [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vrun [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vrun [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vrun [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vrun [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vrun [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vrun [str] [str] [str] [str] [str] [str]", Cmd, Help);
+    Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasHandler::VRun);
+    Help = TEXT("Run UE5 built-in commands");
+    CommandDispatcher->BindCommand("vcmd [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vrun [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vrun [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vrun [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vrun [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vrun [str] [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vrun [str] [str] [str] [str] [str] [str]", Cmd, Help);
 
-	// vexec ActorId FuncName Params
-	Help = TEXT("Run UE5 blueprint function");
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasHandler::VExec);
-	CommandDispatcher->BindCommand("vexec [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vexec [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+    // vexec ActorId FuncName Params
+    Help = TEXT("Run UE5 blueprint function");
+    Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasHandler::VExec);
+    CommandDispatcher->BindCommand("vexec [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vexec [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vexec [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vexec [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
 
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasHandler::VExecWithOutput);
-	CommandDispatcher->BindCommand("vbp [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vbp [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+    Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasHandler::VExecWithOutput);
+    CommandDispatcher->BindCommand("vbp [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vbp [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vbp [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vbp [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
 
-	Help = TEXT("Reflect functions and properties, or invoke a function with JSON arguments");
-	Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasHandler::VReflect);
-	CommandDispatcher->BindCommand("vreflect [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vreflect [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
-	CommandDispatcher->BindCommand("vget /persistent_level/id",
-		FDispatcherDelegate::CreateRaw(this, &FAliasHandler::GetPersistentLevelId),
-		"Get persistent level id, so that we can call BP function defined in it"
-		);
+    Help = TEXT("Reflect functions and properties, or invoke a function with JSON arguments");
+    Cmd = FDispatcherDelegate::CreateRaw(this, &FAliasHandler::VReflect);
+    CommandDispatcher->BindCommand("vreflect [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vreflect [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd, Help);
+    CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]", Cmd,
+                                   Help);
+    CommandDispatcher->BindCommand("vreflect [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str] [str]",
+                                   Cmd, Help);
+    CommandDispatcher->BindCommand("vget /persistent_level/id",
+                                   FDispatcherDelegate::CreateRaw(this, &FAliasHandler::GetPersistentLevelId),
+                                   "Get persistent level id, so that we can call BP function defined in it");
 
-	CommandDispatcher->BindCommand("vget /persistent_level/level_script_actor/id",
-		FDispatcherDelegate::CreateRaw(this, &FAliasHandler::GetLevelScriptActorId),
-		"Get persistent level id, so that we can call BP function defined in it"
-	);
+    CommandDispatcher->BindCommand("vget /persistent_level/level_script_actor/id",
+                                   FDispatcherDelegate::CreateRaw(this, &FAliasHandler::GetLevelScriptActorId),
+                                   "Get persistent level id, so that we can call BP function defined in it");
 }
 
 FExecStatus FAliasHandler::VReflect(const TArray<FString>& Args)
 {
-	if (Args.Num() < 2)
-	{
-		return FExecStatus::Error(TEXT("Usage: vreflect [object_id] [functions|properties|get|set|call_json] ..."));
-	}
+    if (Args.Num() < 2)
+    {
+        return FExecStatus::Error(TEXT("Usage: vreflect [object_id] [functions|properties|get|set|call_json] ..."));
+    }
 
-	FString ErrorMessage;
-	UObject* Object = ResolveReflectionTarget(GetWorld(), Args[0], ErrorMessage);
-	if (!IsValid(Object))
-	{
-		return FExecStatus::Error(ErrorMessage);
-	}
+    FString ErrorMessage;
+    UObject* Object = ResolveReflectionTarget(GetWorld(), Args[0], ErrorMessage);
+    if (!IsValid(Object))
+    {
+        return FExecStatus::Error(ErrorMessage);
+    }
 
-	const FString Subcommand = Args[1].ToLower();
-	if (Subcommand == TEXT("functions"))
-	{
-		return FExecStatus::OK(UnrealCV::ReflectionUtils::SerializeFunctionsForObject(Object).ToString());
-	}
-	if (Subcommand == TEXT("properties"))
-	{
-		return FExecStatus::OK(UnrealCV::ReflectionUtils::SerializePropertiesForObject(Object).ToString());
-	}
+    const FString Subcommand = Args[1].ToLower();
+    if (Subcommand == TEXT("functions"))
+    {
+        return FExecStatus::OK(UnrealCV::ReflectionUtils::SerializeFunctionsForObject(Object).ToString());
+    }
+    if (Subcommand == TEXT("properties"))
+    {
+        return FExecStatus::OK(UnrealCV::ReflectionUtils::SerializePropertiesForObject(Object).ToString());
+    }
 
-	if (Subcommand == TEXT("get") || Subcommand == TEXT("set"))
-	{
-		if (Args.Num() < 3 || (Subcommand == TEXT("set") && Args.Num() < 4))
-		{
-			return FExecStatus::Error(TEXT("Usage: vreflect [object_id] [get|set] [property_path] [value]"));
-		}
+    if (Subcommand == TEXT("get") || Subcommand == TEXT("set"))
+    {
+        if (Args.Num() < 3 || (Subcommand == TEXT("set") && Args.Num() < 4))
+        {
+            return FExecStatus::Error(TEXT("Usage: vreflect [object_id] [get|set] [property_path] [value]"));
+        }
 
-		void* ContainerPtr = nullptr;
-		FProperty* Property = nullptr;
-		if (!UnrealCV::ReflectionUtils::ResolvePropertyPath(Object, Args[2], ContainerPtr, Property, ErrorMessage))
-		{
-			return FExecStatus::Error(ErrorMessage);
-		}
-		if (Subcommand == TEXT("get"))
-		{
-			return FExecStatus::OK(UnrealCV::ReflectionUtils::SerializePropertyResult(Property, ContainerPtr).ToString());
-		}
+        void* ContainerPtr = nullptr;
+        FProperty* Property = nullptr;
+        if (!UnrealCV::ReflectionUtils::ResolvePropertyPath(Object, Args[2], ContainerPtr, Property, ErrorMessage))
+        {
+            return FExecStatus::Error(ErrorMessage);
+        }
+        if (Subcommand == TEXT("get"))
+        {
+            return FExecStatus::OK(
+                UnrealCV::ReflectionUtils::SerializePropertyResult(Property, ContainerPtr).ToString());
+        }
 
-		FString ValueText = Args[3];
-		for (int32 Index = 4; Index < Args.Num(); ++Index)
-		{
-			ValueText += TEXT(" ") + Args[Index];
-		}
-		if (!UnrealCV::ReflectionUtils::SetPropertyValueFromText(Property, ContainerPtr, ValueText, ErrorMessage))
-		{
-			return FExecStatus::Error(ErrorMessage);
-		}
-		return FExecStatus::OK(UnrealCV::ReflectionUtils::SerializePropertyResult(Property, ContainerPtr).ToString());
-	}
+        FString ValueText = Args[3];
+        for (int32 Index = 4; Index < Args.Num(); ++Index)
+        {
+            ValueText += TEXT(" ") + Args[Index];
+        }
+        if (!UnrealCV::ReflectionUtils::SetPropertyValueFromText(Property, ContainerPtr, ValueText, ErrorMessage))
+        {
+            return FExecStatus::Error(ErrorMessage);
+        }
+        return FExecStatus::OK(UnrealCV::ReflectionUtils::SerializePropertyResult(Property, ContainerPtr).ToString());
+    }
 
-	if (Subcommand == TEXT("call_json"))
-	{
-		if (Args.Num() < 4)
-		{
-			return FExecStatus::Error(TEXT("Usage: vreflect [object_id] call_json [function_name] [json_args]"));
-		}
-		FString ArgsJson = Args[3];
-		for (int32 Index = 4; Index < Args.Num(); ++Index)
-		{
-			ArgsJson += TEXT(" ") + Args[Index];
-		}
-		FJsonObjectBP Result;
-		if (!UnrealCV::ReflectionUtils::CallFunctionWithJson(Object, Args[2], ArgsJson, Result, ErrorMessage))
-		{
-			return FExecStatus::Error(ErrorMessage);
-		}
-		return FExecStatus::OK(Result.ToString());
-	}
+    if (Subcommand == TEXT("call_json"))
+    {
+        if (Args.Num() < 4)
+        {
+            return FExecStatus::Error(TEXT("Usage: vreflect [object_id] call_json [function_name] [json_args]"));
+        }
+        FString ArgsJson = Args[3];
+        for (int32 Index = 4; Index < Args.Num(); ++Index)
+        {
+            ArgsJson += TEXT(" ") + Args[Index];
+        }
+        FJsonObjectBP Result;
+        if (!UnrealCV::ReflectionUtils::CallFunctionWithJson(Object, Args[2], ArgsJson, Result, ErrorMessage))
+        {
+            return FExecStatus::Error(ErrorMessage);
+        }
+        return FExecStatus::OK(Result.ToString());
+    }
 
-	return FExecStatus::Error(FString::Printf(TEXT("Unknown vreflect subcommand '%s'"), *Args[1]));
+    return FExecStatus::Error(FString::Printf(TEXT("Unknown vreflect subcommand '%s'"), *Args[1]));
 }
 
 FExecStatus FAliasHandler::VRun(const TArray<FString>& Args)
 {
-	const int32 NumArgs = Args.Num();
-	if (NumArgs < 1)
-	{
-		return FExecStatus::Error(TEXT("This command requires at least one argument"));
-	}
+    const int32 NumArgs = Args.Num();
+    if (NumArgs < 1)
+    {
+        return FExecStatus::Error(TEXT("This command requires at least one argument"));
+    }
 
-	FString Cmd;
-	for (int32 ArgIndex = 0; ArgIndex < NumArgs - 1; ++ArgIndex)
-	{
-		Cmd += Args[ArgIndex] + TEXT(" ");
-	}
-	Cmd += Args[NumArgs - 1];
+    FString Cmd;
+    for (int32 ArgIndex = 0; ArgIndex < NumArgs - 1; ++ArgIndex)
+    {
+        Cmd += Args[ArgIndex] + TEXT(" ");
+    }
+    Cmd += Args[NumArgs - 1];
 
-	UWorld* World = FUnrealcvServer::Get().GetWorld();
-	if (!IsValid(World) || !World->IsGameWorld())
-	{
-		return FExecStatus::Error(TEXT("No valid game world available"));
-	}
+    UWorld* World = FUnrealcvServer::Get().GetWorld();
+    if (!IsValid(World) || !World->IsGameWorld())
+    {
+        return FExecStatus::Error(TEXT("No valid game world available"));
+    }
 
-	APlayerController* PC = World->GetFirstPlayerController();
-	if (!IsValid(PC))
-	{
-		return FExecStatus::Error(TEXT("No player controller available"));
-	}
-	PC->ConsoleCommand(Cmd, true);
-	return FExecStatus::OK();
+    APlayerController* PC = World->GetFirstPlayerController();
+    if (!IsValid(PC))
+    {
+        return FExecStatus::Error(TEXT("No player controller available"));
+    }
+    PC->ConsoleCommand(Cmd, true);
+    return FExecStatus::OK();
 }
 
 FExecStatus FAliasHandler::VExecWithOutput(const TArray<FString>& Args)
 {
-	FString ActorId, FuncName;
-	if (Args.Num() < 1) return FExecStatus::Error("The ActorId can not be empty.");
+    FString ActorId, FuncName;
+    if (Args.Num() < 1)
+        return FExecStatus::Error("The ActorId can not be empty.");
 
-	ActorId = Args[0];
+    ActorId = Args[0];
 
-	if (Args.Num() < 2) return FExecStatus::Error("The blueprint function name can not be empty.");
+    if (Args.Num() < 2)
+        return FExecStatus::Error("The blueprint function name can not be empty.");
 
-	FuncName = Args[1];
+    FuncName = Args[1];
 
-	UWorld* World;
-	World = this->GetWorld();
-	// AActor* Actor = GetActorById(World, ActorId);
-	UObject* Obj = GetObjectById(World, ActorId);
+    UWorld* World;
+    World = this->GetWorld();
+    // AActor* Actor = GetActorById(World, ActorId);
+    UObject* Obj = GetObjectById(World, ActorId);
 
-	if (Obj == nullptr) return FExecStatus::Error(FString::Printf(TEXT("Can not find actor with id '%s'"), *ActorId));
+    if (Obj == nullptr)
+        return FExecStatus::Error(FString::Printf(TEXT("Can not find actor with id '%s'"), *ActorId));
 
-	FString Cmd = FuncName;
-	int ArgId = 2;
-	while (ArgId < Args.Num())
-	{
-		Cmd += FString::Printf(TEXT(" %s"), *Args[ArgId]);
-		ArgId++;
-	}
-	// Cmd = Cmd.TrimTrailing(); // TODO: Simplify this function.
-	Cmd = Cmd.TrimEnd(); // New API
+    FString Cmd = FuncName;
+    int ArgId = 2;
+    while (ArgId < Args.Num())
+    {
+        Cmd += FString::Printf(TEXT(" %s"), *Args[ArgId]);
+        ArgId++;
+    }
+    // Cmd = Cmd.TrimTrailing(); // TODO: Simplify this function.
+    Cmd = Cmd.TrimEnd(); // New API
 
-	UWorld* ExecWorld = FUnrealcvServer::Get().GetWorld();
-	if (!IsValid(ExecWorld))
-	{
-		return FExecStatus::Error(TEXT("No valid world"));
-	}
-	UGameViewportClient* Viewport = ExecWorld->GetGameViewport();
-	if (!Viewport || !Viewport->ViewportConsole)
-	{
-		return FExecStatus::Error(TEXT("No viewport console available"));
-	}
-	FConsoleOutputDevice OutputDevice(Viewport->ViewportConsole);
+    UWorld* ExecWorld = FUnrealcvServer::Get().GetWorld();
+    if (!IsValid(ExecWorld))
+    {
+        return FExecStatus::Error(TEXT("No valid world"));
+    }
+    UGameViewportClient* Viewport = ExecWorld->GetGameViewport();
+    if (!Viewport || !Viewport->ViewportConsole)
+    {
+        return FExecStatus::Error(TEXT("No viewport console available"));
+    }
+    FConsoleOutputDevice OutputDevice(Viewport->ViewportConsole);
 
+    // if (Obj->CallFunctionByNameWithArguments(*Cmd, OutputDevice, nullptr, true))
+    // {
+    // 	return FExecStatus::OK();
+    // }
+    // else
+    // {
+    // 	return FExecStatus::Error(FString::Printf(TEXT("Fail to execute the function '%s' of %s"), *Cmd, *ActorId));
+    // }
 
-	// if (Obj->CallFunctionByNameWithArguments(*Cmd, OutputDevice, nullptr, true))
-	// {
-	// 	return FExecStatus::OK();
-	// }
-	// else
-	// {
-	// 	return FExecStatus::Error(FString::Printf(TEXT("Fail to execute the function '%s' of %s"), *Cmd, *ActorId));
-	// }
+    const TCHAR* Str = *Cmd;
+    FOutputDevice& Ar = OutputDevice;
+    UObject* Executor = nullptr;
+    bool bForceCallWithNonExec = true; /*=false*/
 
-	const TCHAR* Str = *Cmd;
-	FOutputDevice& Ar = OutputDevice;
-	UObject* Executor = nullptr;
-	bool bForceCallWithNonExec = true;/*=false*/
+    // Find an exec function.
+    FString MsgStr;
+    if (!FParse::Token(Str, MsgStr, true))
+    {
+        UE_LOG(LogUnrealCV, Warning, TEXT("Can not parse token"));
+        return FExecStatus::InvalidArgument;
+    }
+    const FName Message = FName(*MsgStr, FNAME_Find);
+    if (Message == NAME_None)
+    {
+        UE_LOG(LogUnrealCV, Warning, TEXT("Can not find FName from token"));
+        return FExecStatus::InvalidArgument;
+    }
+    UFunction* Function = Obj->FindFunction(Message);
+    if (nullptr == Function)
+    {
+        UE_LOG(LogUnrealCV, Warning, TEXT("Can not find function"));
+        return FExecStatus::InvalidArgument;
+    }
+    if (0 == (Function->FunctionFlags & FUNC_Exec) && !bForceCallWithNonExec)
+    {
+        UE_LOG(LogUnrealCV, Warning, TEXT("BP function is not executable"));
+        return FExecStatus::InvalidArgument;
+    }
 
-	// Find an exec function.
-	FString MsgStr;
-	if(!FParse::Token(Str,MsgStr,true))
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("Can not parse token"));
-		return FExecStatus::InvalidArgument;
-	}
-	const FName Message = FName(*MsgStr,FNAME_Find);
-	if(Message == NAME_None)
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("Can not find FName from token"));
-		return FExecStatus::InvalidArgument;
-	}
-	UFunction* Function = Obj->FindFunction(Message);
-	if(nullptr == Function)
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("Can not find function"));
-		return FExecStatus::InvalidArgument;
-	}
-	if(0 == (Function->FunctionFlags & FUNC_Exec) && !bForceCallWithNonExec)
-	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("BP function is not executable"));
-		return FExecStatus::InvalidArgument;
-	}
+    FProperty* LastParameter = nullptr;
 
-	FProperty* LastParameter = nullptr;
+    // find the last parameter
+    for (TFieldIterator<FProperty> It(Function); It && (It->PropertyFlags & (CPF_Parm | CPF_ReturnParm)) == CPF_Parm;
+         ++It)
+    {
+        LastParameter = *It;
+    }
 
-	// find the last parameter
-	for ( TFieldIterator<FProperty> It(Function); It && (It->PropertyFlags&(CPF_Parm|CPF_ReturnParm)) == CPF_Parm; ++It )
-	{
-		LastParameter = *It;
-	}
+    // Parse all function parameters.
+    uint8* Parms = (uint8*)FMemory_Alloca(Function->ParmsSize);
+    FMemory::Memzero(Parms, Function->ParmsSize);
 
-	// Parse all function parameters.
-	uint8* Parms = (uint8*)FMemory_Alloca(Function->ParmsSize);
-	FMemory::Memzero( Parms, Function->ParmsSize );
+    for (TFieldIterator<FProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+    {
+        FProperty* LocalProp = *It;
+        checkSlow(LocalProp);
+        if (!LocalProp->HasAnyPropertyFlags(CPF_ZeroConstructor))
+        {
+            LocalProp->InitializeValue_InContainer(Parms);
+        }
+    }
 
-	for (TFieldIterator<FProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
-	{
-		FProperty* LocalProp = *It;
-		checkSlow(LocalProp);
-		if (!LocalProp->HasAnyPropertyFlags(CPF_ZeroConstructor))
-		{
-			LocalProp->InitializeValue_InContainer(Parms);
-		}
-	}
+    const uint32 ExportFlags = PPF_None;
+    bool bFailed = 0;
+    int32 NumParamsEvaluated = 0;
+    for (TFieldIterator<FProperty> It(Function); It && (It->PropertyFlags & (CPF_Parm | CPF_ReturnParm)) == CPF_Parm;
+         ++It, NumParamsEvaluated++)
+    {
+        if (It->HasAnyPropertyFlags(CPF_OutParm) || It->HasAnyPropertyFlags(CPF_ReferenceParm))
+            continue; // Skip return parameters.
 
-	const uint32 ExportFlags = PPF_None;
-	bool bFailed = 0;
-	int32 NumParamsEvaluated = 0;
-	for( TFieldIterator<FProperty> It(Function); It && (It->PropertyFlags & (CPF_Parm|CPF_ReturnParm))==CPF_Parm; ++It, NumParamsEvaluated++ )
-	{
-		if (It->HasAnyPropertyFlags(CPF_OutParm) || It->HasAnyPropertyFlags(CPF_ReferenceParm)) continue; // Skip return parameters.
+        FProperty* PropertyParam = *It;
+        checkSlow(PropertyParam); // Fix static analysis warning
+        if (NumParamsEvaluated == 0 && Executor)
+        {
+            FObjectPropertyBase* Op = CastField<FObjectPropertyBase>(*It);
+            if (Op && Executor->IsA(Op->PropertyClass))
+            {
+                // First parameter is implicit reference to object executing the command.
+                Op->SetObjectPropertyValue(Op->ContainerPtrToValuePtr<uint8>(Parms), Executor);
+                continue;
+            }
+        }
 
-		FProperty* PropertyParam = *It;
-		checkSlow(PropertyParam); // Fix static analysis warning
-		if (NumParamsEvaluated == 0 && Executor)
-		{
-			FObjectPropertyBase* Op = CastField<FObjectPropertyBase>(*It);
-			if( Op && Executor->IsA(Op->PropertyClass) )
-			{
-				// First parameter is implicit reference to object executing the command.
-				Op->SetObjectPropertyValue(Op->ContainerPtrToValuePtr<uint8>(Parms), Executor);
-				continue;
-			}
-		}
+        // Keep old string around in case we need to pass the whole remaining string
+        const TCHAR* RemainingStr = Str;
 
-		// Keep old string around in case we need to pass the whole remaining string
-		const TCHAR* RemainingStr = Str;
+        // Parse a new argument out of Str
+        FString ArgStr;
+        FParse::Token(Str, ArgStr, true);
 
-		// Parse a new argument out of Str
-		FString ArgStr;
-		FParse::Token(Str, ArgStr, true);
+        // if ArgStr is empty but we have more params to read parse the function to see if these have defaults, if so
+        // set them
+        bool bFoundDefault = false;
+        bool bFailedImport = true;
+#if WITH_EDITOR
+        if (!FCString::Strcmp(*ArgStr, TEXT("")))
+        {
+            const FName DefaultPropertyKey(*(FString(TEXT("CPP_Default_")) + PropertyParam->GetName()));
+            const FString& PropertyDefaultValue = Function->GetMetaData(DefaultPropertyKey);
+            if (!PropertyDefaultValue.IsEmpty())
+            {
+                bFoundDefault = true;
 
-		// if ArgStr is empty but we have more params to read parse the function to see if these have defaults, if so set them
-		bool bFoundDefault = false;
-		bool bFailedImport = true;
-	#if WITH_EDITOR
-		if (!FCString::Strcmp(*ArgStr, TEXT("")))
-		{
-			const FName DefaultPropertyKey(*(FString(TEXT("CPP_Default_")) + PropertyParam->GetName()));
-			const FString& PropertyDefaultValue = Function->GetMetaData(DefaultPropertyKey);
-			if (!PropertyDefaultValue.IsEmpty())
-			{
-				bFoundDefault = true;
+                const TCHAR* Result = It->ImportText_Direct(
+                    *PropertyDefaultValue, It->ContainerPtrToValuePtr<uint8>(Parms), nullptr, ExportFlags);
+                bFailedImport = (Result == nullptr);
+            }
+        }
+#endif
 
-				const TCHAR* Result = It->ImportText_Direct( *PropertyDefaultValue, It->ContainerPtrToValuePtr<uint8>(Parms), nullptr, ExportFlags);
-				bFailedImport = (Result == nullptr);
-			}
-		}
-	#endif
+        if (!bFoundDefault)
+        {
+            if (PropertyParam == LastParameter && PropertyParam->IsA<FStrProperty>() &&
+                FCString::Strcmp(Str, TEXT("")) != 0)
+            {
+                // if this is the last string property and we have remaining arguments to process, we have to assume
+                // that this is a sub-command that will be passed to another exec (like "cheat giveall weapons", for
+                // example). Therefore we need to use the whole remaining string as an argument, regardless of quotes,
+                // spaces etc.
 
-		if (!bFoundDefault)
-		{
-			if (PropertyParam == LastParameter && PropertyParam->IsA<FStrProperty>() && FCString::Strcmp(Str, TEXT("")) != 0)
-			{
-				// if this is the last string property and we have remaining arguments to process, we have to assume that this
-				// is a sub-command that will be passed to another exec (like "cheat giveall weapons", for example). Therefore
-				// we need to use the whole remaining string as an argument, regardless of quotes, spaces etc.
+                // ArgStr = FString(RemainingStr).Trim();
+                ArgStr = FString(RemainingStr).TrimStart(); // New API
+            }
 
-				// ArgStr = FString(RemainingStr).Trim();
-				ArgStr = FString(RemainingStr).TrimStart(); // New API
-			}
+            const TCHAR* Result =
+                It->ImportText_Direct(*ArgStr, It->ContainerPtrToValuePtr<uint8>(Parms), nullptr, ExportFlags);
+            bFailedImport = (Result == nullptr);
+        }
 
-			const TCHAR* Result = It->ImportText_Direct(*ArgStr, It->ContainerPtrToValuePtr<uint8>(Parms), nullptr, ExportFlags);
-			bFailedImport = (Result == nullptr);
-		}
+        if (bFailedImport)
+        {
+            FFormatNamedArguments Arguments;
+            Arguments.Add(TEXT("Message"), FText::FromName(Message));
+            Arguments.Add(TEXT("PropertyName"), FText::FromName(It->GetFName()));
+            Arguments.Add(TEXT("FunctionName"), FText::FromName(Function->GetFName()));
+            Ar.Logf(
+                TEXT("%s"),
+                *FText::Format(
+                     NSLOCTEXT(
+                         "Core", "BadProperty",
+                         "'{Message}': Bad or missing property '{PropertyName}' when trying to call {FunctionName}"),
+                     Arguments)
+                     .ToString());
+            bFailed = true;
 
-		if( bFailedImport )
-		{
-			FFormatNamedArguments Arguments;
-			Arguments.Add(TEXT("Message"), FText::FromName( Message ));
-			Arguments.Add(TEXT("PropertyName"), FText::FromName(It->GetFName()));
-			Arguments.Add(TEXT("FunctionName"), FText::FromName(Function->GetFName()));
-			Ar.Logf( TEXT("%s"), *FText::Format( NSLOCTEXT( "Core", "BadProperty", "'{Message}': Bad or missing property '{PropertyName}' when trying to call {FunctionName}" ), Arguments ).ToString() );
-			bFailed = true;
+            break;
+        }
+    }
 
-			break;
-		}
-	}
+    if (!bFailed)
+    {
+        Obj->ProcessEvent(Function, Parms);
+    }
 
-	if( !bFailed )
-	{
-		Obj->ProcessEvent( Function, Parms );
-	}
+    // https://answers.unrealengine.com/questions/139582/get-property-value.html
+    // https://answers.unrealengine.com/questions/301428/set-string-for-fstring-via-uproperty.html
+    // for (TFieldIterator<UIntProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_ReturnParm); ++It)
+    for (TFieldIterator<FIntProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+    {
+        FString CPPType = It->GetCPPType();
+        // float Target;
+        // It->CopyCompleteValue_InContainer(&Dest, Parms);
+        int Value = It->GetPropertyValue_InContainer(Parms);
+    }
 
+    // for (TFieldIterator<UNumericProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_ReturnParm); ++It)
+    for (TFieldIterator<FNumericProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+    {
+        FString CPPType = It->GetCPPType();
+        // float Target;
+        // It->CopyCompleteValue_InContainer(&Dest, Parms);
+        FString Value = It->GetNumericPropertyValueToString(Parms);
+    }
 
-	// https://answers.unrealengine.com/questions/139582/get-property-value.html
-	// https://answers.unrealengine.com/questions/301428/set-string-for-fstring-via-uproperty.html
-	// for (TFieldIterator<UIntProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_ReturnParm); ++It)
-	for (TFieldIterator<FIntProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
-	{
-		FString CPPType = It->GetCPPType();
-		// float Target;
-		// It->CopyCompleteValue_InContainer(&Dest, Parms);
-		int Value = It->GetPropertyValue_InContainer(Parms);
-	}
+    TMap<FString, FString> Dict;
+    // CPF_OutParm, use this flag check!
+    for (TFieldIterator<FStrProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+    {
+        FString CPPType = It->GetCPPType();
+        // float Target;
+        // It->CopyCompleteValue_InContainer(&Dest, Parms);
+        FString Value = It->GetPropertyValue_InContainer(Parms);
+        // FString Key = It->GetName();
+        // Dict.Emplace(Key, Value);
+    }
 
-	// for (TFieldIterator<UNumericProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_ReturnParm); ++It)
-	for (TFieldIterator<FNumericProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
-	{
-		FString CPPType = It->GetCPPType();
-		// float Target;
-		// It->CopyCompleteValue_InContainer(&Dest, Parms);
-		FString Value = It->GetNumericPropertyValueToString(Parms);
-	}
+    // Check SGraphNodeK2CreateDelegate.cpp
+    for (TFieldIterator<FProperty> It(Function); It; ++It)
+    {
+        if (It->HasAnyPropertyFlags(CPF_OutParm) || It->HasAnyPropertyFlags(CPF_ReferenceParm))
+        {
+            FString Key = It->GetName();
+            FString Value;
+            FStrProperty* StrProperty = CastField<FStrProperty>(*It);
+            // if (IsValid(StrProperty))
+            // {
+            // 	Value = StrProperty->GetPropertyValue_InContainer(Parms);
+            // }
+            if (StrProperty != nullptr)
+            {
+                Value = StrProperty->GetPropertyValue_InContainer(Parms);
+            }
 
-	TMap<FString, FString> Dict;
-	// CPF_OutParm, use this flag check!
-	for (TFieldIterator<FStrProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
-	{
-		FString CPPType = It->GetCPPType();
-		// float Target;
-		// It->CopyCompleteValue_InContainer(&Dest, Parms);
-		FString Value = It->GetPropertyValue_InContainer(Parms);
-		// FString Key = It->GetName();
-		// Dict.Emplace(Key, Value);
-	}
+            FNumericProperty* NumericProperty = CastField<FNumericProperty>(*It);
+            /*if (IsValid(NumericProperty))
+            {
+            Value = NumericProperty->GetNumericPropertyValueToString(Parms);
+            }*/
+            if (NumericProperty != nullptr)
+            {
+                Value = NumericProperty->GetNumericPropertyValueToString(Parms);
+            }
 
-	// Check SGraphNodeK2CreateDelegate.cpp
-	for (TFieldIterator<FProperty> It(Function); It; ++It)
-	{
-		if (It->HasAnyPropertyFlags(CPF_OutParm) || It->HasAnyPropertyFlags(CPF_ReferenceParm))
-		{
-			FString Key = It->GetName();
-			FString Value;
-			FStrProperty* StrProperty = CastField<FStrProperty>(*It);
-			// if (IsValid(StrProperty))
-			// {
-			// 	Value = StrProperty->GetPropertyValue_InContainer(Parms);
-			// }
-			if (StrProperty != nullptr)
-			{
-				Value = StrProperty->GetPropertyValue_InContainer(Parms);
-			}
+            if (StrProperty == nullptr && NumericProperty == nullptr)
+            {
+                UE_LOG(LogUnrealCV, Warning, TEXT("Unrecognized type for parameter %s"), *Key);
+            }
 
-			FNumericProperty* NumericProperty = CastField<FNumericProperty>(*It);
-			/*if (IsValid(NumericProperty))
-			{
-			Value = NumericProperty->GetNumericPropertyValueToString(Parms);
-			}*/
-			if (NumericProperty != nullptr)
-			{
-				Value = NumericProperty->GetNumericPropertyValueToString(Parms);
-			}
+            Dict.Emplace(Key, Value);
+        }
+    }
 
-			if (StrProperty == nullptr && NumericProperty == nullptr)
-			{
-				UE_LOG(LogUnrealCV, Warning, TEXT("Unrecognized type for parameter %s"), *Key);
-			}
+    //!!destructframe see also UObject::ProcessEvent
+    for (TFieldIterator<FProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+    {
+        It->DestroyValue_InContainer(Parms);
+    }
 
-			Dict.Emplace(Key, Value);
-		}
-	}
+    FJsonObjectBP JsonObjectBP(Dict);
 
-
-	//!!destructframe see also UObject::ProcessEvent
-	for( TFieldIterator<FProperty> It(Function); It && It->HasAnyPropertyFlags(CPF_Parm); ++It )
-	{
-		It->DestroyValue_InContainer(Parms);
-	}
-
-	FJsonObjectBP JsonObjectBP(Dict);
-
-	// Success.
-	return FExecStatus::OK(JsonObjectBP.ToString());
-
+    // Success.
+    return FExecStatus::OK(JsonObjectBP.ToString());
 }
 
 FExecStatus FAliasHandler::VExec(const TArray<FString>& Args)
 {
-	// Args[0] : ActorId
-	// Args[1] : BlueprintFunctionName
-	// Args[2 .. end] : Parameters
+    // Args[0] : ActorId
+    // Args[1] : BlueprintFunctionName
+    // Args[2 .. end] : Parameters
 
-	FString ActorId, FuncName;
-	if (Args.Num() < 1)
-	{
-		return FExecStatus::Error("The ActorId can not be empty.");
-	}
-	else
-	{
-		ActorId = Args[0];
-	}
+    FString ActorId, FuncName;
+    if (Args.Num() < 1)
+    {
+        return FExecStatus::Error("The ActorId can not be empty.");
+    }
+    else
+    {
+        ActorId = Args[0];
+    }
 
-	if (Args.Num() < 2)
-	{
-		return FExecStatus::Error("The blueprint function name can not be empty.");
-	}
-	else
-	{
-		FuncName = Args[1];
-	}
+    if (Args.Num() < 2)
+    {
+        return FExecStatus::Error("The blueprint function name can not be empty.");
+    }
+    else
+    {
+        FuncName = Args[1];
+    }
 
-	UWorld* World;
-	World = this->GetWorld();
-	// AActor* Actor = GetActorById(World, ActorId);
-	UObject* Obj = GetObjectById(World, ActorId);
+    UWorld* World;
+    World = this->GetWorld();
+    // AActor* Actor = GetActorById(World, ActorId);
+    UObject* Obj = GetObjectById(World, ActorId);
 
-	if (Obj == nullptr) return FExecStatus::Error(FString::Printf(TEXT("Can not find actor with id '%s'"), *ActorId));
+    if (Obj == nullptr)
+        return FExecStatus::Error(FString::Printf(TEXT("Can not find actor with id '%s'"), *ActorId));
 
-	FString Cmd = FuncName;
-	int ArgId = 2;
-	while (ArgId < Args.Num())
-	{
-		Cmd += FString::Printf(TEXT(" %s"), *Args[ArgId]);
-		ArgId++;
-	}
+    FString Cmd = FuncName;
+    int ArgId = 2;
+    while (ArgId < Args.Num())
+    {
+        Cmd += FString::Printf(TEXT(" %s"), *Args[ArgId]);
+        ArgId++;
+    }
 
-	UWorld* VExecWorld = FUnrealcvServer::Get().GetWorld();
-	if (!IsValid(VExecWorld))
-	{
-		return FExecStatus::Error(TEXT("No valid world"));
-	}
-	UGameViewportClient* VExecViewport = VExecWorld->GetGameViewport();
-	if (!VExecViewport || !VExecViewport->ViewportConsole)
-	{
-		return FExecStatus::Error(TEXT("No viewport console available"));
-	}
-	FConsoleOutputDevice OutputDevice(VExecViewport->ViewportConsole);
+    UWorld* VExecWorld = FUnrealcvServer::Get().GetWorld();
+    if (!IsValid(VExecWorld))
+    {
+        return FExecStatus::Error(TEXT("No valid world"));
+    }
+    UGameViewportClient* VExecViewport = VExecWorld->GetGameViewport();
+    if (!VExecViewport || !VExecViewport->ViewportConsole)
+    {
+        return FExecStatus::Error(TEXT("No viewport console available"));
+    }
+    FConsoleOutputDevice OutputDevice(VExecViewport->ViewportConsole);
 
-	if (!IsValid(Obj) || Obj->IsUnreachable())
-	{
-		return FExecStatus::Error(TEXT("Object is invalid or unreachable"));
-	}
+    if (!IsValid(Obj) || Obj->IsUnreachable())
+    {
+        return FExecStatus::Error(TEXT("Object is invalid or unreachable"));
+    }
 
-	// From Actor.cpp ProcessEvent
-	//#if WITH_EDITOR
-	//static const FName CallInEditorMeta(TEXT("CallInEditor"));
-	//const bool bAllowScriptExecution = GAllowActorScriptExecutionInEditor || Function->GetBoolMetaData(CallInEditorMeta);
-	//#else
-	//const bool bAllowScriptExecution = GAllowActorScriptExecutionInEditor;
-	//#endif
-	UWorld* MyWorld = Obj->GetWorld();
-	//check((
-	//		(MyWorld && (
-	//					MyWorld->AreActorsInitialized()
-	//					|| bAllowScriptExecution
-	//					)
-	//		)
-	//		||
-	//		Obj->HasAnyFlags(RF_ClassDefaultObject)
-	//		)
-	//		&&
-	//		!Obj->IsGarbageCollecting()
-	//	);
-	if (MyWorld->AreActorsInitialized() == false)
-	{
-		UE_LOG(LogUnrealCV, Error, TEXT("Actors of the world are not initialized, the vexec might fail."));
-	}
+    // From Actor.cpp ProcessEvent
+    // #if WITH_EDITOR
+    // static const FName CallInEditorMeta(TEXT("CallInEditor"));
+    // const bool bAllowScriptExecution = GAllowActorScriptExecutionInEditor ||
+    // Function->GetBoolMetaData(CallInEditorMeta); #else const bool bAllowScriptExecution =
+    // GAllowActorScriptExecutionInEditor; #endif
+    UWorld* MyWorld = Obj->GetWorld();
+    // check((
+    //		(MyWorld && (
+    //					MyWorld->AreActorsInitialized()
+    //					|| bAllowScriptExecution
+    //					)
+    //		)
+    //		||
+    //		Obj->HasAnyFlags(RF_ClassDefaultObject)
+    //		)
+    //		&&
+    //		!Obj->IsGarbageCollecting()
+    //	);
+    if (MyWorld->AreActorsInitialized() == false)
+    {
+        UE_LOG(LogUnrealCV, Error, TEXT("Actors of the world are not initialized, the vexec might fail."));
+    }
 
-	if (Obj->CallFunctionByNameWithArguments(*Cmd, OutputDevice, nullptr, true))
-	{
-		return FExecStatus::OK();
-	}
-	else
-	{
-		return FExecStatus::Error(FString::Printf(TEXT("Fail to execute the function '%s' of %s"), *Cmd, *ActorId));
-	}
+    if (Obj->CallFunctionByNameWithArguments(*Cmd, OutputDevice, nullptr, true))
+    {
+        return FExecStatus::OK();
+    }
+    else
+    {
+        return FExecStatus::Error(FString::Printf(TEXT("Fail to execute the function '%s' of %s"), *Cmd, *ActorId));
+    }
 }
 
 FExecStatus FAliasHandler::GetPersistentLevelId(const TArray<FString>& Args)
 {
-	UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
+    UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
 
-	if (IsValid(GameWorld) && IsValid(GameWorld->PersistentLevel))
-	{
-		return FExecStatus::OK(GameWorld->PersistentLevel->GetName());
-	}
-	else
-	{
-		return FExecStatus::Error(TEXT("The UWorld is invalid"));
-	}
+    if (IsValid(GameWorld) && IsValid(GameWorld->PersistentLevel))
+    {
+        return FExecStatus::OK(GameWorld->PersistentLevel->GetName());
+    }
+    else
+    {
+        return FExecStatus::Error(TEXT("The UWorld is invalid"));
+    }
 }
 
 FExecStatus FAliasHandler::GetLevelScriptActorId(const TArray<FString>& Args)
 {
-	UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
+    UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
 
-	if (!IsValid(GameWorld) || !IsValid(GameWorld->PersistentLevel))
-	{
-		return FExecStatus::Error(TEXT("The UWorld or PersistentLevel is invalid"));
-	}
-	const ALevelScriptActor* ScriptActor = GameWorld->PersistentLevel->LevelScriptActor;
-	if (!IsValid(ScriptActor))
-	{
-		return FExecStatus::Error(TEXT("The LevelScriptActor is null"));
-	}
-	return FExecStatus::OK(ScriptActor->GetName());
+    if (!IsValid(GameWorld) || !IsValid(GameWorld->PersistentLevel))
+    {
+        return FExecStatus::Error(TEXT("The UWorld or PersistentLevel is invalid"));
+    }
+    const ALevelScriptActor* ScriptActor = GameWorld->PersistentLevel->LevelScriptActor;
+    if (!IsValid(ScriptActor))
+    {
+        return FExecStatus::Error(TEXT("The LevelScriptActor is null"));
+    }
+    return FExecStatus::OK(ScriptActor->GetName());
 }

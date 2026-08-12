@@ -401,7 +401,7 @@
       "description": "Get persistent level id, so that we can call BP function defined in it",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 95
+      "line": 97
     },
     {
       "command": "vget /persistent_level/level_script_actor/id",
@@ -409,7 +409,7 @@
       "description": "Get persistent level id, so that we can call BP function defined in it",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 100
+      "line": 101
     },
     {
       "command": "vget /scene/name",
@@ -553,7 +553,7 @@
       "description": "Reflect functions and properties, or invoke a function with JSON arguments",
       "availability": "runtime",
       "source": "Source/UnrealCV/Private/Commands/AliasHandler.cpp",
-      "line": 94
+      "line": 95
     },
     {
       "command": "vrun [str]",
