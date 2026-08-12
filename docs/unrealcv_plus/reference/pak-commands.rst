@@ -124,27 +124,21 @@ vget /pak/registered_status [PakFilePath|PakIndex]
 
     Returns: Newline-separated rows in the form ``PackagePath<TAB>found|missing<TAB>loadable|not_loadable[<TAB>Filename]``
 
-Asset Pool Integration
-~~~~~~~~~~~~~~~~~~~~~~
+Compatibility Scan Alias
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 vset /pak/register [PackagePath] [Category]
-    Register assets from a pak file to AssetPoolManager.
+    Compatibility alias that force-scans ``PackagePath`` in the Asset Registry.
 
     Arguments:
-    - ``PackagePath``: Package path with wildcard (e.g., ``/Game/Assets/*``)
-    - ``Category``: Asset pool category name
+    - ``PackagePath``: Package path to scan (for example, ``/Game/Assets``)
+    - ``Category``: Required by the command template but currently ignored
 
-    Example: ``vset /pak/register /Game/Foreground/* Foreground_Human``
+    Example: ``vset /pak/register /Game/Assets compatibility``
 
-    This makes assets available for random selection via SceneCompositionBPLib.
-
-    Available categories:
-    - ``Foreground_Human`` - Human actors/characters
-    - ``Foreground_Animal`` - Animal characters
-    - ``Foreground_Vehicle`` - Vehicle actors
-    - ``Foreground_Object`` - Object actors
-    - ``Occluder_*`` - Occluding objects
-    - ``Scene_*`` - Scene decoration
+    The current implementation returns ``Scanned assets from '<PackagePath>'``.
+    It does not register an AssetPool category. Prefer ``vset /pak/scan`` in new
+    integrations.
 
 .. _pak-blueprint-api:
 
@@ -156,7 +150,7 @@ PakMountBPLib provides Blueprint-accessible functions for pak management.
 Mounting Functions
 ~~~~~~~~~~~~~~~~~~
 
-.. function:: MountPakFile(PakFilePath, PakOrder) -> bool
+``bool MountPakFile(const FString& PakFilePath, int32 PakOrder = 0)``
 
    Mount a pak file from Blueprint.
 
@@ -164,20 +158,20 @@ Mounting Functions
    :param PakOrder: Loading order integer (default: 0)
    :return: true if mounted successfully
 
-.. function:: UnmountPakFile(PakFilePath) -> bool
+``bool UnmountPakFile(const FString& PakFilePath)``
 
    Unmount a previously mounted pak file.
 
    :param PakFilePath: Path of the pak file to unmount, or a mounted index
    :return: true if unmounted successfully
 
-.. function:: GetMountedPakFiles() -> array[string]
+``TArray<FString> GetMountedPakFiles()``
 
    Get list of all currently mounted pak file paths.
 
    :return: Array of pak file paths
 
-.. function:: IsPakFileMounted(PakFilePath) -> bool
+``bool IsPakFileMounted(const FString& PakFilePath)``
 
    Check if a specific pak file is mounted.
 
@@ -187,14 +181,14 @@ Mounting Functions
 Asset Loading Functions
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. function:: ScanMountedAssets(MountPoint, bForceRescan)
+``void ScanMountedAssets(const FString& MountPoint, bool bForceRescan = true)``
 
    Scan and register asset registry for a mount point.
 
    :param MountPoint: Mount point path (e.g., ``/Game/``)
    :param bForceRescan: Force rescan even if already scanned
 
-.. function:: GetAllAssetsInPath(PackagePath, AssetClass) -> array[string]
+``TArray<FString> GetAllAssetsInPath(const FString& PackagePath, UClass* AssetClass = nullptr)``
 
    Get all assets in a package path.
 
@@ -202,38 +196,27 @@ Asset Loading Functions
    :param AssetClass: Optional class filter (e.g., ``UBlueprint::StaticClass()``)
    :return: Array of asset paths
 
-.. function:: GetRegisteredPackagePathsInPakFile(PakFilePath) -> array[string]
+``TArray<FString> GetRegisteredPackagePathsInPakFile(const FString& PakFilePath)``
 
    Get all long package names that can be resolved from a pak file.
 
    :param PakFilePath: Full path to the pak file, or a mounted index
    :return: Array of long package names
 
-.. function:: GetRegisteredPackageStatusInPakFile(PakFilePath) -> array[string]
+``TArray<FString> GetRegisteredPackageStatusInPakFile(const FString& PakFilePath)``
 
    Get all resolved package paths from a pak file with existence status.
 
    :param PakFilePath: Full path to the pak file, or a mounted index
    :return: Array of status rows
 
-.. function:: LoadAssetFromPak(AssetPath, AssetClass) -> UObject
+``UObject* LoadAssetFromPak(const FString& AssetPath, UClass* AssetClass)``
 
    Load a specific asset from pak.
 
    :param AssetPath: Full asset path
    :param AssetClass: Expected class (can be nullptr)
    :return: Loaded UObject or nullptr
-
-Asset Pool Integration
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. function:: RegisterAssetsToAssetPool(PackagePath, Category) -> bool
-
-   Register pak assets to AssetPoolManager.
-
-   :param PackagePath: Package path with wildcard
-   :param Category: Asset pool category name
-   :return: true if registration successful
 
 .. _pak-workflow-example:
 

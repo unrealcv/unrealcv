@@ -441,10 +441,10 @@ ColorGenerator uses bit manipulation to create channel-wise distinct colors:
    Index 2:  R=1,   G=8,   B=16  (1, 8, 16 = 0x010810)
    ...
 
+.. _annotation-mode-comparison:
+
 Annotation Mode Comparison
 --------------------------
-
-.. _annotation-mode-comparison:
 
 +---------------------------+--------------------+--------------------+
 | Feature                   | Direct Mode        | Proxy Mode         |
