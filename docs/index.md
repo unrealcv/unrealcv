@@ -16,11 +16,11 @@ UnrealCV can be used in two ways. The first is using a compiled game binary with
 
 Please read [Tutorial: Getting Started](http://unrealcv.github.io/tutorial/getting_started.html) to learn using UnrealCV.
 
-## UnrealCV Dev For UnrealZoo
+## UnrealCV Dev For [UnrealZoo](https://github.com/UnrealZoo)
 
-{doc}`UnrealCV Dev For UnrealZoo <unrealcv_plus/index>` contains features in
-active development and testing. They are currently provided in supported
-[UnrealZoo](https://unrealzoo.github.io/) environments before general-purpose
+{doc}`UnrealCV Dev For <unrealcv_plus/index>` [UnrealZoo](https://github.com/UnrealZoo)
+contains features in active development and testing. They are currently provided
+in supported [UnrealZoo](https://github.com/UnrealZoo) environments before general-purpose
 parts are promoted into the open-source plugin. Runtime MCP clients, examples,
 and an agent skill are published at
 [unrealcv-runtime-mcp](https://github.com/lizi-Margin/unrealcv-runtime-mcp);

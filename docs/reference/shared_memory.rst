@@ -110,8 +110,8 @@ so copying the fixed-size raw mapping leaves a smaller but repeatable improvemen
 The implementation is currently Windows-only. Remote clients cannot open a mapping from another machine and must
 continue using TCP or file output.
 
-UnrealZoo Capture Transport Benchmark
-======================================
+`UnrealZoo <https://github.com/UnrealZoo>`_ Capture Transport Benchmark
+========================================================================
 
 .. list-table:: Standard Camera
    :header-rows: 1

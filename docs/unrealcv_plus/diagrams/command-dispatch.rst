@@ -93,5 +93,5 @@ Related Pages
 -------------
 
 - :doc:`../../reference/commands` for the base command reference.
-- :doc:`../reference/commands` for UnrealCV Dev For UnrealZoo commands.
+- :doc:`../reference/commands` for UnrealCV Dev For `UnrealZoo <https://github.com/UnrealZoo>`_ commands.
 - :doc:`../runtime-mcp` for MCP exposure of runtime capabilities.

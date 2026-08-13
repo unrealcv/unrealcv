@@ -6,9 +6,9 @@ Use ``python tools/command_schema/generate_schema.py`` to regenerate it after co
 
 This page is the command contract for the open-source UnrealCV plugin in this
 repository. The generated index contains only commands registered by this
-checkout. Features tested first in UnrealZoo are listed separately in
+checkout. Features tested first in `UnrealZoo <https://github.com/UnrealZoo>`_ are listed separately in
 :doc:`../unrealcv_plus/reference/commands` under the
-**UnrealCV Dev For UnrealZoo** availability label.
+**UnrealCV Dev For `UnrealZoo <https://github.com/UnrealZoo>`_** availability label.
 
 Runtime capability detection
 ----------------------------

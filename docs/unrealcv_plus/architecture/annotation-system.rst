@@ -500,4 +500,3 @@ See Also
 --------
 
 - :doc:`sensor-system` - Sensor system (reads annotation colors)
-- :doc:`../reference/sensor-data-formats` - Annotation sensor output formats

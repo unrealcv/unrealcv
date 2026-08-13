@@ -1,7 +1,7 @@
-# UnrealCV Dev For UnrealZoo
+# UnrealCV Dev For [UnrealZoo](https://github.com/UnrealZoo)
 
 These continuously developed features are currently provided and tested first
-in UnrealZoo. They are not part of the open-source UnrealCV command contract
+in [UnrealZoo](https://github.com/UnrealZoo). They are not part of the open-source UnrealCV command contract
 unless they also appear in the main Command System reference.
 
 - Added runtime `PAK` mounting support for packaged applications, making it easier to extend content without rebuilding the whole project.
@@ -17,7 +17,7 @@ unless they also appear in the main Command System reference.
     - `load_pak_asset()`
     - `get_pak_assets()`
     - `register_pak_assets()`
-  - See unrealzoo website: `Home`->`Document`->`Import Custom Assets` for more information.
+  - See [UnrealZoo](https://github.com/UnrealZoo) documentation for more information.
 
 - Added panoramic camera support for 360-degree equirectangular image generation.
   - Supports per-camera panorama cube resolution and direct panorama export to file.

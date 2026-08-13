@@ -277,5 +277,5 @@ Common Issues
 See Also
 --------
 
-- :doc:`../overview` - UnrealCV Dev For UnrealZoo feature overview
-- :doc:`../tutorials/pak-workflow` - Pak workflow tutorial
+- :doc:`../overview` - UnrealCV Dev For `UnrealZoo <https://github.com/UnrealZoo>`_ feature overview
+- :doc:`../../tutorials/pak-workflow` - Pak workflow tutorial

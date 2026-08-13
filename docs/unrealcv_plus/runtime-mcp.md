@@ -1,8 +1,8 @@
-# Runtime MCP with UnrealZoo
+# Runtime MCP with [UnrealZoo](https://github.com/UnrealZoo)
 
-Runtime MCP lets an agent inspect and control a running UnrealZoo environment
-through compact structured tools. It is part of **UnrealCV Dev For UnrealZoo**:
-the service is in active development, is tested in UnrealZoo first, and is not
+Runtime MCP lets an agent inspect and control a running [UnrealZoo](https://github.com/UnrealZoo) environment
+through compact structured tools. It is part of **UnrealCV Dev For [UnrealZoo](https://github.com/UnrealZoo)**:
+the service is in active development, is tested in [UnrealZoo](https://github.com/UnrealZoo) first, and is not
 included in the open-source UnrealCV plugin in this repository.
 
 The public client, examples, and Codex skill live in
@@ -13,7 +13,7 @@ The Unreal Engine C++ server implementation is not currently open source.
 
 ## Prerequisites
 
-1. Start a supported UnrealZoo environment with Runtime MCP enabled.
+1. Start a supported [UnrealZoo](https://github.com/UnrealZoo) environment with Runtime MCP enabled.
 2. Confirm its log contains `Runtime MCP server listening on port 29998`.
 3. Clone the public client repository and use Python 3.9 or newer. The example
    client has no third-party dependencies.
@@ -68,7 +68,7 @@ python .\examples\runtime_mcp_client.py exec "vget /camera/0/location"
 Do not infer command availability from a Python API method. Query the runtime
 first. The open-source command contract is documented in
 {doc}`Command System <../reference/commands>`; additional development commands
-are marked {doc}`UnrealCV Dev For UnrealZoo <reference/commands>`.
+are marked {doc}`UnrealCV Dev For <reference/commands>` [UnrealZoo](https://github.com/UnrealZoo).
 
 ## Install the Codex skill
 

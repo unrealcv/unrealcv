@@ -16,8 +16,7 @@ Table of Contents
     tutorials/python_client
     tutorials/examples
     unrealcv_plus/runtime-mcp
-    unrealcv_plus/tutorials/pak-workflow
-    unrealcv_plus/integration/gym-unrealcv
+    tutorials/pak-workflow
     tutorials/generate_images_tutorial
     tutorials/faster_rcnn
 
@@ -40,9 +39,6 @@ Table of Contents
     reference/architecture
     reference/commands
     unrealcv_plus/reference/commands
-    unrealcv_plus/reference/light-commands
-    unrealcv_plus/reference/pak-commands
-    unrealcv_plus/reference/sensor-data-formats
     reference/shared_memory
     reference/runtime_reflection
     reference/model_zoo
@@ -60,8 +56,4 @@ Table of Contents
     reference/python_api
     unrealcv_plus/index
     unrealcv_plus/architecture/sensor-system
-    unrealcv_plus/architecture/annotation-system
-    unrealcv_plus/migration/camera-id-format
-    unrealcv_plus/diagrams/annotation-decision
-    unrealcv_plus/diagrams/command-dispatch
     contribute

@@ -566,11 +566,10 @@ Integration with Recording
 --------------------------
 
 The sensor system integrates with ``AFusionCamCaptureActor`` for high-throughput
-recording. See :doc:`../overview` for the UnrealCV Dev For UnrealZoo recording feature summary.
+recording. See :doc:`../overview` for the UnrealCV Dev For `UnrealZoo <https://github.com/UnrealZoo>`_ recording feature summary.
 
 See Also
 --------
 
 - :doc:`annotation-system` - Annotation system (used by AnnotationCamSensor)
-- :doc:`../overview` - UnrealCV Dev For UnrealZoo recording and camera feature summary
-- :doc:`../reference/sensor-data-formats` - Sensor output formats
+- :doc:`../overview` - UnrealCV Dev For `UnrealZoo <https://github.com/UnrealZoo>`_ recording and camera feature summary

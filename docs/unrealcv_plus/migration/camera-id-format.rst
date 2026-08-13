@@ -481,4 +481,4 @@ See Also
 --------
 
 - :doc:`../architecture/sensor-system` - Sensor architecture and APIs
-- :doc:`../overview` - UnrealCV Dev For UnrealZoo camera feature summary
+- :doc:`../overview` - UnrealCV Dev For `UnrealZoo <https://github.com/UnrealZoo>`_ camera feature summary
