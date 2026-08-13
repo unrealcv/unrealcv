@@ -64,22 +64,45 @@ def time_request(client, command, shared):
     return elapsed_ms, len(response)
 
 
-def benchmark_pair(client, tcp_command, shared_command, iterations, warmup):
-    for _ in range(warmup):
-        time_request(client, tcp_command, False)
-        time_request(client, shared_command, True)
-
-    tcp_times = []
-    shared_times = []
+def benchmark_pair(client, tcp_command, shared_command, iterations, warmup, rounds):
+    round_results = []
+    all_tcp_times = []
+    all_shared_times = []
     tcp_bytes = shared_bytes = 0
-    for _ in range(iterations):
-        elapsed, tcp_bytes = time_request(client, tcp_command, False)
-        tcp_times.append(elapsed)
-        elapsed, shared_bytes = time_request(client, shared_command, True)
-        shared_times.append(elapsed)
 
-    tcp = summary(tcp_times, tcp_bytes)
-    shared = summary(shared_times, shared_bytes)
+    for round_index in range(rounds):
+        for warmup_index in range(warmup):
+            if (round_index + warmup_index) % 2 == 0:
+                time_request(client, tcp_command, False)
+                time_request(client, shared_command, True)
+            else:
+                time_request(client, shared_command, True)
+                time_request(client, tcp_command, False)
+
+        tcp_times = []
+        shared_times = []
+        for iteration in range(iterations):
+            if (round_index + iteration) % 2 == 0:
+                elapsed, tcp_bytes = time_request(client, tcp_command, False)
+                tcp_times.append(elapsed)
+                elapsed, shared_bytes = time_request(client, shared_command, True)
+                shared_times.append(elapsed)
+            else:
+                elapsed, shared_bytes = time_request(client, shared_command, True)
+                shared_times.append(elapsed)
+                elapsed, tcp_bytes = time_request(client, tcp_command, False)
+                tcp_times.append(elapsed)
+
+        all_tcp_times.extend(tcp_times)
+        all_shared_times.extend(shared_times)
+        round_results.append({
+            "round": round_index + 1,
+            "tcp": summary(tcp_times, tcp_bytes),
+            "shared_memory": summary(shared_times, shared_bytes),
+        })
+
+    tcp = summary(all_tcp_times, tcp_bytes)
+    shared = summary(all_shared_times, shared_bytes)
     return {
         "tcp_command": tcp_command,
         "shared_command": shared_command,
@@ -87,6 +110,7 @@ def benchmark_pair(client, tcp_command, shared_command, iterations, warmup):
         "shared_memory": shared,
         "speedup_mean": tcp["mean_ms"] / shared["mean_ms"],
         "latency_reduction_percent": (1.0 - shared["mean_ms"] / tcp["mean_ms"]) * 100.0,
+        "rounds": round_results,
     }
 
 
@@ -95,8 +119,9 @@ def main():
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=9000)
     parser.add_argument("--camera-id", type=int, default=0)
-    parser.add_argument("--iterations", type=int, default=10)
-    parser.add_argument("--warmup", type=int, default=3)
+    parser.add_argument("--iterations", type=int, default=20)
+    parser.add_argument("--warmup", type=int, default=10)
+    parser.add_argument("--rounds", type=int, default=3)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
@@ -113,6 +138,9 @@ def main():
         "camera_id": args.camera_id,
         "iterations": args.iterations,
         "warmup": args.warmup,
+        "rounds": args.rounds,
+        "measured_samples_per_transport": args.iterations * args.rounds,
+        "warmup_samples_per_transport": args.warmup * args.rounds,
         "measurement": "End-to-end Python acquisition. TCP fully receives raw BMP bytes; shared memory parses JSON, opens the named mapping, and copies every mapped byte.",
         "standard_camera": {},
         "panorama": {},
@@ -128,6 +156,7 @@ def main():
                 f"vget /camera/{args.camera_id}/lit_shared",
                 args.iterations,
                 args.warmup,
+                args.rounds,
             )
             report["standard_camera"][label] = {"width": width, "height": height, **result}
             print(f"standard {label:5} TCP {result['tcp']['mean_ms']:.2f} ms | shared {result['shared_memory']['mean_ms']:.2f} ms | {result['speedup_mean']:.2f}x")
@@ -139,6 +168,7 @@ def main():
                 f"vget /camera/{args.camera_id}/panoramic_shared {width} {height}",
                 args.iterations,
                 args.warmup,
+                args.rounds,
             )
             report["panorama"][label] = {"width": width, "height": height, **result}
             print(f"panorama {label:5} TCP {result['tcp']['mean_ms']:.2f} ms | shared {result['shared_memory']['mean_ms']:.2f} ms | {result['speedup_mean']:.2f}x")
