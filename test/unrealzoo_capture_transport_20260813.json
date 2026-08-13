@@ -1,0 +1,348 @@
+{
+  "timestamp_utc": "2026-08-13T08:57:24.356402+00:00",
+  "server": "127.0.0.1:9000",
+  "camera_id": 0,
+  "iterations": 5,
+  "warmup": 2,
+  "measurement": "End-to-end Python acquisition. TCP fully receives raw BMP bytes; shared memory parses JSON, opens the named mapping, and copies every mapped byte.",
+  "standard_camera": {
+    "480p": {
+      "width": 640,
+      "height": 480,
+      "tcp_command": "vget /camera/0/lit bmp",
+      "shared_command": "vget /camera/0/lit_shared",
+      "tcp": {
+        "iterations": 5,
+        "mean_ms": 32.33085999963805,
+        "median_ms": 35.84169999521691,
+        "p95_ms": 40.394399999058805,
+        "min_ms": 17.658800003118813,
+        "max_ms": 40.394399999058805,
+        "fps": 30.93020105283915,
+        "payload_bytes": 1228854
+      },
+      "shared_memory": {
+        "iterations": 5,
+        "mean_ms": 4.162419997737743,
+        "median_ms": 4.604000001563691,
+        "p95_ms": 7.031499990262091,
+        "min_ms": 1.356699998723343,
+        "max_ms": 7.031499990262091,
+        "fps": 240.24485768939599,
+        "payload_bytes": 1228800
+      },
+      "speedup_mean": 7.767322859588829,
+      "latency_reduction_percent": 87.12555126036133
+    },
+    "720p": {
+      "width": 1280,
+      "height": 720,
+      "tcp_command": "vget /camera/0/lit bmp",
+      "shared_command": "vget /camera/0/lit_shared",
+      "tcp": {
+        "iterations": 5,
+        "mean_ms": 45.464719997835346,
+        "median_ms": 45.074299996485934,
+        "p95_ms": 50.723499996820465,
+        "min_ms": 42.67160000745207,
+        "max_ms": 50.723499996820465,
+        "fps": 21.995076623096143,
+        "payload_bytes": 3686454
+      },
+      "shared_memory": {
+        "iterations": 5,
+        "mean_ms": 3.551120002521202,
+        "median_ms": 3.8062999956309795,
+        "p95_ms": 5.3417000017361715,
+        "min_ms": 1.9241000118199736,
+        "max_ms": 5.3417000017361715,
+        "fps": 281.6012974188499,
+        "payload_bytes": 3686400
+      },
+      "speedup_mean": 12.802924138175165,
+      "latency_reduction_percent": 92.18928434467368
+    },
+    "1080p": {
+      "width": 1920,
+      "height": 1080,
+      "tcp_command": "vget /camera/0/lit bmp",
+      "shared_command": "vget /camera/0/lit_shared",
+      "tcp": {
+        "iterations": 5,
+        "mean_ms": 62.834499997552484,
+        "median_ms": 61.25419998716097,
+        "p95_ms": 72.4023000075249,
+        "min_ms": 57.413299990003,
+        "max_ms": 72.4023000075249,
+        "fps": 15.914823863306811,
+        "payload_bytes": 8294454
+      },
+      "shared_memory": {
+        "iterations": 5,
+        "mean_ms": 5.47462000104133,
+        "median_ms": 5.24559999757912,
+        "p95_ms": 7.190000003902242,
+        "min_ms": 4.627599992090836,
+        "max_ms": 7.190000003902242,
+        "fps": 182.66107963836566,
+        "payload_bytes": 8294400
+      },
+      "speedup_mean": 11.477417608089821,
+      "latency_reduction_percent": 91.28723869648907
+    },
+    "2K": {
+      "width": 2560,
+      "height": 1440,
+      "tcp_command": "vget /camera/0/lit bmp",
+      "shared_command": "vget /camera/0/lit_shared",
+      "tcp": {
+        "iterations": 5,
+        "mean_ms": 87.17805999622215,
+        "median_ms": 86.90769999520853,
+        "p95_ms": 91.1506999982521,
+        "min_ms": 83.30659999046475,
+        "max_ms": 91.1506999982521,
+        "fps": 11.470776019142143,
+        "payload_bytes": 14745654
+      },
+      "shared_memory": {
+        "iterations": 5,
+        "mean_ms": 8.9553999947384,
+        "median_ms": 9.602499994798563,
+        "p95_ms": 10.69640000059735,
+        "min_ms": 5.6382999900961295,
+        "max_ms": 10.69640000059735,
+        "fps": 111.66447066435154,
+        "payload_bytes": 14745600
+      },
+      "speedup_mean": 9.734691923023226,
+      "latency_reduction_percent": 89.72746124985291
+    },
+    "4K": {
+      "width": 3840,
+      "height": 2160,
+      "tcp_command": "vget /camera/0/lit bmp",
+      "shared_command": "vget /camera/0/lit_shared",
+      "tcp": {
+        "iterations": 5,
+        "mean_ms": 167.45137999823783,
+        "median_ms": 166.62459999497514,
+        "p95_ms": 179.2453999951249,
+        "min_ms": 157.70100000372622,
+        "max_ms": 179.2453999951249,
+        "fps": 5.971882704164776,
+        "payload_bytes": 33177654
+      },
+      "shared_memory": {
+        "iterations": 5,
+        "mean_ms": 14.296540000941604,
+        "median_ms": 13.010299997404218,
+        "p95_ms": 19.696899995324202,
+        "min_ms": 12.28330000594724,
+        "max_ms": 19.696899995324202,
+        "fps": 69.94699416321275,
+        "payload_bytes": 33177600
+      },
+      "speedup_mean": 11.71272069935866,
+      "latency_reduction_percent": 91.46227400389769
+    },
+    "8K": {
+      "width": 7680,
+      "height": 4320,
+      "tcp_command": "vget /camera/0/lit bmp",
+      "shared_command": "vget /camera/0/lit_shared",
+      "tcp": {
+        "iterations": 5,
+        "mean_ms": 760.3663999994751,
+        "median_ms": 782.343500002753,
+        "p95_ms": 808.8090000092052,
+        "min_ms": 691.4006999868434,
+        "max_ms": 808.8090000092052,
+        "fps": 1.315155430330286,
+        "payload_bytes": 132710454
+      },
+      "shared_memory": {
+        "iterations": 5,
+        "mean_ms": 36.07104000111576,
+        "median_ms": 35.047699988354,
+        "p95_ms": 40.81360000418499,
+        "min_ms": 34.63400001055561,
+        "max_ms": 40.81360000418499,
+        "fps": 27.723070916975715,
+        "payload_bytes": 132710400
+      },
+      "speedup_mean": 21.079691630070972,
+      "latency_reduction_percent": 95.25609758648716
+    }
+  },
+  "panorama": {
+    "480p": {
+      "width": 640,
+      "height": 480,
+      "tcp_command": "vget /camera/0/panoramic bmp 640 480",
+      "shared_command": "vget /camera/0/panoramic_shared 640 480",
+      "tcp": {
+        "iterations": 5,
+        "mean_ms": 55.5430799984606,
+        "median_ms": 56.40419998962898,
+        "p95_ms": 56.91270000534132,
+        "min_ms": 53.70750000292901,
+        "max_ms": 56.91270000534132,
+        "fps": 18.004042988392353,
+        "payload_bytes": 1228854
+      },
+      "shared_memory": {
+        "iterations": 5,
+        "mean_ms": 43.32333999918774,
+        "median_ms": 43.336999995517544,
+        "p95_ms": 44.17140000441577,
+        "min_ms": 41.6996999992989,
+        "max_ms": 44.17140000441577,
+        "fps": 23.082246198440583,
+        "payload_bytes": 1228800
+      },
+      "speedup_mean": 1.2820590471441484,
+      "latency_reduction_percent": 22.000472425388608
+    },
+    "720p": {
+      "width": 1280,
+      "height": 720,
+      "tcp_command": "vget /camera/0/panoramic bmp 1280 720",
+      "shared_command": "vget /camera/0/panoramic_shared 1280 720",
+      "tcp": {
+        "iterations": 5,
+        "mean_ms": 68.452760000946,
+        "median_ms": 69.88249999994878,
+        "p95_ms": 71.06760000169743,
+        "min_ms": 63.30080000043381,
+        "max_ms": 71.06760000169743,
+        "fps": 14.608614758355692,
+        "payload_bytes": 3686454
+      },
+      "shared_memory": {
+        "iterations": 5,
+        "mean_ms": 52.252459997544065,
+        "median_ms": 54.3411999969976,
+        "p95_ms": 58.04480001097545,
+        "min_ms": 41.873099995427765,
+        "max_ms": 58.04480001097545,
+        "fps": 19.137854945910707,
+        "payload_bytes": 3686400
+      },
+      "speedup_mean": 1.310038991545343,
+      "latency_reduction_percent": 23.666394171948735
+    },
+    "1080p": {
+      "width": 1920,
+      "height": 1080,
+      "tcp_command": "vget /camera/0/panoramic bmp 1920 1080",
+      "shared_command": "vget /camera/0/panoramic_shared 1920 1080",
+      "tcp": {
+        "iterations": 5,
+        "mean_ms": 95.6123000010848,
+        "median_ms": 92.66889998980332,
+        "p95_ms": 109.77270000148565,
+        "min_ms": 86.78870000585448,
+        "max_ms": 109.77270000148565,
+        "fps": 10.458905391760831,
+        "payload_bytes": 8294454
+      },
+      "shared_memory": {
+        "iterations": 5,
+        "mean_ms": 55.007519997889176,
+        "median_ms": 55.603000000701286,
+        "p95_ms": 60.54109999968205,
+        "min_ms": 48.855200002435595,
+        "max_ms": 60.54109999968205,
+        "fps": 18.179332571953314,
+        "payload_bytes": 8294400
+      },
+      "speedup_mean": 1.738167799689093,
+      "latency_reduction_percent": 42.46815525066852
+    },
+    "2K": {
+      "width": 2560,
+      "height": 1440,
+      "tcp_command": "vget /camera/0/panoramic bmp 2560 1440",
+      "shared_command": "vget /camera/0/panoramic_shared 2560 1440",
+      "tcp": {
+        "iterations": 5,
+        "mean_ms": 133.98683999839704,
+        "median_ms": 133.94939999852795,
+        "p95_ms": 140.63609999720939,
+        "min_ms": 126.31150000379421,
+        "max_ms": 140.63609999720939,
+        "fps": 7.463419541889065,
+        "payload_bytes": 14745654
+      },
+      "shared_memory": {
+        "iterations": 5,
+        "mean_ms": 60.07054000219796,
+        "median_ms": 60.23129999812227,
+        "p95_ms": 65.35010000516195,
+        "min_ms": 55.47639999713283,
+        "max_ms": 65.35010000516195,
+        "fps": 16.647095231096813,
+        "payload_bytes": 14745600
+      },
+      "speedup_mean": 2.2304916851670473,
+      "latency_reduction_percent": 55.16683578557669
+    },
+    "4K": {
+      "width": 3840,
+      "height": 2160,
+      "tcp_command": "vget /camera/0/panoramic bmp 3840 2160",
+      "shared_command": "vget /camera/0/panoramic_shared 3840 2160",
+      "tcp": {
+        "iterations": 5,
+        "mean_ms": 218.88395999849308,
+        "median_ms": 217.51709999807645,
+        "p95_ms": 231.06669999833684,
+        "min_ms": 206.36159999412484,
+        "max_ms": 231.06669999833684,
+        "fps": 4.568630794174615,
+        "payload_bytes": 33177654
+      },
+      "shared_memory": {
+        "iterations": 5,
+        "mean_ms": 72.58147999818902,
+        "median_ms": 72.4540000082925,
+        "p95_ms": 76.50389999616891,
+        "min_ms": 68.84469999931753,
+        "max_ms": 76.50389999616891,
+        "fps": 13.777619304882608,
+        "payload_bytes": 33177600
+      },
+      "speedup_mean": 3.0156998728043907,
+      "latency_reduction_percent": 66.84020153935049
+    },
+    "8K": {
+      "width": 7680,
+      "height": 4320,
+      "tcp_command": "vget /camera/0/panoramic bmp 7680 4320",
+      "shared_command": "vget /camera/0/panoramic_shared 7680 4320",
+      "tcp": {
+        "iterations": 5,
+        "mean_ms": 764.8498000024119,
+        "median_ms": 770.1833000028273,
+        "p95_ms": 797.5535000005038,
+        "min_ms": 726.7167999962112,
+        "max_ms": 797.5535000005038,
+        "fps": 1.3074462463046295,
+        "payload_bytes": 132710454
+      },
+      "shared_memory": {
+        "iterations": 5,
+        "mean_ms": 197.48431999760214,
+        "median_ms": 202.4397999921348,
+        "p95_ms": 211.89500000036787,
+        "min_ms": 181.2389999977313,
+        "max_ms": 211.89500000036787,
+        "fps": 5.063693158080308,
+        "payload_bytes": 132710400
+      },
+      "speedup_mean": 3.872964699231305,
+      "latency_reduction_percent": 74.17998671151128
+    }
+  }
+}
