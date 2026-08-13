@@ -126,8 +126,8 @@ Create `config.json` based on the example:
 ```json
 {
   "ue_path": "M:/UE_5.6/Engine",
-  "project_path": "G:/HUAWEI_Project_UE56/HUAWEI_Project.uproject",
-  "plugin_root": "G:/HUAWEI_Project_UE56/Plugins/unrealcv",
+  "project_path": "Project.uproject",
+  "plugin_root": "Project/Plugins/unrealcv",
   "port": 9000,
   "log_filter_keywords": [
     "UnrealCV", "Error", "Warning", "Camera", "Sensor"
@@ -242,14 +242,14 @@ The harness implements automatic error recovery:
                          PHASE 1: BUILD
 ====================================================================
 
-[INFO] Executable: G:\HUAWEI_Project_UE56\Binaries\Win64\HUAWEI_Project.exe
+[INFO] Executable: Project/Binaries/Win64/Project.exe
 
-[Build] Command: H:\UE_5.6\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll HUAWEI_Project Win64 Development -Project=G:\HUAWEI_Project_UE56\HUAWEI_Project.uproject ...
+[Build] Command: H:\UE_5.6\Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.dll Project Win64 Development -Project=Project.uproject ...
 
 [Compiling] FusionCamCaptureActor.cpp
 [Compiling] BaseCameraSensor.cpp
 ...
-[Linking] HUAWEI_Project-Win64-Development.exe
+[Linking] Project-Win64-Development.exe
 [Succeeded] Build succeeded
 
 [OK] Build completed in 17.3s
@@ -284,7 +284,7 @@ Summary: 8/8 tests passed
 ====================================================================
 
 Filter keywords: UnrealCV, Error, Warning, Camera, Sensor
-Log file: G:\HUAWEI_Project_UE56\Saved\Logs\HUAWEI_Project.log
+Log file: Project/Saved/Logs/Project.log
 
 [Log      ] [LogUnrealCV           ] UnrealCV server started on port 9000
 [Log      ] [LogFusionCamSensor    ] Camera sensor initialized

@@ -1,6 +1,20 @@
 `UnrealZoo <https://github.com/UnrealZoo>`_ Capture Transport Benchmark
 ========================================================================
 
+This section is a closed-build measurement of the UnrealZoo distribution. 
+
+The following result was measured on August, 2026 with the shared-memory implementation merged by PR #334.
+The test environment was:
+
+* Windows 11
+* AMD Ryzen 9 5950X, 16 cores and 32 logical processors
+* NVIDIA RTX 6000D
+* Epic Games Unreal Engine 5.7.4
+* 2 warm-up captures followed by 5 measured captures per transport and modality
+
+The standard-camera rows use ``vget /camera/0/lit bmp`` versus ``lit_shared``. Panorama rows use the corresponding 2:1 equirectangular dimensions and ``panoramic_shared``.
+
+
 .. list-table:: Standard Camera
    :header-rows: 1
    :widths: 14 16 16 14 14 14
@@ -94,10 +108,3 @@
      - 1.31
      - 5.06
      - 3.87x
-
-Test conditions
----------------
-
-* Windows 11; AMD Ryzen 9 5950X; NVIDIA RTX 6000D; Unreal Engine 5.7
-* Local client and server; end-to-end acquisition, including complete response or mapped-byte read
-* Two warm-ups and five measured captures per transport and resolution
