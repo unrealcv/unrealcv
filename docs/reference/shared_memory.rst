@@ -110,23 +110,10 @@ so copying the fixed-size raw mapping leaves a smaller but repeatable improvemen
 The implementation is currently Windows-only. Remote clients cannot open a mapping from another machine and must
 continue using TCP or file output.
 
-UnrealCV Dev For UnrealZoo 拿图速度benchmark
-==============================================
+UnrealZoo Capture Transport Benchmark
+======================================
 
-This section is a closed-build measurement of the UnrealZoo distribution. It uses the same end-to-end definition as
-the benchmark above: the TCP path receives the complete BMP response, while the shared-memory path parses the JSON
-descriptor, opens the named mapping, and reads all mapped bytes. The raw report is committed as
-``test/unrealzoo_capture_transport_20260813.json`` and can be regenerated against a running server with::
-
-    python test/benchmark_unrealzoo_capture_transport.py --iterations 5 --warmup 2 \
-        --output test/unrealzoo_capture_transport.json
-
-The run used the closed ``HUAWEI_Project.exe`` built on August 13, 2026, local TCP (``127.0.0.1:9000``), camera 0,
-five measured captures after two warm-ups, and the same machine/UE 5.7 environment as the shared-memory result above.
-The standard-camera rows use ``vget /camera/0/lit bmp`` versus ``lit_shared``. Panorama rows use the corresponding
-2:1 equirectangular dimensions and ``panoramic_shared``.
-
-.. list-table:: Closed-build standard camera: mean end-to-end latency
+.. list-table:: Standard Camera
    :header-rows: 1
    :widths: 14 16 16 14 14 14
 
@@ -173,7 +160,7 @@ The standard-camera rows use ``vget /camera/0/lit bmp`` versus ``lit_shared``. P
      - 27.72
      - 21.08x
 
-.. list-table:: Closed-build panorama: mean end-to-end latency
+.. list-table:: Panorama
    :header-rows: 1
    :widths: 14 16 16 14 14 14
 
@@ -219,41 +206,3 @@ The standard-camera rows use ``vget /camera/0/lit bmp`` versus ``lit_shared``. P
      - 1.31
      - 5.06
      - 3.87x
-
-The ordinary-camera shared-memory path reduces mean latency by 87.1%--95.3%. Panorama gains are smaller at low
-resolution because panorama rendering dominates acquisition; at 8K the reduction is 74.2%. These are one-machine,
-five-sample engineering measurements, not a claim that shared memory increases the renderer's frame rate.
-
-横向能力对比（非同机实测）
---------------------------
-
-.. list-table:: Public camera-acquisition interface comparison
-   :header-rows: 1
-   :widths: 20 28 24 28
-
-   * - Simulator
-     - Public camera interface
-     - Documented return path
-     - Equivalent to this benchmark
-   * - UnrealCV Dev For UnrealZoo
-     - ``vget /camera/<id>/lit_shared`` and ``panoramic_shared``
-     - Windows named shared-memory descriptor plus raw mapped bytes
-     - Yes; measured above with a complete client-side mapping read
-   * - CARLA
-     - Camera sensor callback
-     - ``carla.Image.raw_data`` is exposed to the Python client
-     - No standard named-shared-memory image route documented
-   * - AirSim
-     - ``simGetImages`` RPC
-     - RPC response list containing ``ImageResponse`` data
-     - No standard named-shared-memory image route documented
-   * - SimWorld
-     - Version and deployment specific
-     - No stable public camera transport reference was identified for this comparison
-     - Not benchmarked; a versioned API and runnable build are required
-
-CARLA's sensor reference and AirSim's API reference describe the two client-returned image interfaces above. This is
-an interface comparison, not an FPS ranking: it does not make a performance claim for CARLA, AirSim, or SimWorld. A
-fair cross-simulator throughput table requires pinning simulator version, renderer settings, camera resolution, image
-encoding, client language, and whether the measurement includes a full byte copy; without those controls, published
-FPS figures are not comparable to this benchmark.
