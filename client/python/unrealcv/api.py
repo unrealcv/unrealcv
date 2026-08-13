@@ -30,6 +30,7 @@ from io import BytesIO
 import PIL.Image
 import sys
 from unrealcv.util import ResChecker, time_it
+from unrealcv.api_version import ApiVersionManager
 import warnings
 
 class UnrealCv_API:
@@ -52,13 +53,12 @@ class UnrealCv_API:
         self.checker = ResChecker()
         self.obj_dict = dict()
         self.cam = dict()
-        self._server_version = None
-        self._unrealcv_plus_warning_emitted = False
         # build a client to connect to the env
         self.client = self.connect(ip, port, mode)
         self.client.message_handler = self.message_handler
-        self._server_version = self._get_server_version()
-        print(f'UnrealCV server version: {self._server_version}')
+        self.api_version = ApiVersionManager(self.client.request)
+        self.api_version.load()
+        print(f'UnrealCV server version: {self.api_version.get_server_version()}')
         self.init_map()
 
     def connect(self, ip, port, mode='tcp'):
@@ -1335,36 +1335,33 @@ class UnrealCv_API:
 #########################################################################################################################
 
     def _get_server_version(self):
-        if self._server_version is None:
-            self._server_version = self.client.request('vget /unrealcv/version')
-        return self._server_version
+        return self.api_version.get_server_version()
 
     def _parse_version_tuple(self, version):
-        if not isinstance(version, str):
-            return None
-        parts = re.findall(r'\d+', version)
-        if not parts:
-            return None
-        version_parts = [int(part) for part in parts[:3]]
-        version_parts.extend([0] * (3 - len(version_parts)))
-        return tuple(version_parts)
+        return self.api_version.parse_version_tuple(version)
 
     def _warn_unrealcv_plus_if_unsupported(self):
-        if self._unrealcv_plus_warning_emitted:
-            return
+        self.api_version.warn_unrealcv_plus_if_unsupported(stacklevel=2)
 
-        server_version = self._get_server_version()
-        parsed_version = self._parse_version_tuple(server_version)
-        if parsed_version is None or parsed_version < (2, 0, 0):
-            warnings.warn(
-                "UnrealCV Dev For UnrealZoo APIs require UnrealCV server version >= 2.0.0. "
-                f"Current server version from `vget /unrealcv/version` is {server_version!r}. "
-                "Please make sure you are using the latest UnrealCV Dev For UnrealZoo build "
-                "to get UnrealCV Dev For UnrealZoo API support.",
-                UserWarning,
-                stacklevel=2,
-            )
-            self._unrealcv_plus_warning_emitted = True
+    def supports_command(self, command):
+        """Return whether the connected server advertises ``command``.
+
+        Returns ``None`` when the server is too old or otherwise unable to
+        report its command table.
+        """
+        return self.api_version.supports_command(command)
+
+    def is_unrealcv_plus(self):
+        """Return whether the connected server is an UnrealCV Plus server."""
+        return self.api_version.is_unrealcv_plus()
+
+    def get_server_version(self):
+        """Return the raw server version string, if available."""
+        return self.api_version.get_server_version()
+
+    def get_server_version_tuple(self):
+        """Return the parsed ``(major, minor, patch)`` server version."""
+        return self.api_version.get_server_version_tuple()
 
     def _request_unrealcv_plus(self, cmd, *args):
         self._warn_unrealcv_plus_if_unsupported()

@@ -3,9 +3,6 @@ import json
 import numpy as np
 import pytest
 
-from unrealcv import build_keyframe_groom_wind_json
-
-
 def test_get_scene_occupancy_decodes_bool_npy(make_npy_bytes, dummy_client_factory, api_factory):
     payload = make_npy_bytes(np.zeros((2, 3, 4), dtype=bool))
     client = dummy_client_factory([payload])
@@ -45,12 +42,3 @@ def test_panoramic_modality_commands(api_factory, method_name, modality):
     api = api_factory()
     command = getattr(api, method_name)(0, 'out.png', 2048, 1024, return_cmd=True)
     assert command == f'vget /camera/0/panoramic/{modality} out.png 2048 1024'
-
-
-def test_keyframe_groom_wind_json_is_sorted_and_numeric():
-    payload = json.loads(build_keyframe_groom_wind_json(
-        [(2, [1, 0, 0]), (0, [0, 1, 0])], [(3, 20), (1, 10)], indent=None
-    ))
-    assert [key['time'] for key in payload['direction_keys']] == [0.0, 2.0]
-    assert [key['time'] for key in payload['strength_keys']] == [1.0, 3.0]
-    assert payload['direction_keys'][0]['value'] == [0.0, 1.0, 0.0]

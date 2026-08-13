@@ -5,6 +5,7 @@ import PIL.Image
 
 from dev_server import MessageServer, NullServer
 from unrealcv.api import MsgDecoder, UnrealCv_API
+from unrealcv.api_version import ApiVersionManager
 from unrealcv.util import ResChecker
 
 
@@ -76,12 +77,13 @@ def api_factory(dummy_client_factory):
         api.decoder = MsgDecoder()
         api.checker = ResChecker()
         api.obj_dict = {}
-        api._server_version = "5.0.0"
-        api._unrealcv_plus_warning_emitted = False
         api.cam = {
             0: {"location": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0, 0.0], "fov": 90}
         }
         api.client = client or dummy_client_factory()
+        api.api_version = ApiVersionManager(api.client.request)
+        api.api_version._server_version = "5.0.0"
+        api.api_version._server_version_checked = True
         return api
 
     return _factory

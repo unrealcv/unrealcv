@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, Set
 
 
-MODULES = ["api.py", "automation.py", "groom_wind.py", "launcher.py"]
+MODULES = ["api.py", "api_version.py", "automation.py", "launcher.py"]
 EXCLUDED_SYMBOLS = {"annotations", "h"}
 
 
