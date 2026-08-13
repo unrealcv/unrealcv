@@ -1,9 +1,12 @@
-`UnrealZoo <https://github.com/UnrealZoo>`_ Capture Transport Benchmark
-========================================================================
+Unrealzoo Shared-memory transport
+=================================
 
-This section is a closed-build measurement of the UnrealZoo distribution. 
+The shared-memory implementation in UnrealCV Dev for
+`UnrealZoo <https://github.com/UnrealZoo>`_ draws on the
+`SPEAR project paper <https://arxiv.org/abs/2607.06701>`_ and
+`source repository <https://github.com/spear-sim/spear>`_.
 
-The following result was measured on August, 2026 with the shared-memory implementation merged by PR #334.
+This section is a closed-build measurement of the UnrealZoo distribution.
 The test environment was:
 
 * Windows 11

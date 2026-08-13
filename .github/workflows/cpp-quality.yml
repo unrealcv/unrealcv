@@ -6,8 +6,8 @@ on:
       - 'Source/**/*.h'
       - 'Source/**/*.hpp'
       - 'Source/**/*.cpp'
-      - '.clang-format'
-      - '.clang-tidy'
+      - '.github/.clang-format'
+      - '.github/.clang-tidy'
       - '.github/workflows/cpp-quality.yml'
 
 jobs:
@@ -44,7 +44,7 @@ jobs:
           echo "${{ steps.files.outputs.changed }}" | while IFS= read -r file; do
             [ -n "$file" ] || continue
             echo "Checking $file"
-            clang-format --dry-run --Werror "$file"
+            clang-format --style=file:.github/.clang-format --dry-run --Werror "$file"
           done
 
   clang-tidy:
@@ -87,7 +87,7 @@ jobs:
           echo "${{ steps.files.outputs.changed }}" | while IFS= read -r file; do
             [ -n "$file" ] || continue
             echo "===== $file =====" | tee -a .artifacts/clang-tidy.txt
-            clang-tidy "$file" -p . --extra-arg=-std=c++17 -- -I Source/UnrealCV/Public 2>&1 | tee -a .artifacts/clang-tidy.txt
+            clang-tidy "$file" -p . --config-file=.github/.clang-tidy --extra-arg=-std=c++17 -- -I Source/UnrealCV/Public 2>&1 | tee -a .artifacts/clang-tidy.txt
             echo | tee -a .artifacts/clang-tidy.txt
           done
 

@@ -5,13 +5,13 @@ on:
     paths:
       - 'client/python/**'
       - 'test/**'
-      - '.pre-commit-config.yaml'
+      - '.github/.pre-commit-config.yaml'
       - '.github/workflows/python-quality.yml'
   pull_request:
     paths:
       - 'client/python/**'
       - 'test/**'
-      - '.pre-commit-config.yaml'
+      - '.github/.pre-commit-config.yaml'
       - '.github/workflows/python-quality.yml'
 
 jobs:

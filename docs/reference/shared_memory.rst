@@ -1,5 +1,9 @@
-Shared-memory camera transport
-==============================
+Shared-memory transport
+=======================
+
+The UnrealCV shared-memory implementation draws on the
+`SPEAR project paper <https://arxiv.org/abs/2607.06701>`_ and
+`source repository <https://github.com/spear-sim/spear>`_.
 
 Performance benchmark
 ---------------------
