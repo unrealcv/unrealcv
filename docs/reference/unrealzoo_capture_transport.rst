@@ -184,8 +184,10 @@ as well as transport. All 720 measured MQRC requests below succeeded.
 Cross-simulator comparison
 --------------------------
 
-The following table is an additional product-level comparison against CARLA,
-SimWorld, and AirSim. It does not replace the UnrealZoo measurements above.
+The following table is an additional product-level comparison against
+`CARLA <https://carla.org/>`_, `SimWorld <https://simworld.org/>`_, and
+`AirSim <https://microsoft.github.io/AirSim/>`_. It does not replace the
+UnrealZoo measurements above.
 The UnrealCV shared-memory column was measured using the current UnrealCV
 development build and ``vget /camera/0/lit_shared``.
 
@@ -251,3 +253,10 @@ offscreen.
 AirSim returns three-byte RGB pixels; the other columns use four-byte BGRA
 pixels. The simulators use different scenes and rendering pipelines, so this
 is an end-to-end acquisition comparison rather than a transport-only test.
+
+* CARLA: `paper <https://arxiv.org/abs/1711.03938>`_,
+  `repository <https://github.com/carla-simulator/carla>`_
+* SimWorld: `documentation <https://simworld.readthedocs.io/en/latest/>`_,
+  `repository <https://github.com/SimWorld-AI/SimWorld>`_
+* AirSim: `paper <https://arxiv.org/abs/1705.05065>`_,
+  `repository <https://github.com/microsoft/AirSim>`_
