@@ -181,3 +181,73 @@ as well as transport. All 720 measured MQRC requests below succeeded.
      - 2.85
      - 3.55x
 
+Cross-simulator comparison
+--------------------------
+
+The following table is an additional product-level comparison against CARLA,
+SimWorld, and AirSim. It does not replace the UnrealZoo measurements above.
+The UnrealCV shared-memory column was measured using the current UnrealCV
+development build and ``vget /camera/0/lit_shared``.
+
+Each result uses three rounds, ten warm-up captures per round, and twenty
+measured captures per round, for 60 measured samples per cell. FPS is
+``1000 / arithmetic mean client latency``. Simulators ran serially and
+offscreen.
+
+.. list-table:: Mean latency / effective FPS
+   :header-rows: 1
+   :widths: 16 24 20 20 20 18 12
+
+   * - Resolution
+     - UnrealCV shared
+     - CARLA
+     - SimWorld
+     - AirSim
+     - Fastest
+     - UnrealCV rank
+   * - 640x480
+     - 20.34 ms / 49.16 FPS
+     - 14.30 ms / 69.94 FPS
+     - 54.82 ms / 18.24 FPS
+     - 14.51 ms / 68.91 FPS
+     - CARLA
+     - 3
+   * - 1280x720
+     - 21.92 ms / 45.62 FPS
+     - 20.37 ms / 49.09 FPS
+     - 86.49 ms / 11.56 FPS
+     - 26.42 ms / 37.85 FPS
+     - CARLA
+     - 2
+   * - 1920x1080
+     - 42.36 ms / 23.61 FPS
+     - 36.94 ms / 27.07 FPS
+     - 128.09 ms / 7.81 FPS
+     - 77.00 ms / 12.99 FPS
+     - CARLA
+     - 2
+   * - 2560x1440
+     - 44.65 ms / 22.40 FPS
+     - 57.44 ms / 17.41 FPS
+     - 194.84 ms / 5.13 FPS
+     - 124.48 ms / 8.03 FPS
+     - UnrealCV shared
+     - 1
+   * - 3840x2160
+     - 61.52 ms / 16.25 FPS
+     - 119.28 ms / 8.38 FPS
+     - 388.32 ms / 2.58 FPS
+     - 256.77 ms / 3.89 FPS
+     - UnrealCV shared
+     - 1
+   * - 7680x4320
+     - 120.78 ms / 8.28 FPS
+     - 469.24 ms / 2.13 FPS
+     - 1438.66 ms / 0.70 FPS
+     - 960.71 ms / 1.04 FPS
+     - UnrealCV shared
+     - 1
+
+AirSim returns three-byte RGB pixels; the other columns use four-byte BGRA
+pixels. The simulators use different scenes and rendering pipelines, so this
+is an end-to-end acquisition comparison rather than a transport-only test.
