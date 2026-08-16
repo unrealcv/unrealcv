@@ -93,54 +93,6 @@ Bvr Sim
 Camera
 ------
 
-The physical camera commands are described in detail in
-:doc:`cine-camera`. The cinematic path is disabled by default, and clients
-should detect these development commands at runtime.
-
-``vget /camera/[camera_id]/cine``
-    Get physical cinematic camera settings as JSON.
-
-``vget /camera/[camera_id]/cine/enabled``
-    Get whether the physical cinematic camera path is enabled (``0`` or ``1``).
-
-``vget /camera/[camera_id]/cine/intrinsics``
-    Get image dimensions, camera intrinsics, projection offsets, fields of view,
-    and the 4x4 projection matrix as JSON.
-
-``vset /camera/[camera_id]/cine/enabled [uint]``
-    Enable or disable the physical cinematic camera path.
-
-``vset /camera/[camera_id]/cine/filmback [float] [float] [float] [float]``
-    Set filmback width, height, horizontal offset, and vertical offset in
-    millimeters.
-
-``vset /camera/[camera_id]/cine/lens [float] [float]``
-    Set physical focal length in millimeters and aperture in f-stops.
-
-``vset /camera/[camera_id]/cine/lens_settings [float] [float] [float] [float] [float] [float] [uint]``
-    Set focal-length limits, f-stop limits, minimum focus distance, squeeze
-    factor, and diaphragm blade count.
-
-``vset /camera/[camera_id]/cine/focus [float]``
-    Set manual focus distance in centimeters.
-
-``vset /camera/[camera_id]/cine/focus_mode [str] [uint] [float] [float]``
-    Set focus mode, smoothing state, smoothing speed, and focus offset.
-
-``vset /camera/[camera_id]/cine/focus_tracking [str] [float] [float] [float]``
-    Set the tracking-focus actor and relative offset in centimeters.
-
-``vset /camera/[camera_id]/cine/crop [float] [float] [uint] [uint]``
-    Set crop aspect ratio, overscan, crop-overscan state, and overscan
-    resolution-scaling state.
-
-``vset /camera/[camera_id]/cine/near_clip [uint] [float]``
-    Enable or disable a custom near clipping plane and set its distance in
-    centimeters.
-
-``vset /camera/[camera_id]/cine/exposure [float] [float] [uint]``
-    Set ISO, shutter-speed reciprocal, and physical-exposure state.
-
 ``vget /camera/[camera_id]/depth/exp``
     Get depth hue exponent
 

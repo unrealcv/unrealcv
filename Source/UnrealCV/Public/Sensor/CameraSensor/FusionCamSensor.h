@@ -5,6 +5,8 @@
 #include "Runtime/Engine/Classes/Camera/CameraTypes.h"
 #include "FusionCamSensor.generated.h"
 
+class UCineCameraComponent;
+
 UENUM(BlueprintType)
 enum class ELitMode : uint8
 {
@@ -95,6 +97,39 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "unrealcv")
 	void SetSensorFOV(float FOV);
 
+	UFUNCTION(BlueprintCallable, Category = "unrealcv|cine camera")
+	void SetCineCameraEnabled(bool bEnabled);
+
+	UFUNCTION(BlueprintPure, Category = "unrealcv|cine camera")
+	bool IsCineCameraEnabled() const;
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv|cine camera")
+	void SetCineFilmback(float SensorWidth, float SensorHeight, float HorizontalOffset = 0.0f, float VerticalOffset = 0.0f);
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv|cine camera")
+	void SetCineLens(float FocalLength, float Aperture);
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv|cine camera")
+	void SetCineLensSettings(float MinFocalLength, float MaxFocalLength, float MinFStop, float MaxFStop,
+		float MinimumFocusDistance, float SqueezeFactor, int32 DiaphragmBladeCount);
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv|cine camera")
+	void SetCineFocusDistance(float FocusDistance);
+
+	bool SetCineFocusMode(const FString& FocusMode, bool bSmoothFocusChanges, float SmoothingSpeed, float FocusOffset);
+	bool SetCineTrackingFocus(AActor* ActorToTrack, const FVector& RelativeOffset);
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv|cine camera")
+	void SetCineCrop(float CropAspectRatio, float Overscan, bool bCropOverscan, bool bScaleResolutionWithOverscan);
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv|cine camera")
+	void SetCineNearClip(bool bEnabled, float NearClipDistance);
+
+	UFUNCTION(BlueprintCallable, Category = "unrealcv|cine camera")
+	void SetCineExposure(float ISO, float ShutterSpeed, bool bApplyPhysicalExposure);
+
+	UCineCameraComponent* GetCineCameraComponent() const;
+
 	UFUNCTION(BlueprintCallable, Category = "unrealcv")
 	void SetProjectionType(ECameraProjectionMode::Type ProjectionType);
 
@@ -164,6 +199,8 @@ private:
 	float FOV;
 
 protected:
+	TArray<UCineCameraComponent*> GetCineCameraComponents() const;
+
 	UPROPERTY()
 	TArray<class UBaseCameraSensor*> FusionSensors;
 

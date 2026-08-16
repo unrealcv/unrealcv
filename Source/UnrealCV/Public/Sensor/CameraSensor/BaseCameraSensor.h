@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Runtime/Engine/Classes/Components/SceneCaptureComponent2D.h"
+#include "CineCameraComponent.h"
 #include "Runtime/Engine/Classes/Engine/TextureRenderTarget2D.h"
 #include "Materials/Material.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
@@ -49,9 +50,16 @@ public:
 		this->SetWorldRotation(Rotator);
 	}
 
-	/** Get/set the FOV of this camera */
-	float GetFOV() { return this->FOVAngle; }
-	void SetFOV(float FOV) { this->FOVAngle = FOV; }
+	/** Get/set the horizontal FOV. When Cine is enabled, this updates the physical lens. */
+	float GetFOV() const;
+	void SetFOV(float FOV);
+
+	void SetCineCameraEnabled(bool bEnabled);
+	bool IsCineCameraEnabled() const { return bCineCameraEnabled; }
+	UCineCameraComponent* GetCineCameraComponent() const { return CineCameraModel; }
+
+	/** Synchronize the physical camera model with this scene-capture component. */
+	void UpdateCineCameraView(float DeltaTime = 0.0f);
 
 	/** Get/set the sensor film size */
 	void SetFilmSize(int Width, int Height);
@@ -75,4 +83,12 @@ protected:
 	int FilmWidth;
 
 	int FilmHeight;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UCineCameraComponent> CineCameraModel;
+
+	bool bCineCameraEnabled = false;
+	bool bHasLegacyPostProcessState = false;
+	FPostProcessSettings LegacyPostProcessSettings;
+	float LegacyPostProcessBlendWeight = 0.0f;
 };

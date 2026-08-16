@@ -38,6 +38,7 @@ Table of Contents
 
     reference/architecture
     reference/commands
+    reference/cine_camera
     unrealcv_plus/reference/commands
     reference/shared_memory
     reference/unrealzoo_capture_transport

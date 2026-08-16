@@ -45,6 +45,7 @@ void ULitCamSensor::CaptureLit(TArray<FColor>& Image, int& Width, int& Height)
 			return;
 		}
 	}
+	UpdateCineCameraView();
 	this->CaptureScene();
 	FReadSurfaceDataFlags ReadSurfaceDataFlags;
 	ReadSurfaceDataFlags.SetLinearToGamma(false); 

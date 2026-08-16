@@ -17,6 +17,14 @@ DECLARE_CYCLE_STAT(TEXT("ReadBufferFast"), STAT_ReadBufferFast, STATGROUP_Unreal
 
 UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+	CineCameraModel = CreateDefaultSubobject<UCineCameraComponent>(TEXT("CineCameraModel"));
+	CineCameraModel->SetupAttachment(this);
+	FCameraLensSettings CineLens = CineCameraModel->LensSettings;
+	CineLens.MinFocalLength = 1.0f;
+	CineLens.MaxFocalLength = 1000.0f;
+	CineLens.MinFStop = 0.1f;
+	CineLens.MaxFStop = 64.0f;
+	CineCameraModel->SetLensSettings(CineLens);
 	// static ConstructorHelpers::FObjectFinder<UStaticMesh> EditorCameraMesh(TEXT("/Engine/EditorMeshes/MatineeCam_SM"));
 	// Another choice is "StaticMesh'/Engine/EditorMeshes/Camera/SM_CineCam.SM_CineCam'"
 	this->ShowFlags.SetPostProcessing(true);
@@ -31,7 +39,106 @@ UBaseCameraSensor::UBaseCameraSensor(const FObjectInitializer& ObjectInitializer
 	FilmWidth = Config.Width == 0 ? 640 : Config.Width;
 	FilmHeight = Config.Height == 0 ? 480 : Config.Height;
 	FOVAngle = Config.FOV == 0 ? 90 : Config.FOV;
+	CineCameraModel->SetFieldOfView(FOVAngle);
 	// Avoid calling virtual function in a constructor
+}
+
+float UBaseCameraSensor::GetFOV() const
+{
+	return bCineCameraEnabled && IsValid(CineCameraModel)
+		? CineCameraModel->GetHorizontalFieldOfView()
+		: FOVAngle;
+}
+
+void UBaseCameraSensor::SetFOV(float FOV)
+{
+	const float SafeFOV = FMath::Clamp(FOV, 1.0f, 179.0f);
+	if (bCineCameraEnabled && IsValid(CineCameraModel))
+	{
+		CineCameraModel->SetFieldOfView(SafeFOV);
+		UpdateCineCameraView();
+		return;
+	}
+	FOVAngle = SafeFOV;
+	if (IsValid(CineCameraModel))
+	{
+		CineCameraModel->SetFieldOfView(SafeFOV);
+	}
+}
+
+void UBaseCameraSensor::SetCineCameraEnabled(bool bEnabled)
+{
+	if (bEnabled == bCineCameraEnabled)
+	{
+		if (bEnabled)
+		{
+			UpdateCineCameraView();
+		}
+		return;
+	}
+
+	if (bEnabled)
+	{
+		LegacyPostProcessSettings = PostProcessSettings;
+		LegacyPostProcessBlendWeight = PostProcessBlendWeight;
+		bHasLegacyPostProcessState = true;
+		bCineCameraEnabled = true;
+		UpdateCineCameraView();
+	}
+	else
+	{
+		bCineCameraEnabled = false;
+		bUseCustomProjectionMatrix = false;
+		if (bHasLegacyPostProcessState)
+		{
+			PostProcessSettings = LegacyPostProcessSettings;
+			PostProcessBlendWeight = LegacyPostProcessBlendWeight;
+			bHasLegacyPostProcessState = false;
+		}
+	}
+}
+
+void UBaseCameraSensor::UpdateCineCameraView(float DeltaTime)
+{
+	if (!bCineCameraEnabled || !IsValid(CineCameraModel))
+	{
+		bUseCustomProjectionMatrix = false;
+		return;
+	}
+
+	CineCameraModel->SetWorldLocationAndRotation(GetComponentLocation(), GetComponentRotation());
+	const FPostProcessSettings CineOverrides = CineCameraModel->PostProcessSettings;
+	CineCameraModel->PostProcessSettings = bHasLegacyPostProcessState
+		? LegacyPostProcessSettings
+		: PostProcessSettings;
+	if (CineOverrides.bOverride_CameraISO)
+	{
+		CineCameraModel->PostProcessSettings.bOverride_CameraISO = true;
+		CineCameraModel->PostProcessSettings.CameraISO = CineOverrides.CameraISO;
+	}
+	if (CineOverrides.bOverride_CameraShutterSpeed)
+	{
+		CineCameraModel->PostProcessSettings.bOverride_CameraShutterSpeed = true;
+		CineCameraModel->PostProcessSettings.CameraShutterSpeed = CineOverrides.CameraShutterSpeed;
+	}
+	if (CineOverrides.bOverride_AutoExposureApplyPhysicalCameraExposure)
+	{
+		CineCameraModel->PostProcessSettings.bOverride_AutoExposureApplyPhysicalCameraExposure = true;
+		CineCameraModel->PostProcessSettings.AutoExposureApplyPhysicalCameraExposure =
+			CineOverrides.AutoExposureApplyPhysicalCameraExposure;
+	}
+	CineCameraModel->PostProcessBlendWeight = PostProcessBlendWeight;
+
+	FMinimalViewInfo ViewInfo;
+	CineCameraModel->GetCameraView(DeltaTime, ViewInfo);
+	const int32 Width = FMath::Max(GetFilmWidth(), 1);
+	const int32 Height = FMath::Max(GetFilmHeight(), 1);
+	ViewInfo.AspectRatio = static_cast<float>(Width) / static_cast<float>(Height);
+	ViewInfo.bConstrainAspectRatio = false;
+	CustomProjectionMatrix = ViewInfo.CalculateProjectionMatrix();
+	bUseCustomProjectionMatrix = true;
+	PostProcessSettings = ViewInfo.PostProcessSettings;
+	PostProcessBlendWeight = ViewInfo.PostProcessBlendWeight;
 }
 
 // Explicitly make a request to render frames
@@ -67,6 +174,7 @@ void UBaseCameraSensor::SetFilmSize(int Width, int Height)
 	{
 		InitTextureTarget(Width, Height);
 	}
+	UpdateCineCameraView();
 }
 
 int UBaseCameraSensor::GetFilmWidth()
@@ -120,6 +228,7 @@ void UBaseCameraSensor::Capture(TArray<FColor>& ImageData, int& Width, int& Heig
 		UE_LOG(LogTemp, Error, TEXT("The TextureTarget was not initialized. Capture failed."));
 		return;
 	}
+	UpdateCineCameraView();
 	this->CaptureScene();
 
 	ReadTextureRenderTarget(TextureTarget, ImageData, Width, Height);
@@ -132,6 +241,12 @@ void UBaseCameraSensor::SetPostProcessMaterial(UMaterial* PostProcessMaterial)
 
 void UBaseCameraSensor::GetCameraView(float DeltaTime, FMinimalViewInfo& DesiredView)
 {
+	if (bCineCameraEnabled && IsValid(CineCameraModel))
+	{
+		CineCameraModel->SetWorldLocationAndRotation(GetComponentLocation(), GetComponentRotation());
+		CineCameraModel->GetCameraView(DeltaTime, DesiredView);
+		return;
+	}
 	DesiredView.Location = GetComponentLocation();
 	DesiredView.Rotation = GetComponentRotation();
 	DesiredView.FOV = this->FOVAngle;

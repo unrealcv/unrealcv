@@ -10,6 +10,8 @@
 #include "CommandDispatcher.h"
 #include "UnrealcvServer.h"
 #include "FusionCamSensor.h"
+#include "CineCameraComponent.h"
+#include "Utils/UObjectUtils.h"
 #include "Serialization.h"
 #include "Utils/StrFormatter.h"
 #include "PlayerViewMode.h"
@@ -620,6 +622,227 @@ FExecStatus FCameraHandler::SetFOV(const TArray<FString>& Args)
     return FExecStatus::OK();
 }
 
+FExecStatus FCameraHandler::GetCineCamera(const TArray<FString>& Args)
+{
+    FExecStatus Status = FExecStatus::InvalidArgument;
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor) || Args.Num() != 1) return FExecStatus::InvalidArgument;
+    UCineCameraComponent* Cine = Sensor->GetCineCameraComponent();
+    if (!IsValid(Cine)) return FExecStatus::Error(TEXT("Cine camera model is not available"));
+
+    const FCameraFilmbackSettings& Filmback = Cine->Filmback;
+    const FCameraLensSettings& Lens = Cine->LensSettings;
+    const FCameraFocusSettings& Focus = Cine->FocusSettings;
+    const AActor* TrackingActor = Focus.TrackingFocusSettings.ActorToTrack.Get();
+    FString FocusMode = TEXT("unknown");
+    switch (Focus.FocusMethod)
+    {
+    case ECameraFocusMethod::DoNotOverride: FocusMode = TEXT("do_not_override"); break;
+    case ECameraFocusMethod::Manual: FocusMode = TEXT("manual"); break;
+    case ECameraFocusMethod::Tracking: FocusMode = TEXT("tracking"); break;
+    case ECameraFocusMethod::Disable: FocusMode = TEXT("disable"); break;
+    default: break;
+    }
+
+    TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+    Root->SetBoolField(TEXT("enabled"), Sensor->IsCineCameraEnabled());
+
+    TSharedRef<FJsonObject> FilmbackObject = MakeShared<FJsonObject>();
+    FilmbackObject->SetNumberField(TEXT("sensor_width_mm"), Filmback.SensorWidth);
+    FilmbackObject->SetNumberField(TEXT("sensor_height_mm"), Filmback.SensorHeight);
+    FilmbackObject->SetNumberField(TEXT("sensor_offset_x_mm"), Filmback.SensorHorizontalOffset);
+    FilmbackObject->SetNumberField(TEXT("sensor_offset_y_mm"), Filmback.SensorVerticalOffset);
+    Root->SetObjectField(TEXT("filmback"), FilmbackObject);
+
+    TSharedRef<FJsonObject> LensObject = MakeShared<FJsonObject>();
+    LensObject->SetNumberField(TEXT("focal_length_mm"), Cine->CurrentFocalLength);
+    LensObject->SetNumberField(TEXT("aperture_fstop"), Cine->CurrentAperture);
+    LensObject->SetNumberField(TEXT("min_focal_length_mm"), Lens.MinFocalLength);
+    LensObject->SetNumberField(TEXT("max_focal_length_mm"), Lens.MaxFocalLength);
+    LensObject->SetNumberField(TEXT("min_fstop"), Lens.MinFStop);
+    LensObject->SetNumberField(TEXT("max_fstop"), Lens.MaxFStop);
+    LensObject->SetNumberField(TEXT("minimum_focus_distance_mm"), Lens.MinimumFocusDistance);
+    LensObject->SetNumberField(TEXT("squeeze_factor"), Lens.SqueezeFactor);
+    LensObject->SetNumberField(TEXT("diaphragm_blade_count"), Lens.DiaphragmBladeCount);
+    Root->SetObjectField(TEXT("lens"), LensObject);
+
+    TSharedRef<FJsonObject> FocusObject = MakeShared<FJsonObject>();
+    FocusObject->SetStringField(TEXT("mode"), FocusMode);
+    FocusObject->SetNumberField(TEXT("manual_distance_cm"), Focus.ManualFocusDistance);
+    FocusObject->SetBoolField(TEXT("smooth"), Focus.bSmoothFocusChanges);
+    FocusObject->SetNumberField(TEXT("smoothing_speed"), Focus.FocusSmoothingInterpSpeed);
+    FocusObject->SetNumberField(TEXT("offset_cm"), Focus.FocusOffset);
+    FocusObject->SetStringField(TEXT("tracking_actor"), TrackingActor ? TrackingActor->GetName() : TEXT(""));
+    FocusObject->SetArrayField(TEXT("tracking_offset_cm"), MakeJsonNumberArray({
+        Focus.TrackingFocusSettings.RelativeOffset.X,
+        Focus.TrackingFocusSettings.RelativeOffset.Y,
+        Focus.TrackingFocusSettings.RelativeOffset.Z}));
+    Root->SetObjectField(TEXT("focus"), FocusObject);
+
+    TSharedRef<FJsonObject> CropObject = MakeShared<FJsonObject>();
+    CropObject->SetNumberField(TEXT("aspect_ratio"), Cine->CropSettings.AspectRatio);
+    CropObject->SetNumberField(TEXT("overscan"), Cine->Overscan);
+    CropObject->SetBoolField(TEXT("crop_overscan"), Cine->bCropOverscan);
+    CropObject->SetBoolField(TEXT("scale_resolution_with_overscan"), Cine->bScaleResolutionWithOverscan);
+    Root->SetObjectField(TEXT("crop"), CropObject);
+
+    TSharedRef<FJsonObject> ExposureObject = MakeShared<FJsonObject>();
+    ExposureObject->SetNumberField(TEXT("iso"), Cine->PostProcessSettings.CameraISO);
+    ExposureObject->SetNumberField(TEXT("shutter_speed_reciprocal"), Cine->PostProcessSettings.CameraShutterSpeed);
+    ExposureObject->SetBoolField(TEXT("apply_physical_exposure"), Cine->PostProcessSettings.AutoExposureApplyPhysicalCameraExposure);
+    Root->SetObjectField(TEXT("exposure"), ExposureObject);
+
+    TSharedRef<FJsonObject> NearClipObject = MakeShared<FJsonObject>();
+    NearClipObject->SetBoolField(TEXT("override"), Cine->bOverride_CustomNearClippingPlane);
+    NearClipObject->SetNumberField(TEXT("distance_cm"), Cine->CustomNearClippingPlane);
+    Root->SetObjectField(TEXT("near_clip"), NearClipObject);
+    Root->SetNumberField(TEXT("horizontal_fov_degrees"), Cine->GetHorizontalFieldOfView());
+    Root->SetNumberField(TEXT("vertical_fov_degrees"), Cine->GetVerticalFieldOfView());
+    return FExecStatus::OK(SerializeJsonObject(Root));
+}
+
+FExecStatus FCameraHandler::GetCineCameraEnabled(const TArray<FString>& Args)
+{
+    FExecStatus Status = FExecStatus::InvalidArgument;
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor) || Args.Num() != 1) return FExecStatus::InvalidArgument;
+    return FExecStatus::OK(Sensor->IsCineCameraEnabled() ? TEXT("1") : TEXT("0"));
+}
+
+FExecStatus FCameraHandler::SetCineCameraEnabled(const TArray<FString>& Args)
+{
+    FExecStatus Status = FExecStatus::InvalidArgument;
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor) || Args.Num() != 2) return FExecStatus::InvalidArgument;
+    Sensor->SetCineCameraEnabled(FCString::Atoi(*Args[1]) != 0);
+    return FExecStatus::OK();
+}
+
+FExecStatus FCameraHandler::SetCineFilmback(const TArray<FString>& Args)
+{
+    FExecStatus Status = FExecStatus::InvalidArgument;
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor) || Args.Num() != 5) return FExecStatus::InvalidArgument;
+    Sensor->SetCineFilmback(FCString::Atof(*Args[1]), FCString::Atof(*Args[2]), FCString::Atof(*Args[3]), FCString::Atof(*Args[4]));
+    return FExecStatus::OK();
+}
+
+FExecStatus FCameraHandler::SetCineLens(const TArray<FString>& Args)
+{
+    FExecStatus Status = FExecStatus::InvalidArgument;
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor) || Args.Num() != 3) return FExecStatus::InvalidArgument;
+    Sensor->SetCineLens(FCString::Atof(*Args[1]), FCString::Atof(*Args[2]));
+    return FExecStatus::OK();
+}
+
+FExecStatus FCameraHandler::SetCineFocus(const TArray<FString>& Args)
+{
+    FExecStatus Status = FExecStatus::InvalidArgument;
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor) || Args.Num() != 2) return FExecStatus::InvalidArgument;
+    Sensor->SetCineFocusDistance(FCString::Atof(*Args[1]));
+    return FExecStatus::OK();
+}
+
+FExecStatus FCameraHandler::SetCineLensSettings(const TArray<FString>& Args)
+{
+    FExecStatus Status = FExecStatus::InvalidArgument;
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor) || Args.Num() != 8) return FExecStatus::InvalidArgument;
+    Sensor->SetCineLensSettings(FCString::Atof(*Args[1]), FCString::Atof(*Args[2]), FCString::Atof(*Args[3]),
+        FCString::Atof(*Args[4]), FCString::Atof(*Args[5]), FCString::Atof(*Args[6]), FCString::Atoi(*Args[7]));
+    return FExecStatus::OK();
+}
+
+FExecStatus FCameraHandler::SetCineFocusMode(const TArray<FString>& Args)
+{
+    FExecStatus Status = FExecStatus::InvalidArgument;
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor) || Args.Num() != 5) return FExecStatus::InvalidArgument;
+    if (!Sensor->SetCineFocusMode(Args[1], FCString::Atoi(*Args[2]) != 0, FCString::Atof(*Args[3]), FCString::Atof(*Args[4])))
+    {
+        return FExecStatus::Error(TEXT("Focus mode must be manual, tracking, disable, none, or do_not_override"));
+    }
+    return FExecStatus::OK();
+}
+
+FExecStatus FCameraHandler::SetCineTrackingFocus(const TArray<FString>& Args)
+{
+    FExecStatus Status = FExecStatus::InvalidArgument;
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor) || Args.Num() != 5) return FExecStatus::InvalidArgument;
+    AActor* TargetActor = GetActorById(FUnrealcvServer::Get().GetWorld(), Args[1]);
+    if (!IsValid(TargetActor)) return FExecStatus::Error(FString::Printf(TEXT("Tracking actor '%s' was not found"), *Args[1]));
+    return Sensor->SetCineTrackingFocus(TargetActor, FVector(FCString::Atof(*Args[2]), FCString::Atof(*Args[3]), FCString::Atof(*Args[4])))
+        ? FExecStatus::OK() : FExecStatus::Error(TEXT("Failed to configure tracking focus"));
+}
+
+FExecStatus FCameraHandler::SetCineCrop(const TArray<FString>& Args)
+{
+    FExecStatus Status = FExecStatus::InvalidArgument;
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor) || Args.Num() != 5) return FExecStatus::InvalidArgument;
+    Sensor->SetCineCrop(FCString::Atof(*Args[1]), FCString::Atof(*Args[2]), FCString::Atoi(*Args[3]) != 0, FCString::Atoi(*Args[4]) != 0);
+    return FExecStatus::OK();
+}
+
+FExecStatus FCameraHandler::SetCineNearClip(const TArray<FString>& Args)
+{
+    FExecStatus Status = FExecStatus::InvalidArgument;
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor) || Args.Num() != 3) return FExecStatus::InvalidArgument;
+    Sensor->SetCineNearClip(FCString::Atoi(*Args[1]) != 0, FCString::Atof(*Args[2]));
+    return FExecStatus::OK();
+}
+
+FExecStatus FCameraHandler::SetCineExposure(const TArray<FString>& Args)
+{
+    FExecStatus Status = FExecStatus::InvalidArgument;
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor) || Args.Num() != 4) return FExecStatus::InvalidArgument;
+    Sensor->SetCineExposure(FCString::Atof(*Args[1]), FCString::Atof(*Args[2]), FCString::Atoi(*Args[3]) != 0);
+    return FExecStatus::OK();
+}
+
+FExecStatus FCameraHandler::GetCineIntrinsics(const TArray<FString>& Args)
+{
+    FExecStatus Status = FExecStatus::InvalidArgument;
+    UFusionCamSensor* Sensor = GetCamera(Args, Status);
+    if (!IsValid(Sensor) || Args.Num() != 1) return FExecStatus::InvalidArgument;
+    UCineCameraComponent* Cine = Sensor->GetCineCameraComponent();
+    if (!IsValid(Cine)) return FExecStatus::Error(TEXT("Cine camera model is not available"));
+
+    FMinimalViewInfo ViewInfo;
+    Cine->GetCameraView(0.0f, ViewInfo);
+    const int32 Width = FMath::Max(1, FMath::RoundToInt(Sensor->GetFilmWidth()));
+    const int32 Height = FMath::Max(1, FMath::RoundToInt(Sensor->GetFilmHeight()));
+    ViewInfo.AspectRatio = static_cast<float>(Width) / static_cast<float>(Height);
+    ViewInfo.bConstrainAspectRatio = false;
+    const FMatrix Projection = ViewInfo.CalculateProjectionMatrix();
+    const double Fx = Projection.M[0][0] * Width * 0.5;
+    const double Fy = Projection.M[1][1] * Height * 0.5;
+    const double Cx = (1.0 + Projection.M[2][0]) * Width * 0.5;
+    const double Cy = (1.0 - Projection.M[2][1]) * Height * 0.5;
+
+    TSharedRef<FJsonObject> Root = MakeShared<FJsonObject>();
+    Root->SetNumberField(TEXT("width"), Width);
+    Root->SetNumberField(TEXT("height"), Height);
+    Root->SetNumberField(TEXT("fx"), Fx);
+    Root->SetNumberField(TEXT("fy"), Fy);
+    Root->SetNumberField(TEXT("cx"), Cx);
+    Root->SetNumberField(TEXT("cy"), Cy);
+    Root->SetNumberField(TEXT("horizontal_fov_degrees"), Cine->GetHorizontalFieldOfView());
+    Root->SetNumberField(TEXT("vertical_fov_degrees"), Cine->GetVerticalFieldOfView());
+    Root->SetArrayField(TEXT("projection_offset"), MakeJsonNumberArray({ViewInfo.OffCenterProjectionOffset.X, ViewInfo.OffCenterProjectionOffset.Y}));
+    Root->SetArrayField(TEXT("projection_matrix"), MakeJsonNumberArray({
+        Projection.M[0][0], Projection.M[0][1], Projection.M[0][2], Projection.M[0][3],
+        Projection.M[1][0], Projection.M[1][1], Projection.M[1][2], Projection.M[1][3],
+        Projection.M[2][0], Projection.M[2][1], Projection.M[2][2], Projection.M[2][3],
+        Projection.M[3][0], Projection.M[3][1], Projection.M[3][2], Projection.M[3][3]}));
+    return FExecStatus::OK(SerializeJsonObject(Root));
+}
+
 FExecStatus FCameraHandler::SpawnCamera(const TArray<FString>& Args)
 {
     UWorld* GameWorld = FUnrealcvServer::Get().GetWorld();
@@ -993,6 +1216,58 @@ void FCameraHandler::RegisterCommands()
 
     CommandDispatcher->BindCommand("vset /camera/[uint]/fov [float]",
                                    FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetFOV), "Set FOV");
+
+    CommandDispatcher->BindCommand("vget /camera/[uint]/cine",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCineCamera),
+                                   "Get physical Cine camera settings as JSON");
+
+    CommandDispatcher->BindCommand("vget /camera/[uint]/cine/enabled",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCineCameraEnabled),
+                                   "Get whether the physical Cine camera path is enabled");
+
+    CommandDispatcher->BindCommand("vget /camera/[uint]/cine/intrinsics",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::GetCineIntrinsics),
+                                   "Get Cine intrinsics, projection offsets, FOVs, and projection matrix as JSON");
+
+    CommandDispatcher->BindCommand("vset /camera/[uint]/cine/enabled [uint]",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetCineCameraEnabled),
+                                   "Enable or disable the physical Cine camera path");
+
+    CommandDispatcher->BindCommand("vset /camera/[uint]/cine/filmback [float] [float] [float] [float]",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetCineFilmback),
+                                   "Set Cine filmback width, height, horizontal offset, and vertical offset in millimeters");
+
+    CommandDispatcher->BindCommand("vset /camera/[uint]/cine/lens [float] [float]",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetCineLens),
+                                   "Set Cine focal length in millimeters and aperture in f-stops");
+
+    CommandDispatcher->BindCommand("vset /camera/[uint]/cine/lens_settings [float] [float] [float] [float] [float] [float] [uint]",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetCineLensSettings),
+                                   "Set Cine lens limits, minimum focus distance, squeeze factor, and blade count");
+
+    CommandDispatcher->BindCommand("vset /camera/[uint]/cine/focus [float]",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetCineFocus),
+                                   "Set Cine manual focus distance in centimeters");
+
+    CommandDispatcher->BindCommand("vset /camera/[uint]/cine/focus_mode [str] [uint] [float] [float]",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetCineFocusMode),
+                                   "Set Cine focus mode, smoothing state, smoothing speed, and focus offset");
+
+    CommandDispatcher->BindCommand("vset /camera/[uint]/cine/focus_tracking [str] [float] [float] [float]",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetCineTrackingFocus),
+                                   "Set Cine tracking-focus actor and relative offset");
+
+    CommandDispatcher->BindCommand("vset /camera/[uint]/cine/crop [float] [float] [uint] [uint]",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetCineCrop),
+                                   "Set Cine crop aspect ratio, overscan, crop state, and resolution-scaling state");
+
+    CommandDispatcher->BindCommand("vset /camera/[uint]/cine/near_clip [uint] [float]",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetCineNearClip),
+                                   "Enable or disable the Cine near clipping plane and set its distance in centimeters");
+
+    CommandDispatcher->BindCommand("vset /camera/[uint]/cine/exposure [float] [float] [uint]",
+                                   FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetCineExposure),
+                                   "Set Cine ISO, shutter-speed reciprocal, and physical-exposure state");
 
     CommandDispatcher->BindCommand("vset /camera/[uint]/size [uint] [uint]",
                                    FDispatcherDelegate::CreateRaw(this, &FCameraHandler::SetSize),

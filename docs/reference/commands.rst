@@ -120,6 +120,55 @@ vget /camera/[id]/horizontal_fieldofview
 vset /camera/[id]/horizontal_fieldofview [FOV]
     (v0.3.10) Set camera horizontal field of view. This cmd is deprecated, use vset /camera/[uint]/fov [FOV] instead (v0.4.0).
 
+vget /camera/[id]/cine
+    Get the complete physical cinematic camera state as JSON.
+
+vget /camera/[id]/cine/enabled
+    Get whether the physical cinematic camera path is enabled (``0`` or ``1``).
+
+vget /camera/[id]/cine/intrinsics
+    Get image dimensions, ``fx``, ``fy``, ``cx``, ``cy``, projection offsets,
+    horizontal and vertical fields of view, and the row-major 4x4 projection
+    matrix as JSON.
+
+vset /camera/[id]/cine/enabled [enabled]
+    Enable or disable the physical cinematic camera path. The path is disabled
+    by default for backward compatibility.
+
+vset /camera/[id]/cine/filmback [width_mm] [height_mm] [offset_x_mm] [offset_y_mm]
+    Set filmback dimensions and offsets in millimeters.
+
+vset /camera/[id]/cine/lens [focal_length_mm] [aperture_fstop]
+    Set physical focal length in millimeters and aperture in f-stops.
+
+vset /camera/[id]/cine/lens_settings [min_focal_mm] [max_focal_mm] [min_fstop] [max_fstop] [min_focus_mm] [squeeze] [blades]
+    Set the physical lens limits, minimum focus distance, squeeze factor, and
+    diaphragm blade count.
+
+vset /camera/[id]/cine/focus [distance_cm]
+    Set manual focus distance in centimeters.
+
+vset /camera/[id]/cine/focus_mode [mode] [smooth] [smoothing_speed] [offset_cm]
+    Set focus mode and interpolation. Supported modes are ``manual``,
+    ``tracking``, ``disable``, ``none``, and ``do_not_override``.
+
+vset /camera/[id]/cine/focus_tracking [actor] [offset_x_cm] [offset_y_cm] [offset_z_cm]
+    Set the tracking-focus actor and relative offset in centimeters.
+
+vset /camera/[id]/cine/crop [aspect_ratio] [overscan] [crop_overscan] [scale_resolution]
+    Set crop and overscan parameters.
+
+vset /camera/[id]/cine/near_clip [enabled] [distance_cm]
+    Enable or disable the custom near clipping plane and set its distance in
+    centimeters.
+
+vset /camera/[id]/cine/exposure [iso] [shutter_reciprocal] [physical_exposure]
+    Set ISO, shutter-speed reciprocal, and physical exposure. For example,
+    ``60`` represents a shutter speed of 1/60 s.
+
+See :doc:`cine_camera` for activation behavior, units, response fields, and a
+complete example.
+
 vget /camera/[id]/vis_depth npy
     (v0.3.10)
 
@@ -147,10 +196,8 @@ vset /camera/[id]/ortho_width [width]
 vset /camera/[id]/focal [distance] [region]
     Set the depth-of-field focal distance and focal region. Despite the command
     name, these arguments do not represent a physical lens focal length in
-    millimeters. Builds that provide the UnrealZoo development cinematic camera
-    API use ``vset /camera/[camera_id]/cine/lens [focal_length_mm]
-    [aperture_fstop]`` for physical lens control; see
-    :doc:`../unrealcv_plus/reference/cine-camera`.
+    millimeters. Use ``vset /camera/[id]/cine/lens [focal_length_mm]
+    [aperture_fstop]`` for physical lens control; see :doc:`cine_camera`.
 
 2. Object interaction
 ---------------------

@@ -1,5 +1,6 @@
 // Weichao Qiu @ 2018
 #include "FusionCamSensor.h"
+#include "CineCameraComponent.h"
 #include "Runtime/Engine/Classes/Camera/CameraComponent.h"
 #include "ImageUtil.h"
 #include "Serialization.h"
@@ -251,6 +252,190 @@ void UFusionCamSensor::SetSensorFOV(float fov)
 		{
 			Sensor->SetFOV(fov);
 		}
+	}
+}
+
+UCineCameraComponent* UFusionCamSensor::GetCineCameraComponent() const
+{
+	return IsValid(LitCamSensor) ? LitCamSensor->GetCineCameraComponent() : nullptr;
+}
+
+TArray<UCineCameraComponent*> UFusionCamSensor::GetCineCameraComponents() const
+{
+	TArray<UCineCameraComponent*> Components;
+	for (UBaseCameraSensor* Sensor : FusionSensors)
+	{
+		if (IsValid(Sensor) && IsValid(Sensor->GetCineCameraComponent()))
+		{
+			Components.Add(Sensor->GetCineCameraComponent());
+		}
+	}
+	return Components;
+}
+
+void UFusionCamSensor::SetCineCameraEnabled(bool bEnabled)
+{
+	for (UBaseCameraSensor* Sensor : FusionSensors)
+	{
+		if (IsValid(Sensor))
+		{
+			Sensor->SetCineCameraEnabled(bEnabled);
+		}
+	}
+}
+
+bool UFusionCamSensor::IsCineCameraEnabled() const
+{
+	return IsValid(LitCamSensor) && LitCamSensor->IsCineCameraEnabled();
+}
+
+void UFusionCamSensor::SetCineFilmback(float SensorWidth, float SensorHeight, float HorizontalOffset, float VerticalOffset)
+{
+	SetCineCameraEnabled(true);
+	FCameraFilmbackSettings Filmback;
+	Filmback.SensorWidth = FMath::Max(SensorWidth, 0.001f);
+	Filmback.SensorHeight = FMath::Max(SensorHeight, 0.001f);
+	Filmback.SensorHorizontalOffset = HorizontalOffset;
+	Filmback.SensorVerticalOffset = VerticalOffset;
+	Filmback.RecalcSensorAspectRatio();
+	for (UCineCameraComponent* Cine : GetCineCameraComponents())
+	{
+		Cine->SetFilmback(Filmback);
+	}
+	FOV = GetSensorFOV();
+}
+
+void UFusionCamSensor::SetCineLens(float FocalLength, float Aperture)
+{
+	SetCineCameraEnabled(true);
+	for (UCineCameraComponent* Cine : GetCineCameraComponents())
+	{
+		Cine->SetCurrentFocalLength(FMath::Max(FocalLength, 0.001f));
+		Cine->SetCurrentAperture(FMath::Max(Aperture, 0.1f));
+	}
+	FOV = GetSensorFOV();
+}
+
+void UFusionCamSensor::SetCineLensSettings(float MinFocalLength, float MaxFocalLength, float MinFStop, float MaxFStop,
+	float MinimumFocusDistance, float SqueezeFactor, int32 DiaphragmBladeCount)
+{
+	SetCineCameraEnabled(true);
+	FCameraLensSettings LensSettings;
+	LensSettings.MinFocalLength = FMath::Max(MinFocalLength, 0.001f);
+	LensSettings.MaxFocalLength = FMath::Max(MaxFocalLength, LensSettings.MinFocalLength);
+	LensSettings.MinFStop = FMath::Max(MinFStop, 0.1f);
+	LensSettings.MaxFStop = FMath::Max(MaxFStop, LensSettings.MinFStop);
+	LensSettings.MinimumFocusDistance = FMath::Max(MinimumFocusDistance, 0.0f);
+	LensSettings.SqueezeFactor = FMath::Clamp(SqueezeFactor, 1.0f, 2.0f);
+	LensSettings.DiaphragmBladeCount = FMath::Clamp(DiaphragmBladeCount, 4, 16);
+	for (UCineCameraComponent* Cine : GetCineCameraComponents())
+	{
+		Cine->SetLensSettings(LensSettings);
+	}
+	FOV = GetSensorFOV();
+}
+
+void UFusionCamSensor::SetCineFocusDistance(float FocusDistance)
+{
+	SetCineCameraEnabled(true);
+	for (UCineCameraComponent* Cine : GetCineCameraComponents())
+	{
+		FCameraFocusSettings Settings = Cine->FocusSettings;
+		Settings.FocusMethod = ECameraFocusMethod::Manual;
+		Settings.ManualFocusDistance = FMath::Max(FocusDistance, 0.0f);
+		Cine->SetFocusSettings(Settings);
+	}
+}
+
+bool UFusionCamSensor::SetCineFocusMode(const FString& FocusMode, bool bSmoothFocusChanges, float SmoothingSpeed, float FocusOffset)
+{
+	ECameraFocusMethod Method;
+	if (FocusMode.Equals(TEXT("manual"), ESearchCase::IgnoreCase)) Method = ECameraFocusMethod::Manual;
+	else if (FocusMode.Equals(TEXT("tracking"), ESearchCase::IgnoreCase)) Method = ECameraFocusMethod::Tracking;
+	else if (FocusMode.Equals(TEXT("disable"), ESearchCase::IgnoreCase)) Method = ECameraFocusMethod::Disable;
+	else if (FocusMode.Equals(TEXT("none"), ESearchCase::IgnoreCase) ||
+		FocusMode.Equals(TEXT("do_not_override"), ESearchCase::IgnoreCase)) Method = ECameraFocusMethod::DoNotOverride;
+	else return false;
+
+	SetCineCameraEnabled(true);
+	for (UCineCameraComponent* Cine : GetCineCameraComponents())
+	{
+		FCameraFocusSettings Settings = Cine->FocusSettings;
+		Settings.FocusMethod = Method;
+		Settings.bSmoothFocusChanges = bSmoothFocusChanges;
+		Settings.FocusSmoothingInterpSpeed = FMath::Max(SmoothingSpeed, 0.0f);
+		Settings.FocusOffset = FocusOffset;
+		Cine->SetFocusSettings(Settings);
+	}
+	return true;
+}
+
+bool UFusionCamSensor::SetCineTrackingFocus(AActor* ActorToTrack, const FVector& RelativeOffset)
+{
+	if (!IsValid(ActorToTrack)) return false;
+	SetCineCameraEnabled(true);
+	for (UCineCameraComponent* Cine : GetCineCameraComponents())
+	{
+		FCameraFocusSettings Settings = Cine->FocusSettings;
+		Settings.FocusMethod = ECameraFocusMethod::Tracking;
+		Settings.TrackingFocusSettings.ActorToTrack = ActorToTrack;
+		Settings.TrackingFocusSettings.RelativeOffset = RelativeOffset;
+		Cine->SetFocusSettings(Settings);
+	}
+	return true;
+}
+
+void UFusionCamSensor::SetCineCrop(float CropAspectRatio, float Overscan, bool bCropOverscan, bool bScaleResolutionWithOverscan)
+{
+	SetCineCameraEnabled(true);
+	FPlateCropSettings CropSettings;
+	CropSettings.AspectRatio = FMath::Max(CropAspectRatio, 0.0f);
+	for (UCineCameraComponent* Cine : GetCineCameraComponents())
+	{
+		Cine->SetCropSettings(CropSettings);
+		Cine->SetOverscan(FMath::Max(Overscan, 0.0f));
+		Cine->SetCropOverscan(bCropOverscan);
+		Cine->SetScaleResolutionWithOverscan(bScaleResolutionWithOverscan);
+	}
+	FOV = GetSensorFOV();
+}
+
+void UFusionCamSensor::SetCineNearClip(bool bEnabled, float NearClipDistance)
+{
+	SetCineCameraEnabled(true);
+	for (UCineCameraComponent* Cine : GetCineCameraComponents())
+	{
+		Cine->bOverride_CustomNearClippingPlane = bEnabled;
+		Cine->SetCustomNearClippingPlane(FMath::Max(NearClipDistance, 0.00001f));
+	}
+}
+
+void UFusionCamSensor::SetCineExposure(float ISO, float ShutterSpeed, bool bApplyPhysicalExposure)
+{
+	SetCineCameraEnabled(true);
+	const float SafeISO = FMath::Max(ISO, 1.0f);
+	const float SafeShutterSpeed = FMath::Max(ShutterSpeed, 0.001f);
+	for (UCineCameraComponent* Cine : GetCineCameraComponents())
+	{
+		Cine->ExposureMethod = bApplyPhysicalExposure ? ECameraExposureMethod::Enabled : ECameraExposureMethod::DoNotOverride;
+		Cine->PostProcessSettings.bOverride_CameraISO = true;
+		Cine->PostProcessSettings.CameraISO = SafeISO;
+		Cine->PostProcessSettings.bOverride_CameraShutterSpeed = true;
+		Cine->PostProcessSettings.CameraShutterSpeed = SafeShutterSpeed;
+		Cine->PostProcessSettings.bOverride_AutoExposureApplyPhysicalCameraExposure = true;
+		Cine->PostProcessSettings.AutoExposureApplyPhysicalCameraExposure = bApplyPhysicalExposure;
+	}
+	for (UBaseCameraSensor* Sensor : FusionSensors)
+	{
+		if (!IsValid(Sensor)) continue;
+		Sensor->PostProcessSettings.bOverride_CameraISO = true;
+		Sensor->PostProcessSettings.CameraISO = SafeISO;
+		Sensor->PostProcessSettings.bOverride_CameraShutterSpeed = true;
+		Sensor->PostProcessSettings.CameraShutterSpeed = SafeShutterSpeed;
+		Sensor->PostProcessSettings.bOverride_AutoExposureApplyPhysicalCameraExposure = true;
+		Sensor->PostProcessSettings.AutoExposureApplyPhysicalCameraExposure = bApplyPhysicalExposure;
+		Sensor->PostProcessBlendWeight = 1.0f;
+		Sensor->UpdateCineCameraView();
 	}
 }
 

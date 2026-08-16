@@ -411,6 +411,86 @@ class UETestRunner:
                     message=f"Exception: {e}"
                 ))
 
+        if not self._cancelled:
+            cine_test_start = time.time()
+            try:
+                legacy_fov = float(str(client.request("vget /camera/0/fov")))
+                default_enabled = str(client.request("vget /camera/0/cine/enabled")).strip()
+                if default_enabled != "0":
+                    raise RuntimeError(f"Cine camera must default to disabled, got {default_enabled}")
+
+                cine_set_commands = [
+                    "vset /camera/0/cine/filmback 24.89 18.67 1 0",
+                    "vset /camera/0/cine/lens_settings 1 1000 0.1 64 15 1 8",
+                    "vset /camera/0/cine/lens 50 2.8",
+                    "vset /camera/0/cine/focus 100",
+                    "vset /camera/0/cine/focus_mode manual 0 8 0",
+                    "vset /camera/0/cine/crop 0 0 0 0",
+                    "vset /camera/0/cine/near_clip 0 10",
+                    "vset /camera/0/cine/exposure 100 60 0",
+                ]
+                for cine_command in cine_set_commands:
+                    response = str(client.request(cine_command))
+                    if response.lower().startswith("error"):
+                        raise RuntimeError(f"{cine_command}: {response}")
+
+                cine_state = json.loads(str(client.request("vget /camera/0/cine")))
+                cine_intrinsics = json.loads(str(client.request("vget /camera/0/cine/intrinsics")))
+                if cine_state.get("enabled") is not True:
+                    raise RuntimeError("Cine state did not report enabled=true after mutation")
+                required_state = {"enabled", "filmback", "lens", "focus", "crop", "exposure", "near_clip"}
+                if not required_state.issubset(cine_state):
+                    raise RuntimeError(f"Cine state missing keys: {sorted(required_state - set(cine_state))}")
+                for key in ("fx", "fy", "cx", "cy", "projection_offset", "projection_matrix"):
+                    if key not in cine_intrinsics:
+                        raise RuntimeError(f"Cine intrinsics missing key: {key}")
+                if len(cine_intrinsics["projection_matrix"]) != 16:
+                    raise RuntimeError("Cine projection matrix must contain 16 values")
+                if cine_intrinsics["fx"] <= cine_intrinsics["width"] * 0.5 or cine_intrinsics["fy"] <= 0:
+                    raise RuntimeError(f"Unexpected physical-lens intrinsics: {cine_intrinsics}")
+                if abs(cine_intrinsics["cx"] - cine_intrinsics["width"] * 0.5) < 1e-3:
+                    raise RuntimeError("Filmback horizontal offset did not move the principal point")
+
+                cine_lit = client.request("vget /camera/0/lit png")
+                if not cine_lit or len(cine_lit) <= 100:
+                    raise RuntimeError("Cine-enabled lit capture returned no image data")
+
+                disable_response = str(client.request("vset /camera/0/cine/enabled 0"))
+                if disable_response.lower().startswith("error"):
+                    raise RuntimeError(f"Failed to disable Cine camera: {disable_response}")
+                if str(client.request("vget /camera/0/cine/enabled")).strip() != "0":
+                    raise RuntimeError("Cine camera did not report disabled after deactivation")
+                restored_fov = float(str(client.request("vget /camera/0/fov")))
+                if abs(restored_fov - legacy_fov) > 1e-3:
+                    raise RuntimeError(f"Legacy FOV was not restored: before={legacy_fov}, after={restored_fov}")
+
+                client.request("vset /camera/0/cine/enabled 1")
+                restored_cine_state = json.loads(str(client.request("vget /camera/0/cine")))
+                if abs(restored_cine_state["lens"]["focal_length_mm"] - 50.0) > 1e-3:
+                    raise RuntimeError("Cine lens state was not retained across disable/enable")
+                if abs(restored_cine_state["exposure"]["iso"] - 100.0) > 1e-3:
+                    raise RuntimeError("Cine exposure state was not retained across disable/enable")
+                client.request("vset /camera/0/cine/enabled 0")
+
+                results.append(TestResult(
+                    name="Cinematic Camera Physical API",
+                    status=TestStatus.PASSED,
+                    duration=time.time() - cine_test_start,
+                    message="Validated activation, physical projection, Cine-enabled capture, and legacy restoration",
+                ))
+            except Exception as e:
+                results.append(TestResult(
+                    name="Cinematic Camera Physical API",
+                    status=TestStatus.FAILED,
+                    duration=time.time() - cine_test_start,
+                    message=f"Exception: {e}",
+                ))
+            finally:
+                try:
+                    client.request("vset /camera/0/cine/enabled 0")
+                except Exception:
+                    pass
+
         # Image capture tests
         if not self._cancelled:
             desktop_path = get_desktop_path()

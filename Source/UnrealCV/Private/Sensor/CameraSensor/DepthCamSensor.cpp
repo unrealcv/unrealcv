@@ -31,6 +31,7 @@ void UDepthCamSensor::CaptureDepth(TArray<float>& DepthData, int& Width, int& He
 	}
 
 	if (!CheckTextureTarget()) return;
+	UpdateCineCameraView();
 	this->CaptureScene();
 	Width = this->TextureTarget->SizeX, Height = TextureTarget->SizeY;
 	DepthData.AddZeroed(Width * Height); // or AddUninitialized(FloatColorDepthData.Num());
