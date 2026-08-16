@@ -144,6 +144,14 @@ vset /camera/[id]/projection_type [type]
 vset /camera/[id]/ortho_width [width]
     (v0.4.0) Set the orthographic width of the camera
 
+vset /camera/[id]/focal [distance] [region]
+    Set the depth-of-field focal distance and focal region. Despite the command
+    name, these arguments do not represent a physical lens focal length in
+    millimeters. Builds that provide the UnrealZoo development cinematic camera
+    API use ``vset /camera/[camera_id]/cine/lens [focal_length_mm]
+    [aperture_fstop]`` for physical lens control; see
+    :doc:`../unrealcv_plus/reference/cine-camera`.
+
 2. Object interaction
 ---------------------
 

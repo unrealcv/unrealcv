@@ -35,6 +35,7 @@ Start with :doc:`overview` for the current development feature summary.
     :titlesonly:
 
     reference/light-commands
+    reference/cine-camera
     reference/pak-commands
 
 .. toctree::
