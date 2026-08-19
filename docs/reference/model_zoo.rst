@@ -21,13 +21,8 @@ available environments and agents.
    <link rel="canonical" href="https://unrealzoo.github.io/">
 
 
-Other Content
-==============
-
-The following content is retained from the former UnrealCV Model Zoo page.
-
 Model Zoo
-~~~~~~~~~
+=========
 
 We provide compiled virtual worlds to play with. All the digital contents belong to the original author. If you want to use UnrealCV plugin in the editor, you can find UE4 projects in :doc:`/reference/ue4_resources`
 
