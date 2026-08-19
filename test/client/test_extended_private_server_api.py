@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -12,6 +13,22 @@ def test_plus_commands_are_separate_from_open_source_api():
     assert not hasattr(UnrealCv_API, 'get_scene_occupancy')
     assert hasattr(UnrealCvPlusAPI, 'mount_pak')
     assert hasattr(UnrealCvPlusAPI, 'get_scene_occupancy')
+
+
+def test_mqrc_wrappers_and_supported_manifest(plus_api_factory):
+    api = plus_api_factory()
+    assert api.get_mqrc_antialiasing(return_cmd=True) == 'vget /mqrc/antialiasing'
+    assert api.set_mqrc_lumen_quality(1, 2, return_cmd=True) == 'vset /mqrc/lumen_quality 1 2'
+    assert api.get_agent_nav_status('dog', return_cmd=True) == 'vget /agent/dog/nav/status'
+
+    manifest_path = Path(__file__).parents[2] / 'client/python/unrealcv/plus_api_supported.json'
+    manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+    assert all('datasetautomation' not in template.lower() for template in manifest['templates'])
+    assert all('record' not in template.lower() and 'captureactor' not in template.lower()
+               for template in manifest['templates'])
+    assert all('/bs' not in template.lower() for template in manifest['templates'])
+    assert all('/bvr_sim' not in template.lower() for template in manifest['templates'])
+    assert 'vget /animation/smooth_random/play_rate_multiplier' not in manifest['templates']
 
 
 def test_get_scene_occupancy_decodes_bool_npy(make_npy_bytes, dummy_client_factory, plus_api_factory):

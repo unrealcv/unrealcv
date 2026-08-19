@@ -1,0 +1,917 @@
+{
+  "schema_version": 1,
+  "server_family": "unrealcv_plus",
+  "excluded": [
+    "datasetautomation",
+    "recording",
+    "captureactor",
+    "animation/smooth_random/play_rate_multiplier",
+    "/bs",
+    "/bvr_sim"
+  ],
+  "templates": [
+    "vget /agent/[str]/nav/status",
+    "vset /agent/[str]/nav/goto [float] [float] [float]",
+    "vset /agent/[str]/nav/start [float]",
+    "vset /agent/[str]/nav/stop",
+    "vget /animation/soma_glb/status [str]",
+    "vset /animation/soma_glb/apply [str] [Anything]",
+    "vset /animation/soma_glb/stop [str]",
+    "vset /annotation/cache/clear",
+    "vset /annotation/cache/enable [uint]",
+    "vset /annotation/object/[str]",
+    "vset /annotation/world",
+    "vset /annotation/world/clear",
+    "vget /camera/[camera_id]/depth/exp",
+    "vget /camera/[camera_id]/depth/max_distance",
+    "vget /camera/[camera_id]/depth/min_distance",
+    "vget /camera/[camera_id]/depth/use_exp",
+    "vget /camera/[camera_id]/dual_depth [str] [str]",
+    "vget /camera/[camera_id]/id",
+    "vget /camera/[camera_id]/mqrc/lit [str]",
+    "vget /camera/[camera_id]/mvrc/enabled",
+    "vget /camera/[camera_id]/mvrc/lit [str]",
+    "vget /camera/[camera_id]/oneobjlit [str] [str]",
+    "vget /camera/[camera_id]/oneobjlit_legacy [str] [str]",
+    "vget /camera/[camera_id]/oneobjmask [str] [str]",
+    "vget /camera/[camera_id]/panoramic [str] [uint] [uint]",
+    "vget /camera/[camera_id]/panoramic/depth [str] [uint] [uint]",
+    "vget /camera/[camera_id]/panoramic/depth_shared [uint] [uint]",
+    "vget /camera/[camera_id]/panoramic/mask [str] [uint] [uint]",
+    "vget /camera/[camera_id]/panoramic/mask_shared [uint] [uint]",
+    "vget /camera/[camera_id]/panoramic/normal [str] [uint] [uint]",
+    "vget /camera/[camera_id]/panoramic/normal_shared [uint] [uint]",
+    "vget /camera/[camera_id]/panoramic_shared [uint] [uint]",
+    "vget /camera/[camera_id]/render_in_main_renderer",
+    "vget /camera/[camera_id]/use_fast_capture",
+    "vset /camera/[camera_id]/depth/exp [float]",
+    "vset /camera/[camera_id]/depth/max_distance [float]",
+    "vset /camera/[camera_id]/depth/min_distance [float]",
+    "vset /camera/[camera_id]/depth/use_exp [uint]",
+    "vset /camera/[camera_id]/lookat_object_auto [str] [float] [float] [float] [float]",
+    "vset /camera/[camera_id]/render_in_main_renderer [uint]",
+    "vset /camera/[camera_id]/use_fast_capture [uint]",
+    "vget /cameras/ids",
+    "vget /cameras_CID",
+    "vget /cameras_legacy",
+    "vset /editor/start_standalone_pie",
+    "vget /light/directional/castdeepshadow",
+    "vget /light/directional/intensity",
+    "vget /light/skylight/intensity",
+    "vset /light/directional/castdeepshadow [bool]",
+    "vset /light/directional/intensity [float]",
+    "vset /light/skylight/intensity [float]",
+    "vget /llm/config",
+    "vget /llm/request/[str]/result",
+    "vget /llm/request/[str]/status",
+    "vset /llm/chat [Anything]",
+    "vset /llm/chat_json [Anything]",
+    "vset /llm/config/api_key [str]",
+    "vset /llm/config/base_url [str]",
+    "vset /llm/config/model [str]",
+    "vset /llm/config/wire_api [str]",
+    "vget /metahuman/all_paths",
+    "vget /metahuman/cache_path",
+    "vget /metahuman/filter_batch",
+    "vget /metahuman/head_aim_location [str] [str] [float]",
+    "vget /metahuman/parametric/rig_status [str]",
+    "vset /metahuman/parametric/assemble [str] [str] [str]",
+    "vset /metahuman/parametric/body [str] [str] [float] [float] [float]",
+    "vset /metahuman/parametric/create [str] [str] [str] [float] [float] [float] [str] [str]",
+    "vset /metahuman/parametric/wardrobe [str] [str] [str]",
+    "vset /metahuman/update_cache",
+    "vget status",
+    "vget /mqrc/antialiasing",
+    "vget /mqrc/auto_exposure_max_brightness",
+    "vget /mqrc/auto_exposure_min_brightness",
+    "vget /mqrc/depth_of_field_scale",
+    "vget /mqrc/exposure_bias",
+    "vget /mqrc/exposure_method",
+    "vget /mqrc/lumen_final_gather_lighting_update_speed",
+    "vget /mqrc/lumen_quality",
+    "vget /mqrc/motion_blur",
+    "vget /mqrc/override_auto_exposure_max_brightness",
+    "vget /mqrc/override_auto_exposure_min_brightness",
+    "vget /mqrc/override_depth_of_field_scale",
+    "vget /mqrc/override_exposure_bias",
+    "vget /mqrc/override_exposure_method",
+    "vget /mqrc/override_lumen_final_gather_lighting_update_speed",
+    "vget /mqrc/override_lumen_final_gather_quality",
+    "vget /mqrc/override_lumen_scene_lighting_quality",
+    "vget /mqrc/override_motion_blur",
+    "vget /mqrc/render_immediately",
+    "vget /mqrc/screen_percentage",
+    "vget /mqrc/screen_percentage_method",
+    "vset /mqrc/antialiasing [str]",
+    "vset /mqrc/auto_exposure_max_brightness [float]",
+    "vset /mqrc/auto_exposure_min_brightness [float]",
+    "vset /mqrc/capture_multi_offscreen_orbit [str] [str] [uint] [uint] [float]",
+    "vset /mqrc/depth_of_field_scale [float]",
+    "vset /mqrc/exposure_bias [float]",
+    "vset /mqrc/exposure_method [str]",
+    "vset /mqrc/lumen_final_gather_lighting_update_speed [float]",
+    "vset /mqrc/lumen_quality [float] [float]",
+    "vset /mqrc/motion_blur [float]",
+    "vset /mqrc/override_auto_exposure_max_brightness [bool]",
+    "vset /mqrc/override_auto_exposure_min_brightness [bool]",
+    "vset /mqrc/override_depth_of_field_scale [bool]",
+    "vset /mqrc/override_exposure_bias [bool]",
+    "vset /mqrc/override_exposure_method [bool]",
+    "vset /mqrc/override_lumen_final_gather_lighting_update_speed [bool]",
+    "vset /mqrc/override_lumen_final_gather_quality [bool]",
+    "vset /mqrc/override_lumen_scene_lighting_quality [bool]",
+    "vset /mqrc/override_motion_blur [bool]",
+    "vset /mqrc/render_immediately [str]",
+    "vset /mqrc/reset_multi_offscreen_state [str]",
+    "vset /mqrc/screen_percentage [float]",
+    "vset /mqrc/screen_percentage_method [str]",
+    "vget /mvrc/use_sync_capture",
+    "vset /mvrc/use_sync_capture [uint]",
+    "vget /object/[str]/affect_distance_field_lighting",
+    "vget /object/[str]/cast_shadow",
+    "vget /object/[str]/class_metadata",
+    "vget /object/[str]/materials_metadata",
+    "vget /object/[str]/mesh_vertices",
+    "vget /object/[str]/metadata",
+    "vget /object/[str]/mujoco_go1_policy_obs",
+    "vget /object/[str]/mujoco_quadruped_pose_comparison",
+    "vget /object/[str]/tickable_when_paused",
+    "vset /object/[str]/affect_distance_field_lighting [str]",
+    "vset /object/[str]/cast_shadow [str]",
+    "vset /object/[str]/hair_airdrag [float]",
+    "vset /object/[str]/hair_gravity [float] [float] [float]",
+    "vset /object/[str]/mujoco_freefall/start",
+    "vset /object/[str]/mujoco_go1_policy_action [float] [float] [float] [float] [float] [float] [float] [float] [float] [float] [float] [float]",
+    "vset /object/[str]/mujoco_go1_policy_command [float] [float] [float]",
+    "vset /object/[str]/mujoco_humanoid_freefall/start",
+    "vset /object/[str]/mujoco_humanoid_pose_preview/start",
+    "vset /object/[str]/mujoco_quadruped_freefall/start [str]",
+    "vset /object/[str]/mujoco_quadruped_pose_preview/start [str]",
+    "vset /object/[str]/reset_hair_simulation",
+    "vset /object/[str]/settle_to_ground [str] [float] [float] [float]",
+    "vset /object/[str]/tickable_when_paused [str]",
+    "vget /objects [str]",
+    "vget /objects/scan_assets [str]",
+    "vset /objects/spawn_cube_wo_annotation [str] [float] [float] [float]",
+    "vset /objects/spawn_from_path [str] [str] [float] [float] [float]",
+    "vset /objects/spawn_from_path_wo_annotation [str] [str] [float] [float] [float]",
+    "vset /objects/spawn_wo_annotation [str] [str] [float] [float] [float]",
+    "vget /pak/ismounted [str]",
+    "vget /pak/load [str]",
+    "vget /pak/mounted",
+    "vget /pak/registered_paths [str]",
+    "vget /pak/registered_status [str]",
+    "vset /pak/mount [str] [uint]",
+    "vset /pak/register [str] [str]",
+    "vset /pak/scan [str] [uint]",
+    "vset /pak/unmount [str]",
+    "vget /pawn/location",
+    "vget /pawn/rotation",
+    "vset /pawn/location [float] [float] [float]",
+    "vset /pawn/rotation [float] [float] [float]",
+    "vset /reachablearea/clear",
+    "vset /reachablearea/show [float] [float] [float] [float] [float] [float]",
+    "vget /reachablepoints [float] [float]",
+    "vget /reachablepoints/count [float] [float]",
+    "vget /reachablepoints/inradius [float] [float] [float] [float] [float] [float]",
+    "vget /reachablepoints/status",
+    "vset /reachablepoints/invalidate [str]",
+    "vset /reachablepoints/refresh",
+    "vget /safepoint/config_path",
+    "vset /safepoint/add [str] [float] [float] [float]",
+    "vset /safepoint/cycle",
+    "vset /safepoint/preview_last",
+    "vget /safepoints [str]",
+    "vget /scene/occupancy_shared [str] [str] [float] [float] [float] [float] [uint]",
+    "vget /scene/occupancy_shared_region [str] [float] [float] [float] [float] [float] [float] [float]",
+    "vget /scene/perception [float] [uint] [uint]",
+    "vget /scene/semantic_annotations",
+    "vget /unrealcv/list_cmd",
+    "vset /world/custom_time_dilation_except_pawn [float]",
+    "vset /world/pause_all_except_pawn",
+    "vset /world/resume_all"
+  ],
+  "methods": [
+    {
+      "name": "get_agent_nav_status",
+      "template": "vget /agent/[str]/nav/status"
+    },
+    {
+      "name": "set_agent_nav_goto",
+      "template": "vset /agent/[str]/nav/goto [float] [float] [float]"
+    },
+    {
+      "name": "set_agent_nav_start",
+      "template": "vset /agent/[str]/nav/start [float]"
+    },
+    {
+      "name": "set_agent_nav_stop",
+      "template": "vset /agent/[str]/nav/stop"
+    },
+    {
+      "name": "get_animation_soma_glb_status",
+      "template": "vget /animation/soma_glb/status [str]"
+    },
+    {
+      "name": "set_animation_soma_glb_apply",
+      "template": "vset /animation/soma_glb/apply [str] [Anything]"
+    },
+    {
+      "name": "set_animation_soma_glb_stop",
+      "template": "vset /animation/soma_glb/stop [str]"
+    },
+    {
+      "name": "set_annotation_cache_clear",
+      "template": "vset /annotation/cache/clear"
+    },
+    {
+      "name": "set_annotation_cache_enable",
+      "template": "vset /annotation/cache/enable [uint]"
+    },
+    {
+      "name": "set_annotation_object",
+      "template": "vset /annotation/object/[str]"
+    },
+    {
+      "name": "set_annotation_world",
+      "template": "vset /annotation/world"
+    },
+    {
+      "name": "set_annotation_world_clear",
+      "template": "vset /annotation/world/clear"
+    },
+    {
+      "name": "get_camera_depth_exp",
+      "template": "vget /camera/[camera_id]/depth/exp"
+    },
+    {
+      "name": "get_camera_depth_max_distance",
+      "template": "vget /camera/[camera_id]/depth/max_distance"
+    },
+    {
+      "name": "get_camera_depth_min_distance",
+      "template": "vget /camera/[camera_id]/depth/min_distance"
+    },
+    {
+      "name": "get_camera_depth_use_exp",
+      "template": "vget /camera/[camera_id]/depth/use_exp"
+    },
+    {
+      "name": "get_camera_dual_depth",
+      "template": "vget /camera/[camera_id]/dual_depth [str] [str]"
+    },
+    {
+      "name": "get_camera_id",
+      "template": "vget /camera/[camera_id]/id"
+    },
+    {
+      "name": "get_camera_mqrc_lit",
+      "template": "vget /camera/[camera_id]/mqrc/lit [str]"
+    },
+    {
+      "name": "get_camera_mvrc_enabled",
+      "template": "vget /camera/[camera_id]/mvrc/enabled"
+    },
+    {
+      "name": "get_camera_mvrc_lit",
+      "template": "vget /camera/[camera_id]/mvrc/lit [str]"
+    },
+    {
+      "name": "get_camera_oneobjlit",
+      "template": "vget /camera/[camera_id]/oneobjlit [str] [str]"
+    },
+    {
+      "name": "get_camera_oneobjlit_legacy",
+      "template": "vget /camera/[camera_id]/oneobjlit_legacy [str] [str]"
+    },
+    {
+      "name": "get_camera_oneobjmask",
+      "template": "vget /camera/[camera_id]/oneobjmask [str] [str]"
+    },
+    {
+      "name": "get_camera_panoramic",
+      "template": "vget /camera/[camera_id]/panoramic [str] [uint] [uint]"
+    },
+    {
+      "name": "get_camera_panoramic_depth",
+      "template": "vget /camera/[camera_id]/panoramic/depth [str] [uint] [uint]"
+    },
+    {
+      "name": "get_camera_panoramic_depth_shared",
+      "template": "vget /camera/[camera_id]/panoramic/depth_shared [uint] [uint]"
+    },
+    {
+      "name": "get_camera_panoramic_mask",
+      "template": "vget /camera/[camera_id]/panoramic/mask [str] [uint] [uint]"
+    },
+    {
+      "name": "get_camera_panoramic_mask_shared",
+      "template": "vget /camera/[camera_id]/panoramic/mask_shared [uint] [uint]"
+    },
+    {
+      "name": "get_camera_panoramic_normal",
+      "template": "vget /camera/[camera_id]/panoramic/normal [str] [uint] [uint]"
+    },
+    {
+      "name": "get_camera_panoramic_normal_shared",
+      "template": "vget /camera/[camera_id]/panoramic/normal_shared [uint] [uint]"
+    },
+    {
+      "name": "get_camera_panoramic_shared",
+      "template": "vget /camera/[camera_id]/panoramic_shared [uint] [uint]"
+    },
+    {
+      "name": "get_camera_render_in_main_renderer",
+      "template": "vget /camera/[camera_id]/render_in_main_renderer"
+    },
+    {
+      "name": "get_camera_use_fast_capture",
+      "template": "vget /camera/[camera_id]/use_fast_capture"
+    },
+    {
+      "name": "set_camera_depth_exp",
+      "template": "vset /camera/[camera_id]/depth/exp [float]"
+    },
+    {
+      "name": "set_camera_depth_max_distance",
+      "template": "vset /camera/[camera_id]/depth/max_distance [float]"
+    },
+    {
+      "name": "set_camera_depth_min_distance",
+      "template": "vset /camera/[camera_id]/depth/min_distance [float]"
+    },
+    {
+      "name": "set_camera_depth_use_exp",
+      "template": "vset /camera/[camera_id]/depth/use_exp [uint]"
+    },
+    {
+      "name": "set_camera_lookat_object_auto",
+      "template": "vset /camera/[camera_id]/lookat_object_auto [str] [float] [float] [float] [float]"
+    },
+    {
+      "name": "set_camera_render_in_main_renderer",
+      "template": "vset /camera/[camera_id]/render_in_main_renderer [uint]"
+    },
+    {
+      "name": "set_camera_use_fast_capture",
+      "template": "vset /camera/[camera_id]/use_fast_capture [uint]"
+    },
+    {
+      "name": "get_cameras_ids",
+      "template": "vget /cameras/ids"
+    },
+    {
+      "name": "get_cameras_cid",
+      "template": "vget /cameras_CID"
+    },
+    {
+      "name": "get_cameras_legacy",
+      "template": "vget /cameras_legacy"
+    },
+    {
+      "name": "set_editor_start_standalone_pie",
+      "template": "vset /editor/start_standalone_pie"
+    },
+    {
+      "name": "get_light_directional_castdeepshadow",
+      "template": "vget /light/directional/castdeepshadow"
+    },
+    {
+      "name": "get_light_directional_intensity",
+      "template": "vget /light/directional/intensity"
+    },
+    {
+      "name": "get_light_skylight_intensity",
+      "template": "vget /light/skylight/intensity"
+    },
+    {
+      "name": "set_light_directional_castdeepshadow",
+      "template": "vset /light/directional/castdeepshadow [bool]"
+    },
+    {
+      "name": "set_light_directional_intensity",
+      "template": "vset /light/directional/intensity [float]"
+    },
+    {
+      "name": "set_light_skylight_intensity",
+      "template": "vset /light/skylight/intensity [float]"
+    },
+    {
+      "name": "get_llm_config",
+      "template": "vget /llm/config"
+    },
+    {
+      "name": "get_llm_request_result",
+      "template": "vget /llm/request/[str]/result"
+    },
+    {
+      "name": "get_llm_request_status",
+      "template": "vget /llm/request/[str]/status"
+    },
+    {
+      "name": "set_llm_chat",
+      "template": "vset /llm/chat [Anything]"
+    },
+    {
+      "name": "set_llm_chat_json",
+      "template": "vset /llm/chat_json [Anything]"
+    },
+    {
+      "name": "set_llm_config_api_key",
+      "template": "vset /llm/config/api_key [str]"
+    },
+    {
+      "name": "set_llm_config_base_url",
+      "template": "vset /llm/config/base_url [str]"
+    },
+    {
+      "name": "set_llm_config_model",
+      "template": "vset /llm/config/model [str]"
+    },
+    {
+      "name": "set_llm_config_wire_api",
+      "template": "vset /llm/config/wire_api [str]"
+    },
+    {
+      "name": "get_metahuman_all_paths",
+      "template": "vget /metahuman/all_paths"
+    },
+    {
+      "name": "get_metahuman_cache_path",
+      "template": "vget /metahuman/cache_path"
+    },
+    {
+      "name": "get_metahuman_filter_batch",
+      "template": "vget /metahuman/filter_batch"
+    },
+    {
+      "name": "get_metahuman_head_aim_location",
+      "template": "vget /metahuman/head_aim_location [str] [str] [float]"
+    },
+    {
+      "name": "get_metahuman_parametric_rig_status",
+      "template": "vget /metahuman/parametric/rig_status [str]"
+    },
+    {
+      "name": "set_metahuman_parametric_assemble",
+      "template": "vset /metahuman/parametric/assemble [str] [str] [str]"
+    },
+    {
+      "name": "set_metahuman_parametric_body",
+      "template": "vset /metahuman/parametric/body [str] [str] [float] [float] [float]"
+    },
+    {
+      "name": "set_metahuman_parametric_create",
+      "template": "vset /metahuman/parametric/create [str] [str] [str] [float] [float] [float] [str] [str]"
+    },
+    {
+      "name": "set_metahuman_parametric_wardrobe",
+      "template": "vset /metahuman/parametric/wardrobe [str] [str] [str]"
+    },
+    {
+      "name": "set_metahuman_update_cache",
+      "template": "vset /metahuman/update_cache"
+    },
+    {
+      "name": "get_status",
+      "template": "vget status"
+    },
+    {
+      "name": "get_mqrc_antialiasing",
+      "template": "vget /mqrc/antialiasing"
+    },
+    {
+      "name": "get_mqrc_auto_exposure_max_brightness",
+      "template": "vget /mqrc/auto_exposure_max_brightness"
+    },
+    {
+      "name": "get_mqrc_auto_exposure_min_brightness",
+      "template": "vget /mqrc/auto_exposure_min_brightness"
+    },
+    {
+      "name": "get_mqrc_depth_of_field_scale",
+      "template": "vget /mqrc/depth_of_field_scale"
+    },
+    {
+      "name": "get_mqrc_exposure_bias",
+      "template": "vget /mqrc/exposure_bias"
+    },
+    {
+      "name": "get_mqrc_exposure_method",
+      "template": "vget /mqrc/exposure_method"
+    },
+    {
+      "name": "get_mqrc_lumen_final_gather_lighting_update_speed",
+      "template": "vget /mqrc/lumen_final_gather_lighting_update_speed"
+    },
+    {
+      "name": "get_mqrc_lumen_quality",
+      "template": "vget /mqrc/lumen_quality"
+    },
+    {
+      "name": "get_mqrc_motion_blur",
+      "template": "vget /mqrc/motion_blur"
+    },
+    {
+      "name": "get_mqrc_override_auto_exposure_max_brightness",
+      "template": "vget /mqrc/override_auto_exposure_max_brightness"
+    },
+    {
+      "name": "get_mqrc_override_auto_exposure_min_brightness",
+      "template": "vget /mqrc/override_auto_exposure_min_brightness"
+    },
+    {
+      "name": "get_mqrc_override_depth_of_field_scale",
+      "template": "vget /mqrc/override_depth_of_field_scale"
+    },
+    {
+      "name": "get_mqrc_override_exposure_bias",
+      "template": "vget /mqrc/override_exposure_bias"
+    },
+    {
+      "name": "get_mqrc_override_exposure_method",
+      "template": "vget /mqrc/override_exposure_method"
+    },
+    {
+      "name": "get_mqrc_override_lumen_final_gather_lighting_update_speed",
+      "template": "vget /mqrc/override_lumen_final_gather_lighting_update_speed"
+    },
+    {
+      "name": "get_mqrc_override_lumen_final_gather_quality",
+      "template": "vget /mqrc/override_lumen_final_gather_quality"
+    },
+    {
+      "name": "get_mqrc_override_lumen_scene_lighting_quality",
+      "template": "vget /mqrc/override_lumen_scene_lighting_quality"
+    },
+    {
+      "name": "get_mqrc_override_motion_blur",
+      "template": "vget /mqrc/override_motion_blur"
+    },
+    {
+      "name": "get_mqrc_render_immediately",
+      "template": "vget /mqrc/render_immediately"
+    },
+    {
+      "name": "get_mqrc_screen_percentage",
+      "template": "vget /mqrc/screen_percentage"
+    },
+    {
+      "name": "get_mqrc_screen_percentage_method",
+      "template": "vget /mqrc/screen_percentage_method"
+    },
+    {
+      "name": "set_mqrc_antialiasing",
+      "template": "vset /mqrc/antialiasing [str]"
+    },
+    {
+      "name": "set_mqrc_auto_exposure_max_brightness",
+      "template": "vset /mqrc/auto_exposure_max_brightness [float]"
+    },
+    {
+      "name": "set_mqrc_auto_exposure_min_brightness",
+      "template": "vset /mqrc/auto_exposure_min_brightness [float]"
+    },
+    {
+      "name": "set_mqrc_capture_multi_offscreen_orbit",
+      "template": "vset /mqrc/capture_multi_offscreen_orbit [str] [str] [uint] [uint] [float]"
+    },
+    {
+      "name": "set_mqrc_depth_of_field_scale",
+      "template": "vset /mqrc/depth_of_field_scale [float]"
+    },
+    {
+      "name": "set_mqrc_exposure_bias",
+      "template": "vset /mqrc/exposure_bias [float]"
+    },
+    {
+      "name": "set_mqrc_exposure_method",
+      "template": "vset /mqrc/exposure_method [str]"
+    },
+    {
+      "name": "set_mqrc_lumen_final_gather_lighting_update_speed",
+      "template": "vset /mqrc/lumen_final_gather_lighting_update_speed [float]"
+    },
+    {
+      "name": "set_mqrc_lumen_quality",
+      "template": "vset /mqrc/lumen_quality [float] [float]"
+    },
+    {
+      "name": "set_mqrc_motion_blur",
+      "template": "vset /mqrc/motion_blur [float]"
+    },
+    {
+      "name": "set_mqrc_override_auto_exposure_max_brightness",
+      "template": "vset /mqrc/override_auto_exposure_max_brightness [bool]"
+    },
+    {
+      "name": "set_mqrc_override_auto_exposure_min_brightness",
+      "template": "vset /mqrc/override_auto_exposure_min_brightness [bool]"
+    },
+    {
+      "name": "set_mqrc_override_depth_of_field_scale",
+      "template": "vset /mqrc/override_depth_of_field_scale [bool]"
+    },
+    {
+      "name": "set_mqrc_override_exposure_bias",
+      "template": "vset /mqrc/override_exposure_bias [bool]"
+    },
+    {
+      "name": "set_mqrc_override_exposure_method",
+      "template": "vset /mqrc/override_exposure_method [bool]"
+    },
+    {
+      "name": "set_mqrc_override_lumen_final_gather_lighting_update_speed",
+      "template": "vset /mqrc/override_lumen_final_gather_lighting_update_speed [bool]"
+    },
+    {
+      "name": "set_mqrc_override_lumen_final_gather_quality",
+      "template": "vset /mqrc/override_lumen_final_gather_quality [bool]"
+    },
+    {
+      "name": "set_mqrc_override_lumen_scene_lighting_quality",
+      "template": "vset /mqrc/override_lumen_scene_lighting_quality [bool]"
+    },
+    {
+      "name": "set_mqrc_override_motion_blur",
+      "template": "vset /mqrc/override_motion_blur [bool]"
+    },
+    {
+      "name": "set_mqrc_render_immediately",
+      "template": "vset /mqrc/render_immediately [str]"
+    },
+    {
+      "name": "set_mqrc_reset_multi_offscreen_state",
+      "template": "vset /mqrc/reset_multi_offscreen_state [str]"
+    },
+    {
+      "name": "set_mqrc_screen_percentage",
+      "template": "vset /mqrc/screen_percentage [float]"
+    },
+    {
+      "name": "set_mqrc_screen_percentage_method",
+      "template": "vset /mqrc/screen_percentage_method [str]"
+    },
+    {
+      "name": "get_mvrc_use_sync_capture",
+      "template": "vget /mvrc/use_sync_capture"
+    },
+    {
+      "name": "set_mvrc_use_sync_capture",
+      "template": "vset /mvrc/use_sync_capture [uint]"
+    },
+    {
+      "name": "get_object_affect_distance_field_lighting",
+      "template": "vget /object/[str]/affect_distance_field_lighting"
+    },
+    {
+      "name": "get_object_cast_shadow",
+      "template": "vget /object/[str]/cast_shadow"
+    },
+    {
+      "name": "get_object_class_metadata",
+      "template": "vget /object/[str]/class_metadata"
+    },
+    {
+      "name": "get_object_materials_metadata",
+      "template": "vget /object/[str]/materials_metadata"
+    },
+    {
+      "name": "get_object_mesh_vertices",
+      "template": "vget /object/[str]/mesh_vertices"
+    },
+    {
+      "name": "get_object_metadata",
+      "template": "vget /object/[str]/metadata"
+    },
+    {
+      "name": "get_object_mujoco_go1_policy_obs",
+      "template": "vget /object/[str]/mujoco_go1_policy_obs"
+    },
+    {
+      "name": "get_object_mujoco_quadruped_pose_comparison",
+      "template": "vget /object/[str]/mujoco_quadruped_pose_comparison"
+    },
+    {
+      "name": "get_object_tickable_when_paused",
+      "template": "vget /object/[str]/tickable_when_paused"
+    },
+    {
+      "name": "set_object_affect_distance_field_lighting",
+      "template": "vset /object/[str]/affect_distance_field_lighting [str]"
+    },
+    {
+      "name": "set_object_cast_shadow",
+      "template": "vset /object/[str]/cast_shadow [str]"
+    },
+    {
+      "name": "set_object_hair_airdrag",
+      "template": "vset /object/[str]/hair_airdrag [float]"
+    },
+    {
+      "name": "set_object_hair_gravity",
+      "template": "vset /object/[str]/hair_gravity [float] [float] [float]"
+    },
+    {
+      "name": "set_object_mujoco_freefall_start",
+      "template": "vset /object/[str]/mujoco_freefall/start"
+    },
+    {
+      "name": "set_object_mujoco_go1_policy_action",
+      "template": "vset /object/[str]/mujoco_go1_policy_action [float] [float] [float] [float] [float] [float] [float] [float] [float] [float] [float] [float]"
+    },
+    {
+      "name": "set_object_mujoco_go1_policy_command",
+      "template": "vset /object/[str]/mujoco_go1_policy_command [float] [float] [float]"
+    },
+    {
+      "name": "set_object_mujoco_humanoid_freefall_start",
+      "template": "vset /object/[str]/mujoco_humanoid_freefall/start"
+    },
+    {
+      "name": "set_object_mujoco_humanoid_pose_preview_start",
+      "template": "vset /object/[str]/mujoco_humanoid_pose_preview/start"
+    },
+    {
+      "name": "set_object_mujoco_quadruped_freefall_start",
+      "template": "vset /object/[str]/mujoco_quadruped_freefall/start [str]"
+    },
+    {
+      "name": "set_object_mujoco_quadruped_pose_preview_start",
+      "template": "vset /object/[str]/mujoco_quadruped_pose_preview/start [str]"
+    },
+    {
+      "name": "set_object_reset_hair_simulation",
+      "template": "vset /object/[str]/reset_hair_simulation"
+    },
+    {
+      "name": "set_object_settle_to_ground",
+      "template": "vset /object/[str]/settle_to_ground [str] [float] [float] [float]"
+    },
+    {
+      "name": "set_object_tickable_when_paused",
+      "template": "vset /object/[str]/tickable_when_paused [str]"
+    },
+    {
+      "name": "get_objects",
+      "template": "vget /objects [str]"
+    },
+    {
+      "name": "get_objects_scan_assets",
+      "template": "vget /objects/scan_assets [str]"
+    },
+    {
+      "name": "set_objects_spawn_cube_wo_annotation",
+      "template": "vset /objects/spawn_cube_wo_annotation [str] [float] [float] [float]"
+    },
+    {
+      "name": "set_objects_spawn_from_path",
+      "template": "vset /objects/spawn_from_path [str] [str] [float] [float] [float]"
+    },
+    {
+      "name": "set_objects_spawn_from_path_wo_annotation",
+      "template": "vset /objects/spawn_from_path_wo_annotation [str] [str] [float] [float] [float]"
+    },
+    {
+      "name": "set_objects_spawn_wo_annotation",
+      "template": "vset /objects/spawn_wo_annotation [str] [str] [float] [float] [float]"
+    },
+    {
+      "name": "get_pak_ismounted",
+      "template": "vget /pak/ismounted [str]"
+    },
+    {
+      "name": "get_pak_load",
+      "template": "vget /pak/load [str]"
+    },
+    {
+      "name": "get_pak_mounted",
+      "template": "vget /pak/mounted"
+    },
+    {
+      "name": "get_pak_registered_paths",
+      "template": "vget /pak/registered_paths [str]"
+    },
+    {
+      "name": "get_pak_registered_status",
+      "template": "vget /pak/registered_status [str]"
+    },
+    {
+      "name": "set_pak_mount",
+      "template": "vset /pak/mount [str] [uint]"
+    },
+    {
+      "name": "set_pak_register",
+      "template": "vset /pak/register [str] [str]"
+    },
+    {
+      "name": "set_pak_scan",
+      "template": "vset /pak/scan [str] [uint]"
+    },
+    {
+      "name": "set_pak_unmount",
+      "template": "vset /pak/unmount [str]"
+    },
+    {
+      "name": "get_pawn_location",
+      "template": "vget /pawn/location"
+    },
+    {
+      "name": "get_pawn_rotation",
+      "template": "vget /pawn/rotation"
+    },
+    {
+      "name": "set_pawn_location",
+      "template": "vset /pawn/location [float] [float] [float]"
+    },
+    {
+      "name": "set_pawn_rotation",
+      "template": "vset /pawn/rotation [float] [float] [float]"
+    },
+    {
+      "name": "set_reachablearea_clear",
+      "template": "vset /reachablearea/clear"
+    },
+    {
+      "name": "set_reachablearea_show",
+      "template": "vset /reachablearea/show [float] [float] [float] [float] [float] [float]"
+    },
+    {
+      "name": "get_reachablepoints",
+      "template": "vget /reachablepoints [float] [float]"
+    },
+    {
+      "name": "get_reachablepoints_count",
+      "template": "vget /reachablepoints/count [float] [float]"
+    },
+    {
+      "name": "get_reachablepoints_inradius",
+      "template": "vget /reachablepoints/inradius [float] [float] [float] [float] [float] [float]"
+    },
+    {
+      "name": "get_reachablepoints_status",
+      "template": "vget /reachablepoints/status"
+    },
+    {
+      "name": "set_reachablepoints_invalidate",
+      "template": "vset /reachablepoints/invalidate [str]"
+    },
+    {
+      "name": "set_reachablepoints_refresh",
+      "template": "vset /reachablepoints/refresh"
+    },
+    {
+      "name": "get_safepoint_config_path",
+      "template": "vget /safepoint/config_path"
+    },
+    {
+      "name": "set_safepoint_add",
+      "template": "vset /safepoint/add [str] [float] [float] [float]"
+    },
+    {
+      "name": "set_safepoint_cycle",
+      "template": "vset /safepoint/cycle"
+    },
+    {
+      "name": "set_safepoint_preview_last",
+      "template": "vset /safepoint/preview_last"
+    },
+    {
+      "name": "get_safepoints",
+      "template": "vget /safepoints [str]"
+    },
+    {
+      "name": "get_scene_occupancy_shared",
+      "template": "vget /scene/occupancy_shared [str] [str] [float] [float] [float] [float] [uint]"
+    },
+    {
+      "name": "get_scene_occupancy_shared_region",
+      "template": "vget /scene/occupancy_shared_region [str] [float] [float] [float] [float] [float] [float] [float]"
+    },
+    {
+      "name": "get_scene_perception",
+      "template": "vget /scene/perception [float] [uint] [uint]"
+    },
+    {
+      "name": "get_scene_semantic_annotations",
+      "template": "vget /scene/semantic_annotations"
+    },
+    {
+      "name": "get_unrealcv_list_cmd",
+      "template": "vget /unrealcv/list_cmd"
+    },
+    {
+      "name": "set_world_custom_time_dilation_except_pawn",
+      "template": "vset /world/custom_time_dilation_except_pawn [float]"
+    },
+    {
+      "name": "set_world_pause_all_except_pawn",
+      "template": "vset /world/pause_all_except_pawn"
+    },
+    {
+      "name": "set_world_resume_all",
+      "template": "vset /world/resume_all"
+    }
+  ]
+}
+
