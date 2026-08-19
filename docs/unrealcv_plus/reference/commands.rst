@@ -27,14 +27,8 @@ Agent navigation
 Animation
 ---------
 
-``vget /animation/smooth_random/play_rate_multiplier``
-    Get the global Smooth Random Sequence Player play-rate multiplier.
-
 ``vget /animation/soma_glb/status [str]``
     Get SOMA GLB playback status for an actor.
-
-``vset /animation/smooth_random/play_rate_multiplier [float]``
-    Set the non-negative global Smooth Random Sequence Player play-rate multiplier.
 
 ``vset /animation/soma_glb/apply [str] [Anything]``
     Apply a SOMA GLB animation to a MetaHuman actor. Args: actor name, absolute GLB path.
@@ -59,36 +53,6 @@ Annotation
 
 ``vset /annotation/world/clear``
     Remove world annotation
-
-Bs
---
-
-``vget /bs/all_ever_existed_uid``
-    Get active and trashed BVRSim object UIDs
-
-``vget /bs/all_uid``
-    Get active BVRSim object UIDs
-
-``vget /bs/dt``
-    Get BVRSim fixed simulation dt
-
-``vget /bs/sim_time``
-    Get BVRSim simulation time
-
-``vset /bs/dt [float]``
-    Set BVRSim fixed simulation dt
-
-Bvr Sim
--------
-
-``vget /bvr_sim/status``
-    Get BVRSim bootstrap status
-
-``vset /bvr_sim/reset``
-    Reset BVRSim world state
-
-``vset /bvr_sim/step [float]``
-    Step BVRSim by delta seconds
 
 Camera
 ------
@@ -846,11 +810,6 @@ Plugin
 ``vget /unrealcv/list_cmd``
     List all available commands and their help message
 
-Vs
---
-
-``vget /vs/dt``
-    Compatibility alias for vget /bs/dt
 
 World
 -----
