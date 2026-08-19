@@ -51,9 +51,3 @@ Tools for building plugins and packaging model zoo binaries.
 .. automodule:: unrealcv.automation
     :members:
     :show-inheritance:
-
-Groom Wind Helpers
-------------------
-
-.. automodule:: unrealcv.groom_wind
-    :members:

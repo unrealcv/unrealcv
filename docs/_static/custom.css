@@ -1,0 +1,14 @@
+/* Keep the RTD sidebar fixed while the main document scrolls. */
+@media (min-width: 769px) {
+  .wy-nav-side {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    overflow: hidden;
+  }
+
+  .wy-side-scroll {
+    height: 100%;
+    overflow-y: auto;
+  }
+}

@@ -45,6 +45,7 @@ docs/doxygen/
 !*.bat
 !*.yml
 !*.yaml
+!docs/_static/custom.css
 !.github/.clang-format
 !.github/.clang-tidy
 # !*.ipynb  Add ipython notebook and png, jpg by force

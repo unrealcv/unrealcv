@@ -1,6 +1,6 @@
 .. _rr:
 
-UnrealZoo
+Model Zoo
 =========
 
 The UnrealCV Model Zoo has moved to `UnrealZoo <https://unrealzoo.github.io/>`_.
@@ -14,15 +14,13 @@ for use with UnrealCV.
    :align: center
 
 Open the `UnrealZoo website <https://unrealzoo.github.io/>`_ to explore the
-available environments and agents.
+available environments and agents. The legacy downloadable model list is
+maintained below for compatibility.
 
 .. raw:: html
 
    <link rel="canonical" href="https://unrealzoo.github.io/">
 
-
-Model Zoo
-=========
 
 We provide compiled virtual worlds to play with. All the digital contents belong to the original author. If you want to use UnrealCV plugin in the editor, you can find UE4 projects in :doc:`/reference/ue4_resources`
 
