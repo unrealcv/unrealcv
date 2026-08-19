@@ -10,6 +10,7 @@ import os
 import warnings
 from .api import *
 from .api_version import *
+from .plus_api import *
 from .automation import *
 from .launcher import *
 from queue import Empty, SimpleQueue
@@ -19,6 +20,8 @@ __all__ = [
     "SocketMessage",
     "__version__",
     "ApiVersionManager",
+    "UnrealCv_API",
+    "UnrealCvPlusAPI",
 ]
 
 
