@@ -1,7 +1,7 @@
-UnrealCV Dev For `UnrealZoo <https://github.com/UnrealZoo>`_
+UnrealCV Dev for `UnrealZoo <https://github.com/UnrealZoo>`_
 ==============================================================
 
-UnrealCV Dev For `UnrealZoo <https://github.com/UnrealZoo>`_ is the continuously
+UnrealCV Dev for `UnrealZoo <https://github.com/UnrealZoo>`_ is the continuously
 developed and tested feature surface used by `UnrealZoo <https://github.com/UnrealZoo>`_.
 These capabilities are currently available in `UnrealZoo <https://github.com/UnrealZoo>`_
 builds before they are promoted into the open-source UnrealCV plugin. Use an
@@ -36,25 +36,15 @@ Start with :doc:`overview` for the current development feature summary.
 
     reference/light-commands
     reference/pak-commands
+    reference/scene-perception
+    reference/panoramic-camera
+    reference/video-recording-pipeline
+    reference/annotation-system
+    reference/object-spawning-from-path
 
 .. toctree::
     :maxdepth: 2
     :caption: Architecture
     :titlesonly:
 
-    architecture/sensor-system
-    architecture/annotation-system
-
-.. toctree::
-    :maxdepth: 2
-    :caption: Workflows
-    :titlesonly:
-
     migration/camera-id-format
-
-.. toctree::
-    :maxdepth: 1
-    :caption: Diagrams
-    :titlesonly:
-
-    diagrams/command-dispatch

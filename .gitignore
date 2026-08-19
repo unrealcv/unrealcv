@@ -38,6 +38,7 @@ docs/doxygen/
 !*.rst
 !*.rst.txt
 !*.md
+!*.png
 !*.json
 !*.ini
 !*.uplugin

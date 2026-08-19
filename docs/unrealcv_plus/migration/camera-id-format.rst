@@ -480,5 +480,4 @@ Best Practices
 See Also
 --------
 
-- :doc:`../architecture/sensor-system` - Sensor architecture and APIs
 - :doc:`../overview` - UnrealCV Dev For `UnrealZoo <https://github.com/UnrealZoo>`_ camera feature summary
