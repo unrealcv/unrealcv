@@ -36,7 +36,7 @@ Start with :doc:`overview` for the current development feature summary.
 
     reference/light-commands
     reference/pak-commands
-    reference/scene-perception
+    Scene perception <reference/scene-perception>
     reference/panoramic-camera
     reference/video-recording-pipeline
     reference/annotation-system
