@@ -42,7 +42,6 @@ Table of Contents
     unrealcv_plus/reference/commands
     reference/shared_memory
     reference/unrealzoo_capture_transport
-    unrealcv_plus/reference/scene-perception
     reference/runtime_reflection
     reference/model_zoo
     reference/issues

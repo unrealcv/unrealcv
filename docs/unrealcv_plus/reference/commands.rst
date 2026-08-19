@@ -795,6 +795,18 @@ Scene
 ``vget /scene/occupancy [str] [str] [str] [float] [float] [float] [float] [uint]``
     Return or save occupancy: npy|filename profile method origin_cm xyz yaw_degrees include_dynamic.
 
+``vget /scene/occupancy_region [str] [float] [float] [float] [float] [float] [float] [float]``
+    Return or save occupancy for explicit min_x max_x min_y max_y min_z max_z voxel_size_m bounds in meters.
+
+``vget /scene/occupancy_region [str] [str] [float] [float] [float] [float] [float] [float] [float]``
+    Return or save explicit-region occupancy with method bounds|mesh.
+
+``vget /scene/occupancy_region/spec [float] [float] [float] [float] [float] [float] [float]``
+    Return explicit-region occupancy metadata.
+
+``vget /scene/occupancy_region/spec [str] [float] [float] [float] [float] [float] [float] [float]``
+    Return explicit-region occupancy metadata with method bounds|mesh.
+
 ``vget /scene/occupancy/spec [str]``
     Return LINGO occupancy profile metadata as JSON.
 
@@ -812,6 +824,12 @@ Scene
 
 ``vget /scene/occupancy_shared [str] [str] [float] [float] [float] [float] [uint]``
     Return shared occupancy: profile method origin_cm xyz yaw_degrees include_dynamic.
+
+``vget /scene/occupancy_shared_region [float] [float] [float] [float] [float] [float] [float]``
+    Return explicit-region occupancy through shared memory.
+
+``vget /scene/occupancy_shared_region [str] [float] [float] [float] [float] [float] [float] [float]``
+    Return explicit-region occupancy through shared memory with method bounds|mesh.
 
 ``vget /scene/perception``
     Return a compact native AI perception snapshot: map, agent pose, nearby objects, nav reachability, blockers and radial Visibility traces.
