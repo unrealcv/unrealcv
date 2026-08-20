@@ -2,9 +2,9 @@ UnrealCV Dev For UnrealZoo shared-memory transport
 ==================================================
 
 The shared-memory implementation in UnrealCV Dev for
-`UnrealZoo <https://github.com/UnrealZoo>`_ draws on the
-`SPEAR project paper <https://arxiv.org/abs/2607.06701>`_ and
-`source repository <https://github.com/spear-sim/spear>`_.
+`UnrealZoo <https://github.com/UnrealZoo>`_ draws on the SPEAR project paper
+(`https://arxiv.org/abs/2607.06701`) and source repository
+(`https://github.com/spear-sim/spear`).
 
 This section is a closed-build measurement of the UnrealZoo distribution.
 The test environment was:
@@ -254,9 +254,9 @@ AirSim returns three-byte RGB pixels; the other columns use four-byte BGRA
 pixels. The simulators use different scenes and rendering pipelines, so this
 is an end-to-end acquisition comparison rather than a transport-only test.
 
-* CARLA: `paper <https://arxiv.org/abs/1711.03938>`_,
-  `repository <https://github.com/carla-simulator/carla>`_
-* SimWorld: `documentation <https://simworld.readthedocs.io/en/latest/>`_,
-  `repository <https://github.com/SimWorld-AI/SimWorld>`_
-* AirSim: `paper <https://arxiv.org/abs/1705.05065>`_,
-  `repository <https://github.com/microsoft/AirSim>`_
+* CARLA: `paper <https://arxiv.org/abs/1711.03938>`__,
+  `repository <https://github.com/carla-simulator/carla>`__
+* SimWorld: `documentation <https://simworld.readthedocs.io/en/latest/>`__,
+  `repository <https://github.com/SimWorld-AI/SimWorld>`__
+* AirSim: `paper <https://arxiv.org/abs/1705.05065>`__,
+  `repository <https://github.com/microsoft/AirSim>`__
