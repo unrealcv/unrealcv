@@ -41,6 +41,9 @@ Start with :doc:`overview` for the current development feature summary.
     reference/video-recording-pipeline
     reference/annotation-system
     reference/object-spawning-from-path
+    reference/cine-camera
+    reference/mqrc-rendering
+    reference/runtime-reflection
 
 .. toctree::
     :maxdepth: 2
