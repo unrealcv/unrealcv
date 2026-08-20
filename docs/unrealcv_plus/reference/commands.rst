@@ -1,5 +1,5 @@
 UnrealCV Dev For `UnrealZoo <https://github.com/UnrealZoo>`_ command reference
-=============================================
+==============================================================================
 
 Commands on this page are development capabilities tested and currently
 provided by `UnrealZoo <https://github.com/UnrealZoo>`_. They are not part of the open-source UnrealCV command
