@@ -19,7 +19,7 @@ length changes framing; changing filmback changes the field of view without
 moving the camera. Aperture changes depth of field while preserving the camera
 transform.
 
-.. image:: ../images/cine-camera-lens-filmback.svg
+.. image:: ../images/cine-camera-lens-filmback.png
    :alt: Same-position Cine camera comparison for focal length, filmback, and aperture
    :width: 100%
 
@@ -30,7 +30,7 @@ Manual focus is expressed in centimeters. ISO and shutter reciprocal are
 physical exposure controls; keep the scene and camera fixed when comparing
 values so the change is attributable to the parameter.
 
-.. image:: ../images/cine-camera-focus-exposure.svg
+.. image:: ../images/cine-camera-focus-exposure.png
    :alt: Same-position Cine camera comparison for focus distance and exposure
    :width: 100%
 
