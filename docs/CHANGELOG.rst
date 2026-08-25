@@ -5,6 +5,33 @@ CHANGELOG
 Development branch
 ==================
 
+- v1.1.0 (2026-08-12)
+    - Modernize the UnrealCV plugin and server for the Unreal Engine 5 development line.
+    - Add optical-flow capture and expand camera projection and capture controls, including image size, capture source, exposure, motion blur, focal distance, and depth of field.
+    - Add local Windows shared-memory transport for lit, depth, normal, and object-mask images, with structured metadata describing each frame.
+    - Add camera spawning, explicit-position object and cube spawning, skeletal and poseable-mesh bone queries, material inspection and assignment, object labels, class queries, destruction, bounds, scale, and other object controls.
+    - Add runtime command discovery through :code:`vget /unrealcv/commands`, live console command completion, and reflection-based property and function inspection through :code:`vreflect`.
+    - Add generated command-schema and documentation-coverage checks, together with workflow tooling for building, launching, monitoring, testing, and benchmarking UnrealCV environments.
+    - Expand the Python client with a typed high-level API, structured models, capability checks, improved reconnect and error handling, modern packaging, and broader transport and API regression tests.
+    - Harden TCP disconnect, reset, framing, dispatch, and null-state handling; add bind-address, authentication, and command-policy controls.
+    - This tag marks the UnrealCV plugin/server 1.1.0 baseline. The Python client state is included as of this commit, but its package metadata is not asserted to match the server version.
+
+- v1.0.1 (2023-07-13)
+    - Collect the UnrealCV development work accumulated since v0.3.10 into a new plugin release line.
+    - Introduce the component-based camera and sensor architecture, including multiple-camera, stereo, and fusion-camera workflows.
+    - Expand sensing modes with lit, depth, normal, annotation, vertex, bone, and transparent-object depth capture.
+    - Add :code:`DataCaptureActor` and :code:`Puppeteer` workflows for synchronized scene, camera, animation, pose, vertex, and image-data collection.
+    - Expand camera controls for field of view, image size, movement, pose, projection data, and additional capture formats.
+    - Expand object controls for spawning, renaming, scale, bounds, visibility, transforms, and annotation color.
+    - Add same-frame batched command execution and Blueprint function invocation through :code:`vbp`.
+    - Add Linux communication support, configurable server ports through :code:`-cvport`, and runtime texture loading from files.
+    - Reorganize the C++ plugin into sensor, controller, server, actor, and utility modules, and refresh the Python client and documentation.
+    - Projects that include UnrealCV internal C++ headers or depend on legacy capture and sensor classes should review the renamed and removed interfaces before upgrading.
+
+- Python client 0.4.0 (2019-07-15; no UnrealCV plugin/server tag)
+    - Update the Python package version from 0.3.10 to 0.4.0.
+    - Add batch command execution support during this development period and fix a compilation issue caused by branch restructuring.
+    - The UnrealCV plugin/server version remained 0.3.10; this is documented separately rather than represented by a :code:`v0.4.0` plugin tag.
 - v0.3.10
     - Commands contributed in pull request :issue:`91`, authored by :user:`bennihepp`
         - Add :code:`vget /camera/[id]/pose`, :code:`vset /camera/[id]/pose`
