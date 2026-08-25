@@ -57,6 +57,9 @@ Annotation
 Camera
 ------
 
+Camera commands
+~~~~~~~~~~~~~~~
+
 ``vget /camera/[camera_id]/depth/exp``
     Get depth hue exponent
 
@@ -80,6 +83,27 @@ Camera
 
 ``vget /camera/[camera_id]/mvrc/enabled``
     Get whether main viewport render component is enabled
+
+``vset /camera/[camera_id]/mvrc/enabled [bool]``
+    Enable or disable the main viewport render component. Enabling initializes it with the camera's current size and FOV; disabling shuts it down.
+
+``vget /camera/[camera_id]/mvrc/initialized``
+    Get whether the main viewport render component is initialized
+
+``vget /camera/[camera_id]/mvrc/size``
+    Get the current main viewport render size as ``width height``
+
+``vget /camera/[camera_id]/mvrc/exposure_locked``
+    Get whether main viewport exposure is locked
+
+``vset /camera/[camera_id]/mvrc/exposure_locked [bool]``
+    Lock or release main viewport exposure
+
+``vget /camera/[camera_id]/mvrc/frame_resolve_latency``
+    Get the main viewport GPU frame resolve latency
+
+``vset /camera/[camera_id]/mvrc/frame_resolve_latency [uint]``
+    Set the non-negative main viewport GPU frame resolve latency
 
 ``vget /camera/[camera_id]/mvrc/lit [str]``
     Get png data from main viewport render component
@@ -172,19 +196,13 @@ Camera
     Set fast capture mode (0=disabled, 1=enabled)
 
 Camera collection
------------------
+~~~~~~~~~~~~~~~~~
 
 ``vget /cameras/ids``
     List all cameras with legacy indices and stable IDs as JSON
 
-Cameras Cid
------------
-
 ``vget /cameras_CID``
     List all cameras with new format CIDs (Camera UUID)
-
-Cameras Legacy
---------------
 
 ``vget /cameras_legacy``
     List all sensors in the scene (old format)
@@ -315,7 +333,7 @@ Misc
 ``vreflect [str] call_json [str] [Anything]``
     Reflection bridge for listing functions/properties and getting/setting properties
 
-Movie-quality rendering
+Movie-quality rendering config
 -----------------------
 
 ``vget /mqrc/antialiasing``
@@ -450,7 +468,7 @@ Movie-quality rendering
 ``vset /mqrc/screen_percentage_method [str]``
     Set primary screen percentage method: spatial, temporal, raw
 
-Main-viewport rendering
+Main-viewport rendering config
 -----------------------
 
 ``vget /mvrc/use_sync_capture``
