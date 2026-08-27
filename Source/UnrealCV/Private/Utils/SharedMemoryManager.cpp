@@ -1,6 +1,7 @@
 #include "Utils/SharedMemoryManager.h"
 
 #include "HAL/PlatformProcess.h"
+#include "HAL/PlatformTime.h"
 #include "UnrealcvLog.h"
 
 #if PLATFORM_WINDOWS

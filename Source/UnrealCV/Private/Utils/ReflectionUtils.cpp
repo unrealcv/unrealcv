@@ -2,6 +2,7 @@
 
 #include "Serialization/JsonSerializer.h"
 #include "UObject/FieldIterator.h"
+#include "UObject/TextProperty.h"
 #include "UObject/UObjectIterator.h"
 #include "UObject/UnrealType.h"
 
