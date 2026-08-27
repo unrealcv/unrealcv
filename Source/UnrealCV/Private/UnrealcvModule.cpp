@@ -36,8 +36,15 @@ void FUnrealCVPlugin::StartupModule()
 	int32 OverridePort = Config.Port;
 	if (FParse::Value(FCommandLine::Get(), TEXT("UnrealCVPort="), OverridePort))
 	{
-		UE_LOG(LogUnrealCV, Warning, TEXT("Overriding listening port to %d"), OverridePort);
-		Config.Port = OverridePort;
+		if (OverridePort > 0 && OverridePort <= 65535)
+		{
+			UE_LOG(LogUnrealCV, Warning, TEXT("Overriding listening port to %d"), OverridePort);
+			Config.Port = OverridePort;
+		}
+		else
+		{
+			UE_LOG(LogUnrealCV, Warning, TEXT("Ignoring invalid listening port override %d; keeping port %d."), OverridePort, Config.Port);
+		}
 	}
 
 	int32 OverrideWidth = Config.Width;

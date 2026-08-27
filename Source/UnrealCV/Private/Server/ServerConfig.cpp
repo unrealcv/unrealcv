@@ -33,10 +33,20 @@ FServerConfig::FServerConfig(EServerConfigInitMode InitMode)
 
 void FServerConfig::ParseCmdArgs()
 {
-	int32 ArgPort = 0;
-	if (FParse::Value(FCommandLine::Get(), TEXT("cvport="), ArgPort))
+	int32 ArgPort = Port;
+	bool bHasPortOverride = FParse::Value(FCommandLine::Get(), TEXT("cvport="), ArgPort);
+	if (!bHasPortOverride)
+	{
+		ArgPort = Port;
+		bHasPortOverride = FParse::Value(FCommandLine::Get(), TEXT("UnrealCVPort="), ArgPort);
+	}
+	if (bHasPortOverride && ArgPort > 0 && ArgPort <= 65535)
 	{
 		Port = ArgPort;
+	}
+	else if (bHasPortOverride)
+	{
+		UE_LOG(LogUnrealCV, Warning, TEXT("Ignoring invalid port override %d; keeping port %d."), ArgPort, Port);
 	}
 
 	FString LsFolder;
