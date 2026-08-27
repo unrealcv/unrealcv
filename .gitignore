@@ -46,6 +46,8 @@ docs/doxygen/
 !*.yml
 !*.yaml
 !docs/_static/custom.css
+!docs/_static/videos/cine-focus-mqrc-demo.mp4
+!docs/_static/videos/cine-focus-mqrc-demo-v4.mp4
 !.github/.clang-format
 !.github/.clang-tidy
 # !*.ipynb  Add ipython notebook and png, jpg by force

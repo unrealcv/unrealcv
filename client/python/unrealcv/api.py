@@ -255,9 +255,7 @@ class UnrealCv_API:
             cmd = unrealcv.SharedCommand(shared_cmd, mode)
         if return_cmd:
             return cmd
-        image = self.decoder.decode_img(
-            self.client.request(cmd, response_format=mode), mode, inverse
-        )
+        image = self.decoder.decode_img(self.client.request(cmd), mode, inverse)
         if show:
             cv2.imshow('image_'+viewmode, image)
             cv2.waitKey(1)
@@ -282,7 +280,7 @@ class UnrealCv_API:
             cmd = unrealcv.SharedCommand(shared_cmd, 'npy')
         if return_cmd:
             return cmd
-        res = self.client.request(cmd, response_format='npy')
+        res = self.client.request(cmd)
         depth = self.decoder.decode_depth(res, inverse)
         if show:
             cv2.imshow('image', depth/depth.max())  # normalize the depth image

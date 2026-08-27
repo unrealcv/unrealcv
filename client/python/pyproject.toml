@@ -13,7 +13,7 @@ authors = [
     { name = "Fangwei Zhong", email = "zfw1226@gmail.com" },
     { name = "Hai Ci" },
     { name = "Kui Wu" },
-    { name = "Haocheng Sun" }
+    { name = "Haocheng Sun" },
 ]
 requires-python = ">=3.9"
 dependencies = [

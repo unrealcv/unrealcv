@@ -149,6 +149,26 @@ values so the change is attributable to the parameter.
    :alt: Same-position Cine camera comparison for focus distance and exposure
    :width: 100%
 
+Focus-rack demos
+~~~~~~~~~~~~~~~~
+
+The following fixed-view demos sweep the manual focus distance while capturing
+each frame through the Movie Quality Render Component (MQRC).
+
+.. raw:: html
+
+   <video controls preload="metadata" playsinline style="width: 100%; height: auto;">
+     <source src="../_static/videos/cine-focus-mqrc-demo.mp4" type="video/mp4">
+     <a href="../_static/videos/cine-focus-mqrc-demo.mp4">Open focus-rack demo 1</a>
+   </video>
+
+.. raw:: html
+
+   <video controls preload="metadata" playsinline style="width: 100%; height: auto;">
+     <source src="../_static/videos/cine-focus-mqrc-demo-v4.mp4" type="video/mp4">
+     <a href="../_static/videos/cine-focus-mqrc-demo-v4.mp4">Open focus-rack demo 2</a>
+   </video>
+
 Reproduce the comparisons with commands such as::
 
     vset /camera/0/cine/enabled 1
