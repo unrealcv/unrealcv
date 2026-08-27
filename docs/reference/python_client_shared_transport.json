@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "client_version": "1.3.0",
+  "transport": "windows_shared_memory",
+  "selection_owner": "ApiVersionManager",
+  "execution_owner": "Client.request",
+  "automatic_apis": [
+    {
+      "python_function": "UnrealCv_API.get_image",
+      "legacy_command": "vget /camera/{camera_id}/{viewmode} {mode}",
+      "shared_command": "vget /camera/{camera_id}/{viewmode}_shared",
+      "supported_viewmodes": ["lit", "normal", "object_mask", "seg"],
+      "supported_modes": ["bmp", "png"],
+      "fallback": "legacy TCP command",
+      "return_contract": "decoded numpy image with the same shape semantics as the legacy TCP path"
+    },
+    {
+      "python_function": "UnrealCv_API.get_depth",
+      "legacy_command": "vget /camera/{camera_id}/depth npy",
+      "shared_command": "vget /camera/{camera_id}/depth_shared",
+      "fallback": "legacy TCP command",
+      "return_contract": "decoded float32 numpy depth array with the same shape semantics as the legacy TCP path"
+    },
+    {
+      "python_function": "UnrealCv_API.get_image_multicam",
+      "implementation": "calls get_image for each camera",
+      "transport_behavior": "inherits get_image automatic Shared selection",
+      "fallback": "legacy TCP command per camera"
+    },
+    {
+      "python_function": "UnrealCv_API.get_image_multimodal",
+      "implementation": "calls get_image for each requested modality",
+      "transport_behavior": "inherits get_image/get_depth automatic Shared selection",
+      "fallback": "legacy TCP command per modality"
+    },
+    {
+      "python_function": "UnrealCv_API.get_img_batch",
+      "implementation": "builds image requests through get_image",
+      "transport_behavior": "inherits automatic Shared selection; SharedCommand preserves response format",
+      "fallback": "legacy TCP command per image"
+    },
+    {
+      "python_function": "UnrealCvPlusAPI.get_scene_occupancy",
+      "legacy_command": "vget /scene/occupancy {profile} {method} ...",
+      "shared_command": "vget /scene/occupancy_shared {profile} {method} ...",
+      "fallback": "legacy TCP NPY command",
+      "return_contract": "same decoded bool NumPy occupancy grid"
+    },
+    {
+      "python_function": "UnrealCvPlusAPI.get_scene_occupancy_region",
+      "legacy_command": "vget /scene/occupancy_region npy ...",
+      "shared_command": "vget /scene/occupancy_shared_region ...",
+      "fallback": "legacy TCP NPY command",
+      "return_contract": "same decoded bool NumPy occupancy region"
+    },
+    {
+      "python_function": "UnrealCvPlusAPI.get_camera_panoramic_frame",
+      "shared_command": "vget /camera/{camera_id}/panoramic_shared [uint] [uint]",
+      "fallback": "none; legacy panoramic command writes a file",
+      "return_contract": "decoded numpy image"
+    },
+    {
+      "python_function": "UnrealCvPlusAPI.get_camera_panoramic_normal_frame",
+      "shared_command": "vget /camera/{camera_id}/panoramic/normal_shared [uint] [uint]",
+      "fallback": "none; legacy panoramic command writes a file",
+      "return_contract": "decoded numpy image"
+    },
+    {
+      "python_function": "UnrealCvPlusAPI.get_camera_panoramic_mask_frame",
+      "shared_command": "vget /camera/{camera_id}/panoramic/mask_shared [uint] [uint]",
+      "fallback": "none; legacy panoramic command writes a file",
+      "return_contract": "decoded numpy image"
+    },
+    {
+      "python_function": "UnrealCvPlusAPI.get_camera_panoramic_depth_frame",
+      "shared_command": "vget /camera/{camera_id}/panoramic/depth_shared [uint] [uint]",
+      "fallback": "none; legacy panoramic command writes a file",
+      "return_contract": "decoded float32 numpy depth"
+    },
+    {
+      "python_function": "UnrealCvPlusAPI.get_camera_mqrc_lit_frame",
+      "shared_command": "vget /camera/{camera_id}/mqrc/lit_shared",
+      "fallback": "none; legacy MQRC command writes a file",
+      "return_contract": "decoded numpy image"
+    },
+    {
+      "python_function": "UnrealCvPlusAPI.get_camera_lidar_frame",
+      "shared_command": "vget /camera/{camera_id}/lidar_shared",
+      "fallback": "none; legacy LiDAR response has a different contract",
+      "return_contract": "raw N x 4 float32 numpy point cloud"
+    },
+    {
+      "python_function": "UnrealCvPlusAPI.get_camera_mqrc_panoramic_frame",
+      "shared_command": "vget /camera/{camera_id}/mqrc/panoramic_shared [uint] [uint] [uint]",
+      "fallback": "none; legacy MQRC command writes a file",
+      "return_contract": "decoded numpy image"
+    }
+  ],
+  "explicit_shared_apis": [
+    "UnrealCvPlusAPI.get_camera_lit_shared",
+    "UnrealCvPlusAPI.get_camera_depth_shared",
+    "UnrealCvPlusAPI.get_camera_normal_shared",
+    "UnrealCvPlusAPI.get_camera_object_mask_shared",
+    "UnrealCvPlusAPI.get_camera_seg_shared",
+    "UnrealCvPlusAPI.get_camera_lidar_shared",
+    "UnrealCvPlusAPI.get_camera_panoramic_shared",
+    "UnrealCvPlusAPI.get_camera_panoramic_depth_shared",
+    "UnrealCvPlusAPI.get_camera_panoramic_mask_shared",
+    "UnrealCvPlusAPI.get_camera_panoramic_normal_shared",
+    "UnrealCvPlusAPI.get_camera_mqrc_lit_shared",
+    "UnrealCvPlusAPI.get_camera_mqrc_panoramic_shared",
+    "UnrealCvPlusAPI.get_scene_occupancy_shared",
+    "UnrealCvPlusAPI.get_scene_occupancy_shared_region"
+  ],
+  "not_automatic": [
+    {
+      "python_functions": [
+        "UnrealCvPlusAPI.capture_panoramic",
+        "UnrealCvPlusAPI.capture_panoramic_normal",
+        "UnrealCvPlusAPI.capture_panoramic_mask",
+        "UnrealCvPlusAPI.capture_panoramic_depth"
+      ],
+      "reason": "These APIs write server-side files; their Shared counterparts return mappings and do not preserve the file-output contract."
+    }
+  ]
+}

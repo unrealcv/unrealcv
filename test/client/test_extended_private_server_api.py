@@ -31,6 +31,16 @@ def test_mqrc_wrappers_and_supported_manifest(plus_api_factory):
     assert 'vget /animation/smooth_random/play_rate_multiplier' not in manifest['templates']
 
 
+def test_plus_get_objects_preserves_base_api(dummy_client_factory, plus_api_factory):
+    client = dummy_client_factory(['A B C', 'Filtered'])
+    api = plus_api_factory(client)
+
+    assert api.get_objects() == ['A', 'B', 'C']
+    assert api.get_objects(return_cmd=True) == 'vget /objects'
+    assert api.get_objects('visible', return_cmd=True) == 'vget /objects visible'
+    assert api.get_objects_filtered('visible', return_cmd=True) == 'vget /objects visible'
+
+
 def test_get_scene_occupancy_decodes_bool_npy(make_npy_bytes, dummy_client_factory, plus_api_factory):
     payload = make_npy_bytes(np.zeros((2, 3, 4), dtype=bool))
     client = dummy_client_factory([payload])
@@ -56,6 +66,60 @@ def test_scene_occupancy_spec_decodes_json(dummy_client_factory, plus_api_factor
     api = plus_api_factory(client)
     assert api.get_scene_occupancy_spec(method='mesh')['method'] == 'mesh'
     assert client.calls[-1] == ('vget /scene/occupancy/spec lingo_vis mesh', ())
+
+
+@pytest.mark.parametrize(
+    'method_name,args,expected',
+    [
+        ('get_scene_occupancy_shared_profile', ('lingo_vis',),
+         'vget /scene/occupancy_shared lingo_vis'),
+        ('get_scene_occupancy_shared_transform', ('lingo_vis', 1, 2, 3, 45, 1),
+         'vget /scene/occupancy_shared lingo_vis 1 2 3 45 1'),
+        ('get_scene_occupancy_region_default', ('npy', -1, 1, -2, 2, -3, 3, 0.5),
+         'vget /scene/occupancy_region npy -1 1 -2 2 -3 3 0.5'),
+        ('get_scene_occupancy_shared_region_default', (-1, 1, -2, 2, -3, 3, 0.5),
+         'vget /scene/occupancy_shared_region -1 1 -2 2 -3 3 0.5'),
+    ],
+)
+def test_scene_occupancy_overload_commands(plus_api_factory, method_name, args, expected):
+    assert getattr(plus_api_factory(), method_name)(*args, return_cmd=True) == expected
+
+
+@pytest.mark.parametrize(
+    'method_name,args,expected',
+    [
+        ('get_camera_lit_shared', (0,),
+         'vget /camera/0/lit_shared'),
+        ('get_camera_depth_shared', (0,),
+         'vget /camera/0/depth_shared'),
+        ('get_camera_lidar_shared', (0,),
+         'vget /camera/0/lidar_shared'),
+        ('get_camera_mqrc_lit_shared', (0,),
+         'vget /camera/0/mqrc/lit_shared'),
+        ('get_camera_mqrc_panoramic_shared', (0, 256, 128),
+         'vget /camera/0/mqrc/panoramic_shared 256 128'),
+        ('get_camera_mqrc_panoramic_shared_with_face_resolution', (0, 256, 128, 64),
+         'vget /camera/0/mqrc/panoramic_shared 256 128 64'),
+        ('get_camera_normal_shared', (0,),
+         'vget /camera/0/normal_shared'),
+        ('get_camera_object_mask_shared', (0,),
+         'vget /camera/0/object_mask_shared'),
+        ('get_camera_seg_shared', (0,),
+         'vget /camera/0/seg_shared'),
+        ('get_camera_panoramic_shared_default', (0,),
+         'vget /camera/0/panoramic_shared'),
+        ('get_camera_panoramic_depth_shared_default', (0,),
+         'vget /camera/0/panoramic/depth_shared'),
+        ('get_camera_panoramic_mask_shared_default', (0,),
+         'vget /camera/0/panoramic/mask_shared'),
+        ('get_camera_panoramic_normal_shared_default', (0,),
+         'vget /camera/0/panoramic/normal_shared'),
+        ('get_scene_occupancy_shared_profile_method', ('lingo_vis', 'mesh'),
+         'vget /scene/occupancy_shared lingo_vis mesh'),
+    ],
+)
+def test_shared_memory_command_wrappers(plus_api_factory, method_name, args, expected):
+    assert getattr(plus_api_factory(), method_name)(*args, return_cmd=True) == expected
 
 
 @pytest.mark.parametrize(

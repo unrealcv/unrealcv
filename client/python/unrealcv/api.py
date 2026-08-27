@@ -250,9 +250,14 @@ class UnrealCv_API:
         if viewmode == 'depth':
             return self.get_depth(cam_id, return_cmd=return_cmd, show=show)
         cmd = f'vget /camera/{cam_id}/{viewmode} {mode}'
+        shared_cmd = f'vget /camera/{cam_id}/{viewmode}_shared'
+        if self.api_version.supports_shared_command(shared_cmd):
+            cmd = unrealcv.SharedCommand(shared_cmd, mode)
         if return_cmd:
             return cmd
-        image = self.decoder.decode_img(self.client.request(cmd), mode, inverse)
+        image = self.decoder.decode_img(
+            self.client.request(cmd, response_format=mode), mode, inverse
+        )
         if show:
             cv2.imshow('image_'+viewmode, image)
             cv2.waitKey(1)
@@ -272,9 +277,12 @@ class UnrealCv_API:
             np.ndarray: The depth image.
         """
         cmd = f'vget /camera/{cam_id}/depth npy'
+        shared_cmd = f'vget /camera/{cam_id}/depth_shared'
+        if self.api_version.supports_shared_command(shared_cmd):
+            cmd = unrealcv.SharedCommand(shared_cmd, 'npy')
         if return_cmd:
             return cmd
-        res = self.client.request(cmd)
+        res = self.client.request(cmd, response_format='npy')
         depth = self.decoder.decode_depth(res, inverse)
         if show:
             cv2.imshow('image', depth/depth.max())  # normalize the depth image
@@ -446,6 +454,117 @@ class UnrealCv_API:
         cmd = f'vget /camera/{cam_id}/fov'
         fov = self.client.request(cmd)
         return fov
+
+    def get_cine_camera(self, cam_id, return_cmd=False):
+        """Get the physical Cine camera settings as a JSON object."""
+        cmd = f'vget /camera/{cam_id}/cine'
+        if return_cmd:
+            return cmd
+        return json.loads(self.client.request(cmd))
+
+    def get_cine_camera_enabled(self, cam_id, return_cmd=False):
+        """Get whether the physical Cine camera path is enabled."""
+        cmd = f'vget /camera/{cam_id}/cine/enabled'
+        if return_cmd:
+            return cmd
+        return self.client.request(cmd).strip() in ('1', 'true', 'True')
+
+    def set_cine_camera_enabled(self, cam_id, enabled, return_cmd=False):
+        """Enable or disable the physical Cine camera path."""
+        cmd = f'vset /camera/{cam_id}/cine/enabled {int(bool(enabled))}'
+        if return_cmd:
+            return cmd
+        return self.client.request(cmd, -1)
+
+    def set_cine_filmback(self, cam_id, sensor_width_mm, sensor_height_mm,
+                          horizontal_offset_mm, vertical_offset_mm,
+                          return_cmd=False):
+        """Set Cine filmback dimensions and offsets in millimeters."""
+        cmd = (f'vset /camera/{cam_id}/cine/filmback {sensor_width_mm} '
+               f'{sensor_height_mm} {horizontal_offset_mm} {vertical_offset_mm}')
+        if return_cmd:
+            return cmd
+        return self.client.request(cmd, -1)
+
+    def set_cine_lens(self, cam_id, focal_length_mm, aperture_fstop,
+                      return_cmd=False):
+        """Set Cine focal length in millimeters and aperture in f-stops."""
+        cmd = f'vset /camera/{cam_id}/cine/lens {focal_length_mm} {aperture_fstop}'
+        if return_cmd:
+            return cmd
+        return self.client.request(cmd, -1)
+
+    def set_cine_lens_settings(
+            self, cam_id, min_focal_length_mm, max_focal_length_mm,
+            min_fstop, max_fstop, minimum_focus_distance,
+            squeeze_factor, blade_count, return_cmd=False):
+        """Set Cine lens limits, focus distance, squeeze, and blade count."""
+        cmd = (f'vset /camera/{cam_id}/cine/lens_settings '
+               f'{min_focal_length_mm} {max_focal_length_mm} {min_fstop} '
+               f'{max_fstop} {minimum_focus_distance} {squeeze_factor} '
+               f'{blade_count}')
+        if return_cmd:
+            return cmd
+        return self.client.request(cmd, -1)
+
+    def set_cine_focus(self, cam_id, focus_distance_cm, return_cmd=False):
+        """Set Cine manual focus distance in centimeters."""
+        cmd = f'vset /camera/{cam_id}/cine/focus {focus_distance_cm}'
+        if return_cmd:
+            return cmd
+        return self.client.request(cmd, -1)
+
+    def set_cine_focus_mode(self, cam_id, focus_mode, smoothing_enabled,
+                            smoothing_speed, focus_offset, return_cmd=False):
+        """Set Cine focus mode, smoothing state, speed, and offset."""
+        cmd = (f'vset /camera/{cam_id}/cine/focus_mode {focus_mode} '
+               f'{int(bool(smoothing_enabled))} {smoothing_speed} {focus_offset}')
+        if return_cmd:
+            return cmd
+        return self.client.request(cmd, -1)
+
+    def set_cine_tracking_focus(self, cam_id, actor_name, offset_x,
+                                offset_y, offset_z, return_cmd=False):
+        """Set the Cine tracking-focus actor and relative offset."""
+        cmd = (f'vset /camera/{cam_id}/cine/focus_tracking {actor_name} '
+               f'{offset_x} {offset_y} {offset_z}')
+        if return_cmd:
+            return cmd
+        return self.client.request(cmd, -1)
+
+    def set_cine_crop(self, cam_id, aspect_ratio, overscan, crop_overscan,
+                      scale_resolution_with_overscan, return_cmd=False):
+        """Set Cine crop aspect ratio, overscan, and crop flags."""
+        cmd = (f'vset /camera/{cam_id}/cine/crop {aspect_ratio} {overscan} '
+               f'{int(bool(crop_overscan))} '
+               f'{int(bool(scale_resolution_with_overscan))}')
+        if return_cmd:
+            return cmd
+        return self.client.request(cmd, -1)
+
+    def set_cine_near_clip(self, cam_id, enabled, distance_cm,
+                           return_cmd=False):
+        """Set Cine custom near-clipping state and distance in centimeters."""
+        cmd = f'vset /camera/{cam_id}/cine/near_clip {int(bool(enabled))} {distance_cm}'
+        if return_cmd:
+            return cmd
+        return self.client.request(cmd, -1)
+
+    def set_cine_exposure(self, cam_id, iso, shutter_speed_reciprocal,
+                          apply_physical_exposure, return_cmd=False):
+        """Set Cine ISO, shutter-speed reciprocal, and exposure flag."""
+        cmd = (f'vset /camera/{cam_id}/cine/exposure {iso} '
+               f'{shutter_speed_reciprocal} {int(bool(apply_physical_exposure))}')
+        if return_cmd:
+            return cmd
+        return self.client.request(cmd, -1)
+
+    def get_cine_intrinsics(self, cam_id, return_cmd=False):
+        """Get Cine intrinsics, projection offsets, FOVs, and matrix."""
+        cmd = f'vget /camera/{cam_id}/cine/intrinsics'
+        if return_cmd:
+            return cmd
+        return json.loads(self.client.request(cmd))
 
     def set_cam_location(self, cam_id, loc):
         """

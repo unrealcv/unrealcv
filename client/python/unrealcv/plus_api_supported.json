@@ -26,9 +26,15 @@
     "vget /camera/[camera_id]/depth/max_distance",
     "vget /camera/[camera_id]/depth/min_distance",
     "vget /camera/[camera_id]/depth/use_exp",
+    "vget /camera/[camera_id]/depth_shared",
     "vget /camera/[camera_id]/dual_depth [str] [str]",
     "vget /camera/[camera_id]/id",
     "vget /camera/[camera_id]/mqrc/lit [str]",
+    "vget /camera/[camera_id]/lidar_shared",
+    "vget /camera/[camera_id]/lit_shared",
+    "vget /camera/[camera_id]/mqrc/lit_shared",
+    "vget /camera/[camera_id]/mqrc/panoramic_shared [uint] [uint]",
+    "vget /camera/[camera_id]/mqrc/panoramic_shared [uint] [uint] [uint]",
     "vget /camera/[camera_id]/mvrc/enabled",
     "vget /camera/[camera_id]/mvrc/lit [str]",
     "vget /camera/[camera_id]/oneobjlit [str] [str]",
@@ -36,14 +42,21 @@
     "vget /camera/[camera_id]/oneobjmask [str] [str]",
     "vget /camera/[camera_id]/panoramic [str] [uint] [uint]",
     "vget /camera/[camera_id]/panoramic/depth [str] [uint] [uint]",
+    "vget /camera/[camera_id]/panoramic/depth_shared",
     "vget /camera/[camera_id]/panoramic/depth_shared [uint] [uint]",
     "vget /camera/[camera_id]/panoramic/mask [str] [uint] [uint]",
+    "vget /camera/[camera_id]/panoramic/mask_shared",
     "vget /camera/[camera_id]/panoramic/mask_shared [uint] [uint]",
     "vget /camera/[camera_id]/panoramic/normal [str] [uint] [uint]",
+    "vget /camera/[camera_id]/panoramic/normal_shared",
     "vget /camera/[camera_id]/panoramic/normal_shared [uint] [uint]",
+    "vget /camera/[camera_id]/panoramic_shared",
     "vget /camera/[camera_id]/panoramic_shared [uint] [uint]",
+    "vget /camera/[camera_id]/normal_shared",
+    "vget /camera/[camera_id]/object_mask_shared",
     "vget /camera/[camera_id]/render_in_main_renderer",
     "vget /camera/[camera_id]/use_fast_capture",
+    "vget /camera/[camera_id]/seg_shared",
     "vset /camera/[camera_id]/depth/exp [float]",
     "vset /camera/[camera_id]/depth/max_distance [float]",
     "vset /camera/[camera_id]/depth/min_distance [float]",
@@ -182,8 +195,16 @@
     "vset /safepoint/cycle",
     "vset /safepoint/preview_last",
     "vget /safepoints [str]",
+    "vget /scene/occupancy_region [str] [float] [float] [float] [float] [float] [float] [float]",
+    "vget /scene/occupancy_region [str] [float] [float] [float] [float] [float] [float] [float] [float] [float] [float] [float] [uint]",
+    "vget /scene/occupancy_shared [str]",
+    "vget /scene/occupancy_shared [str] [str]",
+    "vget /scene/occupancy_shared [str] [float] [float] [float] [float] [uint]",
     "vget /scene/occupancy_shared [str] [str] [float] [float] [float] [float] [uint]",
+    "vget /scene/occupancy_shared_region [float] [float] [float] [float] [float] [float] [float]",
     "vget /scene/occupancy_shared_region [str] [float] [float] [float] [float] [float] [float] [float]",
+    "vget /scene/occupancy_shared_region [str] [float] [float] [float] [float] [float] [float] [float] [float] [float] [float] [float] [uint]",
+    "vget /scene/occupancy_shared_region [float] [float] [float] [float] [float] [float] [float] [float] [float] [float] [float] [uint]",
     "vget /scene/perception [float] [uint] [uint]",
     "vget /scene/semantic_annotations",
     "vget /unrealcv/list_cmd",
@@ -257,6 +278,10 @@
       "template": "vget /camera/[camera_id]/depth/use_exp"
     },
     {
+      "name": "get_camera_depth_shared",
+      "template": "vget /camera/[camera_id]/depth_shared"
+    },
+    {
       "name": "get_camera_dual_depth",
       "template": "vget /camera/[camera_id]/dual_depth [str] [str]"
     },
@@ -267,6 +292,26 @@
     {
       "name": "get_camera_mqrc_lit",
       "template": "vget /camera/[camera_id]/mqrc/lit [str]"
+    },
+    {
+      "name": "get_camera_lidar_shared",
+      "template": "vget /camera/[camera_id]/lidar_shared"
+    },
+    {
+      "name": "get_camera_lit_shared",
+      "template": "vget /camera/[camera_id]/lit_shared"
+    },
+    {
+      "name": "get_camera_mqrc_lit_shared",
+      "template": "vget /camera/[camera_id]/mqrc/lit_shared"
+    },
+    {
+      "name": "get_camera_mqrc_panoramic_shared",
+      "template": "vget /camera/[camera_id]/mqrc/panoramic_shared [uint] [uint]"
+    },
+    {
+      "name": "get_camera_mqrc_panoramic_shared_with_face_resolution",
+      "template": "vget /camera/[camera_id]/mqrc/panoramic_shared [uint] [uint] [uint]"
     },
     {
       "name": "get_camera_mvrc_enabled",
@@ -297,12 +342,20 @@
       "template": "vget /camera/[camera_id]/panoramic/depth [str] [uint] [uint]"
     },
     {
+      "name": "get_camera_panoramic_depth_shared_default",
+      "template": "vget /camera/[camera_id]/panoramic/depth_shared"
+    },
+    {
       "name": "get_camera_panoramic_depth_shared",
       "template": "vget /camera/[camera_id]/panoramic/depth_shared [uint] [uint]"
     },
     {
       "name": "get_camera_panoramic_mask",
       "template": "vget /camera/[camera_id]/panoramic/mask [str] [uint] [uint]"
+    },
+    {
+      "name": "get_camera_panoramic_mask_shared_default",
+      "template": "vget /camera/[camera_id]/panoramic/mask_shared"
     },
     {
       "name": "get_camera_panoramic_mask_shared",
@@ -313,12 +366,32 @@
       "template": "vget /camera/[camera_id]/panoramic/normal [str] [uint] [uint]"
     },
     {
+      "name": "get_camera_panoramic_normal_shared_default",
+      "template": "vget /camera/[camera_id]/panoramic/normal_shared"
+    },
+    {
       "name": "get_camera_panoramic_normal_shared",
       "template": "vget /camera/[camera_id]/panoramic/normal_shared [uint] [uint]"
     },
     {
       "name": "get_camera_panoramic_shared",
       "template": "vget /camera/[camera_id]/panoramic_shared [uint] [uint]"
+    },
+    {
+      "name": "get_camera_panoramic_shared_default",
+      "template": "vget /camera/[camera_id]/panoramic_shared"
+    },
+    {
+      "name": "get_camera_normal_shared",
+      "template": "vget /camera/[camera_id]/normal_shared"
+    },
+    {
+      "name": "get_camera_object_mask_shared",
+      "template": "vget /camera/[camera_id]/object_mask_shared"
+    },
+    {
+      "name": "get_camera_seg_shared",
+      "template": "vget /camera/[camera_id]/seg_shared"
     },
     {
       "name": "get_camera_render_in_main_renderer",
@@ -753,7 +826,7 @@
       "template": "vset /object/[str]/tickable_when_paused [str]"
     },
     {
-      "name": "get_objects",
+      "name": "get_objects_filtered",
       "template": "vget /objects [str]"
     },
     {
@@ -881,12 +954,44 @@
       "template": "vget /safepoints [str]"
     },
     {
+      "name": "get_scene_occupancy_region_default",
+      "template": "vget /scene/occupancy_region [str] [float] [float] [float] [float] [float] [float] [float]"
+    },
+    {
+      "name": "get_scene_occupancy_region_transform",
+      "template": "vget /scene/occupancy_region [str] [float] [float] [float] [float] [float] [float] [float] [float] [float] [float] [float] [uint]"
+    },
+    {
       "name": "get_scene_occupancy_shared",
       "template": "vget /scene/occupancy_shared [str] [str] [float] [float] [float] [float] [uint]"
     },
     {
+      "name": "get_scene_occupancy_shared_profile",
+      "template": "vget /scene/occupancy_shared [str]"
+    },
+    {
+      "name": "get_scene_occupancy_shared_profile_method",
+      "template": "vget /scene/occupancy_shared [str] [str]"
+    },
+    {
+      "name": "get_scene_occupancy_shared_region_default",
+      "template": "vget /scene/occupancy_shared_region [float] [float] [float] [float] [float] [float] [float]"
+    },
+    {
       "name": "get_scene_occupancy_shared_region",
       "template": "vget /scene/occupancy_shared_region [str] [float] [float] [float] [float] [float] [float] [float]"
+    },
+    {
+      "name": "get_scene_occupancy_shared_region_transform_profile",
+      "template": "vget /scene/occupancy_shared_region [str] [float] [float] [float] [float] [float] [float] [float] [float] [float] [float] [float] [uint]"
+    },
+    {
+      "name": "get_scene_occupancy_shared_region_transform",
+      "template": "vget /scene/occupancy_shared_region [float] [float] [float] [float] [float] [float] [float] [float] [float] [float] [float] [uint]"
+    },
+    {
+      "name": "get_scene_occupancy_shared_transform",
+      "template": "vget /scene/occupancy_shared [str] [float] [float] [float] [float] [uint]"
     },
     {
       "name": "get_scene_perception",
@@ -914,4 +1019,3 @@
     }
   ]
 }
-

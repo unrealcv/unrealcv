@@ -56,12 +56,14 @@ def read_shared(response):
 def time_request(client, command, shared):
     started = time.perf_counter()
     response = client.request(command)
-    elapsed_ms = (time.perf_counter() - started) * 1000.0
     if response is None or (isinstance(response, str) and response.startswith("error")):
         raise RuntimeError(f"Capture failed for {command}: {response}")
     if shared:
-        return elapsed_ms, read_shared(response)["num_bytes"]
-    return elapsed_ms, len(response)
+        payload_bytes = read_shared(response)["num_bytes"]
+    else:
+        payload_bytes = len(response)
+    elapsed_ms = (time.perf_counter() - started) * 1000.0
+    return elapsed_ms, payload_bytes
 
 
 def benchmark_pair(client, tcp_command, shared_command, iterations, warmup, rounds):
@@ -117,7 +119,7 @@ def benchmark_pair(client, tcp_command, shared_command, iterations, warmup, roun
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=9000)
+    parser.add_argument("--port", type=int, default=9001)
     parser.add_argument("--camera-id", type=int, default=0)
     parser.add_argument("--iterations", type=int, default=20)
     parser.add_argument("--warmup", type=int, default=10)
@@ -143,7 +145,7 @@ def main():
         "warmup_samples_per_transport": args.warmup * args.rounds,
         "measurement": "End-to-end Python acquisition. TCP fully receives raw BMP bytes; shared memory parses JSON, opens the named mapping, and copies every mapped byte.",
         "standard_camera": {},
-        "panorama": {},
+        "mqrc": {},
     }
     try:
         for width, height, label in STANDARD_RESOLUTIONS:
@@ -162,16 +164,19 @@ def main():
             print(f"standard {label:5} TCP {result['tcp']['mean_ms']:.2f} ms | shared {result['shared_memory']['mean_ms']:.2f} ms | {result['speedup_mean']:.2f}x")
 
         for width, height, label in STANDARD_RESOLUTIONS:
+            response = client.request(f"vset /camera/{args.camera_id}/size {width} {height}")
+            if response is None or str(response).startswith("error"):
+                raise RuntimeError(f"Could not set camera size {width}x{height}: {response}")
             result = benchmark_pair(
                 client,
-                f"vget /camera/{args.camera_id}/panoramic bmp {width} {height}",
-                f"vget /camera/{args.camera_id}/panoramic_shared {width} {height}",
+                f"vget /camera/{args.camera_id}/mqrc/lit bmp",
+                f"vget /camera/{args.camera_id}/mqrc/lit_shared",
                 args.iterations,
                 args.warmup,
                 args.rounds,
             )
-            report["panorama"][label] = {"width": width, "height": height, **result}
-            print(f"panorama {label:5} TCP {result['tcp']['mean_ms']:.2f} ms | shared {result['shared_memory']['mean_ms']:.2f} ms | {result['speedup_mean']:.2f}x")
+            report["mqrc"][label] = {"width": width, "height": height, **result}
+            print(f"mqrc {label:5} TCP {result['tcp']['mean_ms']:.2f} ms | shared {result['shared_memory']['mean_ms']:.2f} ms | {result['speedup_mean']:.2f}x")
     finally:
         client.disconnect()
 

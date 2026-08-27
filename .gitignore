@@ -60,3 +60,7 @@ docs/doxygen/
 benchmark_output/
 test57_benchmark/
 test57_benchmark_shipping/
+
+# Live smoke-test result files
+test/*_live_smoke.json
+test/*_live_smoke.csv

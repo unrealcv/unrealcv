@@ -5,6 +5,16 @@ CHANGELOG
 Development branch
 ==================
 
+- Python client 1.3.0 (2026-08-27; no UnrealCV plugin/server tag)
+    - Add Python wrappers for the complete Windows shared-memory camera and
+      scene-occupancy command surface exposed by the UnrealCV Plus server.
+    - Add shared-memory support for MQRC lit/panoramic and lidar camera
+      captures, including no-argument and sized panoramic forms.
+    - Add configurable UnrealCV server ports through ``unrealcv.ini``,
+      ``-cvport=`` and ``-UnrealCVPort=`` with a default of ``9000``.
+    - Fix Plus API initialization when the generated object-list overload is
+      called without filter arguments.
+
 - v1.1.0 (2026-08-12)
     - Modernize the UnrealCV plugin and server for the Unreal Engine 5 development line.
     - Add optical-flow capture and expand camera projection and capture controls, including image size, capture source, exposure, motion blur, focal distance, and depth of field.

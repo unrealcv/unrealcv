@@ -128,6 +128,10 @@ class ApiVersionManager:
             for template in self._supported_command_templates
         )
 
+    def supports_shared_command(self, command):
+        """Return whether an explicitly selected shared command is supported."""
+        return self.supports_command(command) is True
+
     def is_unrealcv_plus(self):
         version = self.get_server_version_tuple()
         return version is not None and version >= self.UNREALCV_PLUS_MIN_VERSION

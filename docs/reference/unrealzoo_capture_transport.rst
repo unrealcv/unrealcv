@@ -6,7 +6,8 @@ The shared-memory implementation in UnrealCV Dev for
 (`https://arxiv.org/abs/2607.06701`) and source repository
 (`https://github.com/spear-sim/spear`).
 
-This section is a closed-build measurement of the UnrealZoo distribution.
+This section reports measurements from the August 27, 2026 packaged build.
+UnrealCV listened on port 9001; port 9000 was not used.
 The test environment was:
 
 * Windows 11
@@ -26,105 +27,41 @@ therefore represents serialized client acquisition throughput, not unloaded
 viewport frame rate.
 
 The standard-camera rows use ``vget /camera/0/lit bmp`` versus
-``vget /camera/0/lit_shared``. Panorama rows use
-``vget /camera/0/panoramic bmp WIDTH HEIGHT`` versus
-``vget /camera/0/panoramic_shared WIDTH HEIGHT``. At 4K, both transports carry
-the same 33,177,600 pixel bytes; the BMP response has an additional 54-byte
-header.
+``vget /camera/0/lit_shared``. At 4K, both transports carry the same
+33,177,600 pixel bytes; the BMP response has an additional 54-byte header.
 
 .. list-table:: Standard Camera
    :header-rows: 1
-   :widths: 14 16 16 14 14 14
+   :widths: 20 20 22 18
 
    * - Resolution
-     - TCP mean
-     - Shared mean
      - TCP FPS
      - Shared FPS
      - Speedup
    * - 480p (640x480)
-     - 24.62 ms
-     - 15.61 ms
-     - 40.62
-     - 64.05
-     - 1.58x
+     - 38.86
+     - 66.28
+     - 1.71x
    * - 720p (1280x720)
-     - 40.39 ms
-     - 12.77 ms
-     - 24.76
-     - 78.30
-     - 3.16x
+     - 26.57
+     - 62.06
+     - 2.34x
    * - 1080p (1920x1080)
-     - 62.63 ms
-     - 11.14 ms
-     - 15.97
-     - 89.77
-     - 5.62x
+     - 16.35
+     - 62.28
+     - 3.81x
    * - 2K (2560x1440)
-     - 93.75 ms
-     - 10.39 ms
-     - 10.67
-     - 96.20
-     - 9.02x
+     - 9.91
+     - 48.94
+     - 4.94x
    * - 4K (3840x2160)
-     - 224.76 ms
-     - 15.34 ms
-     - 4.45
-     - 65.21
-     - 14.66x
+     - 3.85
+     - 21.78
+     - 5.65x
    * - 8K (7680x4320)
-     - 713.61 ms
-     - 55.25 ms
-     - 1.40
-     - 18.10
-     - 12.92x
-
-.. list-table:: Panorama
-   :header-rows: 1
-   :widths: 14 16 16 14 14 14
-
-   * - Resolution
-     - TCP mean
-     - Shared mean
-     - TCP FPS
-     - Shared FPS
-     - Speedup
-   * - 480p (640x480)
-     - 66.21 ms
-     - 46.74 ms
-     - 15.10
-     - 21.39
-     - 1.42x
-   * - 720p (1280x720)
-     - 77.90 ms
-     - 49.40 ms
-     - 12.84
-     - 20.24
-     - 1.58x
-   * - 1080p (1920x1080)
-     - 103.37 ms
-     - 56.70 ms
-     - 9.67
-     - 17.64
-     - 1.82x
-   * - 2K (2560x1440)
-     - 136.46 ms
-     - 61.85 ms
-     - 7.33
-     - 16.17
-     - 2.21x
-   * - 4K (3840x2160)
-     - 250.10 ms
-     - 77.47 ms
-     - 4.00
-     - 12.91
-     - 3.23x
-   * - 8K (7680x4320)
-     - 878.86 ms
-     - 177.02 ms
-     - 1.14
-     - 5.65
-     - 4.96x
+     - 1.21
+     - 6.76
+     - 5.59x
 
 MQRC
 ----
@@ -136,50 +73,92 @@ as well as transport. All 720 measured MQRC requests below succeeded.
 
 .. list-table:: Movie Quality Render Component
    :header-rows: 1
-   :widths: 14 16 16 14 14 14
+   :widths: 20 20 22 18
 
    * - Resolution
-     - TCP mean
-     - Shared mean
      - TCP FPS
      - Shared FPS
      - Speedup
    * - 480p (640x480)
-     - 41.73 ms
-     - 20.89 ms
-     - 23.96
-     - 47.87
-     - 2.00x
+     - 23.33
+     - 39.94
+     - 1.71x
    * - 720p (1280x720)
-     - 59.10 ms
-     - 26.80 ms
-     - 16.92
-     - 37.31
-     - 2.21x
+     - 16.21
+     - 28.50
+     - 1.76x
    * - 1080p (1920x1080)
-     - 112.45 ms
-     - 36.62 ms
-     - 8.89
-     - 27.30
-     - 3.07x
+     - 10.01
+     - 17.78
+     - 1.78x
    * - 2K (2560x1440)
-     - 170.31 ms
-     - 54.72 ms
-     - 5.87
-     - 18.27
-     - 3.11x
+     - 5.31
+     - 10.91
+     - 2.05x
    * - 4K (3840x2160)
-     - 298.29 ms
-     - 108.78 ms
-     - 3.35
-     - 9.19
-     - 2.74x
+     - 3.29
+     - 6.61
+     - 2.01x
    * - 8K (7680x4320)
-     - 1243.12 ms
-     - 350.26 ms
-     - 0.80
-     - 2.85
-     - 3.55x
+     - 0.59
+     - 1.60
+     - 2.69x
+
+Multi-camera capture
+--------------------
+
+The multi-camera test uses 640x480 and one ``vbatch N`` request containing
+one capture command for each of N distinct cameras. FPS is the number of
+complete synchronized N-camera capture rounds per second.
+
+.. list-table:: Synchronized multi-camera FPS
+   :header-rows: 1
+   :widths: 15 20 24 18
+
+   * - Cameras
+     - Lit FPS
+     - Lit shared FPS
+     - Speedup
+   * - 1
+     - 20.29
+     - 30.13
+     - 1.48x
+   * - 2
+     - 16.30
+     - 24.47
+     - 1.50x
+   * - 3
+     - 13.09
+     - 23.46
+     - 1.79x
+   * - 4
+     - 10.30
+     - 18.83
+     - 1.83x
+   * - 5
+     - 8.34
+     - 17.10
+     - 2.05x
+   * - 6
+     - 7.59
+     - 16.13
+     - 2.12x
+   * - 7
+     - 5.94
+     - 13.12
+     - 2.21x
+   * - 8
+     - 5.88
+     - 12.48
+     - 2.12x
+   * - 9
+     - 5.18
+     - 11.57
+     - 2.23x
+   * - 10
+     - 4.76
+     - 11.52
+     - 2.42x
 
 Cross-simulator comparison
 --------------------------
@@ -188,15 +167,15 @@ The following table is an additional product-level comparison against
 `CARLA <https://carla.org/>`_, `SimWorld <https://simworld.org/>`_, and
 `AirSim <https://microsoft.github.io/AirSim/>`_. It does not replace the
 UnrealZoo measurements above.
-The UnrealCV shared-memory column was measured using the current UnrealCV
-development build and ``vget /camera/0/lit_shared``.
+The UnrealCV shared-memory column uses the same packaged-build Standard Camera
+measurements reported above and ``vget /camera/0/lit_shared``.
 
 Each result uses three rounds, ten warm-up captures per round, and twenty
 measured captures per round, for 60 measured samples per cell. FPS is
 ``1000 / arithmetic mean client latency``. Simulators ran serially and
 offscreen.
 
-.. list-table:: Mean latency / effective FPS
+.. list-table:: Effective FPS
    :header-rows: 1
    :widths: 16 24 20 20 20
 
@@ -206,35 +185,35 @@ offscreen.
      - SimWorld
      - AirSim (UE4)
    * - 640x480
-     - 20.34 ms / 49.16 FPS
-     - 14.30 ms / 69.94 FPS
-     - 54.82 ms / 18.24 FPS
-     - 14.51 ms / 68.91 FPS
+     - 66.28
+     - 69.94
+     - 18.24
+     - 68.91
    * - 1280x720
-     - 21.92 ms / 45.62 FPS
-     - 20.37 ms / 49.09 FPS
-     - 86.49 ms / 11.56 FPS
-     - 26.42 ms / 37.85 FPS
+     - 62.06
+     - 49.09
+     - 11.56
+     - 37.85
    * - 1920x1080
-     - 42.36 ms / 23.61 FPS
-     - 36.94 ms / 27.07 FPS
-     - 128.09 ms / 7.81 FPS
-     - 77.00 ms / 12.99 FPS
+     - 62.28
+     - 27.07
+     - 7.81
+     - 12.99
    * - 2560x1440
-     - 44.65 ms / 22.40 FPS
-     - 57.44 ms / 17.41 FPS
-     - 194.84 ms / 5.13 FPS
-     - 124.48 ms / 8.03 FPS
+     - 48.94
+     - 17.41
+     - 5.13
+     - 8.03
    * - 3840x2160
-     - 61.52 ms / 16.25 FPS
-     - 119.28 ms / 8.38 FPS
-     - 388.32 ms / 2.58 FPS
-     - 256.77 ms / 3.89 FPS
+     - 21.78
+     - 8.38
+     - 2.58
+     - 3.89
    * - 7680x4320
-     - 120.78 ms / 8.28 FPS
-     - 469.24 ms / 2.13 FPS
-     - 1438.66 ms / 0.70 FPS
-     - 960.71 ms / 1.04 FPS
+     - 6.76
+     - 2.13
+     - 0.70
+     - 1.04
 
 
 AirSim returns three-byte RGB pixels; the other columns use four-byte BGRA

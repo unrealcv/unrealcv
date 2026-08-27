@@ -8,6 +8,12 @@ import threading
 import time
 import os
 import warnings
+import json
+import mmap
+from io import BytesIO
+
+import cv2
+import numpy as np
 from .api import *
 from .api_version import *
 from .plus_api import *
@@ -17,12 +23,21 @@ from queue import Empty, SimpleQueue
 
 __all__ = [
     "Client",
+    "SharedCommand",
     "SocketMessage",
     "__version__",
     "ApiVersionManager",
     "UnrealCv_API",
     "UnrealCvPlusAPI",
 ]
+
+class SharedCommand(str):
+    """A command string carrying the legacy response format for shared data."""
+
+    def __new__(cls, command, response_format):
+        value = super().__new__(cls, command)
+        value.response_format = response_format
+        return value
 
 
 _L = logging.getLogger(__name__)
@@ -34,7 +49,7 @@ _L.addHandler(h)
 _L.propagate = False
 _L.setLevel(logging.INFO)
 
-__version__ = '1.2.0'  # release current client changes under a distinct version
+__version__ = '1.3.0'  # release current client changes under a distinct version
 
 class SocketMessage:
     """
@@ -509,6 +524,9 @@ class Client:
         >>> client.request_batch(['vget /camera/0/location', 'vget /camera/0/rotation'])
         ['100.0 -100.0 100.0', '0.0 0.0 0.0']
         """
+        if any(isinstance(message, SharedCommand) for message in batch):
+            return [self.request(message) for message in batch]
+
         for message in batch:
             self._warn_if_command_maybe_unsupported(message)
             if not isinstance(message, bytes):
@@ -531,7 +549,7 @@ class Client:
 
         return batch_res
 
-    def request(self, message, timeout=5):
+    def request(self, message, timeout=5, response_format=None):
         """
         Send a request to server and wait util get a response from server or timeout.
 
@@ -570,8 +588,46 @@ class Client:
         if isinstance(message, list):
             return self.request_batch(message)
 
+        if response_format is None and isinstance(message, SharedCommand):
+            response_format = message.response_format
+        if response_format is not None and self._is_shared_command(message):
+            if timeout < 0:
+                return self.request_async(message)
+            response = self._request_without_capability_check(message, timeout=timeout)
+            return self._decode_shared_response(response, response_format)
         self._warn_if_command_maybe_unsupported(message)
         return self._request_without_capability_check(message, timeout=timeout)
+
+    @staticmethod
+    def _is_shared_command(message):
+        return isinstance(message, str) and '_shared' in message
+
+    @staticmethod
+    def _decode_shared_response(response, output_format):
+        if isinstance(response, bytes):
+            response = response.decode('utf-8', errors='replace')
+        if not isinstance(response, str) or response.lstrip().lower().startswith('error'):
+            raise ValueError(f'Shared-memory capture failed: {response!r}')
+        metadata = json.loads(response)
+        name = metadata['name']
+        num_bytes = int(metadata['num_bytes'])
+        shape = tuple(int(value) for value in metadata['shape'])
+        dtype = np.dtype(metadata['dtype'])
+        with mmap.mmap(-1, num_bytes, tagname=name, access=mmap.ACCESS_READ) as mapping:
+            data = np.frombuffer(mapping, dtype=dtype, count=num_bytes // dtype.itemsize).copy()
+        frame = data.reshape(shape)
+        if output_format == 'npy':
+            output = BytesIO()
+            np.save(output, frame, allow_pickle=False)
+            return output.getvalue()
+        if frame.ndim != 3 or frame.shape[-1] != 4:
+            raise ValueError(f'Expected BGRA shared image, got shape {frame.shape}')
+        bgr = frame[:, :, :3]
+        extension = '.png' if output_format == 'png' else '.bmp'
+        encoded, payload = cv2.imencode(extension, frame if output_format == 'png' else bgr)
+        if not encoded:
+            raise ValueError(f'Failed to encode shared image as {output_format}')
+        return payload.tobytes()
 
 # To use IPC on Unix, set this path to: /tmp/unrealcv_{portnum}.socket
 # Your executable will create this file on startup.
