@@ -1,4 +1,4 @@
-Runtime reflection
+Runtime Reflection
 ==================
 
 ``vreflect`` exposes Unreal reflected functions and properties through the UnrealCV command channel. It is useful

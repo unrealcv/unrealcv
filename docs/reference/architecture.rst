@@ -1,4 +1,4 @@
-The architecture of UnrealCV
+The Architecture Of UnrealCV
 ============================
 
 .. figure:: ../images/pipeline.png

@@ -1,4 +1,4 @@
-Shared-memory transport
+Shared-Memory Transport
 =======================
 
 The UnrealCV shared-memory implementation draws on the

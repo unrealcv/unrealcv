@@ -1,7 +1,7 @@
 .. _rr:
 
-Model Zoo
-=========
+Model Zoo (UnrealZoo)
+=====================
 
 The UnrealCV Model Zoo has moved to `UnrealZoo <https://unrealzoo.github.io/>`_.
 UnrealZoo provides the maintained Unreal environments and pre-built binaries

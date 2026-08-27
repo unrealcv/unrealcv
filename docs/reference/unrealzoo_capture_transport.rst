@@ -1,4 +1,4 @@
-UnrealCV Dev For UnrealZoo shared-memory transport
+UnrealCV Dev For UnrealZoo Shared-Memory Transport
 ==================================================
 
 The shared-memory implementation in UnrealCV Dev for
