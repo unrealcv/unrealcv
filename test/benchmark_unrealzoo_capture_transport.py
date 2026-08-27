@@ -53,6 +53,16 @@ def read_shared(response):
     return metadata
 
 
+def set_camera_pose(client, camera_id, location, rotation):
+    for command in (
+        f"vset /camera/{camera_id}/location {' '.join(map(str, location))}",
+        f"vset /camera/{camera_id}/rotation {' '.join(map(str, rotation))}",
+    ):
+        response = client.request(command)
+        if response is None or str(response).startswith("error"):
+            raise RuntimeError(f"Could not set camera pose with {command}: {response}")
+
+
 def time_request(client, command, shared):
     started = time.perf_counter()
     response = client.request(command)
@@ -121,6 +131,10 @@ def main():
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=9001)
     parser.add_argument("--camera-id", type=int, default=0)
+    parser.add_argument("--expected-map", default="Tokyo")
+    parser.add_argument("--location", type=float, nargs=3, default=(-5160.632, -1029.995, 138.643))
+    parser.add_argument("--rotation", type=float, nargs=3, default=(0.0, -1.002, 0.0))
+    parser.add_argument("--startup-settle-seconds", type=float, default=30.0)
     parser.add_argument("--iterations", type=int, default=20)
     parser.add_argument("--warmup", type=int, default=10)
     parser.add_argument("--rounds", type=int, default=3)
@@ -134,10 +148,20 @@ def main():
     if not client.connect(timeout=10):
         raise RuntimeError(f"Could not connect to UnrealCV at {args.host}:{args.port}")
 
+    actual_map = str(client.request("vget /level/name")).strip()
+    if actual_map != args.expected_map:
+        client.disconnect()
+        raise RuntimeError(f"Expected map {args.expected_map!r}, got {actual_map!r}")
+    time.sleep(args.startup_settle_seconds)
+
     report = {
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "server": f"{args.host}:{args.port}",
         "camera_id": args.camera_id,
+        "map": actual_map,
+        "fixed_camera_location": args.location,
+        "fixed_camera_rotation": args.rotation,
+        "startup_settle_seconds": args.startup_settle_seconds,
         "iterations": args.iterations,
         "warmup": args.warmup,
         "rounds": args.rounds,
@@ -149,6 +173,7 @@ def main():
     }
     try:
         for width, height, label in STANDARD_RESOLUTIONS:
+            set_camera_pose(client, args.camera_id, args.location, args.rotation)
             response = client.request(f"vset /camera/{args.camera_id}/size {width} {height}")
             if response is None or str(response).startswith("error"):
                 raise RuntimeError(f"Could not set camera size {width}x{height}: {response}")
@@ -164,6 +189,7 @@ def main():
             print(f"standard {label:5} TCP {result['tcp']['mean_ms']:.2f} ms | shared {result['shared_memory']['mean_ms']:.2f} ms | {result['speedup_mean']:.2f}x")
 
         for width, height, label in STANDARD_RESOLUTIONS:
+            set_camera_pose(client, args.camera_id, args.location, args.rotation)
             response = client.request(f"vset /camera/{args.camera_id}/size {width} {height}")
             if response is None or str(response).startswith("error"):
                 raise RuntimeError(f"Could not set camera size {width}x{height}: {response}")

@@ -6,29 +6,22 @@ The shared-memory implementation in UnrealCV Dev for
 (`https://arxiv.org/abs/2607.06701`) and source repository
 (`https://github.com/spear-sim/spear`).
 
-This section reports measurements from the August 27, 2026 packaged build.
-UnrealCV listened on port 9001; port 9000 was not used.
-The test environment was:
+This section reports measurements from a packaged UnrealZoo build. The test
+environment was:
 
 * Windows 11
 * AMD Ryzen 9 5950X, 16 cores and 32 logical processors
 * NVIDIA RTX 6000D
 * Epic Games Unreal Engine 5.7.4
-* 3 independent rounds per table row and transport
-* 10 warm-up captures per transport at the start of every round
-* 20 measured captures per round, or 60 measured captures per table cell
+* A fixed scene and identical camera pose for every measurement
+* 3 independent runs and 180 measured samples per table cell
 
-TCP and shared-memory requests were alternated to reduce request-order bias.
-The reported latency is the arithmetic mean of all 60 end-to-end client
-samples. TCP timing includes receipt of the complete 32-bit BGRA BMP payload.
-Shared-memory timing includes the request, JSON parsing, opening the named
-mapping, and copying every mapped byte. FPS is ``1000 / mean latency`` and
-therefore represents serialized client acquisition throughput, not unloaded
-viewport frame rate.
+TCP and shared-memory requests were alternated. FPS is based on mean client
+latency across all 180 samples; ``+/-`` is the standard deviation across the
+three independent runs. Both paths include receiving or copying the complete
+image.
 
-The standard-camera rows use ``vget /camera/0/lit bmp`` versus
-``vget /camera/0/lit_shared``. At 4K, both transports carry the same
-33,177,600 pixel bytes; the BMP response has an additional 54-byte header.
+The standard-camera rows compare TCP and shared-memory lit capture.
 
 .. list-table:: Standard Camera
    :header-rows: 1
@@ -39,29 +32,29 @@ The standard-camera rows use ``vget /camera/0/lit bmp`` versus
      - Shared FPS
      - Speedup
    * - 480p (640x480)
-     - 38.86
-     - 66.28
-     - 1.71x
+     - 40.65 +/- 1.13
+     - 64.00 +/- 1.85
+     - 1.57x
    * - 720p (1280x720)
-     - 26.57
-     - 62.06
-     - 2.34x
+     - 26.19 +/- 0.39
+     - 69.70 +/- 1.30
+     - 2.66x
    * - 1080p (1920x1080)
-     - 16.35
-     - 62.28
-     - 3.81x
+     - 14.95 +/- 0.18
+     - 62.99 +/- 2.42
+     - 4.21x
    * - 2K (2560x1440)
-     - 9.91
-     - 48.94
-     - 4.94x
+     - 9.20 +/- 0.39
+     - 53.46 +/- 0.53
+     - 5.81x
    * - 4K (3840x2160)
-     - 3.85
-     - 21.78
-     - 5.65x
+     - 4.69 +/- 0.31
+     - 29.59 +/- 1.39
+     - 6.31x
    * - 8K (7680x4320)
-     - 1.21
-     - 6.76
-     - 5.59x
+     - 1.25 +/- 0.11
+     - 7.68 +/- 0.54
+     - 6.14x
 
 MQRC
 ----
@@ -69,7 +62,7 @@ MQRC
 MQRC uses ``vget /camera/0/mqrc/lit bmp`` versus
 ``vget /camera/0/mqrc/lit_shared``. Both paths return the same BGRA8 pixel
 payload, so the comparison includes MQRC rendering and HDR-to-BGRA8 conversion
-as well as transport. All 720 measured MQRC requests below succeeded.
+as well as transport. All 2,160 measured MQRC requests below succeeded.
 
 .. list-table:: Movie Quality Render Component
    :header-rows: 1
@@ -80,36 +73,36 @@ as well as transport. All 720 measured MQRC requests below succeeded.
      - Shared FPS
      - Speedup
    * - 480p (640x480)
-     - 23.33
-     - 39.94
-     - 1.71x
+     - 25.45 +/- 0.74
+     - 40.12 +/- 1.30
+     - 1.58x
    * - 720p (1280x720)
-     - 16.21
-     - 28.50
-     - 1.76x
+     - 15.85 +/- 0.35
+     - 30.22 +/- 0.63
+     - 1.91x
    * - 1080p (1920x1080)
-     - 10.01
-     - 17.78
-     - 1.78x
+     - 9.71 +/- 0.35
+     - 19.24 +/- 0.37
+     - 1.98x
    * - 2K (2560x1440)
-     - 5.31
-     - 10.91
-     - 2.05x
+     - 6.27 +/- 0.03
+     - 12.81 +/- 0.19
+     - 2.04x
    * - 4K (3840x2160)
-     - 3.29
-     - 6.61
-     - 2.01x
+     - 3.28 +/- 0.17
+     - 7.01 +/- 0.12
+     - 2.14x
    * - 8K (7680x4320)
-     - 0.59
-     - 1.60
-     - 2.69x
+     - 0.77 +/- 0.05
+     - 1.78 +/- 0.05
+     - 2.30x
 
 Multi-camera capture
 --------------------
 
-The multi-camera test uses 640x480 and one ``vbatch N`` request containing
-one capture command for each of N distinct cameras. FPS is the number of
-complete synchronized N-camera capture rounds per second.
+The multi-camera test uses 640x480 with the same scene and camera pose. Each
+camera count was tested independently. N=1 reuses the Standard Camera 480p
+result. FPS is the number of complete synchronized capture rounds per second.
 
 .. list-table:: Synchronized multi-camera FPS
    :header-rows: 1
@@ -120,45 +113,45 @@ complete synchronized N-camera capture rounds per second.
      - Lit shared FPS
      - Speedup
    * - 1
-     - 20.29
-     - 30.13
-     - 1.48x
+     - 40.65 +/- 1.13
+     - 64.00 +/- 1.85
+     - 1.57x
    * - 2
-     - 16.30
-     - 24.47
-     - 1.50x
+     - 13.31 +/- 1.93
+     - 21.13 +/- 3.81
+     - 1.59x
    * - 3
-     - 13.09
-     - 23.46
+     - 13.44 +/- 0.13
+     - 24.04 +/- 0.42
      - 1.79x
    * - 4
-     - 10.30
-     - 18.83
-     - 1.83x
+     - 10.97 +/- 0.17
+     - 20.68 +/- 0.09
+     - 1.89x
    * - 5
-     - 8.34
-     - 17.10
-     - 2.05x
+     - 9.06 +/- 0.21
+     - 17.46 +/- 0.46
+     - 1.93x
    * - 6
-     - 7.59
-     - 16.13
-     - 2.12x
+     - 8.23 +/- 0.22
+     - 16.92 +/- 0.74
+     - 2.06x
    * - 7
-     - 5.94
-     - 13.12
-     - 2.21x
+     - 7.04 +/- 0.19
+     - 14.96 +/- 0.57
+     - 2.13x
    * - 8
-     - 5.88
-     - 12.48
-     - 2.12x
+     - 6.31 +/- 0.46
+     - 13.49 +/- 0.19
+     - 2.14x
    * - 9
-     - 5.18
-     - 11.57
-     - 2.23x
+     - 5.88 +/- 0.16
+     - 12.41 +/- 0.30
+     - 2.11x
    * - 10
-     - 4.76
-     - 11.52
-     - 2.42x
+     - 5.33 +/- 0.17
+     - 11.50 +/- 0.19
+     - 2.16x
 
 Cross-simulator comparison
 --------------------------
@@ -170,10 +163,9 @@ UnrealZoo measurements above.
 The UnrealCV shared-memory column uses the same packaged-build Standard Camera
 measurements reported above and ``vget /camera/0/lit_shared``.
 
-Each result uses three rounds, ten warm-up captures per round, and twenty
-measured captures per round, for 60 measured samples per cell. FPS is
-``1000 / arithmetic mean client latency``. Simulators ran serially and
-offscreen.
+The UnrealCV results use the controlled 180-sample procedure above. The other
+simulators retain their original three-round, 60-sample measurements.
+Simulators ran serially and offscreen.
 
 .. list-table:: Effective FPS
    :header-rows: 1
@@ -185,32 +177,32 @@ offscreen.
      - SimWorld
      - AirSim (UE4)
    * - 640x480
-     - 66.28
+     - 64.00
      - 69.94
      - 18.24
      - 68.91
    * - 1280x720
-     - 62.06
+     - 69.70
      - 49.09
      - 11.56
      - 37.85
    * - 1920x1080
-     - 62.28
+     - 62.99
      - 27.07
      - 7.81
      - 12.99
    * - 2560x1440
-     - 48.94
+     - 53.46
      - 17.41
      - 5.13
      - 8.03
    * - 3840x2160
-     - 21.78
+     - 29.59
      - 8.38
      - 2.58
      - 3.89
    * - 7680x4320
-     - 6.76
+     - 7.68
      - 2.13
      - 0.70
      - 1.04
