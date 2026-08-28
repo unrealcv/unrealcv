@@ -1468,7 +1468,10 @@ class MsgDecoder:
         Returns:
             str: The key extracted from the command.
         """
-        return re.split(r'[/\s]+', cmd)[-1]
+        res =  re.split(r'[/\s]+', cmd)[-1]
+        if "shared" in res:
+            res = "bmp"
+        return res
 
     def decode(self, cmd, res):
         """Universal decode function that selects appropriate decoder based on command.
