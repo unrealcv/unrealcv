@@ -7,7 +7,7 @@ name = "UnrealCV"
 dynamic = ["version"]
 description = "UnrealCV client for python. see http://unrealcv.org for more detail."
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     { name = "Weichao Qiu", email = "qiuwch@gmail.com" },
     { name = "Fangwei Zhong", email = "zfw1226@gmail.com" },
@@ -24,6 +24,20 @@ dependencies = [
     "pydantic>=2.0"
 ]
 keywords = ["computer vision", "unreal engine", "ue4/5", "synthetic", "simulator", "robotics"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -40,6 +54,9 @@ Repository = "https://github.com/unrealcv/unrealcv"
 
 [tool.setuptools.dynamic]
 version = {attr = "unrealcv.__version__"}
+
+[tool.setuptools.package-data]
+unrealcv = ["*.json"]
 
 [tool.ruff]
 line-length = 100
