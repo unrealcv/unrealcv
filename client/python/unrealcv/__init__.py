@@ -49,7 +49,7 @@ _L.addHandler(h)
 _L.propagate = False
 _L.setLevel(logging.INFO)
 
-__version__ = '1.3.0'  # release current client changes under a distinct version
+__version__ = '1.3.1'  # release current client changes under a distinct version
 
 class SocketMessage:
     """
