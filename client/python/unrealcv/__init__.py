@@ -147,7 +147,7 @@ class Client:
     """
 
     SOCKET_TIMEOUT = 60
-    RECONNECT_ATTEMPTS = 5
+    RECONNECT_ATTEMPTS = 10
     RECONNECT_BASE_DELAY = 0.5
     RECONNECT_MAX_DELAY = 8.0
 
@@ -229,7 +229,7 @@ class Client:
         self._command_capabilities_checked = True
         try:
             response = self._request_without_capability_check(
-                'vget /unrealcv/commands', timeout=5
+                'vget /unrealcv/commands'
             )
         except (ConnectionError, TimeoutError):
             self._warn_command_capabilities_unavailable()
@@ -253,7 +253,7 @@ class Client:
         self._supported_command_templates = templates
         self._command_capabilities_available = True
 
-    def _request_without_capability_check(self, message, timeout=5):
+    def _request_without_capability_check(self, message, timeout=15):
         if not isinstance(message, bytes):
             message = message.encode('utf-8')
 
@@ -412,16 +412,18 @@ class Client:
             # _L.debug('Got server raw message with length %d', len(message))
 
             if not message:
-                print('BaseClient: remote disconnected, no more message')
-                _L.debug('BaseClient: remote disconnected, no more message')
-                self.disconnect()
-
+                print('BaseClient: can not receive message from server')
+                _L.debug('BaseClient: can not receive message from server')
+                
                 delay = self.RECONNECT_BASE_DELAY
                 for _attempt in range(self.RECONNECT_ATTEMPTS):
-                    if self.connect(timeout=self.SOCKET_TIMEOUT, start_receive_thread=False):
-                        return self.receive()
+                    message = SocketMessage.ReceivePayload(self.sock)
+                    if message is not None:
+                        return message
                     time.sleep(delay)
                     delay = min(delay * 2, self.RECONNECT_MAX_DELAY)
+
+                self.disconnect()
                 error = ConnectionError(
                     f'Failed to reconnect to {self.endpoint} after {self.RECONNECT_ATTEMPTS} attempts'
                 )
@@ -549,7 +551,7 @@ class Client:
 
         return batch_res
 
-    def request(self, message, timeout=5, response_format=None):
+    def request(self, message, timeout=15, response_format=None):
         """
         Send a request to server and wait util get a response from server or timeout.
 
