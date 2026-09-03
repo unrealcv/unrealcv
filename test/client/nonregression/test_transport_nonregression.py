@@ -3,7 +3,7 @@ import struct
 
 import pytest
 
-from unrealcv import Client, SocketMessage
+from unrealcv import Client, SharedCommand, SocketMessage
 
 
 LOCAL_ENDPOINT = ("localhost", 1)
@@ -176,6 +176,32 @@ def test_client_request_batch_queues_negative_batch_size(monkeypatch):
     result = client.request_batch(["cmd1", "cmd2"])
 
     assert result == ["r1", "r2"]
+    assert client.recv_num_q.get() == -2
+
+
+def test_client_request_batch_keeps_shared_commands_batched(monkeypatch):
+    client = _new_client()
+    sent_messages = []
+    monkeypatch.setattr(client, "send", lambda message: sent_messages.append(message) or True)
+    decoded = []
+    monkeypatch.setattr(
+        client,
+        "_decode_shared_response",
+        lambda response, output_format: decoded.append((response, output_format))
+        or f"decoded:{output_format}:{response}",
+    )
+    client.recv_data_q.put("shared-metadata")
+    client.recv_data_q.put("ordinary-response")
+    batch = [SharedCommand("vget /camera/0/lit_shared", "bmp"), "vget /camera/0/location"]
+
+    result = client.request_batch(batch)
+
+    assert result == ["decoded:bmp:shared-metadata", "ordinary-response"]
+    assert decoded == [("shared-metadata", "bmp")]
+    assert sent_messages == [
+        b"0:vget /camera/0/lit_shared",
+        b"1:vget /camera/0/location",
+    ]
     assert client.recv_num_q.get() == -2
 
 

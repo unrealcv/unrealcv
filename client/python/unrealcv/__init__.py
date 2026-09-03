@@ -526,9 +526,6 @@ class Client:
         >>> client.request_batch(['vget /camera/0/location', 'vget /camera/0/rotation'])
         ['100.0 -100.0 100.0', '0.0 0.0 0.0']
         """
-        if any(isinstance(message, SharedCommand) for message in batch):
-            return [self.request(message) for message in batch]
-
         for message in batch:
             self._warn_if_command_maybe_unsupported(message)
             if not isinstance(message, bytes):
@@ -543,11 +540,16 @@ class Client:
         self.recv_num_q.put(-len(batch))  # negative number indicates need results
 
         batch_res = []
-        for i in range(len(batch)):
-            message = self.recv_data_q.get()
-            if isinstance(message, Exception):
-                raise message
-            batch_res.append(message)
+        for request in batch:
+            response = self.recv_data_q.get()
+            if isinstance(response, Exception):
+                raise response
+            # Shared commands use the same batched wire protocol as ordinary
+            # commands. Decode each response in place so a single shared
+            # capture no longer forces the whole batch into serial requests.
+            if isinstance(request, SharedCommand):
+                response = self._decode_shared_response(response, request.response_format)
+            batch_res.append(response)
 
         return batch_res
 
