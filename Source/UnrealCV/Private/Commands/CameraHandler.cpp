@@ -6,6 +6,7 @@
 #include "Runtime/Engine/Classes/Engine/GameViewportClient.h"
 #include "Runtime/Engine/Classes/GameFramework/Controller.h"
 #include "Misc/Paths.h"
+#include "Runtime/Launch/Resources/Version.h"
 
 #include "CommandDispatcher.h"
 #include "UnrealcvServer.h"
@@ -650,8 +651,10 @@ FExecStatus FCameraHandler::GetCineCamera(const TArray<FString>& Args)
     TSharedRef<FJsonObject> FilmbackObject = MakeShared<FJsonObject>();
     FilmbackObject->SetNumberField(TEXT("sensor_width_mm"), Filmback.SensorWidth);
     FilmbackObject->SetNumberField(TEXT("sensor_height_mm"), Filmback.SensorHeight);
+#if ENGINE_MAJOR_VERSION > 5 || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5)
     FilmbackObject->SetNumberField(TEXT("sensor_offset_x_mm"), Filmback.SensorHorizontalOffset);
     FilmbackObject->SetNumberField(TEXT("sensor_offset_y_mm"), Filmback.SensorVerticalOffset);
+#endif
     Root->SetObjectField(TEXT("filmback"), FilmbackObject);
 
     TSharedRef<FJsonObject> LensObject = MakeShared<FJsonObject>();
@@ -681,9 +684,11 @@ FExecStatus FCameraHandler::GetCineCamera(const TArray<FString>& Args)
 
     TSharedRef<FJsonObject> CropObject = MakeShared<FJsonObject>();
     CropObject->SetNumberField(TEXT("aspect_ratio"), Cine->CropSettings.AspectRatio);
+#if ENGINE_MAJOR_VERSION > 5 || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5)
     CropObject->SetNumberField(TEXT("overscan"), Cine->Overscan);
     CropObject->SetBoolField(TEXT("crop_overscan"), Cine->bCropOverscan);
     CropObject->SetBoolField(TEXT("scale_resolution_with_overscan"), Cine->bScaleResolutionWithOverscan);
+#endif
     Root->SetObjectField(TEXT("crop"), CropObject);
 
     TSharedRef<FJsonObject> ExposureObject = MakeShared<FJsonObject>();

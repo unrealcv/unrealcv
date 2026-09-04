@@ -2,6 +2,7 @@
 #include "FusionCamSensor.h"
 #include "CineCameraComponent.h"
 #include "Runtime/Engine/Classes/Camera/CameraComponent.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "ImageUtil.h"
 #include "Serialization.h"
 #include "UnrealcvLog.h"
@@ -295,8 +296,10 @@ void UFusionCamSensor::SetCineFilmback(float SensorWidth, float SensorHeight, fl
 	FCameraFilmbackSettings Filmback;
 	Filmback.SensorWidth = FMath::Max(SensorWidth, 0.001f);
 	Filmback.SensorHeight = FMath::Max(SensorHeight, 0.001f);
+#if ENGINE_MAJOR_VERSION > 5 || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5)
 	Filmback.SensorHorizontalOffset = HorizontalOffset;
 	Filmback.SensorVerticalOffset = VerticalOffset;
+#endif
 	Filmback.RecalcSensorAspectRatio();
 	for (UCineCameraComponent* Cine : GetCineCameraComponents())
 	{
@@ -393,9 +396,11 @@ void UFusionCamSensor::SetCineCrop(float CropAspectRatio, float Overscan, bool b
 	for (UCineCameraComponent* Cine : GetCineCameraComponents())
 	{
 		Cine->SetCropSettings(CropSettings);
+#if ENGINE_MAJOR_VERSION > 5 || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 5)
 		Cine->SetOverscan(FMath::Max(Overscan, 0.0f));
 		Cine->SetCropOverscan(bCropOverscan);
 		Cine->SetScaleResolutionWithOverscan(bScaleResolutionWithOverscan);
+#endif
 	}
 	FOV = GetSensorFOV();
 }

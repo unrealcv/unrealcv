@@ -5,6 +5,12 @@ CHANGELOG
 Development branch
 ==================
 
+- v1.1.2 (2026-09-04)
+    - Restore Unreal Engine 5.4 compatibility for Cine Camera filmback and crop
+      controls introduced in Unreal Engine 5.5.
+    - Verify the UnrealCV plugin builds for Unreal Engine 5.4 through 5.8 on
+      Win64 in Editor Development, Game Development, and Game Shipping targets.
+
 - v1.1.1 (2026-09-04)
     - Support Unreal Engine 5.2 and later with version-specific Cine Camera exposure handling.
     - Update reflected function JSON argument lookup for Unreal Engine 5.8 and later.
