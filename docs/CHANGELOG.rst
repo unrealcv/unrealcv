@@ -5,6 +5,10 @@ CHANGELOG
 Development branch
 ==================
 
+- v1.1.1 (2026-09-04)
+    - Support Unreal Engine 5.2 and later with version-specific Cine Camera exposure handling.
+    - Update reflected function JSON argument lookup for Unreal Engine 5.8 and later.
+
 - Python client 1.3.0 (2026-08-27; no UnrealCV plugin/server tag)
     - Add Python wrappers for the complete Windows shared-memory camera and
       scene-occupancy command surface exposed by the UnrealCV Plus server.

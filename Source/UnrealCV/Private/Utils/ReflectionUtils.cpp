@@ -1,6 +1,7 @@
 #include "Utils/ReflectionUtils.h"
 
 #include "Serialization/JsonSerializer.h"
+#include "Runtime/Launch/Resources/Version.h"
 #include "UObject/FieldIterator.h"
 #include "UObject/TextProperty.h"
 #include "UObject/UObjectIterator.h"
@@ -796,7 +797,12 @@ bool CallFunctionWithJson(UObject* TargetObject, const FString& FunctionName, co
             continue;
         }
 
+#if ENGINE_MAJOR_VERSION > 5 || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 8)
+        TSharedPtr<FJsonValue> JsonValue = ArgsObject->TryGetField(Property->GetName());
+        const TSharedPtr<FJsonValue>* JsonValuePtr = JsonValue.IsValid() ? &JsonValue : nullptr;
+#else
         const TSharedPtr<FJsonValue>* JsonValuePtr = ArgsObject->Values.Find(Property->GetName());
+#endif
         if (JsonValuePtr == nullptr)
         {
 #if WITH_EDITOR

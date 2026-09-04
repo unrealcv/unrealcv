@@ -417,7 +417,9 @@ void UFusionCamSensor::SetCineExposure(float ISO, float ShutterSpeed, bool bAppl
 	const float SafeShutterSpeed = FMath::Max(ShutterSpeed, 0.001f);
 	for (UCineCameraComponent* Cine : GetCineCameraComponents())
 	{
+#if ENGINE_MAJOR_VERSION > 5 || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 7)
 		Cine->ExposureMethod = bApplyPhysicalExposure ? ECameraExposureMethod::Enabled : ECameraExposureMethod::DoNotOverride;
+#endif
 		Cine->PostProcessSettings.bOverride_CameraISO = true;
 		Cine->PostProcessSettings.CameraISO = SafeISO;
 		Cine->PostProcessSettings.bOverride_CameraShutterSpeed = true;
